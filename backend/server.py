@@ -2067,6 +2067,15 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             cc_email=current_user.get("email")  # CC to the user who created booking
         )
     
+    # Real-time notification to PE Desk about pending booking
+    await notify_roles(
+        [1],  # PE Desk only
+        "booking_pending",
+        "New Booking Pending Approval",
+        f"Booking for '{client['name']}' - {stock['symbol']} x {booking_data.quantity} is pending approval",
+        {"booking_id": booking_id, "client_name": client["name"], "stock_symbol": stock["symbol"]}
+    )
+    
     return Booking(**{k: v for k, v in booking_doc.items() if k not in ["user_id", "created_by_name"]})
 
 @api_router.put("/bookings/{booking_id}/approve")
