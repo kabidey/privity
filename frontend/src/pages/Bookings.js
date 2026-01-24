@@ -574,6 +574,7 @@ const Bookings = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="text-xs uppercase">Booking ID</TableHead>
                     <TableHead className="text-xs uppercase">Client</TableHead>
                     <TableHead className="text-xs uppercase">Stock</TableHead>
                     <TableHead className="text-xs uppercase">Qty</TableHead>
@@ -594,6 +595,11 @@ const Bookings = () => {
                     
                     return (
                       <TableRow key={booking.id} data-testid="booking-row" className={isLoss ? 'bg-red-50/50 dark:bg-red-950/20' : ''}>
+                        <TableCell>
+                          <span className="font-mono text-sm font-semibold text-primary">
+                            {booking.booking_number || booking.id.substring(0, 8).toUpperCase()}
+                          </span>
+                        </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">{booking.client_name}</p>
