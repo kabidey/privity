@@ -131,6 +131,7 @@ const Inventory = () => {
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Stock Symbol</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Stock Name</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Available Qty</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Blocked Qty</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Weighted Avg Price</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Total Value</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Stock Level</TableHead>
@@ -144,6 +145,7 @@ const Inventory = () => {
                         <TableCell className="font-bold mono text-lg">{item.stock_symbol}</TableCell>
                         <TableCell className="font-medium">{item.stock_name}</TableCell>
                         <TableCell className="mono text-lg">{item.available_quantity.toLocaleString('en-IN')}</TableCell>
+                        <TableCell className="mono text-orange-600">{(item.blocked_quantity || 0).toLocaleString('en-IN')}</TableCell>
                         <TableCell className="mono">₹{item.weighted_avg_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
                         <TableCell className="mono font-semibold">₹{item.total_value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
                         <TableCell>
