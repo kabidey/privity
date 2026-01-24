@@ -4536,6 +4536,11 @@ async def websocket_notifications(websocket: WebSocket, token: str = Query(...))
 # Include the router
 app.include_router(api_router)
 
+# Include modular routers (with /api prefix)
+app.include_router(email_templates_router, prefix="/api")
+app.include_router(smtp_config_router, prefix="/api")
+app.include_router(stocks_router, prefix="/api")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
