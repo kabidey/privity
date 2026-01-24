@@ -1093,6 +1093,109 @@ const Clients = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Suspend Client Dialog */}
+      <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
+        <DialogContent className="max-w-md" data-testid="suspend-client-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
+              <Ban className="h-5 w-5" />
+              Suspend Client
+            </DialogTitle>
+            <DialogDescription>
+              {selectedSuspendClient && `Suspend "${selectedSuspendClient.name}" from the system`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+              <p className="text-sm text-orange-700 dark:text-orange-300">
+                <strong>Warning:</strong> Suspended clients cannot be used for new bookings. Employees will see the suspension reason.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="suspension-reason">Suspension Reason *</Label>
+              <Textarea
+                id="suspension-reason"
+                placeholder="Enter reason for suspension..."
+                value={suspensionReason}
+                onChange={(e) => setSuspensionReason(e.target.value)}
+                rows={3}
+                data-testid="suspension-reason-input"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setSuspendDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSuspendClient}
+              disabled={!suspensionReason.trim()}
+              className="bg-orange-600 hover:bg-orange-700"
+              data-testid="confirm-suspend-btn"
+            >
+              <Ban className="h-4 w-4 mr-2" />
+              Suspend Client
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Suspension Reason Dialog (for Employees) */}
+      <Dialog open={suspensionReasonDialogOpen} onOpenChange={setSuspensionReasonDialogOpen}>
+        <DialogContent className="max-w-md" data-testid="suspension-reason-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Ban className="h-5 w-5" />
+              Client Suspended
+            </DialogTitle>
+            <DialogDescription>
+              {selectedSuspendClient && `"${selectedSuspendClient.name}" has been suspended`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedSuspendClient && (
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+                <Label className="text-sm font-medium text-red-700 dark:text-red-300">Suspension Reason:</Label>
+                <p className="mt-2 text-red-800 dark:text-red-200">
+                  {selectedSuspendClient.suspension_reason || 'No reason provided'}
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <Label className="text-muted-foreground">Suspended By</Label>
+                  <p className="font-medium">{selectedSuspendClient.suspended_by_name || 'Unknown'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Suspended At</Label>
+                  <p className="font-medium">
+                    {selectedSuspendClient.suspended_at 
+                      ? new Date(selectedSuspendClient.suspended_at).toLocaleDateString('en-IN', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                      : 'Unknown'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="mt-4">
+            <Button onClick={() => setSuspensionReasonDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
