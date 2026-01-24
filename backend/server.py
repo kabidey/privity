@@ -587,6 +587,34 @@ async def download_client_document(
     
     return FileResponse(file_path, filename=filename)
 
+@api_router.get("/clients/{client_id}/documents/{filename}/ocr")
+async def get_document_ocr(
+    client_id: str,
+    filename: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get OCR data for a specific document"""
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Find the document
+    document = None
+    for doc in client.get("documents", []):
+        if doc["filename"] == filename:
+            document = doc
+            break
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    return {
+        "filename": filename,
+        "doc_type": document.get("doc_type"),
+        "ocr_data": document.get("ocr_data"),
+        "upload_date": document.get("upload_date")
+    }
+
 @api_router.get("/clients", response_model=List[Client])
 async def get_clients(
     search: Optional[str] = None,
