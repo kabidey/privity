@@ -2325,8 +2325,11 @@ async def get_bookings(
         if booking.get("selling_price") and booking["status"] == "closed":
             profit_loss = (booking["selling_price"] - booking["buying_price"]) * booking["quantity"]
         
+        # Exclude fields that will be explicitly provided to avoid duplicate key errors
+        booking_data = {k: v for k, v in booking.items() if k not in ["client_name", "stock_symbol", "stock_name", "created_by_name", "profit_loss"]}
+        
         enriched_bookings.append(BookingWithDetails(
-            **booking,
+            **booking_data,
             client_name=client["name"] if client else "Unknown",
             stock_symbol=stock["symbol"] if stock else "Unknown",
             stock_name=stock["name"] if stock else "Unknown",
