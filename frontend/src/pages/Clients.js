@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Loader2, Sparkles, Check, Clock, CheckCircle, XCircle, Download, Eye, FolderOpen } from 'lucide-react';
+import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Loader2, Sparkles, Check, Clock, CheckCircle, XCircle, Download, Eye, FolderOpen, Copy } from 'lucide-react';
 
 const Clients = () => {
   const navigate = useNavigate();
@@ -23,6 +23,7 @@ const Clients = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [cloning, setCloning] = useState(false);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
   const [mappingDialogOpen, setMappingDialogOpen] = useState(false);
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
