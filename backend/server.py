@@ -65,7 +65,7 @@ from models import (
     PurchaseCreate, Purchase, Inventory as InventoryModel,
     PaymentTranche, PaymentTrancheCreate, BookingCreate, Booking,
     BookingWithDetails, DPTransferRecord, DashboardStats, ClientPortfolio,
-    ClientConfirmationRequest, EmailTemplateUpdate, EmailTemplatePreview
+    ClientConfirmationRequest, ClientSuspensionRequest, EmailTemplateUpdate, EmailTemplatePreview
 )
 
 # Import helper functions from utils
