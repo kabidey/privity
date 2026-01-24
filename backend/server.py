@@ -745,7 +745,9 @@ async def get_client(client_id: str, current_user: dict = Depends(get_current_us
 
 @api_router.put("/clients/{client_id}", response_model=Client)
 async def update_client(client_id: str, client_data: ClientCreate, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_clients")
+    # Only PE Desk (role 1) can modify clients
+    if current_user.get("role", 5) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can modify clients")
     
     result = await db.clients.update_one(
         {"id": client_id},
@@ -783,7 +785,9 @@ async def update_client_employee_mapping(
 
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_clients")
+    # Only PE Desk (role 1) can delete clients
+    if current_user.get("role", 5) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete clients")
     
     result = await db.clients.delete_one({"id": client_id})
     if result.deleted_count == 0:
