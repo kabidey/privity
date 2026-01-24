@@ -349,6 +349,21 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Input field gets red border
   - Employee can still create booking (not blocked)
 
+### Feature - Client/Vendor Clone (Jan 24, 2026)
+- ✅ **Clone Vendor as Client**: PE Desk can clone a vendor to create a new client with same details
+  - Blue copy icon in Vendors table Actions column
+  - Confirmation dialog before cloning
+  - Creates new client entry with new OTC UCC
+  - Documents are not cloned (client must upload separately)
+- ✅ **Clone Client as Vendor**: PE Desk can clone a client to create a new vendor with same details
+  - Blue copy icon in Clients table Actions column (PE Desk only)
+  - Confirmation dialog before cloning
+  - Creates new vendor entry with new OTC UCC
+- ✅ **Validation**: 
+  - Cannot clone if already exists with same PAN in target type
+  - Only PE Desk (role=1) can perform cloning
+  - Audit log entry created for each clone operation
+
 ## Next Tasks
 1. **(P0) Continue Backend Modularization** - Move remaining routes from server.py:
    - Move client routes to `/routers/clients.py`
