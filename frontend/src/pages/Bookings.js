@@ -16,7 +16,7 @@ import api from '../utils/api';
 import { 
   Plus, Pencil, Trash2, Clock, CheckCircle, XCircle, AlertCircle, 
   CreditCard, IndianRupee, Calendar, Receipt, Building2, TrendingDown, Download, FileSpreadsheet,
-  AlertTriangle, Upload, UserCircle, Mail, FileText, Info
+  AlertTriangle, Upload, UserCircle, Mail, FileText, Info, Ban
 } from 'lucide-react';
 
 const Bookings = () => {
