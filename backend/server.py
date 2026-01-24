@@ -623,8 +623,12 @@ async def bulk_upload_clients(file: UploadFile = File(...), current_user: dict =
         clients_created = 0
         for _, row in df.iterrows():
             client_id = str(uuid.uuid4())
+            # Generate unique OTC UCC code
+            otc_ucc = f"OTC{datetime.now().strftime('%Y%m%d')}{client_id[:8].upper()}"
+            
             client_doc = {
                 "id": client_id,
+                "otc_ucc": otc_ucc,
                 "name": str(row["name"]),
                 "email": str(row.get("email", "")) if pd.notna(row.get("email")) else None,
                 "phone": str(row.get("phone", "")) if pd.notna(row.get("phone")) else None,
@@ -635,6 +639,8 @@ async def bulk_upload_clients(file: UploadFile = File(...), current_user: dict =
                 "ifsc_code": str(row.get("ifsc_code", "")) if pd.notna(row.get("ifsc_code")) else None,
                 "is_vendor": bool(row.get("is_vendor", False)) if pd.notna(row.get("is_vendor")) else False,
                 "documents": [],
+                "mapped_employee_id": None,
+                "mapped_employee_name": None,
                 "user_id": current_user["id"],
                 "created_by": current_user["id"],
                 "created_at": datetime.now(timezone.utc).isoformat()
