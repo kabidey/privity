@@ -822,26 +822,25 @@ class SMIFSStockManagementTester:
         return False
 
 def main():
-    print("🚀 Starting SMIFS Share Booking System - New Features Test")
-    print("Testing: Domain restriction, Audit logs, Booking approval workflow")
-    print("=" * 70)
+    print("🚀 Starting SMIFS Share Booking System - Stock Management Enhancements Test")
+    print("Testing: Stock CRUD restrictions, Corporate Actions, New Stock Fields, Price Adjustments")
+    print("=" * 80)
     
-    tester = SMIFSShareBookingTester()
+    tester = SMIFSStockManagementTester()
     
-    # Test sequence for NEW features
+    # Test sequence for Stock Management enhancements
     tests = [
         ("Admin Login (PE Desk)", tester.test_admin_login),
-        ("Domain Restriction - Invalid Domain", tester.test_domain_restriction_invalid),
-        ("Domain Restriction - Valid @smifs.com", tester.test_domain_restriction_valid),
-        ("Audit Logs - Admin Access", tester.test_audit_logs_admin_access),
-        ("Audit Logs - Employee Denied", tester.test_audit_logs_employee_denied),
-        ("Create Test Data", tester.test_create_test_data),
-        ("Booking Requires PE Desk Approval", tester.test_booking_requires_approval),
-        ("Pending Bookings - PE Desk Only", tester.test_pending_bookings_pe_desk_only),
-        ("Pending Bookings - Employee Denied", tester.test_pending_bookings_employee_denied),
-        ("Booking Approval - PE Desk Only", tester.test_booking_approval_pe_desk_only),
-        ("Booking Approval - Employee Denied", tester.test_booking_approval_employee_denied),
-        ("Inventory Not Adjusted Until Approved", tester.test_inventory_not_adjusted_until_approved),
+        ("Employee Registration", tester.test_domain_restriction_valid),
+        ("Stock Creation - PE Desk Only", tester.test_stock_creation_pe_desk_only),
+        ("Stock Update - PE Desk Only", tester.test_stock_update_pe_desk_only),
+        ("Stock Deletion - PE Desk Only", tester.test_stock_delete_pe_desk_only),
+        ("Stock Model - New Fields Verification", tester.test_stock_model_new_fields),
+        ("Corporate Action Creation - PE Desk Only", tester.test_corporate_action_creation_pe_desk_only),
+        ("Corporate Action Types - Stock Split & Bonus", tester.test_corporate_action_types),
+        ("Corporate Actions GET - PE Desk Only", tester.test_corporate_action_get_pe_desk_only),
+        ("Corporate Action Apply - Record Date Validation", tester.test_corporate_action_apply_record_date_validation),
+        ("Price Adjustment Factor Calculation", tester.test_price_adjustment_calculation),
     ]
     
     failed_tests = []
@@ -855,7 +854,7 @@ def main():
             failed_tests.append(test_name)
     
     # Print results
-    print("\n" + "=" * 70)
+    print("\n" + "=" * 80)
     print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} passed")
     
     if failed_tests:
@@ -865,14 +864,14 @@ def main():
     else:
         print("\n✅ All tests passed!")
     
-    print("\n🎯 NEW Features Tested:")
-    print("   ✓ Registration domain restriction (@smifs.com only)")
-    print("   ✓ Registration creates Employee role (4)")
-    print("   ✓ Audit log API endpoints (admin only)")
-    print("   ✓ Booking creation requires PE Desk approval")
-    print("   ✓ Booking approval endpoint (PE Desk only)")
-    print("   ✓ Pending bookings endpoint (PE Desk only)")
-    print("   ✓ Inventory NOT adjusted until booking approved")
+    print("\n🎯 Stock Management Enhancements Tested:")
+    print("   ✓ Stock creation restricted to PE Desk only (role=1)")
+    print("   ✓ Stock model has new fields: isin_number, sector, product, face_value")
+    print("   ✓ Corporate action creation POST /api/corporate-actions (PE Desk only)")
+    print("   ✓ Corporate action types: stock_split and bonus")
+    print("   ✓ Corporate action apply PUT /api/corporate-actions/{id}/apply (record date validation)")
+    print("   ✓ Price adjustment factor for splits and bonuses")
+    print("   ✓ GET /api/corporate-actions endpoint (PE Desk only)")
     
     return 0 if len(failed_tests) == 0 else 1
 
