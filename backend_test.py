@@ -369,34 +369,67 @@ class PrivityShareBookingTester:
         if not success:
             return False
         
+        # Create a client specifically for the employee to use for booking
+        employee_client_data = {
+            "name": "Employee Booking Client",
+            "pan_number": "EMPBK1234E",
+            "dp_id": "EMPBOOK123",
+            "is_vendor": False
+        }
+        
+        success, employee_client_response = self.run_test(
+            "Create Employee Client for Booking",
+            "POST",
+            "clients",
+            200,
+            data=employee_client_data,
+            token=self.employee_token
+        )
+        
+        if not success:
+            return False
+            
+        employee_client_id = employee_client_response['id']
+        
+        # Approve the employee's client first
+        success, approval_response = self.run_test(
+            "Approve Employee Client",
+            "PUT",
+            f"clients/{employee_client_id}/approve?approve=true",
+            200,
+            token=self.admin_token
+        )
+        
+        if not success:
+            return False
+        
         # Now try to create booking as employee with custom buying price
-        if self.test_client_id:
-            booking_data = {
-                "client_id": self.test_client_id,
-                "stock_id": stock_id,
-                "quantity": 10,
-                "buying_price": 60.0,  # Different from weighted average
-                "selling_price": 70.0,
-                "booking_date": "2024-01-16",
-                "status": "open"
-            }
-            
-            success, booking_response = self.run_test(
-                "Employee Create Booking (Price Should Be Overridden)",
-                "POST",
-                "bookings",
-                200,
-                data=booking_data,
-                token=self.employee_token
-            )
-            
-            if success:
-                # Check if buying price was overridden to weighted average
-                actual_buying_price = booking_response.get('buying_price')
-                print(f"   Requested buying price: {booking_data['buying_price']}")
-                print(f"   Actual buying price: {actual_buying_price}")
-                # Should be weighted average (50.0), not the requested 60.0
-                return actual_buying_price == 50.0
+        booking_data = {
+            "client_id": employee_client_id,
+            "stock_id": stock_id,
+            "quantity": 10,
+            "buying_price": 60.0,  # Different from weighted average
+            "selling_price": 70.0,
+            "booking_date": "2024-01-16",
+            "status": "open"
+        }
+        
+        success, booking_response = self.run_test(
+            "Employee Create Booking (Price Should Be Overridden)",
+            "POST",
+            "bookings",
+            200,
+            data=booking_data,
+            token=self.employee_token
+        )
+        
+        if success:
+            # Check if buying price was overridden to weighted average
+            actual_buying_price = booking_response.get('buying_price')
+            print(f"   Requested buying price: {booking_data['buying_price']}")
+            print(f"   Actual buying price: {actual_buying_price}")
+            # Should be weighted average (50.0), not the requested 60.0
+            return actual_buying_price == 50.0
         
         return False
 
