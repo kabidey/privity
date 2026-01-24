@@ -84,16 +84,30 @@ class TestDelayedClientConfirmation:
                 approved_client = c
                 break
         
+        # Get stocks
+        stocks_resp = self.session.get(f"{BASE_URL}/api/stocks", headers=headers)
+        assert stocks_resp.status_code == 200
+        stocks = stocks_resp.json()
+        
         # Get inventory
         inventory_resp = self.session.get(f"{BASE_URL}/api/inventory", headers=headers)
         assert inventory_resp.status_code == 200
         inventory = inventory_resp.json()
         
-        # Find stock with available inventory
+        # Find stock that exists in both stocks table and has inventory
         stock_with_inventory = None
-        for inv in inventory:
-            if inv.get("available_quantity", 0) > 0:
-                stock_with_inventory = inv
+        for stock in stocks:
+            for inv in inventory:
+                if inv.get("stock_id") == stock.get("id") and inv.get("available_quantity", 0) > 0:
+                    stock_with_inventory = {
+                        "stock_id": stock["id"],
+                        "stock_symbol": stock["symbol"],
+                        "stock_name": stock["name"],
+                        "weighted_avg_price": inv["weighted_avg_price"],
+                        "available_quantity": inv["available_quantity"]
+                    }
+                    break
+            if stock_with_inventory:
                 break
         
         return approved_client, stock_with_inventory
