@@ -61,4 +61,4 @@ def test_client_models():
     print("\n🎉 All model tests passed!")
 
 if __name__ == "__main__":
-    test_models()
+    test_client_models()
