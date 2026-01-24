@@ -2618,6 +2618,13 @@ async def get_booking_payments(
     total_paid = booking.get("total_paid", 0)
     
     return {
+        "payments": booking.get("payments", []),
+        "total_paid": total_paid,
+        "total_amount": total_amount,
+        "remaining": total_amount - total_paid,
+        "payment_status": booking.get("payment_status", "pending"),
+        "dp_transfer_ready": booking.get("dp_transfer_ready", False)
+    }
 
 
 # ============== Insider Trading Form Upload ==============
