@@ -391,6 +391,51 @@ class ShareBookingAPITester:
             self.log_test("Export PDF", False, str(e))
             return False
 
+    def test_get_users(self):
+        """Test getting all users (User Management)"""
+        success, response, status = self.make_request("GET", "users", expected_status=200)
+        
+        if success and isinstance(response, list):
+            self.log_test("Get Users (User Management)", True, f"Found {len(response)} users")
+            return True
+        else:
+            self.log_test("Get Users (User Management)", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_client_portfolio(self):
+        """Test client portfolio endpoint"""
+        if not self.test_client_id:
+            self.log_test("Client Portfolio", False, "No client ID available")
+            return False
+            
+        success, response, status = self.make_request("GET", f"clients/{self.test_client_id}/portfolio", expected_status=200)
+        
+        if success and 'client_name' in response and 'bookings' in response:
+            portfolio = response
+            expected_keys = ['client_id', 'client_name', 'total_bookings', 'open_bookings', 'closed_bookings', 'total_profit_loss', 'bookings']
+            
+            if all(key in portfolio for key in expected_keys):
+                self.log_test("Client Portfolio", True, f"Client: {portfolio['client_name']}, Bookings: {portfolio['total_bookings']}")
+                return True
+            else:
+                self.log_test("Client Portfolio", False, "Missing required portfolio fields")
+                return False
+        else:
+            self.log_test("Client Portfolio", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_dashboard_analytics(self):
+        """Test dashboard analytics endpoint"""
+        success, response, status = self.make_request("GET", "dashboard/analytics", expected_status=200)
+        
+        if success and 'monthly_pnl' in response and 'top_stocks' in response:
+            analytics = response
+            self.log_test("Dashboard Analytics", True, f"Monthly P&L entries: {len(analytics['monthly_pnl'])}, Top stocks: {len(analytics['top_stocks'])}")
+            return True
+        else:
+            self.log_test("Dashboard Analytics", False, f"Status: {status}, Response: {response}")
+            return False
+
     def cleanup_test_data(self):
         """Clean up test data"""
         cleanup_success = True
