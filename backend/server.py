@@ -101,9 +101,11 @@ class TokenResponse(BaseModel):
     user: User
 
 class ClientDocument(BaseModel):
-    type: str  # cml, pan, cancelled_cheque
+    doc_type: str  # pan_card, cml_copy, cancelled_cheque
     filename: str
+    file_path: str = ""
     upload_date: str
+    ocr_data: Optional[Dict[str, Any]] = None
 
 class ClientCreate(BaseModel):
     name: str
@@ -119,6 +121,7 @@ class ClientCreate(BaseModel):
 class Client(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
+    otc_ucc: str  # Unique OTC UCC code
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -131,6 +134,8 @@ class Client(BaseModel):
     documents: List[ClientDocument] = []
     created_at: str
     created_by: str
+    mapped_employee_id: Optional[str] = None
+    mapped_employee_name: Optional[str] = None
 
 class StockCreate(BaseModel):
     symbol: str
