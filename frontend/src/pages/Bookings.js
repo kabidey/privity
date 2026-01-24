@@ -649,37 +649,28 @@ const Bookings = () => {
                 </div>
               )}
               
-              {/* Booking Type Selection */}
+              {/* Own Account Booking Checkbox */}
               <div className="space-y-3">
-                <Label className="font-medium">Booking For *</Label>
-                <RadioGroup 
-                  value={formData.booking_type} 
-                  onValueChange={handleBookingTypeChange}
-                  className="flex gap-4"
-                  data-testid="booking-type-radio-group"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="client" id="booking-type-client" data-testid="booking-type-client" />
-                    <Label htmlFor="booking-type-client" className="flex items-center gap-1 cursor-pointer font-normal">
-                      <User className="h-4 w-4 text-blue-600" />
-                      Client
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="team" id="booking-type-team" data-testid="booking-type-team" />
-                    <Label htmlFor="booking-type-team" className="flex items-center gap-1 cursor-pointer font-normal">
-                      <Users className="h-4 w-4 text-green-600" />
-                      Team
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="own" id="booking-type-own" data-testid="booking-type-own" />
-                    <Label htmlFor="booking-type-own" className="flex items-center gap-1 cursor-pointer font-normal">
-                      <UserCircle className="h-4 w-4 text-orange-600" />
-                      Own
-                    </Label>
-                  </div>
-                </RadioGroup>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="booking-own-account"
+                    data-testid="booking-own-checkbox"
+                    checked={formData.booking_type === 'own'}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        handleBookingTypeChange('own');
+                      } else {
+                        setFormData({ ...formData, booking_type: 'client', insider_form_acknowledged: false });
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500"
+                  />
+                  <Label htmlFor="booking-own-account" className="flex items-center gap-2 cursor-pointer font-medium text-orange-700 dark:text-orange-400">
+                    <UserCircle className="h-4 w-4" />
+                    Booking for Own Account
+                  </Label>
+                </div>
                 
                 {/* Own booking acknowledgment indicator */}
                 {formData.booking_type === 'own' && formData.insider_form_acknowledged && (
