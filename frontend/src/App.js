@@ -14,6 +14,8 @@ import Inventory from './pages/Inventory';
 import Bookings from './pages/Bookings';
 import Reports from './pages/Reports';
 import UserManagement from './pages/UserManagement';
+import Analytics from './pages/Analytics';
+import EmailTemplates from './pages/EmailTemplates';
 import Layout from './components/Layout';
 import './App.css';
 
@@ -47,6 +49,8 @@ function App() {
                         <Route path="/bookings" element={<Bookings />} />
                         <Route path="/reports" element={<Reports />} />
                         <Route path="/users" element={<UserManagement />} />
+                        <Route path="/analytics" element={<Analytics />} />
+                        <Route path="/email-templates" element={<EmailTemplates />} />
                       </Routes>
                     </Layout>
                   </NotificationProvider>
