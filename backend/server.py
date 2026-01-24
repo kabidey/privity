@@ -506,6 +506,58 @@ async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[
     except Exception as e:
         logging.error(f"Failed to send email: {str(e)}")
 
+def generate_otp(length: int = 6) -> str:
+    """Generate numeric OTP"""
+    return ''.join(random.choices(string.digits, k=length))
+
+async def send_otp_email(to_email: str, otp: str, user_name: str = "User"):
+    """Send OTP email for password reset"""
+    subject = "Password Reset OTP - Share Booking System"
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">Password Reset Request</h2>
+        <p>Dear {user_name},</p>
+        <p>You have requested to reset your password. Use the following OTP to proceed:</p>
+        <div style="background: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
+            <h1 style="color: #007bff; letter-spacing: 5px; margin: 0;">{otp}</h1>
+        </div>
+        <p><strong>This OTP is valid for {OTP_EXPIRY_MINUTES} minutes.</strong></p>
+        <p>If you did not request this password reset, please ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">This is an automated message from Share Booking System.</p>
+    </div>
+    """
+    await send_email(to_email, subject, body)
+
+async def create_notification(user_id: str, notif_type: str, title: str, message: str, data: dict = None):
+    """Create and store notification, then send via WebSocket"""
+    notification = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "type": notif_type,
+        "title": title,
+        "message": message,
+        "data": data or {},
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.notifications.insert_one(notification)
+    
+    # Send via WebSocket
+    await ws_manager.send_to_user(user_id, {
+        "event": "notification",
+        "data": notification
+    })
+    
+    return notification
+
+async def notify_roles(roles: List[int], notif_type: str, title: str, message: str, data: dict = None):
+    """Create notifications for all users with specified roles"""
+    users = await db.users.find({"role": {"$in": roles}}, {"id": 1}).to_list(1000)
+    for user in users:
+        await create_notification(user["id"], notif_type, title, message, data)
+
 async def process_document_ocr(file_path: str, doc_type: str) -> Optional[Dict[str, Any]]:
     """Process document OCR using AI vision model"""
     try:
