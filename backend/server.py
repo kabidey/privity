@@ -2725,15 +2725,6 @@ async def download_insider_form(
         file_path, 
         filename=booking.get("insider_form_filename", "insider_form.pdf")
     )
-        "booking_id": booking_id,
-        "total_amount": total_amount,
-        "total_paid": total_paid,
-        "remaining": total_amount - total_paid,
-        "payment_status": booking.get("payment_status", "pending"),
-        "payments": booking.get("payments", []),
-        "dp_transfer_ready": booking.get("dp_transfer_ready", False),
-        "payment_completed_at": booking.get("payment_completed_at")
-    }
 
 @api_router.delete("/bookings/{booking_id}/payments/{tranche_number}")
 async def delete_payment_tranche(
