@@ -332,13 +332,32 @@ const Bookings = () => {
             {isEmployee ? 'Create bookings for your clients' : 'Manage share bookings and payments'}
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="rounded-sm" data-testid="add-booking-button">
-              <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
-              Create Booking
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          {/* Export Buttons */}
+          <Button 
+            variant="outline" 
+            onClick={() => handleExportBookings('xlsx')}
+            data-testid="export-excel-button"
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Export Excel
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => handleExportBookings('csv')}
+            data-testid="export-csv-button"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+          
+          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="rounded-sm" data-testid="add-booking-button">
+                <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                Create Booking
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg" aria-describedby="booking-dialog-desc">
             <DialogHeader>
               <DialogTitle>{editingBooking ? 'Edit Booking' : 'Create New Booking'}</DialogTitle>
