@@ -132,6 +132,41 @@ const BookingConfirm = () => {
     );
   }
 
+  // Handle pending approval states
+  if (result?.status === 'pending_approval' || result?.status === 'pending_loss_approval') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle className="h-10 w-10 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <CardTitle className="text-2xl text-yellow-600">Booking Pending Approval</CardTitle>
+            <CardDescription className="text-base mt-2">
+              {result?.message}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            {result?.booking_number && (
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Booking Reference</p>
+                <p className="text-xl font-mono font-bold">{result.booking_number}</p>
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground">
+              {result?.status === 'pending_loss_approval' 
+                ? 'This booking requires additional loss approval before you can confirm it. Please wait for the approval email.'
+                : 'This booking is still pending internal approval. Please wait for the approval email before confirming.'}
+            </p>
+            <Button variant="outline" onClick={() => window.close()}>
+              Close Window
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md">
@@ -164,7 +199,7 @@ const BookingConfirm = () => {
           )}
           <p className="text-sm text-muted-foreground">
             {result?.status === 'accepted' 
-              ? 'Your booking is now pending PE Desk approval. You will receive an email once approved.'
+              ? 'Your booking has been confirmed! Payment process can now be initiated.'
               : 'The booking has been cancelled. The booking creator has been notified.'}
           </p>
           <Button variant="outline" onClick={() => window.close()}>
