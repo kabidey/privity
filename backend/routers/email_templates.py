@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 from database import db
 from routers.auth import get_current_user
-from config import EMAIL_TEMPLATES
+from config import DEFAULT_EMAIL_TEMPLATES as EMAIL_TEMPLATES
 from services.email_service import render_template
 
 router = APIRouter(prefix="/email-templates", tags=["Email Templates"])
