@@ -2040,6 +2040,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         buying_price = booking_data.buying_price if booking_data.buying_price else inventory["weighted_avg_price"]
     
     booking_id = str(uuid.uuid4())
+    booking_number = await generate_booking_number()
     
     # Check if this is a loss booking (selling price < buying price)
     is_loss_booking = False
@@ -2051,6 +2052,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     # All bookings require PE Desk approval before inventory adjustment
     booking_doc = {
         "id": booking_id,
+        "booking_number": booking_number,
         "client_id": booking_data.client_id,
         "stock_id": booking_data.stock_id,
         "quantity": booking_data.quantity,
@@ -2086,7 +2088,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         user_id=current_user["id"],
         user_name=current_user["name"],
         user_role=user_role,
-        entity_name=f"{stock['symbol']} - {client['name']}",
+        entity_name=f"{stock['symbol']} - {client['name']} ({booking_number})",
         details={
             "client_id": booking_data.client_id,
             "client_name": client["name"],
