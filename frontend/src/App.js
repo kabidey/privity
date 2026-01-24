@@ -56,6 +56,7 @@ function App() {
                         <Route path="/users" element={<UserManagement />} />
                         <Route path="/analytics" element={<Analytics />} />
                         <Route path="/email-templates" element={<EmailTemplates />} />
+                        <Route path="/email-server" element={<EmailServerConfig />} />
                         <Route path="/dp-transfer" element={<DPTransferReport />} />
                       </Routes>
                     </Layout>
