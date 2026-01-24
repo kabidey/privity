@@ -37,20 +37,23 @@ const Layout = ({ children }) => {
     navigate('/login');
   };
 
+  // Base menu items visible to all
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Clients', path: '/clients' },
-    { icon: Package, label: 'Stocks', path: '/stocks' },
-    { icon: ShoppingCart, label: 'Purchases', path: '/purchases' },
-    { icon: Boxes, label: 'Inventory', path: '/inventory' },
-    { icon: FileText, label: 'Bookings', path: '/bookings' },
-    { icon: BarChart3, label: 'Reports', path: '/reports' },
   ];
 
-  // Add Vendors for PE Desk only (role 1)
+  // PE Desk only modules (role 1): Vendors, Stocks, Purchases
   if (user.role === 1) {
-    menuItems.splice(2, 0, { icon: Building2, label: 'Vendors', path: '/vendors' });
+    menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
+    menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
+    menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
   }
+
+  // Common modules for all roles
+  menuItems.push({ icon: Boxes, label: 'Inventory', path: '/inventory' });
+  menuItems.push({ icon: FileText, label: 'Bookings', path: '/bookings' });
+  menuItems.push({ icon: BarChart3, label: 'Reports', path: '/reports' });
 
   // Add user management for admin roles (1 and 2)
   if (user.role <= 2) {
