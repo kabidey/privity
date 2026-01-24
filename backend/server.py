@@ -229,6 +229,10 @@ class StockCreate(BaseModel):
     symbol: str
     name: str
     exchange: Optional[str] = None
+    isin_number: Optional[str] = None
+    sector: Optional[str] = None
+    product: Optional[str] = None
+    face_value: Optional[float] = None
 
 class Stock(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -236,7 +240,38 @@ class Stock(BaseModel):
     symbol: str
     name: str
     exchange: Optional[str] = None
+    isin_number: Optional[str] = None
+    sector: Optional[str] = None
+    product: Optional[str] = None
+    face_value: Optional[float] = None
     created_at: str
+
+# Corporate Actions Models
+class CorporateActionCreate(BaseModel):
+    stock_id: str
+    action_type: str  # stock_split, bonus
+    ratio_from: int  # e.g., 1 (for 1:2 split) or existing shares
+    ratio_to: int  # e.g., 2 (for 1:2 split) or bonus shares
+    new_face_value: Optional[float] = None  # For stock split
+    record_date: str  # Date on which adjustment applies
+    notes: Optional[str] = None
+
+class CorporateAction(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    stock_id: str
+    stock_symbol: str
+    stock_name: str
+    action_type: str
+    ratio_from: int
+    ratio_to: int
+    new_face_value: Optional[float] = None
+    record_date: str
+    status: str = "pending"  # pending, applied
+    applied_at: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: str
+    created_by: str
 
 class PurchaseCreate(BaseModel):
     vendor_id: str
