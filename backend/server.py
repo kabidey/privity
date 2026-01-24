@@ -514,21 +514,22 @@ If any field is not visible, use null."""
 
         elif doc_type == "cml_copy":
             prompt = """Extract the following information from this CML (Client Master List) copy:
-1. DP ID (Depository Participant ID)
-2. Client ID
-3. Client Name
-4. PAN Number
-5. Email Address
-6. Mobile Number
-7. Address (full address)
-8. Pin Code
-9. Bank Name
-10. Bank Account Number
-11. IFSC Code
-12. Branch Name
+1. DP ID (Depository Participant ID - usually starts with IN followed by numbers, e.g., IN301629)
+2. Client ID (the client-specific ID number that follows the DP ID)
+3. Full DP Client ID (combination of DP ID + Client ID, e.g., IN301629-10242225 or the complete identifier shown)
+4. Client Name
+5. PAN Number
+6. Email Address
+7. Mobile Number
+8. Address (full address including city, state)
+9. Pin Code
+10. Bank Name
+11. Bank Account Number
+12. IFSC Code
+13. Branch Name
 
-Return ONLY a JSON object with keys: dp_id, client_id, client_name, pan_number, email, mobile, address, pin_code, bank_name, account_number, ifsc_code, branch_name
-If any field is not visible, use null."""
+Return ONLY a JSON object with keys: dp_id, client_id, full_dp_client_id, client_name, pan_number, email, mobile, address, pin_code, bank_name, account_number, ifsc_code, branch_name
+If any field is not visible, use null. For full_dp_client_id, combine dp_id and client_id if they appear separately."""
         else:
             prompt = "Extract all text and relevant information from this document. Return as JSON."
 
