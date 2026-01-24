@@ -4062,6 +4062,315 @@ async def get_sector_distribution(current_user: dict = Depends(get_current_user)
     result.sort(key=lambda x: x["total_value"], reverse=True)
     return result
 
+
+# ============== Email Server Configuration (Microsoft 365 Compatible) ==============
+
+class SMTPConfigUpdate(BaseModel):
+    smtp_host: str
+    smtp_port: int
+    smtp_username: str
+    smtp_password: Optional[str] = None  # Don't require password on every update
+    smtp_from_email: str
+    smtp_from_name: Optional[str] = "SMIFS Share Booking System"
+    use_tls: bool = True
+    use_ssl: bool = False
+    timeout: int = 30
+    is_enabled: bool = True
+
+class SMTPTestRequest(BaseModel):
+    test_email: str
+
+@api_router.get("/email-config")
+async def get_email_config(current_user: dict = Depends(get_current_user)):
+    """Get current SMTP configuration (PE Desk only)"""
+    if current_user.get("role") != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can access email configuration")
+    
+    config = await db.email_config.find_one({"_id": "smtp_config"})
+    
+    if not config:
+        # Return default configuration from environment
+        default_config = {
+            "_id": "smtp_config",
+            "smtp_host": os.environ.get('EMAIL_HOST', 'smtp.office365.com'),
+            "smtp_port": int(os.environ.get('EMAIL_PORT', '587')),
+            "smtp_username": os.environ.get('EMAIL_USERNAME', ''),
+            "smtp_password": "",  # Don't expose password
+            "smtp_from_email": os.environ.get('EMAIL_FROM', os.environ.get('EMAIL_USERNAME', '')),
+            "smtp_from_name": "SMIFS Share Booking System",
+            "use_tls": True,
+            "use_ssl": False,
+            "timeout": 30,
+            "is_enabled": bool(os.environ.get('EMAIL_USERNAME')),
+            "last_updated": None,
+            "updated_by": None,
+            "connection_status": "not_configured" if not os.environ.get('EMAIL_USERNAME') else "configured"
+        }
+        return {k: v for k, v in default_config.items() if k != "_id"}
+    
+    # Don't expose password
+    config_dict = {k: v for k, v in config.items() if k not in ["_id", "smtp_password"]}
+    config_dict["smtp_password"] = "********" if config.get("smtp_password") else ""
+    return config_dict
+
+
+@api_router.put("/email-config")
+async def update_email_config(
+    config: SMTPConfigUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update SMTP configuration (PE Desk only)"""
+    if current_user.get("role") != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can update email configuration")
+    
+    # Get existing config to preserve password if not provided
+    existing = await db.email_config.find_one({"_id": "smtp_config"})
+    
+    update_data = {
+        "_id": "smtp_config",
+        "smtp_host": config.smtp_host,
+        "smtp_port": config.smtp_port,
+        "smtp_username": config.smtp_username,
+        "smtp_from_email": config.smtp_from_email,
+        "smtp_from_name": config.smtp_from_name or "SMIFS Share Booking System",
+        "use_tls": config.use_tls,
+        "use_ssl": config.use_ssl,
+        "timeout": config.timeout,
+        "is_enabled": config.is_enabled,
+        "last_updated": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user["id"],
+        "updated_by_name": current_user["name"]
+    }
+    
+    # Only update password if provided and not placeholder
+    if config.smtp_password and config.smtp_password != "********":
+        update_data["smtp_password"] = config.smtp_password
+    elif existing and existing.get("smtp_password"):
+        update_data["smtp_password"] = existing["smtp_password"]
+    else:
+        update_data["smtp_password"] = ""
+    
+    await db.email_config.replace_one(
+        {"_id": "smtp_config"},
+        update_data,
+        upsert=True
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="EMAIL_CONFIG_UPDATE",
+        entity_type="system_config",
+        entity_id="smtp_config",
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user["role"],
+        entity_name="SMTP Configuration",
+        details={
+            "smtp_host": config.smtp_host,
+            "smtp_port": config.smtp_port,
+            "smtp_username": config.smtp_username,
+            "use_tls": config.use_tls,
+            "is_enabled": config.is_enabled
+        }
+    )
+    
+    return {"message": "Email configuration updated successfully"}
+
+
+@api_router.post("/email-config/test")
+async def test_email_config(
+    test_request: SMTPTestRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Test SMTP configuration by sending a test email (PE Desk only)"""
+    if current_user.get("role") != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can test email configuration")
+    
+    config = await db.email_config.find_one({"_id": "smtp_config"})
+    
+    if not config:
+        raise HTTPException(status_code=400, detail="Email configuration not found. Please save configuration first.")
+    
+    if not config.get("smtp_password"):
+        raise HTTPException(status_code=400, detail="SMTP password not configured")
+    
+    try:
+        # Create test email
+        msg = MIMEMultipart()
+        from_name = config.get("smtp_from_name", "SMIFS Share Booking System")
+        msg['From'] = f"{from_name} <{config['smtp_from_email']}>"
+        msg['To'] = test_request.test_email
+        msg['Subject'] = "Test Email - SMIFS Share Booking System"
+        
+        body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #064E3B;">✓ Email Configuration Test Successful</h2>
+            <p>This is a test email from SMIFS Share Booking System.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>SMTP Host</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{config['smtp_host']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>SMTP Port</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{config['smtp_port']}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>From Email</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{config['smtp_from_email']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>TLS Enabled</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{'Yes' if config.get('use_tls') else 'No'}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Tested By</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{current_user['name']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Test Time</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</td>
+                </tr>
+            </table>
+            
+            <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #065f46;"><strong>Your email server is configured correctly!</strong></p>
+            </div>
+            
+            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+        </div>
+        """
+        
+        msg.attach(MIMEText(body, 'html'))
+        
+        # Connect and send
+        if config.get('use_ssl'):
+            server = smtplib.SMTP_SSL(config['smtp_host'], config['smtp_port'], timeout=config.get('timeout', 30))
+        else:
+            server = smtplib.SMTP(config['smtp_host'], config['smtp_port'], timeout=config.get('timeout', 30))
+            if config.get('use_tls'):
+                server.starttls()
+        
+        server.login(config['smtp_username'], config['smtp_password'])
+        server.sendmail(config['smtp_from_email'], test_request.test_email, msg.as_string())
+        server.quit()
+        
+        # Update connection status
+        await db.email_config.update_one(
+            {"_id": "smtp_config"},
+            {"$set": {
+                "connection_status": "connected",
+                "last_test": datetime.now(timezone.utc).isoformat(),
+                "last_test_result": "success",
+                "last_test_email": test_request.test_email
+            }}
+        )
+        
+        return {
+            "message": f"Test email sent successfully to {test_request.test_email}",
+            "status": "success"
+        }
+        
+    except smtplib.SMTPAuthenticationError as e:
+        await db.email_config.update_one(
+            {"_id": "smtp_config"},
+            {"$set": {
+                "connection_status": "auth_failed",
+                "last_test": datetime.now(timezone.utc).isoformat(),
+                "last_test_result": "auth_failed",
+                "last_test_error": str(e)
+            }}
+        )
+        raise HTTPException(
+            status_code=400, 
+            detail="Authentication failed. Please check your username and password. For Microsoft 365, ensure you're using an App Password if MFA is enabled."
+        )
+    except smtplib.SMTPConnectError as e:
+        await db.email_config.update_one(
+            {"_id": "smtp_config"},
+            {"$set": {
+                "connection_status": "connection_failed",
+                "last_test": datetime.now(timezone.utc).isoformat(),
+                "last_test_result": "connection_failed",
+                "last_test_error": str(e)
+            }}
+        )
+        raise HTTPException(status_code=400, detail=f"Connection failed: {str(e)}")
+    except Exception as e:
+        await db.email_config.update_one(
+            {"_id": "smtp_config"},
+            {"$set": {
+                "connection_status": "error",
+                "last_test": datetime.now(timezone.utc).isoformat(),
+                "last_test_result": "error",
+                "last_test_error": str(e)
+            }}
+        )
+        raise HTTPException(status_code=400, detail=f"Failed to send test email: {str(e)}")
+
+
+# Microsoft 365 preset configuration
+@api_router.get("/email-config/presets")
+async def get_email_presets(current_user: dict = Depends(get_current_user)):
+    """Get SMTP preset configurations for common providers"""
+    if current_user.get("role") != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can access email presets")
+    
+    return {
+        "presets": [
+            {
+                "name": "Microsoft 365 / Office 365",
+                "smtp_host": "smtp.office365.com",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Use your Microsoft 365 email as username. If MFA is enabled, create an App Password in your Microsoft account security settings."
+            },
+            {
+                "name": "Microsoft Exchange (On-Premises)",
+                "smtp_host": "mail.yourdomain.com",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Replace mail.yourdomain.com with your Exchange server address."
+            },
+            {
+                "name": "Gmail / Google Workspace",
+                "smtp_host": "smtp.gmail.com",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Enable 'Less secure app access' or use an App Password if 2FA is enabled."
+            },
+            {
+                "name": "Amazon SES",
+                "smtp_host": "email-smtp.us-east-1.amazonaws.com",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Use SMTP credentials from AWS SES console (not IAM credentials). Replace region as needed."
+            },
+            {
+                "name": "SendGrid",
+                "smtp_host": "smtp.sendgrid.net",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Use 'apikey' as username and your SendGrid API key as password."
+            },
+            {
+                "name": "Mailgun",
+                "smtp_host": "smtp.mailgun.org",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Use your Mailgun SMTP credentials from the domain settings."
+            }
+        ]
+    }
+
+
 # WebSocket endpoint for real-time notifications
 @app.websocket("/api/ws/notifications")
 async def websocket_notifications(websocket: WebSocket, token: str = Query(...)):
