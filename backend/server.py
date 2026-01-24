@@ -2647,12 +2647,17 @@ async def get_booking(booking_id: str, current_user: dict = Depends(get_current_
 
 @api_router.put("/bookings/{booking_id}", response_model=Booking)
 async def update_booking(booking_id: str, booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
+    user_role = current_user.get("role", 5)
     check_permission(current_user, "manage_bookings")
     
     # Get old booking to check status change
     old_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not old_booking:
         raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Get client and stock info for alerts
+    client = await db.clients.find_one({"id": booking_data.client_id}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking_data.stock_id}, {"_id": 0})
     
     result = await db.bookings.update_one(
         {"id": booking_id},
@@ -2665,14 +2670,55 @@ async def update_booking(booking_id: str, booking_data: BookingCreate, current_u
     # Update inventory
     await update_inventory(booking_data.stock_id)
     
+    # Audit log for update
+    await create_audit_log(
+        action="BOOKING_UPDATE",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {client['name'] if client else 'Unknown'}",
+        details={
+            "booking_number": old_booking.get("booking_number", booking_id[:8].upper()),
+            "changes": {
+                "quantity": {"old": old_booking.get("quantity"), "new": booking_data.quantity},
+                "selling_price": {"old": old_booking.get("selling_price"), "new": booking_data.selling_price},
+                "status": {"old": old_booking.get("status"), "new": booking_data.status}
+            }
+        }
+    )
+    
+    # Alert: Notify relevant parties about booking update
+    booking_number = old_booking.get("booking_number", booking_id[:8].upper())
+    
+    # Notify booking creator if different from updater
+    if old_booking.get("created_by") and old_booking["created_by"] != current_user["id"]:
+        await create_notification(
+            old_booking["created_by"],
+            "booking_updated",
+            "Booking Updated",
+            f"Booking {booking_number} for {stock['symbol'] if stock else 'Unknown'} has been updated by {current_user['name']}",
+            {"booking_id": booking_id, "stock_symbol": stock["symbol"] if stock else None, "updated_by": current_user["name"]}
+        )
+    
+    # Notify PE Desk about significant changes
+    if user_role != 1:
+        await notify_roles(
+            [1],
+            "booking_updated",
+            "Booking Modified",
+            f"Booking {booking_number} modified by {current_user['name']}",
+            {"booking_id": booking_id, "stock_symbol": stock["symbol"] if stock else None}
+        )
+    
     # Send email if status changed
     if old_booking["status"] != booking_data.status:
-        client = await db.clients.find_one({"id": booking_data.client_id}, {"_id": 0})
         if client and client.get("email"):
             await send_email(
                 client["email"],
                 "Booking Status Updated",
-                f"<p>Dear {client['name']},</p><p>Your booking status has been updated to: {booking_data.status}</p>"
+                f"<p>Dear {client['name']},</p><p>Your booking {booking_number} status has been updated to: <strong>{booking_data.status.upper()}</strong></p>"
             )
     
     updated_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "user_id": 0})
