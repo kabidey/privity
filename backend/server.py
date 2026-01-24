@@ -491,7 +491,7 @@ async def approve_client(client_id: str, approve: bool = True, current_user: dic
     if approve and client.get("email"):
         await send_email(
             client["email"],
-            "Account Approved - Share Booking System",
+            "Account Approved - Private Equity System",
             f"<p>Dear {client['name']},</p><p>Your account has been approved and is now active.</p>"
         )
     
@@ -1690,7 +1690,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             
             <p style="color: #6b7280; font-size: 14px;">This is an automated notification. You will receive a confirmation request email once the booking is approved internally.</p>
             
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """
         
@@ -1922,7 +1922,7 @@ async def approve_booking(
                         </tr>
                     </table>
                     
-                    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+                    <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
                 </div>
                 """
                 await send_email(
@@ -1984,7 +1984,7 @@ async def approve_booking(
                     
                     <p style="color: #6b7280; font-size: 14px;">Please review and confirm this booking. If you accept, payment can be initiated. If you deny, the booking will be cancelled.</p>
                     
-                    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+                    <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
                 </div>
                 """
                 await send_email(
@@ -2131,7 +2131,7 @@ async def approve_loss_booking(
                 
                 <p style="color: #6b7280; font-size: 14px;">This is a loss transaction booking. Please review carefully before confirming.</p>
                 
-                <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+                <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
             </div>
             """
             await send_email(
@@ -3218,7 +3218,7 @@ async def confirm_stock_transfer(
             
             <p>If you have any questions, please contact us.</p>
             
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """
         await send_email(
@@ -3381,7 +3381,7 @@ async def add_purchase_payment(
             
             <p>If you have any questions regarding this payment, please contact us.</p>
             
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """
         await send_email(
@@ -4390,7 +4390,7 @@ class SMTPConfigUpdate(BaseModel):
     smtp_username: str
     smtp_password: Optional[str] = None  # Don't require password on every update
     smtp_from_email: str
-    smtp_from_name: Optional[str] = "SMIFS Share Booking System"
+    smtp_from_name: Optional[str] = "SMIFS Private Equity System"
     use_tls: bool = True
     use_ssl: bool = False
     timeout: int = 30
@@ -4416,7 +4416,7 @@ async def get_email_config(current_user: dict = Depends(get_current_user)):
             "smtp_username": os.environ.get('EMAIL_USERNAME', ''),
             "smtp_password": "",  # Don't expose password
             "smtp_from_email": os.environ.get('EMAIL_FROM', os.environ.get('EMAIL_USERNAME', '')),
-            "smtp_from_name": "SMIFS Share Booking System",
+            "smtp_from_name": "SMIFS Private Equity System",
             "use_tls": True,
             "use_ssl": False,
             "timeout": 30,
@@ -4451,7 +4451,7 @@ async def update_email_config(
         "smtp_port": config.smtp_port,
         "smtp_username": config.smtp_username,
         "smtp_from_email": config.smtp_from_email,
-        "smtp_from_name": config.smtp_from_name or "SMIFS Share Booking System",
+        "smtp_from_name": config.smtp_from_name or "SMIFS Private Equity System",
         "use_tls": config.use_tls,
         "use_ssl": config.use_ssl,
         "timeout": config.timeout,
@@ -4516,15 +4516,15 @@ async def test_email_config(
     try:
         # Create test email
         msg = MIMEMultipart()
-        from_name = config.get("smtp_from_name", "SMIFS Share Booking System")
+        from_name = config.get("smtp_from_name", "SMIFS Private Equity System")
         msg['From'] = f"{from_name} <{config['smtp_from_email']}>"
         msg['To'] = test_request.test_email
-        msg['Subject'] = "Test Email - SMIFS Share Booking System"
+        msg['Subject'] = "Test Email - SMIFS Private Equity System"
         
         body = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #064E3B;">✓ Email Configuration Test Successful</h2>
-            <p>This is a test email from SMIFS Share Booking System.</p>
+            <p>This is a test email from SMIFS Private Equity System.</p>
             
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr style="background-color: #f3f4f6;">
@@ -4557,7 +4557,7 @@ async def test_email_config(
                 <p style="margin: 0; color: #065f46;"><strong>Your email server is configured correctly!</strong></p>
             </div>
             
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """
         

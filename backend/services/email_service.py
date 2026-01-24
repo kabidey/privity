@@ -28,7 +28,7 @@ async def get_smtp_config():
             "username": config["smtp_username"],
             "password": config["smtp_password"],
             "from_email": config["smtp_from_email"],
-            "from_name": config.get("smtp_from_name", "SMIFS Share Booking System"),
+            "from_name": config.get("smtp_from_name", "SMIFS Private Equity System"),
             "use_tls": config.get("use_tls", True),
             "use_ssl": config.get("use_ssl", False),
             "timeout": config.get("timeout", 30)
@@ -42,7 +42,7 @@ async def get_smtp_config():
             "username": EMAIL_USERNAME,
             "password": EMAIL_PASSWORD,
             "from_email": EMAIL_FROM,
-            "from_name": "SMIFS Share Booking System",
+            "from_name": "SMIFS Private Equity System",
             "use_tls": True,
             "use_ssl": False,
             "timeout": 30
@@ -158,7 +158,7 @@ def generate_otp(length: int = 6) -> str:
 
 async def send_otp_email(to_email: str, otp: str, user_name: str = "User"):
     """Send OTP email for password reset"""
-    subject = "Password Reset OTP - Share Booking System"
+    subject = "Password Reset OTP - Private Equity System"
     body = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #333;">Password Reset Request</h2>
@@ -170,7 +170,7 @@ async def send_otp_email(to_email: str, otp: str, user_name: str = "User"):
         <p><strong>This OTP is valid for {OTP_EXPIRY_MINUTES} minutes.</strong></p>
         <p>If you did not request this password reset, please ignore this email.</p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="color: #666; font-size: 12px;">This is an automated message from Share Booking System.</p>
+        <p style="color: #666; font-size: 12px;">This is an automated message from Private Equity System.</p>
     </div>
     """
     await send_email(to_email, subject, body)
@@ -215,7 +215,7 @@ async def send_booking_notification_email(
         
         <p style="color: #6b7280; font-size: 14px;">This is an automated notification. You will receive a confirmation request email once the booking is approved internally.</p>
         
-        <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+        <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
     </div>
     """
     await send_email(client_email, subject, body, cc_email)
@@ -289,7 +289,7 @@ async def send_booking_approval_email(
         
         <p style="color: #6b7280; font-size: 14px;">Please review and confirm this booking. If you accept, payment can be initiated. If you deny, the booking will be cancelled.</p>
         
-        <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+        <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
     </div>
     """
     await send_email(client_email, subject, body, cc_email)
@@ -325,7 +325,7 @@ async def send_loss_booking_pending_email(
             </tr>
         </table>
         
-        <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+        <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
     </div>
     """
     await send_email(client_email, subject, body, cc_email)
@@ -389,7 +389,7 @@ async def send_loss_approval_email(
         
         <p style="color: #6b7280; font-size: 14px;">This is a loss transaction booking. Please review carefully before confirming.</p>
         
-        <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+        <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
     </div>
     """
     await send_email(client_email, subject, body, cc_email)
