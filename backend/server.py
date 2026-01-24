@@ -2065,6 +2065,9 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         is_loss_booking = True
         loss_approval_status = "pending"  # Requires PE Desk approval for loss
     
+    # Generate client confirmation token
+    confirmation_token = str(uuid.uuid4())
+    
     # All bookings require PE Desk approval before inventory adjustment
     booking_doc = {
         "id": booking_id,
@@ -2079,6 +2082,12 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "approval_status": "pending",  # Requires PE Desk approval
         "approved_by": None,
         "approved_at": None,
+        # Client confirmation
+        "client_confirmation_status": "pending",
+        "client_confirmation_token": confirmation_token,
+        "client_confirmed_at": None,
+        "client_denial_reason": None,
+        # Loss booking
         "is_loss_booking": is_loss_booking,
         "loss_approval_status": loss_approval_status,
         "loss_approved_by": None,
