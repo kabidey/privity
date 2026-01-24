@@ -477,32 +477,23 @@ const Bookings = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Client * <span className="text-xs text-muted-foreground">(Approved clients only)</span></Label>
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Search client by name..."
-                    value={clientSearchQuery}
-                    onChange={(e) => setClientSearchQuery(e.target.value)}
-                    className="mb-2"
-                    data-testid="client-search-input"
-                  />
-                  <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })} required>
-                    <SelectTrigger data-testid="booking-client-select">
-                      <SelectValue placeholder="Select approved client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredClients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved').map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name} ({client.otc_ucc || 'N/A'})
-                        </SelectItem>
-                      ))}
-                      {filteredClients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved').length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          {clientSearchQuery ? `No clients found matching "${clientSearchQuery}"` : 'No approved clients available'}
-                        </div>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })} required>
+                  <SelectTrigger data-testid="booking-client-select">
+                    <SelectValue placeholder="Select approved client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved').map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name} ({client.otc_ucc || 'N/A'})
+                      </SelectItem>
+                    ))}
+                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved').length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        No approved clients available
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
