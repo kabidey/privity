@@ -8,9 +8,10 @@ Build a Share Booking System for managing client share bookings, inventory track
 - **Backend**: FastAPI (Python) with async MongoDB
 - **Database**: MongoDB
 - **Authentication**: JWT-based with role-based permissions
+- **Theme**: Light/Dark mode with ThemeContext
 
 ## User Personas
-1. **PE Desk (Role 1)**: Full system access
+1. **PE Desk (Role 1)**: Full system access + User Management
 2. **Zonal Manager (Role 2)**: Manage users, clients, stocks, bookings, reports
 3. **Manager (Role 3)**: Manage own clients, bookings, view reports
 4. **Employee (Role 4)**: Create bookings, view clients
@@ -18,13 +19,14 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## Core Requirements (Static)
 - User authentication (register/login)
-- Client management (CRUD + bulk upload)
+- Client management (CRUD + bulk upload + portfolio view)
 - Vendor management for stock suppliers
 - Stock management (CRUD + bulk upload)
 - Purchase tracking from vendors
 - Inventory management with weighted average pricing
 - Booking management with inventory validation
 - P&L reporting with filtering and export
+- User management for admin roles
 
 ## What's Been Implemented
 
@@ -44,20 +46,33 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ **Inventory Page** - Stock levels with progress indicators
 - ✅ **Enhanced Dashboard** - Recharts integration for P&L trend and top stocks
 - ✅ **Reports Filters** - Date range, client, stock filtering
-- ✅ **Updated Navigation** - 8-item sidebar with new pages
 
-## Tech Stack
-- React 18 with React Router
-- FastAPI with Motor (async MongoDB)
-- Tailwind CSS + Shadcn UI
-- Recharts for analytics
-- JWT authentication
-- ReportLab (PDF) + OpenPyXL (Excel)
+### Phase 3 - Advanced Features (Jan 24, 2026)
+- ✅ **User Management Page** - Role assignment for admins (roles 1-2 only)
+- ✅ **Dark Mode Toggle** - ThemeContext with localStorage persistence
+- ✅ **Client Portfolio Page** - Detailed client holdings with PieChart
+- ✅ **Portfolio Button** - Quick access from Clients table
+- ✅ **Updated Navigation** - 9-item sidebar (Users visible for admins)
+
+## Pages & Routes
+| Route | Page | Description |
+|-------|------|-------------|
+| /login | Login | Auth with register/login toggle |
+| / | Dashboard | Stats, charts, quick actions |
+| /clients | Clients | Client management with portfolio links |
+| /clients/:id/portfolio | ClientPortfolio | Detailed client holdings |
+| /vendors | Vendors | Vendor management |
+| /stocks | Stocks | Stock management |
+| /purchases | Purchases | Purchase recording |
+| /inventory | Inventory | Stock levels tracking |
+| /bookings | Bookings | Booking management |
+| /reports | Reports | P&L with filters and exports |
+| /users | UserManagement | Role management (admin only) |
 
 ## API Endpoints
-- `/api/auth/*` - Authentication
-- `/api/users/*` - User management
-- `/api/clients/*` - Client CRUD + documents + bulk upload
+- `/api/auth/*` - Authentication (register, login, me)
+- `/api/users/*` - User management (list, update role)
+- `/api/clients/*` - Client CRUD + documents + bulk upload + portfolio
 - `/api/stocks/*` - Stock CRUD + bulk upload
 - `/api/purchases/*` - Purchase tracking
 - `/api/inventory/*` - Inventory management
@@ -65,30 +80,39 @@ Build a Share Booking System for managing client share bookings, inventory track
 - `/api/dashboard/*` - Stats and analytics
 - `/api/reports/*` - P&L reports + exports
 
+## Test Results (Latest)
+- Backend: 96% pass rate (22/23 tests)
+- Frontend: 100% pass rate
+- Overall: 98% success
+
+## Tech Stack
+- React 18 with React Router v6
+- FastAPI with Motor (async MongoDB)
+- Tailwind CSS + Shadcn UI
+- Recharts for analytics
+- JWT authentication
+- ReportLab (PDF) + OpenPyXL (Excel)
+- ThemeContext for dark mode
+
 ## Prioritized Backlog
 
 ### P0 (Critical)
 - None - all core features implemented
 
 ### P1 (High Priority)
-- [ ] User management page for admins
-- [ ] Dark mode toggle
 - [ ] Audit logging for all actions
-- [ ] Real-time notifications
+- [ ] Real-time notifications with WebSocket
+- [ ] Password reset functionality
+- [ ] Two-factor authentication
 
 ### P2 (Medium Priority)
-- [ ] Client portfolio detailed view
 - [ ] Bulk booking close functionality
 - [ ] Advanced analytics dashboard
+- [ ] Email templates customization
 - [ ] Mobile app (React Native)
 
-## Test Results
-- Backend: 95% pass rate
-- Frontend: 98% pass rate
-- Overall: 97% success
-
 ## Next Tasks
-1. Implement User Management page for role assignment
-2. Add dark mode theme toggle
-3. Create Client Portfolio detailed view
-4. Add real-time notifications with WebSocket
+1. Add audit logging for compliance
+2. Implement WebSocket notifications
+3. Add password reset flow
+4. Create advanced analytics with more chart types
