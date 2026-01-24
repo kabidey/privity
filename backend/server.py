@@ -1488,6 +1488,10 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "approval_status": "pending",  # Requires PE Desk approval
         "approved_by": None,
         "approved_at": None,
+        # Booking type (client/team/own)
+        "booking_type": booking_data.booking_type,
+        "insider_form_uploaded": booking_data.insider_form_uploaded,
+        "insider_form_path": None,
         # Client confirmation
         "client_confirmation_status": "pending",
         "client_confirmation_token": confirmation_token,
