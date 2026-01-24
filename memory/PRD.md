@@ -434,8 +434,8 @@ Build a Share Booking System for managing client share bookings, inventory track
 - `weighted_avg_price` = Total purchased value / Total purchased quantity
 
 ## Next Tasks
-1. **(P1) Refactor Email Templates Usage** - Replace hardcoded email bodies in server.py with the new template system
-2. **(P1) Two-factor authentication (TOTP)**
+1. **(P1) Refactor Email Templates Usage** - ✅ COMPLETED - All hardcoded emails now use template system
+2. 🟡 **(P1) Two-factor authentication (TOTP)**
 3. **(P2) Bulk booking close functionality**
 4. **(P2) Backend Modularization** - Router templates created in `/routers_refactor_templates/`:
    - Template files created for: clients.py, stocks.py, bookings.py, reports.py, purchases.py, email_templates.py, utils.py
