@@ -1,0 +1,67 @@
+{
+  "summary": "Completed comprehensive testing of Loss Booking Approval Workflow. All backend APIs and frontend UI features are working correctly. Loss bookings are properly detected when selling_price < buying_price, and PE Desk can approve/reject them.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend: Loss booking detection - is_loss_booking=True when selling_price < buying_price",
+    "Backend: Non-loss booking - is_loss_booking=False when selling_price >= buying_price",
+    "Backend: Loss approval status starts as 'pending' for loss bookings",
+    "Backend: Loss approval status is 'not_required' for non-loss bookings",
+    "Backend: GET /api/bookings/pending-loss-approval returns only pending loss bookings",
+    "Backend: PUT /api/bookings/{id}/approve-loss?approve=true approves loss booking",
+    "Backend: PUT /api/bookings/{id}/approve-loss?approve=false rejects loss booking",
+    "Backend: Cannot approve non-loss booking (returns 400)",
+    "Backend: Cannot approve already processed loss booking (returns 400)",
+    "Backend: Only PE Desk (role 1) can view pending loss bookings",
+    "Backend: Only PE Desk (role 1) can approve loss bookings",
+    "Backend: Unauthenticated users cannot access loss approval endpoints",
+    "Backend: Loss booking fields (is_loss_booking, loss_approval_status) present in booking response",
+    "Frontend: Buy Price column displayed in bookings table",
+    "Frontend: P&L column displayed in bookings table",
+    "Frontend: P&L shows positive values in green color",
+    "Frontend: P&L shows negative values in red color",
+    "Frontend: Loss Approval tab appears when pending loss bookings exist",
+    "Frontend: Loss Approval tab shows count of pending loss bookings",
+    "Frontend: Loss Pending badge displayed for pending loss bookings",
+    "Frontend: Loss Approved badge displayed for approved loss bookings",
+    "Frontend: Loss approval buttons (TrendingDown icon) shown for pending loss bookings",
+    "Frontend: Loss booking approval via UI works correctly",
+    "Frontend: Toast message 'Loss booking approved' shown after approval"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_loss_booking.py",
+    "/app/test_reports/pytest/loss_booking_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_loss_booking.py"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "100% (All UI features verified via Playwright)"
+  },
+  "seed_data_creation": "Created test loss bookings during testing, cleaned up after tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Loss booking approval workflow is fully functional. Key test data: E2ETEST stock with weighted avg price ~₹126. Any booking with selling_price < buying_price is flagged as loss booking. PE Desk (role 1) can approve/reject loss bookings via the Loss Approval tab or action buttons. Loss approval is separate from regular booking approval - a booking can require both.",
+  "features_verified": {
+    "loss_booking_detection": "Working - is_loss_booking=True when selling_price < buying_price",
+    "loss_approval_status": "Working - starts as 'pending' for loss bookings, 'not_required' for others",
+    "pending_loss_api": "Working - GET /api/bookings/pending-loss-approval returns pending loss bookings",
+    "approve_loss_api": "Working - PUT /api/bookings/{id}/approve-loss approves/rejects loss bookings",
+    "role_restriction": "Working - Only PE Desk (role 1) can approve loss bookings",
+    "loss_approval_tab_ui": "Working - Tab appears with count when pending loss bookings exist",
+    "loss_badges_ui": "Working - Loss Pending and Loss Approved badges displayed correctly",
+    "pl_color_coding": "Working - Green for profit, red for loss",
+    "buy_price_column": "Working - Buy Price column displayed in bookings table",
+    "loss_approval_buttons": "Working - TrendingDown icon buttons for approve/reject"
+  }
+}
