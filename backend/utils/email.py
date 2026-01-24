@@ -45,7 +45,7 @@ def generate_otp(length: int = 6) -> str:
 
 async def send_otp_email(to_email: str, otp: str, user_name: str = "User"):
     """Send OTP email for password reset"""
-    subject = "Password Reset OTP - Share Booking System"
+    subject = "Password Reset OTP - Private Equity System"
     html_content = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #333;">Password Reset Request</h2>
@@ -57,7 +57,7 @@ async def send_otp_email(to_email: str, otp: str, user_name: str = "User"):
         <p><strong>This OTP is valid for 10 minutes.</strong></p>
         <p>If you did not request this password reset, please ignore this email or contact support.</p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="color: #666; font-size: 12px;">This is an automated message from Share Booking System.</p>
+        <p style="color: #666; font-size: 12px;">This is an automated message from Private Equity System.</p>
     </div>
     """
     return await send_email(to_email, subject, html_content)
