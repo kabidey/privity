@@ -364,6 +364,22 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Only PE Desk (role=1) can perform cloning
   - Audit log entry created for each clone operation
 
+### Feature - Vendor Mandatory Document Upload (Jan 24, 2026)
+- ✅ **Tabbed Form Interface**: Vendor form now has two tabs:
+  - "Vendor Details" - Basic vendor information
+  - "Documents *" - Mandatory document uploads (with red asterisk)
+- ✅ **Mandatory Documents for New Vendors**:
+  - PAN Card (with OCR auto-fill for name, PAN number)
+  - CML Copy (with OCR auto-fill for DP ID, name, email, phone)
+  - Cancelled Cheque (with OCR auto-fill for bank details)
+- ✅ **Validation**: Cannot create vendor without all three documents
+  - Toast error shows missing documents: "Please upload: PAN Card, CML Copy, Cancelled Cheque"
+- ✅ **Documents Tab for Existing Vendors**:
+  - View and download uploaded documents
+  - View OCR extracted data
+  - Add additional documents when editing
+- ✅ **DOCS Column in Vendors Table**: Shows document count with folder icon for viewing
+
 ## Next Tasks
 1. **(P0) Continue Backend Modularization** - Move remaining routes from server.py:
    - Move client routes to `/routers/clients.py`
