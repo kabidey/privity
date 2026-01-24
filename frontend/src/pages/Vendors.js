@@ -289,6 +289,16 @@ const Vendors = () => {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => handleCloneToClient(vendor)}
+                          disabled={cloning}
+                          title="Clone as Client"
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Copy className="h-4 w-4" strokeWidth={1.5} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleEdit(vendor)}
                           data-testid="edit-vendor-button"
                         >
