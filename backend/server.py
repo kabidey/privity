@@ -2208,6 +2208,123 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     
     return Booking(**{k: v for k, v in booking_doc.items() if k not in ["user_id", "created_by_name"]})
 
+# Client Booking Confirmation (Public endpoint - no auth required)
+class ClientConfirmationRequest(BaseModel):
+    reason: Optional[str] = None
+
+@api_router.get("/booking-confirm/{booking_id}/{token}/{action}")
+async def client_confirm_booking_get(booking_id: str, token: str, action: str):
+    """Client confirms or denies booking via email link (GET for direct link click)"""
+    return await process_client_confirmation(booking_id, token, action, None)
+
+@api_router.post("/booking-confirm/{booking_id}/{token}/{action}")
+async def client_confirm_booking_post(booking_id: str, token: str, action: str, request: ClientConfirmationRequest = None):
+    """Client confirms or denies booking via email link (POST with optional reason)"""
+    reason = request.reason if request else None
+    return await process_client_confirmation(booking_id, token, action, reason)
+
+async def process_client_confirmation(booking_id: str, token: str, action: str, reason: Optional[str]):
+    """Process client confirmation/denial of booking"""
+    if action not in ["accept", "deny"]:
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'accept' or 'deny'")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Validate token
+    if booking.get("client_confirmation_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid confirmation token")
+    
+    # Check if already confirmed
+    if booking.get("client_confirmation_status") != "pending":
+        return {
+            "message": f"Booking has already been {booking.get('client_confirmation_status')}",
+            "status": booking.get("client_confirmation_status")
+        }
+    
+    # Get client and stock info
+    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+    booking_number = booking.get("booking_number", booking_id[:8].upper())
+    
+    if action == "accept":
+        update_data = {
+            "client_confirmation_status": "accepted",
+            "client_confirmed_at": datetime.now(timezone.utc).isoformat()
+        }
+        message = "Booking accepted successfully! Your order is now pending PE Desk approval."
+        
+        # Notify PE Desk about client acceptance
+        await notify_roles(
+            [1],
+            "client_accepted",
+            "Client Accepted Booking",
+            f"Client {client['name'] if client else 'Unknown'} has accepted booking {booking_number} for {stock['symbol'] if stock else 'Unknown'}",
+            {"booking_id": booking_id, "booking_number": booking_number}
+        )
+        
+        # Notify booking creator
+        if booking.get("created_by"):
+            await create_notification(
+                booking["created_by"],
+                "client_accepted",
+                "Client Accepted Booking",
+                f"Client {client['name'] if client else 'Unknown'} has accepted booking {booking_number}",
+                {"booking_id": booking_id, "booking_number": booking_number}
+            )
+        
+    else:  # deny
+        update_data = {
+            "client_confirmation_status": "denied",
+            "client_confirmed_at": datetime.now(timezone.utc).isoformat(),
+            "client_denial_reason": reason or "No reason provided"
+        }
+        message = "Booking denied. The booking creator and PE Desk have been notified."
+        
+        # Notify PE Desk about denial
+        await notify_roles(
+            [1],
+            "client_denied",
+            "Client Denied Booking",
+            f"Client {client['name'] if client else 'Unknown'} has DENIED booking {booking_number}. Reason: {reason or 'Not specified'}",
+            {"booking_id": booking_id, "booking_number": booking_number, "reason": reason}
+        )
+        
+        # Notify booking creator
+        if booking.get("created_by"):
+            await create_notification(
+                booking["created_by"],
+                "client_denied",
+                "Client Denied Booking",
+                f"Client {client['name'] if client else 'Unknown'} has denied booking {booking_number}. Reason: {reason or 'Not specified'}",
+                {"booking_id": booking_id, "booking_number": booking_number, "reason": reason}
+            )
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(
+        action=f"CLIENT_{'ACCEPT' if action == 'accept' else 'DENY'}",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=client["id"] if client else "unknown",
+        user_name=client["name"] if client else "Unknown Client",
+        user_role=0,  # Client
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {booking_number}",
+        details={
+            "action": action,
+            "reason": reason if action == "deny" else None,
+            "client_email": client.get("email") if client else None
+        }
+    )
+    
+    return {
+        "message": message,
+        "status": "accepted" if action == "accept" else "denied",
+        "booking_number": booking_number
+    }
+
 @api_router.put("/bookings/{booking_id}/approve")
 async def approve_booking(
     booking_id: str,
