@@ -1,0 +1,223 @@
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import api from '../utils/api';
+import { FileDown, FileSpreadsheet } from 'lucide-react';
+
+const Reports = () => {
+  const [reportData, setReportData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalProfit: 0,
+    totalLoss: 0,
+    netPL: 0,
+  });
+
+  useEffect(() => {
+    fetchReport();
+  }, []);
+
+  const fetchReport = async () => {
+    try {
+      const response = await api.get('/reports/pnl');
+      const data = response.data;
+      setReportData(data);
+
+      // Calculate stats
+      let totalProfit = 0;
+      let totalLoss = 0;
+      data.forEach((item) => {
+        if (item.profit_loss) {
+          if (item.profit_loss > 0) {
+            totalProfit += item.profit_loss;
+          } else {
+            totalLoss += Math.abs(item.profit_loss);
+          }
+        }
+      });
+
+      setStats({
+        totalProfit,
+        totalLoss,
+        netPL: totalProfit - totalLoss,
+      });
+    } catch (error) {
+      toast.error('Failed to load report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const response = await api.get('/reports/export/excel', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'pnl_report.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Excel report downloaded');
+    } catch (error) {
+      toast.error('Failed to export Excel');
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const response = await api.get('/reports/export/pdf', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'pnl_report.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('PDF report downloaded');
+    } catch (error) {
+      toast.error('Failed to export PDF');
+    }
+  };
+
+  return (
+    <div className="p-8 page-enter" data-testid="reports-page">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Profit & Loss Reports</h1>
+          <p className="text-muted-foreground text-base">Comprehensive P&L analysis of all bookings</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="rounded-sm"
+            onClick={handleExportExcel}
+            data-testid="export-excel-button"
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4" strokeWidth={1.5} />
+            Export Excel
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-sm"
+            onClick={handleExportPDF}
+            data-testid="export-pdf-button"
+          >
+            <FileDown className="mr-2 h-4 w-4" strokeWidth={1.5} />
+            Export PDF
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <Card className="border shadow-sm" data-testid="profit-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Total Profit
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mono text-green-600">
+              ₹{stats.totalProfit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border shadow-sm" data-testid="loss-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Total Loss
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mono text-red-600">
+              ₹{stats.totalLoss.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border shadow-sm" data-testid="net-pnl-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Net P&L
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-3xl font-bold mono ${stats.netPL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              ₹{stats.netPL.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border shadow-sm">
+        <CardHeader>
+          <CardTitle>Detailed P&L Report</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div>Loading...</div>
+          ) : reportData.length === 0 ? (
+            <div className="text-center py-12" data-testid="no-report-data-message">
+              <p className="text-muted-foreground">No booking data available for reporting.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Client</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Stock</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Quantity</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Buy Price</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Sell Price</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Date</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">P&L</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reportData.map((item, index) => (
+                    <TableRow key={item.booking_id || index} className="table-row" data-testid="report-row">
+                      <TableCell className="font-medium">{item.client_name}</TableCell>
+                      <TableCell className="mono text-sm font-semibold">{item.stock_symbol}</TableCell>
+                      <TableCell className="mono">{item.quantity}</TableCell>
+                      <TableCell className="mono">₹{item.buying_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="mono">
+                        {item.selling_price ? `₹${item.selling_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                      </TableCell>
+                      <TableCell className="text-sm">{new Date(item.booking_date).toLocaleDateString('en-IN')}</TableCell>
+                      <TableCell>
+                        <Badge variant={item.status === 'open' ? 'default' : 'secondary'}>
+                          {item.status.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="mono font-semibold">
+                        {item.profit_loss !== null && item.profit_loss !== undefined ? (
+                          <span className={item.profit_loss >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            ₹{item.profit_loss.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          </span>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default Reports;

@@ -1,0 +1,192 @@
+{
+  "design_system": {
+    "name": "Swiss Organic Fintech",
+    "description": "A precision-focused financial interface merging Swiss typography with organic, trustworthy deep greens. Prioritizes data density and clarity.",
+    "theme_strategy": "Professional Light Mode (Default) with Dark Mode Toggle",
+    "typography": {
+      "font_family": {
+        "headings": "Cormorant Garamond, serif",
+        "body": "Manrope, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "imports": [
+        "@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');"
+      ],
+      "usage_rules": {
+        "headings": "Use Cormorant Garamond for all H1-H3. Tracking tight (-0.02em). Font weight 600 or 700.",
+        "body": "Use Manrope for all UI text. Tracking normal.",
+        "numbers": "Use JetBrains Mono for all financial data, prices, and P&L figures. Tabular nums."
+      }
+    },
+    "colors": {
+      "palette": {
+        "primary": {
+          "light": "#064E3B",
+          "dark": "#10B981",
+          "name": "Deep Emerald"
+        },
+        "secondary": {
+          "light": "#F0FDF4",
+          "dark": "#064E3B",
+          "name": "Mint Wash"
+        },
+        "accent": {
+          "light": "#D97706",
+          "dark": "#F59E0B",
+          "name": "Ledger Gold"
+        },
+        "background": {
+          "light": "#FDFDFC",
+          "dark": "#0A0A0A",
+          "name": "Bone / Obsidian"
+        },
+        "surface": {
+          "light": "#FFFFFF",
+          "dark": "#171717",
+          "name": "Pure White / Charcoal"
+        }
+      },
+      "css_variables_update": {
+        "root": {
+          "--background": "60 5% 99%",
+          "--foreground": "150 5% 10%",
+          "--card": "0 0% 100%",
+          "--card-foreground": "150 5% 10%",
+          "--popover": "0 0% 100%",
+          "--popover-foreground": "150 5% 10%",
+          "--primary": "166 85% 16%",
+          "--primary-foreground": "0 0% 100%",
+          "--secondary": "166 30% 96%",
+          "--secondary-foreground": "166 85% 16%",
+          "--muted": "60 5% 96%",
+          "--muted-foreground": "25 5% 45%",
+          "--accent": "35 80% 50%",
+          "--accent-foreground": "0 0% 100%",
+          "--destructive": "0 84.2% 60.2%",
+          "--destructive-foreground": "0 0% 98%",
+          "--border": "60 5% 90%",
+          "--input": "60 5% 90%",
+          "--ring": "166 85% 16%",
+          "--radius": "0.3rem"
+        },
+        "dark": {
+          "--background": "0 0% 4%",
+          "--foreground": "60 5% 96%",
+          "--card": "0 0% 9%",
+          "--card-foreground": "60 5% 96%",
+          "--popover": "0 0% 9%",
+          "--popover-foreground": "60 5% 96%",
+          "--primary": "160 60% 45%",
+          "--primary-foreground": "0 0% 100%",
+          "--secondary": "160 20% 15%",
+          "--secondary-foreground": "60 5% 96%",
+          "--muted": "0 0% 15%",
+          "--muted-foreground": "60 5% 65%",
+          "--accent": "35 80% 50%",
+          "--accent-foreground": "0 0% 100%",
+          "--destructive": "0 62.8% 30.6%",
+          "--destructive-foreground": "60 5% 96%",
+          "--border": "0 0% 15%",
+          "--input": "0 0% 15%",
+          "--ring": "160 60% 45%"
+        }
+      }
+    },
+    "layout": {
+      "grid_system": "Bento Grid Mode B (High Density)",
+      "spacing": "Compact but breathable. Use p-4 for cards, gap-4 for grids.",
+      "container": "Max-width 1600px for dashboard. Centered.",
+      "sidebar": "Fixed width 260px. Sticky.",
+      "z_index": {
+        "toast": 50,
+        "modal": 40,
+        "dropdown": 30,
+        "sticky_nav": 20
+      }
+    },
+    "components": {
+      "buttons": {
+        "style": "Sharp corners or minimal radius (rounded-sm).",
+        "primary": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+        "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        "ghost": "hover:bg-muted hover:text-foreground"
+      },
+      "cards": {
+        "style": "Flat, 1px border, no shadow (or very subtle shadow-sm).",
+        "classes": "bg-card border border-border rounded-lg p-6"
+      },
+      "inputs": {
+        "style": "High contrast border. Focus ring matches primary color.",
+        "classes": "h-10 rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      },
+      "tables": {
+        "style": "Clean rows. No vertical borders. Header uppercase and small.",
+        "header_classes": "text-xs uppercase tracking-wider font-semibold text-muted-foreground bg-muted/30 h-10",
+        "row_classes": "border-b border-border/50 hover:bg-muted/20 transition-colors"
+      }
+    },
+    "visual_enhancers": {
+      "glassmorphism": "Use only for sticky topbar: bg-background/80 backdrop-blur-md border-b border-border/50.",
+      "textures": "Add a subtle noise texture to the sidebar background if possible.",
+      "gradients": "Avoid gradients on buttons. Use solid colors. Use subtle gradients only for chart fills."
+    },
+    "motion": {
+      "transitions": "transition-all duration-200 ease-out",
+      "hover_effects": "Subtle lift (-1px) for interactive cards.",
+      "page_transition": "Fade in (opacity 0 to 1) over 0.3s."
+    },
+    "accessibility": {
+      "contrast": "Ensure text is always legible. Use APCA standards.",
+      "focus": "Visible focus rings are mandatory.",
+      "testing": "All interactive elements must have data-testid attributes."
+    }
+  },
+  "assets": {
+    "images": {
+      "login_background": {
+        "url": "https://images.unsplash.com/photo-1769123012428-6858ea810a74?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMGZpbmFuY2lhbCUyMGdyYXBoJTIwYXJ0JTIwZGFyayUyMGdyZWVufGVufDB8fHx8MTc2OTI0OTcyN3ww&ixlib=rb-4.1.0&q=85",
+        "alt": "Abstract financial waves",
+        "usage": "Side panel of the login page. Cover mode."
+      },
+      "user_placeholder": {
+        "url": "https://images.unsplash.com/photo-1758518727888-ffa196002e59?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODR8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBwb3J0cmFpdCUyMGJ1c2luZXNzfGVufDB8fHx8MTc2OTI0OTcyOXww&ixlib=rb-4.1.0&q=85",
+        "alt": "User profile placeholder",
+        "usage": "Dashboard user avatar."
+      },
+      "empty_state": {
+        "url": "https://images.unsplash.com/photo-1553954004-bfd9c929f040?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGZpbmFuY2lhbCUyMGdyYXBoJTIwYXJ0JTIwZGFyayUyMGdyZWVufGVufDB8fHx8MTc2OTI0OTcyN3ww&ixlib=rb-4.1.0&q=85",
+        "alt": "Minimalist concrete abstract",
+        "usage": "Empty state for bookings or clients list."
+      }
+    },
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px (thin and elegant)."
+    }
+  },
+  "instructions_to_main_agent": {
+    "setup": [
+      "Update /app/frontend/src/index.css with the provided CSS variables.",
+      "Install fonts by adding the @import to the top of index.css.",
+      "Ensure tailwind.config.js extends the theme as per the variables."
+    ],
+    "implementation_rules": [
+      "Use Shadcn components for all interactive elements (Forms, Dialogs, Selects).",
+      "Customize Shadcn components to match the 'Swiss Organic' aesthetic (remove heavy shadows, use 1px borders).",
+      "For the Dashboard, use a Bento Grid layout.",
+      "For P&L Reports, use a high-density table with sortable columns.",
+      "Ensure all financial numbers are formatted with commas and 2 decimal places.",
+      "Use 'sonner' for all toast notifications.",
+      "Add 'data-testid' to all buttons, inputs, and links."
+    ],
+    "universal_guidelines": [
+      "Do not use generic centered layouts.",
+      "Create depth through layered design elements.",
+      "Use glass-morphism effects with backdrop filters (12-24px blur) for sticky headers.",
+      "Do not apply universal transitions (transition: all).",
+      "Every interaction needs micro-animations.",
+      "Use 2-3x more spacing than feels comfortable.",
+      "Prioritize using pre-existing components from src/components/ui."
+    ]
+  }
+}
