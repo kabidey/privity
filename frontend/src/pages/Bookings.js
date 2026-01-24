@@ -2,16 +2,20 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Pencil, Trash2, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { 
+  Plus, Pencil, Trash2, Clock, CheckCircle, XCircle, AlertCircle, 
+  CreditCard, IndianRupee, Calendar, Receipt, Building2 
+} from 'lucide-react';
 
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -20,6 +24,8 @@ const Bookings = () => {
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [editingBooking, setEditingBooking] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
   const [formData, setFormData] = useState({
@@ -32,9 +38,16 @@ const Bookings = () => {
     status: 'open',
     notes: '',
   });
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    payment_date: new Date().toISOString().split('T')[0],
+    notes: ''
+  });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
+  const isZonalManager = currentUser.role === 2;
+  const canRecordPayments = isPEDesk || isZonalManager;
   const isEmployee = currentUser.role === 4;
 
   useEffect(() => {
@@ -104,7 +117,6 @@ const Bookings = () => {
   };
 
   const handleEdit = (booking) => {
-    // Employees cannot edit buying_price
     setEditingBooking(booking);
     setFormData({
       client_id: booking.client_id,
@@ -127,6 +139,43 @@ const Bookings = () => {
       fetchData();
     } catch (error) {
       toast.error('Failed to delete booking');
+    }
+  };
+
+  const handleOpenPaymentDialog = (booking) => {
+    setSelectedBooking(booking);
+    setPaymentForm({
+      amount: '',
+      payment_date: new Date().toISOString().split('T')[0],
+      notes: ''
+    });
+    setPaymentDialogOpen(true);
+  };
+
+  const handleAddPayment = async (e) => {
+    e.preventDefault();
+    if (!selectedBooking) return;
+
+    try {
+      const response = await api.post(`/bookings/${selectedBooking.id}/payments`, {
+        amount: parseFloat(paymentForm.amount),
+        payment_date: paymentForm.payment_date,
+        notes: paymentForm.notes || null
+      });
+      
+      toast.success(response.data.message);
+      
+      if (response.data.dp_transfer_ready) {
+        toast.success('Full payment received! Booking ready for DP transfer.', {
+          duration: 5000,
+          icon: '✅'
+        });
+      }
+      
+      setPaymentDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to record payment');
     }
   };
 
@@ -157,7 +206,34 @@ const Bookings = () => {
     }
   };
 
+  const getPaymentBadge = (booking) => {
+    const status = booking.payment_status || 'pending';
+    switch (status) {
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Paid</Badge>;
+      case 'partial':
+        return <Badge className="bg-blue-100 text-blue-800"><Clock className="h-3 w-3 mr-1" />Partial</Badge>;
+      default:
+        return <Badge variant="outline"><IndianRupee className="h-3 w-3 mr-1" />Pending</Badge>;
+    }
+  };
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(value || 0);
+  };
+
   const displayedBookings = activeTab === 'pending' ? pendingBookings : bookings;
+
+  // Calculate payment progress
+  const getPaymentProgress = (booking) => {
+    const total = (booking.selling_price || 0) * booking.quantity;
+    const paid = booking.total_paid || 0;
+    return total > 0 ? (paid / total) * 100 : 0;
+  };
 
   return (
     <div className="p-8 page-enter" data-testid="bookings-page">
@@ -165,7 +241,7 @@ const Bookings = () => {
         <div>
           <h1 className="text-4xl font-bold mb-2">Bookings</h1>
           <p className="text-muted-foreground text-base">
-            {isEmployee ? 'Create bookings for your clients' : 'Manage share bookings'}
+            {isEmployee ? 'Create bookings for your clients' : 'Manage share bookings and payments'}
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
@@ -261,17 +337,16 @@ const Bookings = () => {
                     data-testid="booking-selling-price-input"
                     value={formData.selling_price}
                     onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
-                    placeholder="Optional"
+                    placeholder="Price per share"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Booking Date *</Label>
+                  <Label>Booking Date</Label>
                   <Input
                     type="date"
                     data-testid="booking-date-input"
                     value={formData.booking_date}
                     onChange={(e) => setFormData({ ...formData, booking_date: e.target.value })}
-                    required
                   />
                 </div>
               </div>
@@ -327,6 +402,9 @@ const Bookings = () => {
       <Card className="border shadow-sm">
         <CardHeader>
           <CardTitle>{activeTab === 'pending' ? 'Pending Approval' : 'All Bookings'}</CardTitle>
+          <CardDescription>
+            {canRecordPayments && 'Record payments for approved bookings to enable DP transfer'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? <div>Loading...</div> : displayedBookings.length === 0 ? (
@@ -339,57 +417,209 @@ const Bookings = () => {
                     <TableHead className="text-xs uppercase">Client</TableHead>
                     <TableHead className="text-xs uppercase">Stock</TableHead>
                     <TableHead className="text-xs uppercase">Qty</TableHead>
-                    <TableHead className="text-xs uppercase">Buy Price</TableHead>
                     <TableHead className="text-xs uppercase">Sell Price</TableHead>
-                    <TableHead className="text-xs uppercase">Date</TableHead>
-                    <TableHead className="text-xs uppercase">Status</TableHead>
+                    <TableHead className="text-xs uppercase">Total</TableHead>
                     <TableHead className="text-xs uppercase">Approval</TableHead>
+                    <TableHead className="text-xs uppercase">Payment</TableHead>
                     <TableHead className="text-xs uppercase text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displayedBookings.map((booking) => (
-                    <TableRow key={booking.id} data-testid="booking-row">
-                      <TableCell className="font-medium">{booking.client_name}</TableCell>
-                      <TableCell className="mono font-semibold">{booking.stock_symbol}</TableCell>
-                      <TableCell className="mono">{booking.quantity}</TableCell>
-                      <TableCell className="mono">₹{booking.buying_price?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
-                      <TableCell className="mono">
-                        {booking.selling_price ? `₹${booking.selling_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
-                      </TableCell>
-                      <TableCell className="text-sm">{new Date(booking.booking_date).toLocaleDateString('en-IN')}</TableCell>
-                      <TableCell>
-                        <Badge variant={booking.status === 'open' ? 'default' : 'secondary'}>
-                          {booking.status.toUpperCase()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{getApprovalBadge(booking.approval_status)}</TableCell>
-                      <TableCell className="text-right">
-                        {isPEDesk && booking.approval_status === 'pending' && (
-                          <>
-                            <Button variant="ghost" size="sm" onClick={() => handleApprove(booking.id, true)} className="text-green-600" title="Approve">
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleApprove(booking.id, false)} className="text-red-600" title="Reject">
-                              <XCircle className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                        {!isEmployee && (
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(booking)}><Pencil className="h-4 w-4" /></Button>
-                        )}
-                        {!isEmployee && (
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(booking.id)}><Trash2 className="h-4 w-4" /></Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {displayedBookings.map((booking) => {
+                    const totalAmount = (booking.selling_price || 0) * booking.quantity;
+                    const remaining = totalAmount - (booking.total_paid || 0);
+                    
+                    return (
+                      <TableRow key={booking.id} data-testid="booking-row">
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{booking.client_name}</p>
+                            <p className="text-xs text-muted-foreground">{booking.client_pan || ''}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="mono font-semibold">{booking.stock_symbol}</TableCell>
+                        <TableCell className="mono">{booking.quantity}</TableCell>
+                        <TableCell className="mono">
+                          {booking.selling_price ? formatCurrency(booking.selling_price) : '-'}
+                        </TableCell>
+                        <TableCell className="mono font-medium">
+                          {formatCurrency(totalAmount)}
+                        </TableCell>
+                        <TableCell>{getApprovalBadge(booking.approval_status)}</TableCell>
+                        <TableCell>
+                          {booking.approval_status === 'approved' && booking.selling_price ? (
+                            <div className="space-y-1">
+                              {getPaymentBadge(booking)}
+                              <Progress value={getPaymentProgress(booking)} className="h-1.5 w-20" />
+                              <p className="text-xs text-muted-foreground">
+                                {formatCurrency(booking.total_paid || 0)} / {formatCurrency(totalAmount)}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {isPEDesk && booking.approval_status === 'pending' && (
+                              <>
+                                <Button variant="ghost" size="sm" onClick={() => handleApprove(booking.id, true)} className="text-green-600" title="Approve">
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleApprove(booking.id, false)} className="text-red-600" title="Reject">
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                            {canRecordPayments && booking.approval_status === 'approved' && 
+                             booking.selling_price && !booking.dp_transfer_ready && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleOpenPaymentDialog(booking)}
+                                className="text-blue-600"
+                                title="Record Payment"
+                              >
+                                <CreditCard className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {booking.dp_transfer_ready && (
+                              <Badge className="bg-green-100 text-green-800 text-xs">
+                                <Building2 className="h-3 w-3 mr-1" />
+                                DP Ready
+                              </Badge>
+                            )}
+                            {!isEmployee && (
+                              <>
+                                <Button variant="ghost" size="sm" onClick={() => handleEdit(booking)}><Pencil className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleDelete(booking.id)}><Trash2 className="h-4 w-4" /></Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Payment Dialog */}
+      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Record Payment
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedBooking && (
+            <div className="space-y-4">
+              {/* Booking Summary */}
+              <div className="bg-muted p-4 rounded-lg space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Client</span>
+                  <span className="font-medium">{selectedBooking.client_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Stock</span>
+                  <span className="font-medium">{selectedBooking.stock_symbol}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Quantity</span>
+                  <span>{selectedBooking.quantity}</span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-muted-foreground">Total Amount</span>
+                  <span className="font-bold">
+                    {formatCurrency((selectedBooking.selling_price || 0) * selectedBooking.quantity)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Paid</span>
+                  <span className="text-green-600">{formatCurrency(selectedBooking.total_paid || 0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Remaining</span>
+                  <span className="text-orange-600 font-medium">
+                    {formatCurrency((selectedBooking.selling_price || 0) * selectedBooking.quantity - (selectedBooking.total_paid || 0))}
+                  </span>
+                </div>
+                <Progress value={getPaymentProgress(selectedBooking)} className="h-2" />
+                <p className="text-xs text-muted-foreground text-center">
+                  Tranche {(selectedBooking.payments?.length || 0) + 1} of 4
+                </p>
+              </div>
+
+              {/* Payment History */}
+              {selectedBooking.payments && selectedBooking.payments.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Payment History</Label>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {selectedBooking.payments.map((p, idx) => (
+                      <div key={idx} className="flex justify-between text-sm p-2 bg-muted/50 rounded">
+                        <span>Tranche {p.tranche_number}: {formatCurrency(p.amount)}</span>
+                        <span className="text-muted-foreground">{new Date(p.payment_date).toLocaleDateString('en-IN')}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Form */}
+              <form onSubmit={handleAddPayment} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Payment Amount (INR) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={(selectedBooking.selling_price || 0) * selectedBooking.quantity - (selectedBooking.total_paid || 0)}
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    placeholder="Enter amount"
+                    required
+                    data-testid="payment-amount-input"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Payment Date *</Label>
+                  <Input
+                    type="date"
+                    value={paymentForm.payment_date}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, payment_date: e.target.value })}
+                    required
+                    data-testid="payment-date-input"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                    placeholder="Payment reference, bank details, etc."
+                    rows={2}
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(false)}>Cancel</Button>
+                  <Button type="submit" data-testid="save-payment-button">
+                    <Receipt className="h-4 w-4 mr-2" />
+                    Record Payment
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
