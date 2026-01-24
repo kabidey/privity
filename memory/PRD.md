@@ -125,10 +125,11 @@ Build a Share Booking System for managing client share bookings, inventory track
 | Route | Page | Description |
 |-------|------|-------------|
 | /login | Login | Auth with register/login toggle |
+| /forgot-password | ForgotPassword | Self-service password reset |
 | / | Dashboard | Stats, charts, quick actions |
 | /clients | Clients | Client management with portfolio links |
 | /clients/:id/portfolio | ClientPortfolio | Detailed client holdings |
-| /vendors | Vendors | Vendor management |
+| /vendors | Vendors | Vendor management (PE Desk only) |
 | /stocks | Stocks | Stock management |
 | /purchases | Purchases | Purchase recording |
 | /inventory | Inventory | Stock levels tracking |
@@ -137,12 +138,17 @@ Build a Share Booking System for managing client share bookings, inventory track
 | /users | UserManagement | Role management (admin only) |
 
 ## API Endpoints
-- `/api/auth/*` - Authentication (register, login, me)
+- `/api/auth/*` - Authentication (register, login, me, forgot-password, reset-password)
 - `/api/users/*` - User management (list, update role)
 - `/api/clients/*` - Client CRUD + documents + bulk upload + portfolio
 - `/api/stocks/*` - Stock CRUD + bulk upload
 - `/api/purchases/*` - Purchase tracking
 - `/api/inventory/*` - Inventory management
+- `/api/bookings/*` - Booking CRUD + bulk upload + approval
+- `/api/dashboard/*` - Stats and analytics
+- `/api/reports/*` - P&L reports + exports
+- `/api/notifications/*` - Notifications (list, unread-count, mark-read)
+- `/api/ws/notifications` - WebSocket for real-time notifications
 - `/api/bookings/*` - Booking CRUD + bulk upload
 - `/api/dashboard/*` - Stats and analytics
 - `/api/reports/*` - P&L reports + exports
