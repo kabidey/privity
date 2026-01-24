@@ -1222,7 +1222,11 @@ async def get_stock(stock_id: str, current_user: dict = Depends(get_current_user
 
 @api_router.put("/stocks/{stock_id}", response_model=Stock)
 async def update_stock(stock_id: str, stock_data: StockCreate, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_stocks")
+    user_role = current_user.get("role", 5)
+    
+    # Only PE Desk can update stocks
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can update stocks")
     
     result = await db.stocks.update_one(
         {"id": stock_id},
@@ -1237,7 +1241,11 @@ async def update_stock(stock_id: str, stock_data: StockCreate, current_user: dic
 
 @api_router.delete("/stocks/{stock_id}")
 async def delete_stock(stock_id: str, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_stocks")
+    user_role = current_user.get("role", 5)
+    
+    # Only PE Desk can delete stocks
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete stocks")
     
     result = await db.stocks.delete_one({"id": stock_id})
     if result.deleted_count == 0:
@@ -1246,7 +1254,11 @@ async def delete_stock(stock_id: str, current_user: dict = Depends(get_current_u
 
 @api_router.post("/stocks/bulk-upload")
 async def bulk_upload_stocks(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_stocks")
+    user_role = current_user.get("role", 5)
+    
+    # Only PE Desk can bulk upload stocks
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can bulk upload stocks")
     
     try:
         content = await file.read()
