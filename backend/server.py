@@ -2354,50 +2354,119 @@ async def approve_booking(
             details={"stock_id": booking["stock_id"], "quantity": booking["quantity"]}
         )
         
-        # Send approval notification to client
+        # Get client and stock info
         client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
         stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
         creator = await db.users.find_one({"id": booking["created_by"]}, {"_id": 0})
+        booking_number = booking.get("booking_number", booking_id[:8].upper())
+        confirmation_token = booking.get("client_confirmation_token")
+        
+        # Check if this is a loss booking that still needs loss approval
+        is_loss_pending = booking.get("is_loss_booking") and booking.get("loss_approval_status") == "pending"
         
         if client and client.get("email"):
-            email_body = f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #10b981;">Booking Order Approved ✓</h2>
-                <p>Dear {client['name']},</p>
-                <p>Your booking order has been <strong style="color: #10b981;">APPROVED</strong> and inventory has been adjusted.</p>
-                
-                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                    <tr style="background-color: #f3f4f6;">
-                        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
-                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
-                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking['quantity']}</td>
-                    </tr>
-                    <tr style="background-color: #f3f4f6;">
-                        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Approved By</strong></td>
-                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{current_user['name']} (PE Desk)</td>
-                    </tr>
-                </table>
-                
-                <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
-            </div>
-            """
-            await send_email(
-                client["email"],
-                f"Booking Approved - {stock['symbol'] if stock else 'N/A'} | {booking_id[:8].upper()}",
-                email_body,
-                cc_email=creator.get("email") if creator else None
-            )
+            if is_loss_pending:
+                # For loss bookings, wait for loss approval before sending client confirmation
+                email_body = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #f59e0b;">Booking Approved - Pending Loss Review</h2>
+                    <p>Dear {client['name']},</p>
+                    <p>Your booking order has been approved. However, since this is a loss transaction, it requires additional review. You will receive a confirmation request once fully approved.</p>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <tr style="background-color: #f3f4f6;">
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking ID</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'}</td>
+                        </tr>
+                        <tr style="background-color: #f3f4f6;">
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Status</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><span style="color: #f59e0b;">Pending Loss Review</span></td>
+                        </tr>
+                    </table>
+                    
+                    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+                </div>
+                """
+                await send_email(
+                    client["email"],
+                    f"Booking Approved - Pending Loss Review | {booking_number}",
+                    email_body,
+                    cc_email=creator.get("email") if creator else None
+                )
+            else:
+                # Send client confirmation email with Accept/Deny buttons
+                email_body = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #10b981;">Booking Approved - Please Confirm ✓</h2>
+                    <p>Dear {client['name']},</p>
+                    <p>Your booking order has been <strong style="color: #10b981;">APPROVED</strong> by PE Desk. Please confirm your acceptance to proceed.</p>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <tr style="background-color: #f3f4f6;">
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking ID</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Client OTC UCC</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">{client.get('otc_ucc', 'N/A')}</td>
+                        </tr>
+                        <tr style="background-color: #f3f4f6;">
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'} - {stock['name'] if stock else ''}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking['quantity']}</td>
+                        </tr>
+                        <tr style="background-color: #f3f4f6;">
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Landing Price</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{booking.get('buying_price', 0):,.2f}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Value</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{(booking.get('buying_price', 0) * booking.get('quantity', 0)):,.2f}</td>
+                        </tr>
+                        <tr style="background-color: #f3f4f6;">
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Approved By</strong></td>
+                            <td style="padding: 10px; border: 1px solid #e5e7eb;">{current_user['name']} (PE Desk)</td>
+                        </tr>
+                    </table>
+                    
+                    <div style="margin: 30px 0; text-align: center;">
+                        <p style="margin-bottom: 20px; font-weight: bold;">Please confirm your booking:</p>
+                        <a href="{os.environ.get('FRONTEND_URL', 'https://privity.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/accept" 
+                           style="display: inline-block; background-color: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin-right: 10px; font-weight: bold;">
+                            ✓ ACCEPT BOOKING
+                        </a>
+                        <a href="{os.environ.get('FRONTEND_URL', 'https://privity.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/deny" 
+                           style="display: inline-block; background-color: #ef4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                            ✗ DENY BOOKING
+                        </a>
+                    </div>
+                    
+                    <p style="color: #6b7280; font-size: 14px;">Please review and confirm this booking. If you accept, payment can be initiated. If you deny, the booking will be cancelled.</p>
+                    
+                    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+                </div>
+                """
+                await send_email(
+                    client["email"],
+                    f"Action Required: Confirm Booking - {stock['symbol'] if stock else 'N/A'} | {booking_number}",
+                    email_body,
+                    cc_email=creator.get("email") if creator else None
+                )
         
         # Real-time notification to booking creator
         if booking.get("created_by"):
             await create_notification(
                 booking["created_by"],
                 "booking_approved",
-                "Booking Approved",
-                f"Your booking for '{stock['symbol'] if stock else 'N/A'}' has been approved",
+                "Booking Approved - Awaiting Client Confirmation",
+                f"Your booking {booking_number} for '{stock['symbol'] if stock else 'N/A'}' has been approved. Client confirmation email sent.",
                 {"booking_id": booking_id, "stock_symbol": stock['symbol'] if stock else None}
             )
     else:
