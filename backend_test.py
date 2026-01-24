@@ -3,17 +3,20 @@ import sys
 import json
 from datetime import datetime
 
-class PrivityShareBookingTester:
+class SMIFSShareBookingTester:
     def __init__(self, base_url="https://last-project-10.preview.emergentagent.com"):
         self.base_url = base_url
         self.admin_token = None
         self.employee_token = None
+        self.pe_desk_token = None
         self.tests_run = 0
         self.tests_passed = 0
         self.admin_user = None
         self.employee_user = None
+        self.pe_desk_user = None
         self.test_client_id = None
-        self.test_employee_id = None
+        self.test_booking_id = None
+        self.test_stock_id = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
         """Run a single API test"""
