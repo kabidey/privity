@@ -206,14 +206,15 @@ Build a Share Booking System for managing client share bookings, inventory track
 - `/api/stocks/*` - Stock CRUD + bulk upload
 - `/api/purchases/*` - Purchase tracking
 - `/api/inventory/*` - Inventory management
-- `/api/bookings/*` - Booking CRUD + bulk upload + approval
+- `/api/bookings/*` - Booking CRUD + bulk upload + approval + payment tracking
+- `/api/bookings/{id}/payments` - Payment tranche management
+- `/api/dp-transfer-report` - DP transfer report + export
 - `/api/dashboard/*` - Stats and analytics
 - `/api/reports/*` - P&L reports + exports
 - `/api/notifications/*` - Notifications (list, unread-count, mark-read)
 - `/api/ws/notifications` - WebSocket for real-time notifications
-- `/api/bookings/*` - Booking CRUD + bulk upload
-- `/api/dashboard/*` - Stats and analytics
-- `/api/reports/*` - P&L reports + exports
+- `/api/analytics/*` - Advanced analytics endpoints
+- `/api/email-templates/*` - Email template management
 
 ## Test Results (Latest)
 - Backend: 100% pass rate (9/9 tests for bug fixes)
