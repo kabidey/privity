@@ -149,28 +149,77 @@ const Bookings = () => {
 
   const formPnL = calculateFormPnL();
 
+  // Handle booking type change
+  const handleBookingTypeChange = (value) => {
+    setFormData({ ...formData, booking_type: value });
+    if (value === 'own') {
+      setInsiderWarningOpen(true);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // For "own" bookings, require form upload acknowledgement
+    if (formData.booking_type === 'own' && !formData.insider_form_acknowledged) {
+      toast.error('Please acknowledge the Insider Trading Policy and upload requisite forms after booking creation');
+    }
+    
     try {
       const payload = {
         ...formData,
         quantity: parseInt(formData.quantity),
         buying_price: formData.buying_price ? parseFloat(formData.buying_price) : null,
         selling_price: formData.selling_price ? parseFloat(formData.selling_price) : null,
+        insider_form_uploaded: false,
       };
 
       if (editingBooking) {
         await api.put(`/bookings/${editingBooking.id}`, payload);
         toast.success('Booking updated successfully');
       } else {
-        await api.post('/bookings', payload);
+        const response = await api.post('/bookings', payload);
         toast.success('Booking created - pending PE Desk approval');
+        
+        // If "own" booking, prompt to upload insider form
+        if (formData.booking_type === 'own') {
+          const newBooking = bookings.find(b => b.booking_number === response.data.booking_number) || response.data;
+          setSelectedInsiderBooking(newBooking);
+          setInsiderFormDialogOpen(true);
+        }
       }
       setDialogOpen(false);
       resetForm();
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'An error occurred');
+    }
+  };
+
+  const handleInsiderFormUpload = async () => {
+    if (!insiderFormFile || !selectedInsiderBooking) {
+      toast.error('Please select a file to upload');
+      return;
+    }
+    
+    setUploadingForm(true);
+    try {
+      const formDataObj = new FormData();
+      formDataObj.append('file', insiderFormFile);
+      
+      await api.post(`/bookings/${selectedInsiderBooking.id}/insider-form`, formDataObj, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success('Insider trading form uploaded successfully');
+      setInsiderFormDialogOpen(false);
+      setInsiderFormFile(null);
+      setSelectedInsiderBooking(null);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload form');
+    } finally {
+      setUploadingForm(false);
     }
   };
 
