@@ -189,6 +189,31 @@ const Bookings = () => {
     }
   };
 
+  const handleExportBookings = async (format = 'xlsx') => {
+    try {
+      const response = await api.get(`/bookings-export?format=${format}`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], {
+        type: format === 'csv' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bookings_export_${new Date().toISOString().split('T')[0]}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Bookings exported to ${format.toUpperCase()} successfully`);
+    } catch (error) {
+      toast.error('Failed to export bookings');
+    }
+  };
+
   const handleOpenPaymentDialog = (booking) => {
     setSelectedBooking(booking);
     setPaymentForm({
