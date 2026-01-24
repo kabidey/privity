@@ -163,7 +163,9 @@ const Bookings = () => {
     
     // For "own" bookings, require form upload acknowledgement
     if (formData.booking_type === 'own' && !formData.insider_form_acknowledged) {
-      toast.error('Please acknowledge the Insider Trading Policy and upload requisite forms after booking creation');
+      toast.error('Please acknowledge the Insider Trading Policy first');
+      setInsiderWarningOpen(true);
+      return;
     }
     
     try {
@@ -174,6 +176,9 @@ const Bookings = () => {
         selling_price: formData.selling_price ? parseFloat(formData.selling_price) : null,
         insider_form_uploaded: false,
       };
+      
+      // Remove frontend-only fields
+      delete payload.insider_form_acknowledged;
 
       if (editingBooking) {
         await api.put(`/bookings/${editingBooking.id}`, payload);
@@ -183,9 +188,8 @@ const Bookings = () => {
         toast.success('Booking created - pending PE Desk approval');
         
         // If "own" booking, prompt to upload insider form
-        if (formData.booking_type === 'own') {
-          const newBooking = bookings.find(b => b.booking_number === response.data.booking_number) || response.data;
-          setSelectedInsiderBooking(newBooking);
+        if (formData.booking_type === 'own' && response.data.id) {
+          setSelectedInsiderBooking(response.data);
           setInsiderFormDialogOpen(true);
         }
       }
