@@ -3107,6 +3107,50 @@ async def get_purchase_payments(
         "payment_completed_at": purchase.get("payment_completed_at")
     }
 
+
+@api_router.delete("/purchases/{purchase_id}")
+async def delete_purchase(purchase_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a purchase (PE Desk only)"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete purchases")
+    
+    purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
+    if not purchase:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    
+    # Get vendor and stock info for audit log
+    vendor = await db.clients.find_one({"id": purchase["vendor_id"]}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": purchase["stock_id"]}, {"_id": 0})
+    
+    result = await db.purchases.delete_one({"id": purchase_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    
+    # Update inventory after deletion
+    await update_inventory(purchase["stock_id"])
+    
+    # Create audit log
+    await create_audit_log(
+        action="PURCHASE_DELETE",
+        entity_type="purchase",
+        entity_id=purchase_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {vendor['name'] if vendor else 'Unknown'}",
+        details={
+            "vendor_name": vendor["name"] if vendor else "Unknown",
+            "stock_symbol": stock["symbol"] if stock else "Unknown",
+            "quantity": purchase.get("quantity"),
+            "total_amount": purchase.get("total_amount"),
+            "deleted_by": current_user["name"]
+        }
+    )
+    
+    return {"message": "Purchase deleted successfully"}
+
 @api_router.post("/bookings/bulk-upload")
 async def bulk_upload_bookings(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     check_permission(current_user, "manage_bookings")
