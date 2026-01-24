@@ -603,7 +603,34 @@ const Clients = () => {
                       <Label>DP ID *</Label>
                       <Input data-testid="client-dpid-input" value={formData.dp_id} onChange={(e) => setFormData({ ...formData, dp_id: e.target.value })} required />
                     </div>
-                    <div className="space-y-2 col-span-2">
+                    <div className="space-y-2">
+                      <Label>DP Type *</Label>
+                      <Select 
+                        value={formData.dp_type} 
+                        onValueChange={(value) => setFormData({ ...formData, dp_type: value, trading_ucc: value === 'outside' ? '' : formData.trading_ucc })}
+                      >
+                        <SelectTrigger data-testid="dp-type-select">
+                          <SelectValue placeholder="Select DP Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="smifs">DP With SMIFS</SelectItem>
+                          <SelectItem value="outside">DP Outside</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {formData.dp_type === 'smifs' && (
+                      <div className="space-y-2">
+                        <Label>Trading UCC *</Label>
+                        <Input 
+                          data-testid="trading-ucc-input" 
+                          value={formData.trading_ucc} 
+                          onChange={(e) => setFormData({ ...formData, trading_ucc: e.target.value.toUpperCase() })} 
+                          required={formData.dp_type === 'smifs'}
+                          placeholder="Enter Trading UCC"
+                        />
+                      </div>
+                    )}
+                    <div className={`space-y-2 ${formData.dp_type === 'smifs' ? '' : 'col-span-2'}`}>
                       <Label>Address</Label>
                       <Textarea data-testid="client-address-input" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} rows={2} />
                     </div>
