@@ -663,6 +663,34 @@ async def download_client_document(
     
     return FileResponse(file_path, filename=filename)
 
+@api_router.post("/ocr/preview")
+async def ocr_preview(
+    doc_type: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Process OCR on a document without saving - for auto-fill preview"""
+    # Save temporarily
+    temp_dir = UPLOAD_DIR / "temp"
+    temp_dir.mkdir(exist_ok=True)
+    
+    file_ext = Path(file.filename).suffix
+    temp_filename = f"temp_{uuid.uuid4()}{file_ext}"
+    temp_path = temp_dir / temp_filename
+    
+    try:
+        async with aiofiles.open(temp_path, 'wb') as f:
+            content = await file.read()
+            await f.write(content)
+        
+        # Process OCR
+        ocr_data = await process_document_ocr(str(temp_path), doc_type)
+        return ocr_data
+    finally:
+        # Clean up temp file
+        if temp_path.exists():
+            temp_path.unlink()
+
 @api_router.get("/clients/{client_id}/documents/{filename}/ocr")
 async def get_document_ocr(
     client_id: str,
