@@ -66,7 +66,8 @@ class ShareBookingAPITester:
         test_data = {
             "email": test_email,
             "password": "TestPass123!",
-            "name": "Test User"
+            "name": "Test User",
+            "role": 1  # PE Desk - full access
         }
         
         success, response, status = self.make_request("POST", "auth/register", test_data, 200)
