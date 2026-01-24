@@ -396,7 +396,7 @@ class PaymentTrancheCreate(BaseModel):
 class Booking(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    booking_number: str  # Human-readable unique booking ID (e.g., BK-2026-00001)
+    booking_number: Optional[str] = None  # Human-readable unique booking ID (e.g., BK-2026-00001)
     client_id: str
     stock_id: str
     quantity: int
@@ -425,7 +425,7 @@ class Booking(BaseModel):
 class BookingWithDetails(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    booking_number: str  # Human-readable unique booking ID
+    booking_number: Optional[str] = None  # Human-readable unique booking ID
     client_id: str
     client_name: str
     client_pan: Optional[str] = None
