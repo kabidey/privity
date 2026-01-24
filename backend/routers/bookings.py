@@ -700,6 +700,191 @@ async def approve_booking(
             await create_notification(
                 booking["created_by"],
                 "booking_rejected",
+
+
+# ============== Client Confirmation Endpoints (Public - no auth) ==============
+
+@router.get("/booking-confirm/{booking_id}/{token}/{action}")
+async def client_confirm_booking_get(booking_id: str, token: str, action: str):
+    """Client confirms or denies booking via email link (GET for direct link click)"""
+    return await process_client_confirmation(booking_id, token, action, None)
+
+
+@router.post("/booking-confirm/{booking_id}/{token}/{action}")
+async def client_confirm_booking_post(
+    booking_id: str, 
+    token: str, 
+    action: str, 
+    request: ClientConfirmationRequest = None
+):
+    """Client confirms or denies booking via email link (POST with optional reason)"""
+    reason = request.reason if request else None
+    return await process_client_confirmation(booking_id, token, action, reason)
+
+
+async def process_client_confirmation(booking_id: str, token: str, action: str, reason: Optional[str]):
+    """Process client confirmation/denial of booking"""
+    if action not in ["accept", "deny"]:
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'accept' or 'deny'")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Validate token
+    if booking.get("client_confirmation_token") != token:
+        raise HTTPException(status_code=403, detail="Invalid confirmation token")
+    
+    # Check if booking is approved by PE Desk first
+    if booking.get("approval_status") != "approved":
+        return {
+            "message": "This booking is still pending PE Desk approval. You cannot confirm it yet.",
+            "status": "pending_approval",
+            "booking_number": booking.get("booking_number", booking_id[:8].upper())
+        }
+    
+    # Check if loss booking is approved (if applicable)
+    if booking.get("is_loss_booking") and booking.get("loss_approval_status") == "pending":
+        return {
+            "message": "This is a loss booking that requires additional approval. You cannot confirm it yet.",
+            "status": "pending_loss_approval",
+            "booking_number": booking.get("booking_number", booking_id[:8].upper())
+        }
+    
+    # Check if already confirmed
+    if booking.get("client_confirmation_status") != "pending":
+        return {
+            "message": f"Booking has already been {booking.get('client_confirmation_status')}",
+            "status": booking.get("client_confirmation_status")
+        }
+    
+    # Get client and stock info
+    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+    booking_number = booking.get("booking_number", booking_id[:8].upper())
+    
+    if action == "accept":
+        update_data = {
+            "client_confirmation_status": "accepted",
+            "client_confirmed_at": datetime.now(timezone.utc).isoformat()
+        }
+        message = "Booking accepted successfully! Your order is now pending PE Desk approval."
+        
+        # Notify PE Desk about client acceptance
+        await notify_roles(
+            [1],
+            "client_accepted",
+            "Client Accepted Booking",
+            f"Client {client['name'] if client else 'Unknown'} has accepted booking {booking_number} for {stock['symbol'] if stock else 'Unknown'}",
+            {"booking_id": booking_id, "booking_number": booking_number}
+        )
+        
+        # Notify booking creator
+        if booking.get("created_by"):
+            await create_notification(
+                booking["created_by"],
+                "client_accepted",
+                "Client Accepted Booking",
+                f"Client {client['name'] if client else 'Unknown'} has accepted booking {booking_number}",
+                {"booking_id": booking_id, "booking_number": booking_number}
+            )
+        
+    else:  # deny
+        update_data = {
+            "client_confirmation_status": "denied",
+            "client_confirmed_at": datetime.now(timezone.utc).isoformat(),
+            "client_denial_reason": reason or "No reason provided"
+        }
+        message = "Booking denied. The booking creator and PE Desk have been notified."
+        
+        # Notify PE Desk about denial
+        await notify_roles(
+            [1],
+            "client_denied",
+            "Client Denied Booking",
+            f"Client {client['name'] if client else 'Unknown'} has DENIED booking {booking_number}. Reason: {reason or 'Not specified'}",
+            {"booking_id": booking_id, "booking_number": booking_number, "reason": reason}
+        )
+        
+        # Notify booking creator
+        if booking.get("created_by"):
+            await create_notification(
+                booking["created_by"],
+                "client_denied",
+                "Client Denied Booking",
+                f"Client {client['name'] if client else 'Unknown'} has denied booking {booking_number}. Reason: {reason or 'Not specified'}",
+                {"booking_id": booking_id, "booking_number": booking_number, "reason": reason}
+            )
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(
+        action=f"CLIENT_{'ACCEPT' if action == 'accept' else 'DENY'}",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=client["id"] if client else "unknown",
+        user_name=client["name"] if client else "Unknown Client",
+        user_role=0,  # Client
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {booking_number}",
+        details={
+            "action": action,
+            "reason": reason if action == "deny" else None,
+            "client_email": client.get("email") if client else None
+        }
+    )
+    
+    return {
+        "message": message,
+        "status": "accepted" if action == "accept" else "denied",
+        "booking_number": booking_number
+    }
+
+
+# ============== Bulk Upload ==============
+
+@router.post("/bookings/bulk-upload")
+async def bulk_upload_bookings(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """Bulk upload bookings from CSV"""
+    check_permission(current_user, "manage_bookings")
+    
+    try:
+        content = await file.read()
+        df = pd.read_csv(io.BytesIO(content))
+        
+        required_columns = ["client_id", "stock_id", "quantity", "booking_date"]
+        if not all(col in df.columns for col in required_columns):
+            raise HTTPException(status_code=400, detail=f"CSV must contain columns: {', '.join(required_columns)}")
+        
+        bookings_created = 0
+        for _, row in df.iterrows():
+            inventory = await db.inventory.find_one({"stock_id": str(row["stock_id"])}, {"_id": 0})
+            buying_price = float(row.get("buying_price", inventory["weighted_avg_price"] if inventory else 0))
+            
+            booking_id = str(uuid.uuid4())
+            booking_doc = {
+                "id": booking_id,
+                "client_id": str(row["client_id"]),
+                "stock_id": str(row["stock_id"]),
+                "quantity": int(row["quantity"]),
+                "buying_price": buying_price,
+                "selling_price": float(row["selling_price"]) if pd.notna(row.get("selling_price")) else None,
+                "booking_date": str(row["booking_date"]),
+                "status": str(row.get("status", "open")),
+                "notes": str(row.get("notes", "")) if pd.notna(row.get("notes")) else None,
+                "user_id": current_user["id"],
+                "created_by": current_user["id"],
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.bookings.insert_one(booking_doc)
+            await update_inventory(str(row["stock_id"]))
+            bookings_created += 1
+        
+        return {"message": f"Successfully uploaded {bookings_created} bookings"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing CSV: {str(e)}")
+
                 "Booking Rejected",
                 f"Your booking for '{stock['symbol'] if stock else 'N/A'}' has been rejected",
                 {"booking_id": booking_id, "stock_symbol": stock['symbol'] if stock else None}
