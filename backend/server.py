@@ -46,7 +46,7 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Create the main app
-app = FastAPI(title="Privity Share Booking System", version="2.0.0")
+app = FastAPI(title="PRIVITY - Private Equity System", version="2.0.0")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
@@ -454,7 +454,7 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
     if client_data.email and is_active:
         await send_email(
             client_data.email,
-            "Welcome to Share Booking System",
+            "Welcome to Private Equity System",
             f"<p>Dear {client_data.name},</p><p>Your account has been created successfully.</p>"
         )
     
