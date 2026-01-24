@@ -288,8 +288,24 @@ Build a Share Booking System for managing client share bookings, inventory track
 - [ ] Complete migration of server.py routes to separate router files
 - [ ] Mobile responsive improvements
 
+### Phase 12 - Client Confirmation Workflow Enhancement (Jan 24, 2026)
+- ✅ **Delayed Client Confirmation Email**: Client confirmation emails are now ONLY sent after PE Desk approval
+  - Normal bookings: Email sent after PE Desk approval
+  - Loss bookings: Email sent only after BOTH PE Desk approval AND Loss approval
+- ✅ **Enhanced BookingConfirm Page**: 
+  - Now handles `pending_approval` and `pending_loss_approval` statuses
+  - Shows appropriate messages when booking is not yet ready for client confirmation
+  - Fixed incorrect message after acceptance (was showing "pending PE Desk approval" when already approved)
+- ✅ **Testing**: All 15+ test cases passed for the delayed confirmation workflow
+
 ## Next Tasks
-1. Backend route migration (refactor server.py into modular routers)
-2. Two-factor authentication (TOTP)
-3. Bulk booking close functionality
-4. Mobile responsive improvements
+1. **(P0) Backend route migration** - Refactor server.py (4343 lines) into modular routers
+   - Move authentication routes to `/routers/auth.py`
+   - Move booking routes to `/routers/bookings.py`
+   - Move client routes to `/routers/clients.py`
+   - Move stock routes to `/routers/stocks.py`
+   - Move analytics routes to `/routers/analytics.py`
+   - Consolidate services and utilities
+2. **(P1) Two-factor authentication (TOTP)**
+3. **(P2) Bulk booking close functionality**
+4. **(P2) Mobile responsive improvements**
