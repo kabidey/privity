@@ -449,24 +449,46 @@ async def process_document_ocr(file_path: str, doc_type: str) -> Optional[Dict[s
     """Process document OCR using AI vision model"""
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+        from pdf2image import convert_from_path
+        from PIL import Image
+        import io
         
         # Read and encode the file
         file_ext = file_path.lower().split('.')[-1]
         
-        # For PDF, we'd need to convert to image first - for now handle images
+        # For PDF, convert first page to image
         if file_ext == 'pdf':
-            # Return basic info for PDF - full OCR would need pdf2image
-            return {
-                "processed_at": datetime.now(timezone.utc).isoformat(),
-                "doc_type": doc_type,
-                "status": "pdf_uploaded",
-                "extracted_data": {"note": "PDF uploaded - manual verification required"}
-            }
-        
-        # Read image and convert to base64
-        async with aiofiles.open(file_path, 'rb') as f:
-            image_bytes = await f.read()
-        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+            try:
+                # Convert PDF to images (first page only for speed)
+                images = convert_from_path(file_path, first_page=1, last_page=1, dpi=150)
+                if not images:
+                    return {
+                        "processed_at": datetime.now(timezone.utc).isoformat(),
+                        "doc_type": doc_type,
+                        "status": "error",
+                        "error": "Could not convert PDF to image",
+                        "extracted_data": {}
+                    }
+                # Convert PIL image to base64
+                img_byte_arr = io.BytesIO()
+                images[0].save(img_byte_arr, format='PNG')
+                image_bytes = img_byte_arr.getvalue()
+                image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+                logging.info(f"Converted PDF to image for OCR processing")
+            except Exception as pdf_err:
+                logging.error(f"PDF conversion failed: {pdf_err}")
+                return {
+                    "processed_at": datetime.now(timezone.utc).isoformat(),
+                    "doc_type": doc_type,
+                    "status": "error",
+                    "error": f"PDF conversion failed: {str(pdf_err)}",
+                    "extracted_data": {}
+                }
+        else:
+            # Read image and convert to base64
+            async with aiofiles.open(file_path, 'rb') as f:
+                image_bytes = await f.read()
+            image_base64 = base64.b64encode(image_bytes).decode('utf-8')
         
         # Determine prompt based on document type
         if doc_type == "pan_card":
