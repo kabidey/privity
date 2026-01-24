@@ -150,6 +150,36 @@ Build a Share Booking System for managing client share bookings, inventory track
   - `/api/analytics/sector-distribution`
   - `/api/email-templates` (GET, PUT, POST reset, POST preview)
 
+### Phase 10 - Payment Tracking & DP Transfer (Jan 24, 2026)
+- ✅ **Payment Tranche Recording**:
+  - Up to 4 payment tranches per approved booking
+  - Each tranche captures: amount (INR), date, recorded_by, notes
+  - Payment amount validation (cannot exceed remaining balance)
+  - Auto-calculate total_paid and remaining balance
+- ✅ **Payment Status Tracking**:
+  - Status progression: `pending` → `partial` → `completed`
+  - Visual progress bar showing payment percentage
+  - "Paid" badge for completed payments
+- ✅ **DP Transfer Ready Flag**:
+  - Automatically set `dp_transfer_ready=true` when payment completed
+  - "DP Ready" badge displayed in Bookings UI
+  - `payment_completed_at` timestamp recorded
+- ✅ **DP Transfer Report Page** (PE Desk & Zonal Manager only):
+  - Summary cards: Ready for Transfer count, Total Value, Unique Clients, Latest Completion
+  - Transfer records table with: Client Name, PAN, DP ID, Stock, Qty, Amount, Payment Date, Status
+  - Export functionality: CSV and Excel formats
+- ✅ **Role-Based Access**:
+  - Only PE Desk (role 1) and Zonal Manager (role 2) can record payments
+  - Only PE Desk and Zonal Manager can access DP Transfer Report
+  - Payment button hidden for pending/fully-paid/no-selling-price bookings
+- ✅ **New Routes**: `/dp-transfer`
+- ✅ **New API Endpoints**:
+  - `POST /api/bookings/{booking_id}/payments` - Record payment tranche
+  - `GET /api/bookings/{booking_id}/payments` - Get payment details
+  - `DELETE /api/bookings/{booking_id}/payments/{tranche_number}` - Delete payment (PE Desk only)
+  - `GET /api/dp-transfer-report` - Get fully paid bookings ready for transfer
+  - `GET /api/dp-transfer-report/export` - Export report as CSV/Excel
+
 ## Pages & Routes
 | Route | Page | Description |
 |-------|------|-------------|
