@@ -33,39 +33,20 @@ import asyncio
 import random
 import string
 
+# Import from modular structure
+from config import (
+    MONGO_URL, DB_NAME, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS,
+    UPLOAD_DIR, EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_FROM,
+    EMERGENT_LLM_KEY, OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS, FRONTEND_URL,
+    ROLES, ROLE_PERMISSIONS, ALLOWED_EMAIL_DOMAINS, AUDIT_ACTIONS, DEFAULT_EMAIL_TEMPLATES
+)
+from database import db, client
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Emergent LLM Key for OCR
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# JWT Configuration
-JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
-JWT_ALGORITHM = 'HS256'
-JWT_EXPIRATION_HOURS = 24
-
-# File upload directory
-UPLOAD_DIR = Path("/app/uploads")
-UPLOAD_DIR.mkdir(exist_ok=True)
-
-# Email Configuration (MS Exchange)
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.office365.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
-EMAIL_USERNAME = os.environ.get('EMAIL_USERNAME', '')
-EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
-EMAIL_FROM = os.environ.get('EMAIL_FROM', EMAIL_USERNAME)
-
-# OTP Configuration
-OTP_EXPIRY_MINUTES = 10
-OTP_MAX_ATTEMPTS = 3
-
 # Create the main app
-app = FastAPI()
+app = FastAPI(title="Privity Share Booking System", version="2.0.0")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
