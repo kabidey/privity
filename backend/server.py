@@ -844,6 +844,99 @@ async def bulk_upload_clients(file: UploadFile = File(...), current_user: dict =
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing CSV: {str(e)}")
 
+# Clone Client/Vendor Endpoint (PE Desk Only)
+@api_router.post("/clients/{client_id}/clone")
+async def clone_client_vendor(
+    client_id: str, 
+    target_type: str = Query(..., description="Target type: 'client' or 'vendor'"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Clone a client as vendor or vendor as client (PE Desk only)"""
+    # Only PE Desk can clone
+    if current_user.get("role", 5) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can clone clients/vendors")
+    
+    if target_type not in ["client", "vendor"]:
+        raise HTTPException(status_code=400, detail="target_type must be 'client' or 'vendor'")
+    
+    # Get the source client/vendor
+    source = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not source:
+        raise HTTPException(status_code=404, detail="Source client/vendor not found")
+    
+    # Check if already exists as target type
+    is_currently_vendor = source.get("is_vendor", False)
+    if (target_type == "vendor" and is_currently_vendor) or (target_type == "client" and not is_currently_vendor):
+        raise HTTPException(status_code=400, detail=f"This is already a {target_type}")
+    
+    # Check if a client/vendor with same PAN already exists as target type
+    existing = await db.clients.find_one({
+        "pan_number": source["pan_number"],
+        "is_vendor": target_type == "vendor"
+    }, {"_id": 0})
+    
+    if existing:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"A {target_type} with PAN {source['pan_number']} already exists"
+        )
+    
+    # Create new cloned entry
+    new_id = str(uuid.uuid4())
+    new_otc_ucc = f"OTC{datetime.now().strftime('%Y%m%d')}{new_id[:8].upper()}"
+    
+    cloned_doc = {
+        "id": new_id,
+        "otc_ucc": new_otc_ucc,
+        "name": source["name"],
+        "email": source.get("email"),
+        "phone": source.get("phone"),
+        "mobile": source.get("mobile"),
+        "pan_number": source["pan_number"],
+        "dp_id": source["dp_id"],
+        "dp_type": source.get("dp_type", "outside"),
+        "trading_ucc": source.get("trading_ucc"),
+        "address": source.get("address"),
+        "pin_code": source.get("pin_code"),
+        "bank_accounts": source.get("bank_accounts", []),
+        "is_vendor": target_type == "vendor",
+        "is_active": True,
+        "approval_status": "approved",
+        "documents": [],  # Documents are not cloned
+        "user_id": current_user["id"],
+        "created_by": current_user["id"],
+        "created_by_role": 1,
+        "mapped_employee_id": None,
+        "mapped_employee_name": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.clients.insert_one(cloned_doc)
+    
+    # Create audit log
+    source_type = "vendor" if is_currently_vendor else "client"
+    await create_audit_log(
+        action="CLIENT_CREATE",
+        entity_type=target_type,
+        entity_id=new_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=1,
+        entity_name=source["name"],
+        details={
+            "cloned_from": client_id,
+            "source_type": source_type,
+            "target_type": target_type,
+            "pan_number": source["pan_number"]
+        }
+    )
+    
+    return {
+        "message": f"Successfully cloned {source_type} '{source['name']}' as {target_type}",
+        "id": new_id,
+        "otc_ucc": new_otc_ucc
+    }
+
 # Stock Routes (PE Desk Only for creation/edit)
 @api_router.post("/stocks", response_model=Stock)
 async def create_stock(stock_data: StockCreate, current_user: dict = Depends(get_current_user)):
