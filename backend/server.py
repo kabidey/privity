@@ -878,13 +878,14 @@ async def unsuspend_client(
     )
     
     # Log the action
-    await log_audit(
+    await create_audit_log(
         action="client_unsuspended",
-        action_description=f"Client {client.get('name')} unsuspended",
         entity_type="client",
         entity_id=client_id,
-        entity_name=client.get("name"),
-        user=current_user
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
+        entity_name=client.get("name")
     )
     
     return {"message": f"Client {client.get('name')} has been unsuspended"}
