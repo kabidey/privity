@@ -409,6 +409,11 @@ class Booking(BaseModel):
     notes: Optional[str] = None
     created_at: str
     created_by: str
+    # Loss booking approval (selling price < buying price)
+    is_loss_booking: bool = False
+    loss_approval_status: str = "not_required"  # not_required, pending, approved, rejected
+    loss_approved_by: Optional[str] = None
+    loss_approved_at: Optional[str] = None
     # Payment tracking
     payments: List[PaymentTranche] = []
     total_paid: float = 0
@@ -440,6 +445,11 @@ class BookingWithDetails(BaseModel):
     created_at: str
     created_by: str
     created_by_name: str
+    # Loss booking approval
+    is_loss_booking: bool = False
+    loss_approval_status: str = "not_required"
+    loss_approved_by: Optional[str] = None
+    loss_approved_at: Optional[str] = None
     # Payment tracking
     payments: List[PaymentTranche] = []
     total_paid: float = 0
