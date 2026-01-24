@@ -376,6 +376,20 @@ class BookingCreate(BaseModel):
     status: str = "open"
     notes: Optional[str] = None
 
+# Payment Tranche Model
+class PaymentTranche(BaseModel):
+    tranche_number: int  # 1 to 4
+    amount: float
+    payment_date: str
+    recorded_by: str
+    recorded_at: str
+    notes: Optional[str] = None
+
+class PaymentTrancheCreate(BaseModel):
+    amount: float
+    payment_date: str
+    notes: Optional[str] = None
+
 class Booking(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
@@ -392,18 +406,27 @@ class Booking(BaseModel):
     notes: Optional[str] = None
     created_at: str
     created_by: str
+    # Payment tracking
+    payments: List[PaymentTranche] = []
+    total_paid: float = 0
+    payment_status: str = "pending"  # pending, partial, completed
+    payment_completed_at: Optional[str] = None
+    dp_transfer_ready: bool = False
 
 class BookingWithDetails(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     client_id: str
     client_name: str
+    client_pan: Optional[str] = None
+    client_dp_id: Optional[str] = None
     stock_id: str
     stock_symbol: str
     stock_name: str
     quantity: int
     buying_price: float
     selling_price: Optional[float] = None
+    total_amount: Optional[float] = None
     booking_date: str
     status: str
     approval_status: str = "pending"
@@ -414,6 +437,25 @@ class BookingWithDetails(BaseModel):
     created_at: str
     created_by: str
     created_by_name: str
+    # Payment tracking
+    payments: List[PaymentTranche] = []
+    total_paid: float = 0
+    payment_status: str = "pending"
+    payment_completed_at: Optional[str] = None
+    dp_transfer_ready: bool = False
+
+# DP Transfer Report Model
+class DPTransferRecord(BaseModel):
+    booking_id: str
+    client_name: str
+    pan_number: str
+    dp_id: str
+    stock_symbol: str
+    stock_name: str
+    quantity: int
+    total_amount: float
+    total_paid: float
+    payment_completed_at: str
 
 class DashboardStats(BaseModel):
     total_clients: int
