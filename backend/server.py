@@ -2535,13 +2535,21 @@ async def delete_booking(booking_id: str, current_user: dict = Depends(get_curre
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
+    # Prevent deletion of transferred bookings
+    if booking.get("stock_transferred"):
+        raise HTTPException(status_code=400, detail="Cannot delete a booking where stock has already been transferred")
+    
     # Get related info for notification
     client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
     stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+    stock_id = booking["stock_id"]
     
     result = await db.bookings.delete_one({"id": booking_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Update inventory to release blocked quantity
+    await update_inventory(stock_id)
     
     # Audit log
     await create_audit_log(
@@ -2557,7 +2565,8 @@ async def delete_booking(booking_id: str, current_user: dict = Depends(get_curre
             "client_name": client["name"] if client else "Unknown",
             "stock_symbol": stock["symbol"] if stock else "Unknown",
             "quantity": booking.get("quantity"),
-            "deleted_by": current_user["name"]
+            "deleted_by": current_user["name"],
+            "inventory_released": True
         }
     )
     
@@ -2567,11 +2576,11 @@ async def delete_booking(booking_id: str, current_user: dict = Depends(get_curre
             booking["created_by"],
             "booking_deleted",
             "Booking Deleted",
-            f"Your booking {booking.get('booking_number', booking_id[:8].upper())} for {stock['symbol'] if stock else 'Unknown'} has been deleted by PE Desk",
+            f"Your booking {booking.get('booking_number', booking_id[:8].upper())} for {stock['symbol'] if stock else 'Unknown'} has been deleted by PE Desk. Inventory has been released.",
             {"booking_id": booking_id, "stock_symbol": stock["symbol"] if stock else None, "deleted_by": current_user["name"]}
         )
     
-    return {"message": "Booking deleted successfully"}
+    return {"message": "Booking deleted successfully. Inventory released."}
 
 # ============== Payment Tracking Endpoints (PE Desk & Zonal Manager Only) ==============
 @api_router.post("/bookings/{booking_id}/payments")
