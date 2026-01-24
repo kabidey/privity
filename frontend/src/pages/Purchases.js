@@ -377,6 +377,114 @@ const Purchases = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Payment Dialog */}
+      <Dialog open={paymentDialog.open} onOpenChange={(open) => {
+        setPaymentDialog({ open, purchase: open ? paymentDialog.purchase : null });
+        if (!open) {
+          setPaymentForm({
+            amount: '',
+            payment_date: new Date().toISOString().split('T')[0],
+            notes: ''
+          });
+        }
+      }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Record Vendor Payment
+            </DialogTitle>
+            <DialogDescription>
+              Record a payment for this purchase. The vendor will be notified via email.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {paymentDialog.purchase && (
+            <form onSubmit={handlePaymentSubmit} className="space-y-4">
+              <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <span className="text-muted-foreground">Vendor:</span>
+                  <span className="font-medium">{paymentDialog.purchase.vendor_name}</span>
+                  
+                  <span className="text-muted-foreground">Stock:</span>
+                  <span className="font-medium">{paymentDialog.purchase.stock_symbol}</span>
+                  
+                  <span className="text-muted-foreground">Total Amount:</span>
+                  <span className="font-medium">₹{paymentDialog.purchase.total_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  
+                  <span className="text-muted-foreground">Already Paid:</span>
+                  <span className="font-medium text-green-600">₹{(paymentDialog.purchase.total_paid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  
+                  <span className="text-muted-foreground">Remaining:</span>
+                  <span className="font-medium text-orange-600">₹{getRemainingAmount(paymentDialog.purchase).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="payment-amount">Payment Amount *</Label>
+                <Input
+                  id="payment-amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max={getRemainingAmount(paymentDialog.purchase)}
+                  value={paymentForm.amount}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                  placeholder={`Max: ₹${getRemainingAmount(paymentDialog.purchase).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="payment-date">Payment Date *</Label>
+                <Input
+                  id="payment-date"
+                  type="date"
+                  value={paymentForm.payment_date}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, payment_date: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="payment-notes">Notes (Optional)</Label>
+                <Textarea
+                  id="payment-notes"
+                  value={paymentForm.notes}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                  placeholder="Reference number, bank details, etc."
+                  rows={2}
+                />
+              </div>
+              
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPaymentDialog({ open: false, purchase: null })}
+                  disabled={paymentLoading}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={paymentLoading} data-testid="submit-payment-btn">
+                  {paymentLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Record Payment
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
