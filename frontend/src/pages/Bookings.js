@@ -1008,6 +1008,160 @@ const Bookings = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Insider Trading Warning Dialog */}
+      <Dialog open={insiderWarningOpen} onOpenChange={setInsiderWarningOpen}>
+        <DialogContent className="max-w-md" data-testid="insider-warning-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
+              <AlertTriangle className="h-5 w-5" />
+              Insider Trading Policy Warning
+            </DialogTitle>
+            <DialogDescription>
+              Important compliance information for personal share bookings
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <Alert variant="destructive" className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+              <AlertTitle className="text-orange-800 dark:text-orange-200">Compliance Required</AlertTitle>
+              <AlertDescription className="text-orange-700 dark:text-orange-300">
+                <p className="mt-2">
+                  As per regulatory requirements, booking shares for your <strong>own account</strong> requires compliance with the <strong>Insider Trading Policy</strong>.
+                </p>
+              </AlertDescription>
+            </Alert>
+            
+            <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="font-semibold text-blue-800 dark:text-blue-200 flex items-center gap-2 mb-2">
+                <Mail className="h-4 w-4" />
+                Request Requisite Forms
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                Please write to the PE Desk to obtain the necessary compliance forms:
+              </p>
+              <a 
+                href="mailto:pe@smifs.com?subject=Request for Insider Trading Compliance Forms&body=Dear PE Desk,%0D%0A%0D%0AI am requesting the requisite forms for personal share booking as per the Insider Trading Policy.%0D%0A%0D%0ARegards"
+                className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
+                <Mail className="h-4 w-4" />
+                pe@smifs.com
+              </a>
+            </div>
+            
+            <div className="p-4 bg-muted rounded-lg">
+              <h4 className="font-semibold flex items-center gap-2 mb-2">
+                <FileText className="h-4 w-4" />
+                Upload Facility
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                After receiving and completing the requisite forms, you can upload them when creating the booking or afterwards from the bookings list.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setInsiderWarningOpen(false);
+                setFormData({ ...formData, booking_type: 'client' });
+              }}
+              data-testid="insider-warning-cancel-btn"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setInsiderWarningOpen(false);
+                setFormData({ ...formData, insider_form_acknowledged: true });
+              }}
+              className="bg-orange-600 hover:bg-orange-700"
+              data-testid="insider-warning-acknowledge-btn"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              I Acknowledge & Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Insider Form Upload Dialog */}
+      <Dialog open={insiderFormDialogOpen} onOpenChange={setInsiderFormDialogOpen}>
+        <DialogContent className="max-w-md" data-testid="insider-form-upload-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-blue-600" />
+              Upload Insider Trading Form
+            </DialogTitle>
+            <DialogDescription>
+              Upload the completed compliance form for your personal booking
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {selectedInsiderBooking && (
+              <div className="p-3 bg-muted rounded-lg text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Booking ID</span>
+                  <span className="font-mono font-semibold">{selectedInsiderBooking.booking_number || selectedInsiderBooking.id?.substring(0, 8).toUpperCase()}</span>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label>Select Form (PDF, JPG, PNG)</Label>
+              <Input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => setInsiderFormFile(e.target.files[0])}
+                data-testid="insider-form-file-input"
+              />
+              {insiderFormFile && (
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  <CheckCircle className="h-3 w-3" />
+                  {insiderFormFile.name}
+                </p>
+              )}
+            </div>
+            
+            <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-700 dark:text-blue-300 text-sm">
+                You can also upload the form later from the bookings list by clicking on the booking.
+              </AlertDescription>
+            </Alert>
+          </div>
+          
+          <DialogFooter className="flex gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setInsiderFormDialogOpen(false);
+                setInsiderFormFile(null);
+                setSelectedInsiderBooking(null);
+              }}
+            >
+              Upload Later
+            </Button>
+            <Button 
+              onClick={handleInsiderFormUpload}
+              disabled={!insiderFormFile || uploadingForm}
+              data-testid="upload-insider-form-btn"
+            >
+              {uploadingForm ? (
+                <>Uploading...</>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Form
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
