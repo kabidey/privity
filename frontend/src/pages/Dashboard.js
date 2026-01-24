@@ -88,7 +88,7 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* P&L Summary Cards */}
+      {/* Revenue Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="border shadow-sm" data-testid="inventory-value-card">
           <CardHeader className="pb-2">
@@ -119,7 +119,7 @@ const Dashboard = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <IndianRupee className="h-4 w-4" />
-              Total P&L
+              Total Revenue
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -161,7 +161,7 @@ const Dashboard = () => {
                     tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
                   />
                   <Tooltip 
-                    formatter={(value) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 'P&L']}
+                    formatter={(value) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 'Revenue']}
                     contentStyle={{ 
                       backgroundColor: 'white', 
                       border: '1px solid #e5e7eb',
@@ -181,7 +181,7 @@ const Dashboard = () => {
               </ResponsiveContainer>
             ) : (
               <div className="h-[280px] flex items-center justify-center text-muted-foreground">
-                No P&L data available yet
+                No Revenue data available yet
               </div>
             )}
           </CardContent>
@@ -213,7 +213,7 @@ const Dashboard = () => {
                     width={80}
                   />
                   <Tooltip 
-                    formatter={(value) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 'P&L']}
+                    formatter={(value) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 'Revenue']}
                     contentStyle={{ 
                       backgroundColor: 'white', 
                       border: '1px solid #e5e7eb',
