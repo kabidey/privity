@@ -381,6 +381,10 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
     if user_role == 4 and client_data.is_vendor:
         raise HTTPException(status_code=403, detail="Employees cannot create vendors")
     
+    # Validate trading_ucc is required when dp_type is "smifs"
+    if client_data.dp_type == "smifs" and not client_data.trading_ucc:
+        raise HTTPException(status_code=400, detail="Trading UCC is required when DP is with SMIFS")
+    
     # Check permission based on whether it's a client or vendor
     if client_data.is_vendor:
         check_permission(current_user, "manage_vendors")
