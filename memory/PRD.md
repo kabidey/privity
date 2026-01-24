@@ -322,6 +322,21 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ **Download Feature**: PE Desk can download client documents directly from the dialog
 - ✅ **OCR Data View**: View extracted OCR data from the documents dialog
 
+### Feature - Client Management Enhancements (Jan 24, 2026)
+- ✅ **PE Desk Only Edit/Delete**: Only PE Desk (role=1) can modify or delete clients
+  - Backend returns 403 for non-PE Desk users
+  - Frontend hides Edit/Delete buttons for non-PE Desk users
+- ✅ **DP Type Field**: New dropdown with options "DP With SMIFS" and "DP Outside"
+  - Default value: "outside"
+  - Displayed in new DP TYPE column with colored badge
+- ✅ **Trading UCC Field**: Conditionally required when DP Type is "SMIFS"
+  - Backend validates and returns 400 error if missing
+  - Frontend shows field only when SMIFS is selected
+  - Trading UCC displayed in parentheses next to SMIFS badge
+- ✅ **Real-time Search**: Search bar filters clients by Name or PAN number
+  - Client-side filtering for instant results
+  - Works on both "All Clients" and "Pending Approval" tabs
+
 ## Next Tasks
 1. **(P0) Continue Backend Modularization** - Move remaining routes from server.py:
    - Move client routes to `/routers/clients.py`
