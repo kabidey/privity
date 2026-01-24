@@ -95,7 +95,7 @@ const Bookings = () => {
     return inv?.weighted_avg_price || 0;
   };
 
-  // Calculate real-time P&L for form
+  // Calculate real-time Revenue for form
   const calculateFormPnL = () => {
     if (!formData.stock_id || !formData.quantity || !formData.selling_price) {
       return null;
@@ -414,11 +414,11 @@ const Bookings = () => {
                 </div>
               </div>
               
-              {/* Real-time P&L Calculation */}
+              {/* Real-time Revenue Calculation */}
               {formPnL && (
                 <div className={`p-4 rounded-lg border-2 ${formPnL.isLoss ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-muted-foreground">Estimated P&L</span>
+                    <span className="text-sm font-medium text-muted-foreground">Estimated Revenue</span>
                     <div className={`flex items-center gap-1 ${formPnL.isLoss ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
                       {formPnL.isLoss ? <TrendingDown className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
                       <span className="text-lg font-bold">
@@ -534,7 +534,7 @@ const Bookings = () => {
                     <TableHead className="text-xs uppercase">Qty</TableHead>
                     <TableHead className="text-xs uppercase">Landing Price</TableHead>
                     <TableHead className="text-xs uppercase">Sell Price</TableHead>
-                    <TableHead className="text-xs uppercase">P&L</TableHead>
+                    <TableHead className="text-xs uppercase">Revenue</TableHead>
                     <TableHead className="text-xs uppercase">Approval</TableHead>
                     <TableHead className="text-xs uppercase">Payment</TableHead>
                     <TableHead className="text-xs uppercase text-right">Actions</TableHead>
