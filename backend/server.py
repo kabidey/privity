@@ -1887,6 +1887,54 @@ async def get_dashboard_analytics(current_user: dict = Depends(get_current_user)
         "top_stocks": top_stocks
     }
 
+# Audit Logs API
+@api_router.get("/audit-logs")
+async def get_audit_logs(
+    entity_type: Optional[str] = None,
+    action: Optional[str] = None,
+    user_id: Optional[str] = None,
+    limit: int = 100,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get audit logs (admin only)"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role > 2:
+        raise HTTPException(status_code=403, detail="Only admins can view audit logs")
+    
+    query = {}
+    if entity_type:
+        query["entity_type"] = entity_type
+    if action:
+        query["action"] = action
+    if user_id:
+        query["user_id"] = user_id
+    
+    logs = await db.audit_logs.find(query, {"_id": 0}).sort("timestamp", -1).to_list(limit)
+    return logs
+
+@api_router.get("/audit-logs/stats")
+async def get_audit_stats(current_user: dict = Depends(get_current_user)):
+    """Get audit log statistics"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role > 2:
+        raise HTTPException(status_code=403, detail="Only admins can view audit stats")
+    
+    total_logs = await db.audit_logs.count_documents({})
+    
+    # Get counts by action type
+    pipeline = [
+        {"$group": {"_id": "$action", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    action_counts = await db.audit_logs.aggregate(pipeline).to_list(100)
+    
+    return {
+        "total_logs": total_logs,
+        "by_action": {item["_id"]: item["count"] for item in action_counts}
+    }
+
 # Client Portfolio
 @api_router.get("/clients/{client_id}/portfolio", response_model=ClientPortfolio)
 async def get_client_portfolio(client_id: str, current_user: dict = Depends(get_current_user)):
