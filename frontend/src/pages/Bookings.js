@@ -66,11 +66,15 @@ const Bookings = () => {
       setClients(clientsRes.data);
       setStocks(stocksRes.data);
       
-      // Fetch pending bookings if PE Desk
+      // Fetch pending bookings and loss bookings if PE Desk
       if (isPEDesk) {
         try {
-          const pendingRes = await api.get('/bookings/pending-approval');
+          const [pendingRes, pendingLossRes] = await Promise.all([
+            api.get('/bookings/pending-approval'),
+            api.get('/bookings/pending-loss-approval')
+          ]);
           setPendingBookings(pendingRes.data);
+          setPendingLossBookings(pendingLossRes.data);
         } catch (e) {
           console.error('Failed to fetch pending bookings');
         }
