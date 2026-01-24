@@ -665,6 +665,29 @@ async def update_client(client_id: str, client_data: ClientCreate, current_user:
     updated_client = await db.clients.find_one({"id": client_id}, {"_id": 0, "user_id": 0})
     return updated_client
 
+@api_router.put("/clients/{client_id}/employee-mapping")
+async def update_client_employee_mapping(
+    client_id: str,
+    employee_id: str,
+    employee_name: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Map a client to an employee"""
+    check_permission(current_user, "manage_clients")
+    
+    result = await db.clients.update_one(
+        {"id": client_id},
+        {"$set": {
+            "mapped_employee_id": employee_id,
+            "mapped_employee_name": employee_name
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    return {"message": "Employee mapping updated successfully"}
+
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: dict = Depends(get_current_user)):
     check_permission(current_user, "manage_clients")
