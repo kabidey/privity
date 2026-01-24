@@ -84,17 +84,25 @@ const Login = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    data-testid="name-input"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required={!isLogin}
-                  />
-                </div>
+                <>
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                    <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                    <p className="text-xs text-blue-800 dark:text-blue-200">
+                      Registration is restricted to <strong>@smifs.com</strong> email addresses only. You will be registered as an Employee.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      data-testid="name-input"
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required={!isLogin}
+                    />
+                  </div>
+                </>
               )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -102,7 +110,7 @@ const Login = () => {
                   id="email"
                   data-testid="email-input"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder={isLogin ? "you@example.com" : "you@smifs.com"}
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
