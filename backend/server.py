@@ -1236,12 +1236,27 @@ async def get_stock_inventory(stock_id: str, current_user: dict = Depends(get_cu
 # Booking Routes
 @api_router.post("/bookings", response_model=Booking)
 async def create_booking(booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_bookings")
+    user_role = current_user.get("role", 5)
     
-    # Verify client exists
+    # Employees can create bookings
+    if user_role == 4:
+        check_permission(current_user, "create_bookings")
+    else:
+        check_permission(current_user, "manage_bookings")
+    
+    # Verify client exists and is active
     client = await db.clients.find_one({"id": booking_data.client_id}, {"_id": 0})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Check if client is active (approved)
+    if not client.get("is_active", True):
+        raise HTTPException(status_code=400, detail="Client is pending approval and cannot be used for bookings")
+    
+    # Employees can only create bookings for their own clients
+    if user_role == 4:
+        if client.get("mapped_employee_id") != current_user["id"] and client.get("created_by") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You can only create bookings for your own clients")
     
     # Verify stock exists
     stock = await db.stocks.find_one({"id": booking_data.stock_id}, {"_id": 0})
@@ -1257,8 +1272,11 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             detail=f"Insufficient inventory. Available: {inventory['available_quantity'] if inventory else 0}"
         )
     
-    # Use weighted average as buying price if not provided
-    buying_price = booking_data.buying_price if booking_data.buying_price else inventory["weighted_avg_price"]
+    # Employees MUST use weighted average as buying price (cannot edit)
+    if user_role == 4:
+        buying_price = inventory["weighted_avg_price"]
+    else:
+        buying_price = booking_data.buying_price if booking_data.buying_price else inventory["weighted_avg_price"]
     
     booking_id = str(uuid.uuid4())
     booking_doc = {
@@ -1273,6 +1291,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "notes": booking_data.notes,
         "user_id": current_user["id"],
         "created_by": current_user["id"],
+        "created_by_role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
