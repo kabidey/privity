@@ -97,14 +97,17 @@ class TestBookingTypeFeature:
         if not approved_clients:
             pytest.skip("No approved clients available for testing")
         
-        # Get a stock with inventory
+        # Get a stock with inventory (quantity > 0)
         inventory_resp = self.session.get(f"{BASE_URL}/api/inventory")
         inventory = inventory_resp.json()
         
-        if not inventory:
-            pytest.skip("No inventory available for testing")
+        # Filter for inventory with available quantity
+        inventory_with_qty = [i for i in inventory if i.get("available_quantity", 0) > 0]
         
-        stock_with_inventory = inventory[0]
+        if not inventory_with_qty:
+            pytest.skip("No inventory with available quantity for testing")
+        
+        stock_with_inventory = inventory_with_qty[0]
         
         booking_data = {
             "client_id": approved_clients[0]["id"],
@@ -137,14 +140,17 @@ class TestBookingTypeFeature:
         if not approved_clients:
             pytest.skip("No approved clients available for testing")
         
-        # Get a stock with inventory
+        # Get a stock with inventory (quantity > 0)
         inventory_resp = self.session.get(f"{BASE_URL}/api/inventory")
         inventory = inventory_resp.json()
         
-        if not inventory:
-            pytest.skip("No inventory available for testing")
+        # Filter for inventory with available quantity
+        inventory_with_qty = [i for i in inventory if i.get("available_quantity", 0) > 0]
         
-        stock_with_inventory = inventory[0]
+        if not inventory_with_qty:
+            pytest.skip("No inventory with available quantity for testing")
+        
+        stock_with_inventory = inventory_with_qty[0]
         
         booking_data = {
             "client_id": approved_clients[0]["id"],
@@ -177,14 +183,17 @@ class TestBookingTypeFeature:
         if not approved_clients:
             pytest.skip("No approved clients available for testing")
         
-        # Get a stock with inventory
+        # Get a stock with inventory (quantity > 0)
         inventory_resp = self.session.get(f"{BASE_URL}/api/inventory")
         inventory = inventory_resp.json()
         
-        if not inventory:
-            pytest.skip("No inventory available for testing")
+        # Filter for inventory with available quantity
+        inventory_with_qty = [i for i in inventory if i.get("available_quantity", 0) > 0]
         
-        stock_with_inventory = inventory[0]
+        if not inventory_with_qty:
+            pytest.skip("No inventory with available quantity for testing")
+        
+        stock_with_inventory = inventory_with_qty[0]
         
         booking_data = {
             "client_id": approved_clients[0]["id"],
@@ -435,14 +444,17 @@ class TestBookingTypeValidation:
         if not approved_clients:
             pytest.skip("No approved clients available for testing")
         
-        # Get a stock with inventory
+        # Get a stock with inventory (quantity > 0)
         inventory_resp = self.session.get(f"{BASE_URL}/api/inventory")
         inventory = inventory_resp.json()
         
-        if not inventory:
-            pytest.skip("No inventory available for testing")
+        # Filter for inventory with available quantity
+        inventory_with_qty = [i for i in inventory if i.get("available_quantity", 0) > 0]
         
-        stock_with_inventory = inventory[0]
+        if not inventory_with_qty:
+            pytest.skip("No inventory with available quantity for testing")
+        
+        stock_with_inventory = inventory_with_qty[0]
         
         # Create booking without specifying booking_type
         booking_data = {
