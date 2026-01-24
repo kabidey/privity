@@ -299,6 +299,19 @@ const Clients = () => {
       return;
     }
     
+    // Validate mandatory documents for new clients
+    if (!editingClient) {
+      const missingDocs = [];
+      if (!docFiles.pan_card) missingDocs.push('PAN Card');
+      if (!docFiles.cml_copy) missingDocs.push('CML Copy');
+      if (!docFiles.cancelled_cheque) missingDocs.push('Cancelled Cheque');
+      
+      if (missingDocs.length > 0) {
+        toast.error(`Please upload: ${missingDocs.join(', ')}`);
+        return;
+      }
+    }
+    
     try {
       let clientId;
       if (editingClient) {
