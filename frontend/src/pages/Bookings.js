@@ -519,6 +519,11 @@ const Bookings = () => {
                       <p className="text-2xl font-bold">
                         {selectedInventory.availableQty.toLocaleString()} units
                       </p>
+                      {selectedInventory.blockedQty > 0 && (
+                        <p className="text-xs opacity-75">
+                          ({selectedInventory.blockedQty.toLocaleString()} blocked)
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
