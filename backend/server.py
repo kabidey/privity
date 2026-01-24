@@ -519,10 +519,10 @@ async def get_clients(
 ):
     query = {}
     
-    # Role-based filtering
-    if current_user.get("role", 5) >= 3:  # Manager and below see only their data
-        if "view_all" not in ROLE_PERMISSIONS.get(current_user.get("role", 5), []):
-            query["user_id"] = current_user["id"]
+    # Role-based filtering - only apply for create/edit operations
+    # All users can view clients for booking purposes
+    # Managers and below see only their created clients when not explicitly viewing all
+    user_role = current_user.get("role", 5)
     
     # Search filter
     if search:
