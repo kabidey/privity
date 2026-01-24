@@ -440,9 +440,11 @@ const Bookings = () => {
 
       <Card className="border shadow-sm">
         <CardHeader>
-          <CardTitle>{activeTab === 'pending' ? 'Pending Approval' : 'All Bookings'}</CardTitle>
+          <CardTitle>{activeTab === 'pending' ? 'Pending Approval' : (activeTab === 'loss' ? 'Loss Bookings - Pending Approval' : 'All Bookings')}</CardTitle>
           <CardDescription>
-            {canRecordPayments && 'Record payments for approved bookings to enable DP transfer'}
+            {activeTab === 'loss' 
+              ? 'These bookings have selling price lower than buying price - requires PE Desk approval'
+              : (canRecordPayments && 'Record payments for approved bookings to enable DP transfer')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -456,8 +458,9 @@ const Bookings = () => {
                     <TableHead className="text-xs uppercase">Client</TableHead>
                     <TableHead className="text-xs uppercase">Stock</TableHead>
                     <TableHead className="text-xs uppercase">Qty</TableHead>
+                    <TableHead className="text-xs uppercase">Buy Price</TableHead>
                     <TableHead className="text-xs uppercase">Sell Price</TableHead>
-                    <TableHead className="text-xs uppercase">Total</TableHead>
+                    <TableHead className="text-xs uppercase">P&L</TableHead>
                     <TableHead className="text-xs uppercase">Approval</TableHead>
                     <TableHead className="text-xs uppercase">Payment</TableHead>
                     <TableHead className="text-xs uppercase text-right">Actions</TableHead>
@@ -466,10 +469,12 @@ const Bookings = () => {
                 <TableBody>
                   {displayedBookings.map((booking) => {
                     const totalAmount = (booking.selling_price || 0) * booking.quantity;
-                    const remaining = totalAmount - (booking.total_paid || 0);
+                    const buyTotal = booking.buying_price * booking.quantity;
+                    const profitLoss = booking.selling_price ? (booking.selling_price - booking.buying_price) * booking.quantity : null;
+                    const isLoss = profitLoss !== null && profitLoss < 0;
                     
                     return (
-                      <TableRow key={booking.id} data-testid="booking-row">
+                      <TableRow key={booking.id} data-testid="booking-row" className={isLoss ? 'bg-red-50/50 dark:bg-red-950/20' : ''}>
                         <TableCell>
                           <div>
                             <p className="font-medium">{booking.client_name}</p>
@@ -479,12 +484,22 @@ const Bookings = () => {
                         <TableCell className="mono font-semibold">{booking.stock_symbol}</TableCell>
                         <TableCell className="mono">{booking.quantity}</TableCell>
                         <TableCell className="mono">
+                          {formatCurrency(booking.buying_price)}
+                        </TableCell>
+                        <TableCell className="mono">
                           {booking.selling_price ? formatCurrency(booking.selling_price) : '-'}
                         </TableCell>
-                        <TableCell className="mono font-medium">
-                          {formatCurrency(totalAmount)}
+                        <TableCell className={`mono font-medium ${profitLoss !== null ? (profitLoss >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
+                          {profitLoss !== null ? (
+                            <span>{profitLoss >= 0 ? '+' : ''}{formatCurrency(profitLoss)}</span>
+                          ) : '-'}
                         </TableCell>
-                        <TableCell>{getApprovalBadge(booking.approval_status)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {getApprovalBadge(booking.approval_status)}
+                            {getLossApprovalBadge(booking)}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           {booking.approval_status === 'approved' && booking.selling_price ? (
                             <div className="space-y-1">
@@ -500,6 +515,18 @@ const Bookings = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
+                            {/* Loss booking approval buttons */}
+                            {isPEDesk && booking.is_loss_booking && booking.loss_approval_status === 'pending' && (
+                              <>
+                                <Button variant="ghost" size="sm" onClick={() => handleLossApprove(booking.id, true)} className="text-yellow-600" title="Approve Loss">
+                                  <TrendingDown className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleLossApprove(booking.id, false)} className="text-red-600" title="Reject Loss">
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                            {/* Regular booking approval buttons */}
                             {isPEDesk && booking.approval_status === 'pending' && (
                               <>
                                 <Button variant="ghost" size="sm" onClick={() => handleApprove(booking.id, true)} className="text-green-600" title="Approve">
