@@ -54,6 +54,14 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ **Portfolio Button** - Quick access from Clients table
 - ✅ **Updated Navigation** - 9-item sidebar (Users visible for admins)
 
+### Phase 4 - Client Management Enhancement (Jan 24, 2026)
+- ✅ **Document Upload** - Upload PAN Card, CML Copy, Cancelled Cheque (JPG/PDF)
+- ✅ **AI-Powered OCR** - GPT-4o vision extracts info from documents automatically
+- ✅ **OTC UCC Code** - Unique client identifier (format: OTC{YYYYMMDD}{UUID8})
+- ✅ **Employee Mapping** - Clients mapped to employees who created them
+- ✅ **Admin Mapping Controls** - Admins can re-map/unmap clients to different employees
+- ✅ **OCR Data Viewer** - Click document icons to view extracted OCR data
+
 ## Pages & Routes
 | Route | Page | Description |
 |-------|------|-------------|
