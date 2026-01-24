@@ -185,7 +185,9 @@ const Clients = () => {
         }
       }
     } catch (error) {
-      console.log('OCR preview not available');
+      console.error('OCR preview error:', error);
+      const errorMsg = error.response?.data?.detail || 'OCR processing failed';
+      toast.error(`OCR Error: ${errorMsg}`);
     } finally {
       setProcessingOcr(prev => ({ ...prev, [docType]: false }));
     }
