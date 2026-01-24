@@ -1,61 +1,53 @@
 """
 Authentication routes
 """
-from fastapi import APIRouter, HTTPException, Depends, Request
-from datetime import datetime, timezone, timedelta
 import uuid
-import logging
+import bcrypt
+from datetime import datetime, timezone, timedelta
+from fastapi import APIRouter, HTTPException, Depends, Request
 
 from database import db
-from config import ROLES, ALLOWED_EMAIL_DOMAINS, AUDIT_ACTIONS, OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS
-from models import UserCreate, UserLogin, User, TokenResponse, PasswordResetRequest, PasswordResetVerify
-from utils.auth import hash_password, verify_password, create_token, get_current_user
+from config import ROLES, ALLOWED_EMAIL_DOMAINS, OTP_EXPIRY_MINUTES, OTP_MAX_ATTEMPTS
+from models import (
+    UserCreate, UserLogin, User, TokenResponse,
+    PasswordResetRequest, PasswordResetVerify
+)
+from utils.auth import (
+    hash_password, verify_password, create_token, get_current_user
+)
+from services.email_service import generate_otp, send_otp_email
+from services.audit_service import create_audit_log
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-async def create_audit_log(action, entity_type, entity_id, user_id, user_name, user_role, entity_name=None, details=None, ip_address=None):
-    """Create audit log entry"""
-    try:
-        audit_doc = {
-            "id": str(uuid.uuid4()),
-            "action": action,
-            "action_description": AUDIT_ACTIONS.get(action, action),
-            "entity_type": entity_type,
-            "entity_id": entity_id,
-            "entity_name": entity_name,
-            "user_id": user_id,
-            "user_name": user_name,
-            "user_role": user_role,
-            "details": details,
-            "ip_address": ip_address,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        await db.audit_logs.insert_one(audit_doc)
-    except Exception as e:
-        logging.error(f"Failed to create audit log: {e}")
 
 @router.post("/register", response_model=TokenResponse)
-async def register(user_data: UserCreate, request: Request):
+async def register(user_data: UserCreate, request: Request = None):
     """Register a new user"""
-    # Check email domain
+    # Check email domain restriction
     email_domain = user_data.email.split('@')[-1].lower()
     if email_domain not in ALLOWED_EMAIL_DOMAINS:
-        raise HTTPException(status_code=400, detail=f"Registration restricted to {', '.join(ALLOWED_EMAIL_DOMAINS)} domain")
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Registration is restricted to employees with @smifs.com email addresses"
+        )
     
-    # Check if email already exists
-    existing = await db.users.find_one({"email": user_data.email.lower()})
-    if existing:
+    existing_user = await db.users.find_one({"email": user_data.email}, {"_id": 0})
+    if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
     user_id = str(uuid.uuid4())
-    role = 4  # Default to Employee for domain users
+    hashed_pw = hash_password(user_data.password)
+    
+    # Default role is Employee (4) for smifs.com domain
+    user_role = 4  # Employee
     
     user_doc = {
         "id": user_id,
-        "email": user_data.email.lower(),
+        "email": user_data.email,
+        "password": hashed_pw,
         "name": user_data.name,
-        "hashed_password": hash_password(user_data.password),
-        "role": role,
+        "role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
@@ -63,60 +55,76 @@ async def register(user_data: UserCreate, request: Request):
     
     # Create audit log
     await create_audit_log(
-        "USER_REGISTER", "user", user_id, user_id, user_data.name, role,
-        ip_address=request.client.host if request.client else None
+        action="USER_REGISTER",
+        entity_type="user",
+        entity_id=user_id,
+        user_id=user_id,
+        user_name=user_data.name,
+        user_role=user_role,
+        entity_name=user_data.name,
+        details={"email": user_data.email, "role": user_role}
     )
     
-    token = create_token(user_id, user_data.email, role)
-    user = User(
+    token = create_token(user_id, user_data.email)
+    user_response = User(
         id=user_id,
         email=user_data.email,
         name=user_data.name,
-        role=role,
-        role_name=ROLES.get(role, "Unknown"),
+        role=user_role,
+        role_name=ROLES.get(user_role, "Employee"),
         created_at=user_doc["created_at"]
     )
     
-    return TokenResponse(token=token, user=user)
+    return TokenResponse(token=token, user=user_response)
+
 
 @router.post("/login", response_model=TokenResponse)
-async def login(user_data: UserLogin, request: Request):
-    """Login user"""
-    user = await db.users.find_one({"email": user_data.email.lower()})
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+async def login(login_data: UserLogin):
+    """Login user and return JWT token"""
+    user = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+    if not user or not verify_password(login_data.password, user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    if not verify_password(user_data.password, user["hashed_password"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    # Create audit log
+    # Create audit log for login
     await create_audit_log(
-        "USER_LOGIN", "user", user["id"], user["id"], user["name"], user["role"],
-        ip_address=request.client.host if request.client else None
+        action="USER_LOGIN",
+        entity_type="user",
+        entity_id=user["id"],
+        user_id=user["id"],
+        user_name=user["name"],
+        user_role=user.get("role", 5),
+        entity_name=user["name"]
     )
     
-    token = create_token(user["id"], user["email"], user["role"])
+    token = create_token(user["id"], user["email"])
     user_response = User(
         id=user["id"],
         email=user["email"],
         name=user["name"],
-        role=user["role"],
-        role_name=ROLES.get(user["role"], "Unknown"),
+        role=user.get("role", 5),
+        role_name=ROLES.get(user.get("role", 5), "Viewer"),
         created_at=user["created_at"]
     )
     
     return TokenResponse(token=token, user=user_response)
 
+
 @router.get("/me", response_model=User)
 async def get_me(current_user: dict = Depends(get_current_user)):
-    """Get current user profile"""
-    return User(**current_user)
+    """Get current user info"""
+    return User(
+        id=current_user["id"],
+        email=current_user["email"],
+        name=current_user["name"],
+        role=current_user.get("role", 5),
+        role_name=ROLES.get(current_user.get("role", 5), "Viewer"),
+        created_at=current_user["created_at"]
+    )
+
 
 @router.post("/forgot-password")
 async def forgot_password(data: PasswordResetRequest):
     """Request password reset OTP"""
-    from utils.email import generate_otp, send_otp_email
-    
     user = await db.users.find_one({"email": data.email.lower()})
     if not user:
         # Don't reveal if email exists
@@ -149,6 +157,7 @@ async def forgot_password(data: PasswordResetRequest):
     await send_otp_email(data.email, otp, user["name"])
     
     return {"message": "If the email exists, an OTP has been sent"}
+
 
 @router.post("/reset-password")
 async def reset_password(data: PasswordResetVerify, request: Request):
@@ -184,14 +193,20 @@ async def reset_password(data: PasswordResetVerify, request: Request):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    hashed = bcrypt.hashpw(data.new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     await db.users.update_one(
         {"email": data.email.lower()},
-        {"$set": {"hashed_password": hash_password(data.new_password)}}
+        {"$set": {"password": hashed}}
     )
     
     # Create audit log
     await create_audit_log(
-        "USER_PASSWORD_RESET", "user", user["id"], user["id"], user["name"], user["role"],
+        action="USER_PASSWORD_RESET",
+        entity_type="user",
+        entity_id=user["id"],
+        user_id=user["id"],
+        user_name=user["name"],
+        user_role=user["role"],
         ip_address=request.client.host if request.client else None
     )
     
