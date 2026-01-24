@@ -149,18 +149,6 @@ async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[
         logging.info(f"Email sent successfully to {to_email}")
     except Exception as e:
         logging.error(f"Failed to send email: {e}")
-            msg['Cc'] = cc_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body, 'html'))
-        
-        with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
-            server.send_message(msg)
-        
-        logging.info(f"Email sent to {to_email}")
-    except Exception as e:
-        logging.error(f"Failed to send email: {str(e)}")
 
 
 def generate_otp(length: int = 6) -> str:
