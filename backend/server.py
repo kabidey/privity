@@ -1114,6 +1114,12 @@ async def bulk_upload_stocks(file: UploadFile = File(...), current_user: dict = 
 # Purchase Routes (from Vendors)
 @api_router.post("/purchases", response_model=Purchase)
 async def create_purchase(purchase_data: PurchaseCreate, current_user: dict = Depends(get_current_user)):
+    user_role = current_user.get("role", 5)
+    
+    # Employees cannot create purchases
+    if user_role == 4:
+        raise HTTPException(status_code=403, detail="Employees cannot create vendor purchases")
+    
     check_permission(current_user, "manage_purchases")
     
     # Verify vendor is a client with is_vendor=True
