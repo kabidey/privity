@@ -7,12 +7,64 @@ import random
 import string
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from config import (
     EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_FROM,
-    OTP_EXPIRY_MINUTES
+    OTP_EXPIRY_MINUTES, DEFAULT_EMAIL_TEMPLATES
 )
+
+
+async def get_email_template(template_key: str) -> dict:
+    """Get email template from database or fall back to default"""
+    from database import db
+    
+    # Try to get from database first
+    template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
+    
+    if not template:
+        # Fall back to default template
+        template = DEFAULT_EMAIL_TEMPLATES.get(template_key)
+        if template:
+            # Save default to database for future customization
+            await db.email_templates.insert_one(template)
+    
+    return template
+
+
+def render_template(template: dict, variables: Dict[str, Any]) -> tuple:
+    """Render email template with variable substitution"""
+    subject = template.get("subject", "")
+    body = template.get("body", "")
+    
+    for key, value in variables.items():
+        placeholder = "{{" + key + "}}"
+        subject = subject.replace(placeholder, str(value) if value is not None else "")
+        body = body.replace(placeholder, str(value) if value is not None else "")
+    
+    return subject, body
+
+
+async def send_templated_email(
+    template_key: str,
+    to_email: str,
+    variables: Dict[str, Any],
+    cc_email: Optional[str] = None
+):
+    """Send email using a template with variable substitution"""
+    template = await get_email_template(template_key)
+    
+    if not template:
+        logging.warning(f"Email template '{template_key}' not found")
+        return False
+    
+    if not template.get("is_active", True):
+        logging.info(f"Email template '{template_key}' is disabled")
+        return False
+    
+    subject, body = render_template(template, variables)
+    await send_email(to_email, subject, body, cc_email)
+    return True
 
 
 async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[str] = None):
