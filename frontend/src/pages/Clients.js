@@ -553,6 +553,27 @@ const Clients = () => {
   };
 
   const getStatusBadge = (client) => {
+    // Check suspension first
+    if (client.is_suspended) {
+      return (
+        <div className="flex flex-col gap-1">
+          <Badge variant="outline" className="text-red-600 border-red-600 bg-red-50">
+            <Ban className="h-3 w-3 mr-1" />Suspended
+          </Badge>
+          {/* Show reason button for employees */}
+          {!isPEDesk && client.suspension_reason && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 px-1 text-xs text-red-600"
+              onClick={() => viewSuspensionReason(client)}
+            >
+              <Eye className="h-3 w-3 mr-1" />View Reason
+            </Button>
+          )}
+        </div>
+      );
+    }
     if (client.approval_status === 'pending') {
       return <Badge variant="outline" className="text-orange-600 border-orange-600"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
     }
