@@ -263,14 +263,17 @@ class TestInsiderFormUploadDownload:
         if not approved_clients:
             return None
         
-        # Get a stock with inventory
+        # Get a stock with inventory (quantity > 0)
         inventory_resp = self.session.get(f"{BASE_URL}/api/inventory")
         inventory = inventory_resp.json()
         
-        if not inventory:
+        # Filter for inventory with available quantity
+        inventory_with_qty = [i for i in inventory if i.get("available_quantity", 0) > 0]
+        
+        if not inventory_with_qty:
             return None
         
-        stock_with_inventory = inventory[0]
+        stock_with_inventory = inventory_with_qty[0]
         
         booking_data = {
             "client_id": approved_clients[0]["id"],
