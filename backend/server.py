@@ -349,6 +349,30 @@ async def update_inventory(stock_id: str):
     
     return inventory_data
 
+# Startup event to seed admin user
+@app.on_event("startup")
+async def seed_admin_user():
+    """Create default admin user if no admin exists"""
+    try:
+        # Check if any admin user exists (role 1 or 2)
+        admin_exists = await db.users.find_one({"role": {"$lte": 2}}, {"_id": 0})
+        if not admin_exists:
+            admin_id = str(uuid.uuid4())
+            admin_doc = {
+                "id": admin_id,
+                "email": "admin@privity.com",
+                "password": hash_password("Admin@123"),
+                "name": "Admin User",
+                "role": 1,  # PE Desk - full access
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.users.insert_one(admin_doc)
+            logging.info("Default admin user created: admin@privity.com")
+        else:
+            logging.info("Admin user already exists, skipping seed")
+    except Exception as e:
+        logging.error(f"Error seeding admin user: {e}")
+
 # Auth Routes
 @api_router.post("/auth/register", response_model=TokenResponse)
 async def register(user_data: UserCreate):
