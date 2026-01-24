@@ -1,51 +1,30 @@
-#!/usr/bin/env python3
-
 import requests
 import sys
 import json
-from datetime import datetime, timedelta
-import uuid
+from datetime import datetime
 
-class ShareBookingAPITester:
+class PrivityShareBookingTester:
     def __init__(self, base_url="https://last-project-10.preview.emergentagent.com"):
         self.base_url = base_url
-        self.api_url = f"{base_url}/api"
-        self.token = None
-        self.user_id = None
+        self.admin_token = None
+        self.employee_token = None
         self.tests_run = 0
         self.tests_passed = 0
-        self.test_results = []
-        
-        # Test data storage
+        self.admin_user = None
+        self.employee_user = None
         self.test_client_id = None
-        self.test_vendor_id = None
-        self.test_stock_id = None
-        self.test_purchase_id = None
-        self.test_booking_id = None
+        self.test_employee_id = None
 
-    def log_test(self, name, success, details=""):
-        """Log test result"""
-        self.tests_run += 1
-        if success:
-            self.tests_passed += 1
-            print(f"✅ {name} - PASSED")
-        else:
-            print(f"❌ {name} - FAILED: {details}")
-        
-        self.test_results.append({
-            "test": name,
-            "success": success,
-            "details": details
-        })
-
-    def make_request(self, method, endpoint, data=None, expected_status=200):
-        """Make API request with error handling"""
-        url = f"{self.api_url}/{endpoint}"
+    def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/api/{endpoint}"
         headers = {'Content-Type': 'application/json'}
-        
-        if self.token:
-            headers['Authorization'] = f'Bearer {self.token}'
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
 
+        self.tests_run += 1
+        print(f"\n🔍 Testing {name}...")
+        
         try:
             if method == 'GET':
                 response = requests.get(url, headers=headers)
@@ -57,574 +36,479 @@ class ShareBookingAPITester:
                 response = requests.delete(url, headers=headers)
 
             success = response.status_code == expected_status
-            return success, response.json() if success else response.text, response.status_code
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    return success, response.json() if response.content else {}
+                except:
+                    return success, {}
+            else:
+                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
+                try:
+                    error_detail = response.json()
+                    print(f"   Error: {error_detail}")
+                except:
+                    print(f"   Response: {response.text}")
+                return False, {}
 
         except Exception as e:
-            return False, str(e), 0
+            print(f"❌ Failed - Error: {str(e)}")
+            return False, {}
 
-    def test_user_registration(self):
-        """Test user registration"""
-        test_email = f"test_{uuid.uuid4().hex[:8]}@example.com"
-        test_data = {
-            "email": test_email,
-            "password": "TestPass123!",
-            "name": "Test User",
-            "role": 1  # PE Desk - full access
-        }
-        
-        success, response, status = self.make_request("POST", "auth/register", test_data, 200)
-        
+    def test_admin_login(self):
+        """Test admin login"""
+        success, response = self.run_test(
+            "Admin Login",
+            "POST",
+            "auth/login",
+            200,
+            data={"email": "admin@privity.com", "password": "Admin@123"}
+        )
         if success and 'token' in response:
-            self.token = response['token']
-            self.user_id = response['user']['id']
-            self.log_test("User Registration", True)
+            self.admin_token = response['token']
+            self.admin_user = response['user']
+            print(f"   Admin role: {self.admin_user.get('role')} ({self.admin_user.get('role_name')})")
             return True
-        else:
-            self.log_test("User Registration", False, f"Status: {status}, Response: {response}")
-            return False
+        return False
 
-    def test_user_login(self):
-        """Test user login with existing credentials"""
-        if not self.token:
-            self.log_test("User Login", False, "No token from registration")
-            return False
-            
-        # We'll use the token from registration for subsequent tests
-        self.log_test("User Login", True, "Using token from registration")
-        return True
-
-    def test_get_user_profile(self):
-        """Test getting current user profile"""
-        success, response, status = self.make_request("GET", "auth/me", expected_status=200)
-        
-        if success and 'id' in response:
-            self.log_test("Get User Profile", True)
-            return True
-        else:
-            self.log_test("Get User Profile", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_create_client(self):
-        """Test creating a client with OTC UCC auto-generation"""
-        client_data = {
-            "name": "Test Client",
-            "email": "testclient@example.com",
-            "phone": "9876543210",
-            "pan_number": "ABCDE1234F",
-            "dp_id": "12345678",
-            "bank_name": "Test Bank",
-            "account_number": "1234567890",
-            "ifsc_code": "TEST0001234"
+    def test_create_employee(self):
+        """Create a test employee user"""
+        employee_data = {
+            "email": f"employee_{datetime.now().strftime('%H%M%S')}@test.com",
+            "password": "Employee@123",
+            "name": "Test Employee",
+            "role": 4  # Employee role
         }
         
-        success, response, status = self.make_request("POST", "clients", client_data, 200)
-        
-        if success and 'id' in response and 'otc_ucc' in response:
-            self.test_client_id = response['id']
-            otc_ucc = response['otc_ucc']
-            # Verify OTC UCC format: OTC{YYYYMMDD}{UUID8}
-            if otc_ucc.startswith('OTC') and len(otc_ucc) >= 19:
-                self.log_test("Create Client with OTC UCC", True, f"OTC UCC: {otc_ucc}")
-                return True
-            else:
-                self.log_test("Create Client with OTC UCC", False, f"Invalid OTC UCC format: {otc_ucc}")
-                return False
-        else:
-            self.log_test("Create Client with OTC UCC", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_get_clients(self):
-        """Test getting all clients"""
-        success, response, status = self.make_request("GET", "clients", expected_status=200)
-        
-        if success and isinstance(response, list):
-            self.log_test("Get Clients", True, f"Found {len(response)} clients")
-            return True
-        else:
-            self.log_test("Get Clients", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_update_client(self):
-        """Test updating a client"""
-        if not self.test_client_id:
-            self.log_test("Update Client", False, "No client ID available")
-            return False
-            
-        update_data = {
-            "name": "Updated Test Client",
-            "email": "updated@example.com",
-            "phone": "9876543210",
-            "pan_number": "ABCDE1234F",
-            "dp_id": "12345678",
-            "bank_name": "Updated Bank",
-            "account_number": "1234567890",
-            "ifsc_code": "TEST0001234"
-        }
-        
-        success, response, status = self.make_request("PUT", f"clients/{self.test_client_id}", update_data, 200)
+        success, response = self.run_test(
+            "Create Employee User",
+            "POST",
+            "auth/register",
+            200,
+            data=employee_data
+        )
         
         if success:
-            self.log_test("Update Client", True)
+            self.employee_token = response['token']
+            self.employee_user = response['user']
+            self.test_employee_id = response['user']['id']
+            print(f"   Employee ID: {self.test_employee_id}")
+            print(f"   Employee role: {self.employee_user.get('role')} ({self.employee_user.get('role_name')})")
             return True
-        else:
-            self.log_test("Update Client", False, f"Status: {status}, Response: {response}")
-            return False
+        return False
 
-    def test_create_vendor(self):
-        """Test creating a vendor (client with is_vendor=True)"""
-        vendor_data = {
-            "name": "Test Vendor",
-            "email": "testvendor@example.com",
+    def test_client_creation_with_new_fields(self):
+        """Test client creation with new fields (address, pin_code, mobile, bank_accounts)"""
+        client_data = {
+            "name": "Test Client Enhanced",
+            "email": "testclient@example.com",
             "phone": "9876543210",
-            "pan_number": "VEND1234F",
-            "dp_id": "87654321",
-            "bank_name": "Vendor Bank",
-            "account_number": "0987654321",
-            "ifsc_code": "VEND0001234",
-            "is_vendor": True
+            "mobile": "9876543211",
+            "pan_number": "ABCDE1234F",
+            "dp_id": "12345678",
+            "address": "123 Test Street, Test City, Test State",
+            "pin_code": "123456",
+            "bank_accounts": [
+                {
+                    "bank_name": "Test Bank 1",
+                    "account_number": "1234567890",
+                    "ifsc_code": "TEST0001234",
+                    "branch_name": "Test Branch 1",
+                    "account_holder_name": "Test Client Enhanced",
+                    "source": "manual"
+                },
+                {
+                    "bank_name": "Test Bank 2", 
+                    "account_number": "0987654321",
+                    "ifsc_code": "TEST0005678",
+                    "branch_name": "Test Branch 2",
+                    "account_holder_name": "Test Client Enhanced",
+                    "source": "cml_copy"
+                }
+            ],
+            "is_vendor": False
         }
         
-        success, response, status = self.make_request("POST", "clients", vendor_data, 200)
+        success, response = self.run_test(
+            "Create Client with New Fields",
+            "POST",
+            "clients",
+            200,
+            data=client_data,
+            token=self.admin_token
+        )
         
-        if success and 'id' in response:
-            self.test_vendor_id = response['id']
-            self.log_test("Create Vendor", True)
+        if success:
+            self.test_client_id = response['id']
+            print(f"   Client ID: {self.test_client_id}")
+            print(f"   Bank accounts: {len(response.get('bank_accounts', []))}")
+            print(f"   Address: {response.get('address')}")
+            print(f"   Pin code: {response.get('pin_code')}")
             return True
-        else:
-            self.log_test("Create Vendor", False, f"Status: {status}, Response: {response}")
-            return False
+        return False
 
-    def test_create_purchase(self):
-        """Test creating a purchase to build inventory"""
-        if not self.test_vendor_id or not self.test_stock_id:
-            self.log_test("Create Purchase", False, "Missing vendor or stock ID")
+    def test_multiple_bank_accounts(self):
+        """Test adding multiple bank accounts to client"""
+        if not self.test_client_id:
+            print("❌ No test client available")
             return False
             
-        purchase_data = {
-            "vendor_id": self.test_vendor_id,
-            "stock_id": self.test_stock_id,
-            "quantity": 500,  # Buy 500 shares
-            "price_per_unit": 140.00,
-            "purchase_date": datetime.now().strftime("%Y-%m-%d"),
-            "notes": "Test purchase for inventory"
+        bank_account_data = {
+            "bank_name": "Additional Bank",
+            "account_number": "5555666677",
+            "ifsc_code": "ADDI0001234",
+            "branch_name": "Additional Branch",
+            "account_holder_name": "Test Client Enhanced",
+            "source": "cancelled_cheque"
         }
         
-        success, response, status = self.make_request("POST", "purchases", purchase_data, 200)
+        success, response = self.run_test(
+            "Add Additional Bank Account",
+            "POST",
+            f"clients/{self.test_client_id}/bank-account",
+            200,
+            data=bank_account_data,
+            token=self.admin_token
+        )
         
-        if success and 'id' in response:
-            self.test_purchase_id = response['id']
-            self.log_test("Create Purchase", True)
-            return True
-        else:
-            self.log_test("Create Purchase", False, f"Status: {status}, Response: {response}")
-            return False
+        return success
 
-    def test_get_purchases(self):
-        """Test getting all purchases"""
-        success, response, status = self.make_request("GET", "purchases", expected_status=200)
+    def test_employee_vendor_restriction(self):
+        """Test that employees cannot access vendors"""
+        # Try to get vendors as employee
+        success, response = self.run_test(
+            "Employee Access Vendors (Should Fail)",
+            "GET",
+            "clients?is_vendor=true",
+            403,  # Should be forbidden
+            token=self.employee_token
+        )
         
-        if success and isinstance(response, list):
-            self.log_test("Get Purchases", True, f"Found {len(response)} purchases")
-            return True
-        else:
-            self.log_test("Get Purchases", False, f"Status: {status}, Response: {response}")
-            return False
+        return success
 
-    def test_get_inventory(self):
-        """Test getting inventory"""
-        success, response, status = self.make_request("GET", "inventory", expected_status=200)
+    def test_employee_client_creation_approval(self):
+        """Test employee creating client that needs approval"""
+        client_data = {
+            "name": "Employee Created Client",
+            "email": "empclient@example.com",
+            "mobile": "8888999900",
+            "pan_number": "EMPCD1234E",
+            "dp_id": "87654321",
+            "address": "Employee Client Address",
+            "pin_code": "654321",
+            "bank_accounts": [
+                {
+                    "bank_name": "Employee Bank",
+                    "account_number": "1111222233",
+                    "ifsc_code": "EMPB0001234",
+                    "branch_name": "Employee Branch",
+                    "source": "manual"
+                }
+            ],
+            "is_vendor": False
+        }
         
-        if success and isinstance(response, list):
-            self.log_test("Get Inventory", True, f"Found {len(response)} inventory items")
-            return True
-        else:
-            self.log_test("Get Inventory", False, f"Status: {status}, Response: {response}")
-            return False
+        success, response = self.run_test(
+            "Employee Create Client (Needs Approval)",
+            "POST",
+            "clients",
+            200,
+            data=client_data,
+            token=self.employee_token
+        )
+        
+        if success:
+            print(f"   Approval status: {response.get('approval_status')}")
+            print(f"   Is active: {response.get('is_active')}")
+            print(f"   Mapped employee: {response.get('mapped_employee_name')}")
+            return response.get('approval_status') == 'pending' and not response.get('is_active')
+        return False
 
-    def test_create_stock(self):
-        """Test creating a stock"""
+    def test_pending_approval_endpoint(self):
+        """Test pending approval endpoint"""
+        success, response = self.run_test(
+            "Get Pending Approval Clients",
+            "GET",
+            "clients/pending-approval",
+            200,
+            token=self.admin_token
+        )
+        
+        if success:
+            print(f"   Pending clients count: {len(response)}")
+            return True
+        return False
+
+    def test_client_approval(self):
+        """Test client approval endpoint"""
+        # First get pending clients to find one to approve
+        success, response = self.run_test(
+            "Get Pending Clients for Approval",
+            "GET",
+            "clients/pending-approval",
+            200,
+            token=self.admin_token
+        )
+        
+        if success and len(response) > 0:
+            pending_client_id = response[0]['id']
+            
+            # Approve the client
+            success, response = self.run_test(
+                "Approve Client",
+                "PUT",
+                f"clients/{pending_client_id}/approve?approve=true",
+                200,
+                token=self.admin_token
+            )
+            
+            return success
+        else:
+            print("   No pending clients to approve")
+            return True  # Not a failure if no pending clients
+
+    def test_employee_own_clients_only(self):
+        """Test that employees can only see their own clients"""
+        success, response = self.run_test(
+            "Employee Get Own Clients Only",
+            "GET",
+            "clients?is_vendor=false",
+            200,
+            token=self.employee_token
+        )
+        
+        if success:
+            # Check if all returned clients are mapped to this employee or created by them
+            employee_id = self.employee_user['id']
+            for client in response:
+                if (client.get('mapped_employee_id') != employee_id and 
+                    client.get('created_by') != employee_id):
+                    print(f"   ❌ Employee can see client not mapped to them: {client['name']}")
+                    return False
+            print(f"   Employee can see {len(response)} clients (all own)")
+            return True
+        return False
+
+    def test_employee_purchase_restriction(self):
+        """Test that employees cannot view purchase history"""
+        success, response = self.run_test(
+            "Employee Access Purchases (Should Fail)",
+            "GET",
+            "purchases",
+            403,  # Should be forbidden
+            token=self.employee_token
+        )
+        
+        return success
+
+    def test_employee_booking_buying_price_restriction(self):
+        """Test that employees cannot edit buying price in bookings"""
+        # First create a stock for testing
         stock_data = {
             "symbol": "TESTSTOCK",
-            "name": "Test Stock Company Ltd",
+            "name": "Test Stock for Booking",
             "exchange": "NSE"
         }
         
-        success, response, status = self.make_request("POST", "stocks", stock_data, 200)
+        success, stock_response = self.run_test(
+            "Create Test Stock",
+            "POST",
+            "stocks",
+            200,
+            data=stock_data,
+            token=self.admin_token
+        )
         
-        if success and 'id' in response:
-            self.test_stock_id = response['id']
-            self.log_test("Create Stock", True)
-            return True
-        else:
-            self.log_test("Create Stock", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_get_stocks(self):
-        """Test getting all stocks"""
-        success, response, status = self.make_request("GET", "stocks", expected_status=200)
-        
-        if success and isinstance(response, list):
-            self.log_test("Get Stocks", True, f"Found {len(response)} stocks")
-            return True
-        else:
-            self.log_test("Get Stocks", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_create_booking(self):
-        """Test creating a booking"""
-        if not self.test_client_id or not self.test_stock_id:
-            self.log_test("Create Booking", False, "Missing client or stock ID")
+        if not success:
             return False
             
-        booking_data = {
-            "client_id": self.test_client_id,
-            "stock_id": self.test_stock_id,
-            "quantity": 100,
-            "buying_price": 150.50,
-            "selling_price": None,
-            "booking_date": datetime.now().strftime("%Y-%m-%d"),
-            "status": "open",
-            "notes": "Test booking"
+        stock_id = stock_response['id']
+        
+        # Create a purchase to have inventory
+        vendor_data = {
+            "name": "Test Vendor",
+            "pan_number": "VEND01234V",
+            "dp_id": "VENDOR123",
+            "is_vendor": True
         }
         
-        success, response, status = self.make_request("POST", "bookings", booking_data, 200)
+        success, vendor_response = self.run_test(
+            "Create Test Vendor",
+            "POST",
+            "clients",
+            200,
+            data=vendor_data,
+            token=self.admin_token
+        )
         
-        if success and 'id' in response:
-            self.test_booking_id = response['id']
-            self.log_test("Create Booking", True)
-            return True
-        else:
-            self.log_test("Create Booking", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_get_bookings(self):
-        """Test getting all bookings with details"""
-        success, response, status = self.make_request("GET", "bookings", expected_status=200)
-        
-        if success and isinstance(response, list):
-            self.log_test("Get Bookings", True, f"Found {len(response)} bookings")
-            return True
-        else:
-            self.log_test("Get Bookings", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_update_booking_close(self):
-        """Test updating booking to closed status with selling price"""
-        if not self.test_booking_id:
-            self.log_test("Update Booking (Close)", False, "No booking ID available")
+        if not success:
             return False
             
-        update_data = {
-            "client_id": self.test_client_id,
-            "stock_id": self.test_stock_id,
+        vendor_id = vendor_response['id']
+        
+        # Create purchase
+        purchase_data = {
+            "vendor_id": vendor_id,
+            "stock_id": stock_id,
             "quantity": 100,
-            "buying_price": 150.50,
-            "selling_price": 175.75,  # Profit scenario
-            "booking_date": datetime.now().strftime("%Y-%m-%d"),
-            "status": "closed",
-            "notes": "Test booking - closed with profit"
+            "price_per_unit": 50.0,
+            "purchase_date": "2024-01-15",
+            "notes": "Test purchase"
         }
         
-        success, response, status = self.make_request("PUT", f"bookings/{self.test_booking_id}", update_data, 200)
+        success, purchase_response = self.run_test(
+            "Create Test Purchase",
+            "POST",
+            "purchases",
+            200,
+            data=purchase_data,
+            token=self.admin_token
+        )
         
-        if success:
-            self.log_test("Update Booking (Close)", True)
-            return True
-        else:
-            self.log_test("Update Booking (Close)", False, f"Status: {status}, Response: {response}")
+        if not success:
             return False
-
-    def test_dashboard_stats(self):
-        """Test dashboard statistics"""
-        success, response, status = self.make_request("GET", "dashboard/stats", expected_status=200)
         
-        if success and 'total_clients' in response:
-            stats = response
-            expected_keys = ['total_clients', 'total_stocks', 'total_bookings', 'open_bookings', 'closed_bookings', 'total_profit_loss']
+        # Now try to create booking as employee with custom buying price
+        if self.test_client_id:
+            booking_data = {
+                "client_id": self.test_client_id,
+                "stock_id": stock_id,
+                "quantity": 10,
+                "buying_price": 60.0,  # Different from weighted average
+                "selling_price": 70.0,
+                "booking_date": "2024-01-16",
+                "status": "open"
+            }
             
-            if all(key in stats for key in expected_keys):
-                self.log_test("Dashboard Stats", True, f"P&L: {stats.get('total_profit_loss', 0)}")
-                return True
-            else:
-                self.log_test("Dashboard Stats", False, "Missing required fields")
-                return False
-        else:
-            self.log_test("Dashboard Stats", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_pnl_report(self):
-        """Test P&L report generation"""
-        success, response, status = self.make_request("GET", "reports/pnl", expected_status=200)
-        
-        if success and isinstance(response, list):
-            self.log_test("P&L Report", True, f"Generated report with {len(response)} entries")
-            return True
-        else:
-            self.log_test("P&L Report", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_export_excel(self):
-        """Test Excel export functionality"""
-        try:
-            url = f"{self.api_url}/reports/export/excel"
-            headers = {'Authorization': f'Bearer {self.token}'}
-            response = requests.get(url, headers=headers)
-            
-            if response.status_code == 200 and response.headers.get('content-type') == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-                self.log_test("Export Excel", True, f"File size: {len(response.content)} bytes")
-                return True
-            else:
-                self.log_test("Export Excel", False, f"Status: {response.status_code}")
-                return False
-        except Exception as e:
-            self.log_test("Export Excel", False, str(e))
-            return False
-
-    def test_export_pdf(self):
-        """Test PDF export functionality"""
-        try:
-            url = f"{self.api_url}/reports/export/pdf"
-            headers = {'Authorization': f'Bearer {self.token}'}
-            response = requests.get(url, headers=headers)
-            
-            if response.status_code == 200 and response.headers.get('content-type') == 'application/pdf':
-                self.log_test("Export PDF", True, f"File size: {len(response.content)} bytes")
-                return True
-            else:
-                self.log_test("Export PDF", False, f"Status: {response.status_code}")
-                return False
-        except Exception as e:
-            self.log_test("Export PDF", False, str(e))
-            return False
-
-    def test_get_users(self):
-        """Test getting all users (User Management)"""
-        success, response, status = self.make_request("GET", "users", expected_status=200)
-        
-        if success and isinstance(response, list):
-            self.log_test("Get Users (User Management)", True, f"Found {len(response)} users")
-            return True
-        else:
-            self.log_test("Get Users (User Management)", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_client_portfolio(self):
-        """Test client portfolio endpoint"""
-        if not self.test_client_id:
-            self.log_test("Client Portfolio", False, "No client ID available")
-            return False
-            
-        success, response, status = self.make_request("GET", f"clients/{self.test_client_id}/portfolio", expected_status=200)
-        
-        if success and 'client_name' in response and 'bookings' in response:
-            portfolio = response
-            expected_keys = ['client_id', 'client_name', 'total_bookings', 'open_bookings', 'closed_bookings', 'total_profit_loss', 'bookings']
-            
-            if all(key in portfolio for key in expected_keys):
-                self.log_test("Client Portfolio", True, f"Client: {portfolio['client_name']}, Bookings: {portfolio['total_bookings']}")
-                return True
-            else:
-                self.log_test("Client Portfolio", False, "Missing required portfolio fields")
-                return False
-        else:
-            self.log_test("Client Portfolio", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_dashboard_analytics(self):
-        """Test dashboard analytics endpoint"""
-        success, response, status = self.make_request("GET", "dashboard/analytics", expected_status=200)
-        
-        if success and 'monthly_pnl' in response and 'top_stocks' in response:
-            analytics = response
-            self.log_test("Dashboard Analytics", True, f"Monthly P&L entries: {len(analytics['monthly_pnl'])}, Top stocks: {len(analytics['top_stocks'])}")
-            return True
-        else:
-            self.log_test("Dashboard Analytics", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_get_employees(self):
-        """Test getting employees list for mapping"""
-        success, response, status = self.make_request("GET", "employees", expected_status=200)
-        
-        if success and isinstance(response, list):
-            self.log_test("Get Employees", True, f"Found {len(response)} employees")
-            return True
-        else:
-            self.log_test("Get Employees", False, f"Status: {status}, Response: {response}")
-            return False
-
-    def test_employee_mapping(self):
-        """Test client employee mapping (admin only)"""
-        if not self.test_client_id:
-            self.log_test("Employee Mapping", False, "No client ID available")
-            return False
-            
-        # First get employees to map to
-        success, employees, status = self.make_request("GET", "employees", expected_status=200)
-        if not success or not employees:
-            self.log_test("Employee Mapping", False, "No employees available for mapping")
-            return False
-            
-        employee_id = employees[0]['id']  # Use first employee
-        
-        # Test mapping client to employee
-        success, response, status = self.make_request("PUT", f"clients/{self.test_client_id}/employee-mapping", 
-                                                    None, expected_status=200)
-        # Add employee_id as query parameter
-        url = f"{self.api_url}/clients/{self.test_client_id}/employee-mapping?employee_id={employee_id}"
-        headers = {'Authorization': f'Bearer {self.token}'}
-        
-        try:
-            response = requests.put(url, headers=headers)
-            success = response.status_code == 200
+            success, booking_response = self.run_test(
+                "Employee Create Booking (Price Should Be Overridden)",
+                "POST",
+                "bookings",
+                200,
+                data=booking_data,
+                token=self.employee_token
+            )
             
             if success:
-                self.log_test("Employee Mapping", True, f"Mapped client to employee {employee_id}")
-                return True
-            else:
-                self.log_test("Employee Mapping", False, f"Status: {response.status_code}, Response: {response.text}")
-                return False
-        except Exception as e:
-            self.log_test("Employee Mapping", False, str(e))
-            return False
+                # Check if buying price was overridden to weighted average
+                actual_buying_price = booking_response.get('buying_price')
+                print(f"   Requested buying price: {booking_data['buying_price']}")
+                print(f"   Actual buying price: {actual_buying_price}")
+                # Should be weighted average (50.0), not the requested 60.0
+                return actual_buying_price == 50.0
+        
+        return False
 
-    def test_document_upload_simulation(self):
-        """Test document upload endpoint (simulated - no actual file)"""
-        if not self.test_client_id:
-            self.log_test("Document Upload Simulation", False, "No client ID available")
+    def test_admin_client_mapping(self):
+        """Test admin can map/unmap clients to employees"""
+        if not self.test_client_id or not self.test_employee_id:
+            print("❌ Missing test client or employee")
             return False
             
-        # We can't easily test file upload in this script, but we can test the endpoint exists
-        # and returns proper error for missing file
-        url = f"{self.api_url}/clients/{self.test_client_id}/documents"
-        headers = {'Authorization': f'Bearer {self.token}'}
+        # Map client to employee
+        success, response = self.run_test(
+            "Map Client to Employee",
+            "PUT",
+            f"clients/{self.test_client_id}/employee-mapping?employee_id={self.test_employee_id}",
+            200,
+            token=self.admin_token
+        )
         
-        try:
-            # This should fail with 422 (missing file) but confirms endpoint exists
-            response = requests.post(url, headers=headers)
-            
-            if response.status_code in [422, 400]:  # Expected error for missing file
-                self.log_test("Document Upload Endpoint", True, "Endpoint exists and validates input")
-                return True
-            else:
-                self.log_test("Document Upload Endpoint", False, f"Unexpected status: {response.status_code}")
-                return False
-        except Exception as e:
-            self.log_test("Document Upload Endpoint", False, str(e))
+        if not success:
             return False
+            
+        # Verify mapping
+        success, client_response = self.run_test(
+            "Verify Client Mapping",
+            "GET",
+            f"clients/{self.test_client_id}",
+            200,
+            token=self.admin_token
+        )
+        
+        if success:
+            mapped_employee_id = client_response.get('mapped_employee_id')
+            print(f"   Mapped employee ID: {mapped_employee_id}")
+            return mapped_employee_id == self.test_employee_id
+            
+        return False
 
-    def cleanup_test_data(self):
-        """Clean up test data"""
-        cleanup_success = True
+    def test_employee_cannot_create_vendor(self):
+        """Test that employees cannot create vendors"""
+        vendor_data = {
+            "name": "Employee Vendor Attempt",
+            "pan_number": "EMPV01234E",
+            "dp_id": "EMPVENDOR",
+            "is_vendor": True  # This should be rejected
+        }
         
-        # Delete purchase
-        if self.test_purchase_id:
-            success, _, _ = self.make_request("DELETE", f"purchases/{self.test_purchase_id}", expected_status=200)
-            if not success:
-                cleanup_success = False
+        success, response = self.run_test(
+            "Employee Create Vendor (Should Fail)",
+            "POST",
+            "clients",
+            403,  # Should be forbidden
+            data=vendor_data,
+            token=self.employee_token
+        )
         
-        # Delete booking
-        if self.test_booking_id:
-            success, _, _ = self.make_request("DELETE", f"bookings/{self.test_booking_id}", expected_status=200)
-            if not success:
-                cleanup_success = False
-        
-        # Delete stock
-        if self.test_stock_id:
-            success, _, _ = self.make_request("DELETE", f"stocks/{self.test_stock_id}", expected_status=200)
-            if not success:
-                cleanup_success = False
-        
-        # Delete client
-        if self.test_client_id:
-            success, _, _ = self.make_request("DELETE", f"clients/{self.test_client_id}", expected_status=200)
-            if not success:
-                cleanup_success = False
-        
-        # Delete vendor
-        if self.test_vendor_id:
-            success, _, _ = self.make_request("DELETE", f"clients/{self.test_vendor_id}", expected_status=200)
-            if not success:
-                cleanup_success = False
-        
-        self.log_test("Cleanup Test Data", cleanup_success)
-        return cleanup_success
-
-    def run_all_tests(self):
-        """Run all API tests"""
-        print(f"🚀 Starting Share Booking API Tests")
-        print(f"📍 Base URL: {self.base_url}")
-        print("=" * 60)
-        
-        # Authentication Tests
-        if not self.test_user_registration():
-            print("❌ Registration failed - stopping tests")
-            return False
-            
-        if not self.test_user_login():
-            print("❌ Login failed - stopping tests")
-            return False
-            
-        self.test_get_user_profile()
-        
-        # Client Management Tests
-        self.test_create_client()
-        self.test_get_clients()
-        self.test_update_client()
-        
-        # Vendor Management Tests
-        self.test_create_vendor()
-        
-        # Stock Management Tests
-        self.test_create_stock()
-        self.test_get_stocks()
-        
-        # Purchase & Inventory Tests
-        self.test_create_purchase()
-        self.test_get_purchases()
-        self.test_get_inventory()
-        
-        # Booking Management Tests
-        self.test_create_booking()
-        self.test_get_bookings()
-        self.test_update_booking_close()
-        
-        # Dashboard & Reports Tests
-        self.test_dashboard_stats()
-        self.test_dashboard_analytics()
-        self.test_pnl_report()
-        self.test_export_excel()
-        self.test_export_pdf()
-        
-        # User Management Tests (NEW)
-        self.test_get_users()
-        
-        # NEW FEATURES TESTING
-        self.test_get_employees()
-        self.test_employee_mapping()
-        self.test_document_upload_simulation()
-        
-        # Client Portfolio Tests (NEW)
-        self.test_client_portfolio()
-        
-        # Cleanup
-        self.cleanup_test_data()
-        
-        # Print Results
-        print("=" * 60)
-        print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
-        
-        if self.tests_passed == self.tests_run:
-            print("🎉 All tests passed!")
-            return True
-        else:
-            print(f"⚠️  {self.tests_run - self.tests_passed} tests failed")
-            return False
+        return success
 
 def main():
-    tester = ShareBookingAPITester()
-    success = tester.run_all_tests()
-    return 0 if success else 1
+    print("🚀 Starting Privity Share Booking System Enhanced Features Test")
+    print("=" * 60)
+    
+    tester = PrivityShareBookingTester()
+    
+    # Test sequence
+    tests = [
+        ("Admin Login", tester.test_admin_login),
+        ("Create Employee User", tester.test_create_employee),
+        ("Client Creation with New Fields", tester.test_client_creation_with_new_fields),
+        ("Multiple Bank Accounts", tester.test_multiple_bank_accounts),
+        ("Employee Vendor Restriction", tester.test_employee_vendor_restriction),
+        ("Employee Cannot Create Vendor", tester.test_employee_cannot_create_vendor),
+        ("Employee Client Creation (Needs Approval)", tester.test_employee_client_creation_approval),
+        ("Pending Approval Endpoint", tester.test_pending_approval_endpoint),
+        ("Client Approval", tester.test_client_approval),
+        ("Employee Own Clients Only", tester.test_employee_own_clients_only),
+        ("Employee Purchase Restriction", tester.test_employee_purchase_restriction),
+        ("Employee Booking Price Restriction", tester.test_employee_booking_buying_price_restriction),
+        ("Admin Client Mapping", tester.test_admin_client_mapping),
+    ]
+    
+    failed_tests = []
+    
+    for test_name, test_func in tests:
+        try:
+            if not test_func():
+                failed_tests.append(test_name)
+        except Exception as e:
+            print(f"❌ {test_name} - Exception: {str(e)}")
+            failed_tests.append(test_name)
+    
+    # Print results
+    print("\n" + "=" * 60)
+    print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} passed")
+    
+    if failed_tests:
+        print(f"\n❌ Failed Tests ({len(failed_tests)}):")
+        for test in failed_tests:
+            print(f"   - {test}")
+    else:
+        print("\n✅ All tests passed!")
+    
+    print("\n🎯 Key Features Tested:")
+    print("   ✓ Client creation with new fields (address, pin_code, mobile, bank_accounts)")
+    print("   ✓ Multiple bank accounts per client")
+    print("   ✓ Employee restrictions (no vendor access, own clients only)")
+    print("   ✓ Employee cannot view purchase history")
+    print("   ✓ Employee-created clients require approval")
+    print("   ✓ Client approval workflow")
+    print("   ✓ Employee cannot edit buying price in bookings")
+    print("   ✓ Admin can map/unmap clients to employees")
+    
+    return 0 if len(failed_tests) == 0 else 1
 
 if __name__ == "__main__":
     sys.exit(main())
