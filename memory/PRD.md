@@ -84,6 +84,18 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ **Pending Bookings View** - PE Desk can see and approve/reject pending bookings
 - ✅ **Audit Log API** - Admin-only endpoints to view audit history
 
+### Phase 7 - Stock Management & Corporate Actions (Jan 24, 2026)
+- ✅ **Enhanced Stock Fields** - Symbol (Short Code), ISIN Number, Sector, Product, Face Value
+- ✅ **PE Desk Only Stock Management** - Only PE Desk can add/edit/delete stocks
+- ✅ **Corporate Actions Panel** - Separate section for Stock Splits and Bonus Shares
+- ✅ **Stock Split** - Record ratio (e.g., 1:2), new face value, record date
+- ✅ **Bonus Shares** - Record ratio (e.g., 1:1), record date
+- ✅ **Price Adjustment** - Auto-adjust buy prices on record date:
+  - Split: new_price = old_price × (ratio_from/ratio_to)
+  - Bonus: new_price = old_price × (ratio_from/(ratio_from+ratio_to))
+- ✅ **Record Date Validation** - Corporate actions can only be applied on their record date
+- ✅ **Audit Logging** - All corporate actions logged for compliance
+
 ## Pages & Routes
 | Route | Page | Description |
 |-------|------|-------------|
