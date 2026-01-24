@@ -337,6 +337,18 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Client-side filtering for instant results
   - Works on both "All Clients" and "Pending Approval" tabs
 
+### Feature - Booking Form Enhancements (Jan 24, 2026)
+- ✅ **Prominent Average Price Display**: Bright blue gradient box shows:
+  - Current Average Price (large, bold text)
+  - Available Stock quantity
+  - Displayed immediately when stock is selected
+- ✅ **Weighted Average Info**: Blue text below Landing Price field shows "Will use: ₹X (weighted average)"
+- ✅ **Low Inventory Warning**: Red warning box when quantity exceeds available stock:
+  - Shows requested quantity vs available stock
+  - Warns that "Landing price might change based on new purchases"
+  - Input field gets red border
+  - Employee can still create booking (not blocked)
+
 ## Next Tasks
 1. **(P0) Continue Backend Modularization** - Move remaining routes from server.py:
    - Move client routes to `/routers/clients.py`
