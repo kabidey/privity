@@ -1391,6 +1391,8 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         buying_price = booking_data.buying_price if booking_data.buying_price else inventory["weighted_avg_price"]
     
     booking_id = str(uuid.uuid4())
+    
+    # All bookings require PE Desk approval before inventory adjustment
     booking_doc = {
         "id": booking_id,
         "client_id": booking_data.client_id,
@@ -1400,27 +1402,235 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "selling_price": booking_data.selling_price,
         "booking_date": booking_data.booking_date,
         "status": booking_data.status,
+        "approval_status": "pending",  # Requires PE Desk approval
+        "approved_by": None,
+        "approved_at": None,
         "notes": booking_data.notes,
         "user_id": current_user["id"],
         "created_by": current_user["id"],
+        "created_by_name": current_user["name"],
         "created_by_role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.bookings.insert_one(booking_doc)
     
-    # Update inventory
-    await update_inventory(booking_data.stock_id)
+    # DO NOT update inventory yet - wait for PE Desk approval
+    # await update_inventory(booking_data.stock_id)
     
-    # Send email notification to client
+    # Create audit log
+    await create_audit_log(
+        action="BOOKING_CREATE",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol']} - {client['name']}",
+        details={
+            "client_id": booking_data.client_id,
+            "client_name": client["name"],
+            "stock_id": booking_data.stock_id,
+            "stock_symbol": stock["symbol"],
+            "quantity": booking_data.quantity,
+            "buying_price": buying_price,
+            "selling_price": booking_data.selling_price
+        }
+    )
+    
+    # Send detailed email notification to client with CC to user
     if client.get("email"):
+        email_body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #064E3B;">Booking Order Created</h2>
+            <p>Dear {client['name']},</p>
+            <p>A new booking order has been created in our system with the following details:</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Order ID</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_id[:8].upper()}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Client OTC UCC</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{client.get('otc_ucc', 'N/A')}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol']} - {stock['name']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_data.quantity}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Buying Price</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{buying_price:,.2f}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Value</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{(buying_price * booking_data.quantity):,.2f}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_data.booking_date}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Status</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><span style="color: #f59e0b;">Pending Approval</span></td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Created By</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{current_user['name']}</td>
+                </tr>
+            </table>
+            
+            <p style="color: #6b7280; font-size: 14px;">This order is pending approval from PE Desk. You will receive another notification once approved.</p>
+            
+            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+        </div>
+        """
+        
         await send_email(
             client["email"],
-            "Booking Confirmation",
-            f"<p>Dear {client['name']},</p><p>Your booking for {booking_data.quantity} units of {stock['symbol']} has been created.</p>"
+            f"Booking Order Created - {stock['symbol']} | {booking_id[:8].upper()}",
+            email_body,
+            cc_email=current_user.get("email")  # CC to the user who created booking
         )
     
-    return Booking(**{k: v for k, v in booking_doc.items() if k != "user_id"})
+    return Booking(**{k: v for k, v in booking_doc.items() if k not in ["user_id", "created_by_name"]})
+
+@api_router.put("/bookings/{booking_id}/approve")
+async def approve_booking(
+    booking_id: str,
+    approve: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Approve or reject a booking for inventory adjustment (PE Desk only)"""
+    user_role = current_user.get("role", 5)
+    
+    # Only PE Desk (role 1) can approve bookings
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can approve bookings for inventory adjustment")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("approval_status") != "pending":
+        raise HTTPException(status_code=400, detail="Booking already processed")
+    
+    update_data = {
+        "approval_status": "approved" if approve else "rejected",
+        "approved_by": current_user["id"],
+        "approved_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # If approved, now update inventory
+    if approve:
+        await update_inventory(booking["stock_id"])
+        
+        # Create audit log
+        await create_audit_log(
+            action="BOOKING_APPROVE",
+            entity_type="booking",
+            entity_id=booking_id,
+            user_id=current_user["id"],
+            user_name=current_user["name"],
+            user_role=user_role,
+            details={"stock_id": booking["stock_id"], "quantity": booking["quantity"]}
+        )
+        
+        # Send approval notification to client
+        client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+        stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+        creator = await db.users.find_one({"id": booking["created_by"]}, {"_id": 0})
+        
+        if client and client.get("email"):
+            email_body = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #10b981;">Booking Order Approved ✓</h2>
+                <p>Dear {client['name']},</p>
+                <p>Your booking order has been <strong style="color: #10b981;">APPROVED</strong> and inventory has been adjusted.</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr style="background-color: #f3f4f6;">
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking['quantity']}</td>
+                    </tr>
+                    <tr style="background-color: #f3f4f6;">
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Approved By</strong></td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{current_user['name']} (PE Desk)</td>
+                    </tr>
+                </table>
+                
+                <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            </div>
+            """
+            await send_email(
+                client["email"],
+                f"Booking Approved - {stock['symbol'] if stock else 'N/A'} | {booking_id[:8].upper()}",
+                email_body,
+                cc_email=creator.get("email") if creator else None
+            )
+    else:
+        # Create audit log for rejection
+        await create_audit_log(
+            action="BOOKING_REJECT",
+            entity_type="booking",
+            entity_id=booking_id,
+            user_id=current_user["id"],
+            user_name=current_user["name"],
+            user_role=user_role,
+            details={"stock_id": booking["stock_id"], "quantity": booking["quantity"]}
+        )
+    
+    return {"message": f"Booking {'approved' if approve else 'rejected'} successfully"}
+
+@api_router.get("/bookings/pending-approval", response_model=List[BookingWithDetails])
+async def get_pending_bookings(current_user: dict = Depends(get_current_user)):
+    """Get bookings pending approval (PE Desk only)"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can view pending bookings")
+    
+    bookings = await db.bookings.find(
+        {"approval_status": "pending"},
+        {"_id": 0, "user_id": 0}
+    ).to_list(1000)
+    
+    if not bookings:
+        return []
+    
+    # Enrich with client and stock details
+    client_ids = list(set(b["client_id"] for b in bookings))
+    stock_ids = list(set(b["stock_id"] for b in bookings))
+    
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    
+    client_map = {c["id"]: c for c in clients}
+    stock_map = {s["id"]: s for s in stocks}
+    
+    enriched = []
+    for b in bookings:
+        client = client_map.get(b["client_id"], {})
+        stock = stock_map.get(b["stock_id"], {})
+        enriched.append(BookingWithDetails(
+            **b,
+            client_name=client.get("name", "Unknown"),
+            stock_symbol=stock.get("symbol", "Unknown"),
+            stock_name=stock.get("name", "Unknown")
+        ))
+    
+    return enriched
 
 @api_router.get("/bookings", response_model=List[BookingWithDetails])
 async def get_bookings(
