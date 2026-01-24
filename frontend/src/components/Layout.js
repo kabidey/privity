@@ -78,8 +78,8 @@ const Layout = ({ children }) => {
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex lg:flex-col w-64 bg-card border-r border-border fixed h-full">
         <div className="p-6 border-b border-border">
-          <h1 className="text-2xl font-bold" data-testid="app-title">ShareBook</h1>
-          <p className="text-xs text-muted-foreground mt-1">Share Booking System</p>
+          <h1 className="text-2xl font-bold" data-testid="app-title">PRIVITY</h1>
+          <p className="text-xs text-muted-foreground mt-1">Private Equity System</p>
         </div>
         <nav className="flex-1 p-4 overflow-y-auto" data-testid="sidebar-nav">
           <div className="space-y-1">
@@ -151,7 +151,7 @@ const Layout = ({ children }) => {
 
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-40 flex items-center justify-between px-4">
-        <h1 className="text-xl font-bold" data-testid="app-title-mobile">ShareBook</h1>
+        <h1 className="text-xl font-bold" data-testid="app-title-mobile">PRIVITY</h1>
         <div className="flex items-center gap-2">
           <NotificationBell />
           <Button

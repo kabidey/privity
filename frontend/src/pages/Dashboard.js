@@ -65,7 +65,7 @@ const Dashboard = () => {
     <div className="p-8 page-enter" data-testid="dashboard">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground text-base">Overview of your share booking system</p>
+        <p className="text-muted-foreground text-base">Overview of your private equity system</p>
       </div>
 
       {/* Stats Grid */}

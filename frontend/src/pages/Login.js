@@ -66,7 +66,7 @@ const Login = () => {
         <div className="absolute inset-0 bg-primary/80 flex items-center justify-center">
           <div className="text-center text-white px-8">
             <TrendingUp className="w-16 h-16 mx-auto mb-4" strokeWidth={1.5} />
-            <h1 className="text-4xl font-bold mb-4">SMIFS Share Booking</h1>
+            <h1 className="text-4xl font-bold mb-4">SMIFS Private Equity</h1>
             <p className="text-lg opacity-90">Manage your client bookings and track profit & loss efficiently</p>
           </div>
         </div>
