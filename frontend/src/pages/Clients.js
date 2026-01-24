@@ -438,36 +438,59 @@ const Clients = () => {
               
               <TabsContent value="documents">
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Upload JPG or PDF documents. OCR will automatically extract information.
-                  </p>
+                  <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                    <Sparkles className="h-5 w-5 text-blue-600" />
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      <strong>AI Auto-fill:</strong> Upload documents and OCR will automatically extract and fill the form fields.
+                    </p>
+                  </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    <div className="border rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CreditCard className="h-5 w-5 text-blue-600" />
-                        <Label className="font-semibold">PAN Card</Label>
-                      </div>
-                      <Input
-                        type="file"
-                        accept=".jpg,.jpeg,.pdf,.png"
-                        data-testid="pan-card-upload"
-                        onChange={(e) => setDocFiles({ ...docFiles, pan_card: e.target.files[0] })}
-                      />
-                      {docFiles.pan_card && (
-                        <p className="text-xs text-green-600 mt-1">Selected: {docFiles.pan_card.name}</p>
-                      )}
-                    </div>
+                    <DocumentUploadCard
+                      docType="pan_card"
+                      label="PAN Card"
+                      icon={CreditCard}
+                      color="text-blue-600"
+                      description="Extracts: Name, PAN Number, Date of Birth"
+                    />
                     
-                    <div className="border rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileCheck className="h-5 w-5 text-purple-600" />
-                        <Label className="font-semibold">CML Copy</Label>
-                      </div>
-                      <Input
-                        type="file"
-                        accept=".jpg,.jpeg,.pdf,.png"
-                        data-testid="cml-copy-upload"
+                    <DocumentUploadCard
+                      docType="cml_copy"
+                      label="CML Copy"
+                      icon={FileCheck}
+                      color="text-purple-600"
+                      description="Extracts: DP ID, Client ID, Name, PAN"
+                    />
+                    
+                    <DocumentUploadCard
+                      docType="cancelled_cheque"
+                      label="Cancelled Cheque"
+                      icon={FileText}
+                      color="text-orange-600"
+                      description="Extracts: Bank Name, Account Number, IFSC Code"
+                    />
+                  </div>
+                  
+                  {Object.keys(ocrResults).length > 0 && (
+                    <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <p className="text-sm text-green-800 dark:text-green-200 flex items-center gap-2">
+                        <Check className="h-4 w-4" />
+                        Form fields have been auto-filled from OCR. Switch to "Client Details" tab to review.
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSubmit} className="rounded-sm" disabled={uploading || Object.values(processingOcr).some(v => v)}>
+                      {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                      {editingClient ? 'Update & Upload' : 'Create & Upload'}
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
                         onChange={(e) => setDocFiles({ ...docFiles, cml_copy: e.target.files[0] })}
                       />
                       {docFiles.cml_copy && (
