@@ -60,10 +60,49 @@ EMAIL_USERNAME = os.environ.get('EMAIL_USERNAME', '')
 EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
 EMAIL_FROM = os.environ.get('EMAIL_FROM', EMAIL_USERNAME)
 
+# OTP Configuration
+OTP_EXPIRY_MINUTES = 10
+OTP_MAX_ATTEMPTS = 3
+
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
+
+# WebSocket Connection Manager for Real-time Notifications
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, List[WebSocket]] = {}
+    
+    async def connect(self, websocket: WebSocket, user_id: str):
+        await websocket.accept()
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = []
+        self.active_connections[user_id].append(websocket)
+        logging.info(f"WebSocket connected for user {user_id}")
+    
+    def disconnect(self, websocket: WebSocket, user_id: str):
+        if user_id in self.active_connections:
+            if websocket in self.active_connections[user_id]:
+                self.active_connections[user_id].remove(websocket)
+            if not self.active_connections[user_id]:
+                del self.active_connections[user_id]
+        logging.info(f"WebSocket disconnected for user {user_id}")
+    
+    async def send_to_user(self, user_id: str, message: dict):
+        if user_id in self.active_connections:
+            for connection in self.active_connections[user_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception as e:
+                    logging.error(f"Failed to send to user {user_id}: {e}")
+    
+    async def send_to_roles(self, roles: List[int], message: dict):
+        users = await db.users.find({"role": {"$in": roles}}, {"id": 1}).to_list(1000)
+        for user in users:
+            await self.send_to_user(user["id"], message)
+
+ws_manager = ConnectionManager()
 
 # User Roles
 ROLES = {
