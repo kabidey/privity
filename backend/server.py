@@ -487,12 +487,12 @@ async def approve_client(client_id: str, approve: bool = True, current_user: dic
     
     await db.clients.update_one({"id": client_id}, {"$set": update_data})
     
-    # Send notification email if approved
+    # Send notification email if approved using template
     if approve and client.get("email"):
-        await send_email(
+        await send_templated_email(
+            "client_approved",
             client["email"],
-            "Account Approved - Private Equity System",
-            f"<p>Dear {client['name']},</p><p>Your account has been approved and is now active.</p>"
+            {"client_name": client["name"], "otc_ucc": client.get("otc_ucc", "N/A")}
         )
     
     # Real-time notification to creator
