@@ -433,6 +433,26 @@ const Clients = () => {
     }
   };
 
+  const handleCloneToVendor = async (client) => {
+    if (!isPEDesk) {
+      toast.error('Only PE Desk can clone clients');
+      return;
+    }
+    if (!window.confirm(`Clone client "${client.name}" as a Vendor?\n\nThis will create a new vendor entry with the same details.`)) return;
+    setCloning(true);
+    try {
+      const response = await api.post(`/clients/${client.id}/clone?target_type=vendor`);
+      toast.success(response.data.message);
+      if (window.confirm('Clone successful! Do you want to view the new vendor?')) {
+        navigate('/vendors');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to clone client as vendor');
+    } finally {
+      setCloning(false);
+    }
+  };
+
   const handleMapping = (client) => {
     setSelectedClient(client);
     setMappingDialogOpen(true);
