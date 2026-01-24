@@ -33,6 +33,11 @@ const Bookings = () => {
   const [editingBooking, setEditingBooking] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
   const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [insiderWarningOpen, setInsiderWarningOpen] = useState(false);
+  const [insiderFormDialogOpen, setInsiderFormDialogOpen] = useState(false);
+  const [selectedInsiderBooking, setSelectedInsiderBooking] = useState(null);
+  const [insiderFormFile, setInsiderFormFile] = useState(null);
+  const [uploadingForm, setUploadingForm] = useState(false);
   const [formData, setFormData] = useState({
     client_id: '',
     stock_id: '',
@@ -42,6 +47,7 @@ const Bookings = () => {
     booking_date: new Date().toISOString().split('T')[0],
     status: 'open',
     notes: '',
+    booking_type: 'client',  // client, team, own
   });
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
