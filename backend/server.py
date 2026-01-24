@@ -864,28 +864,60 @@ async def get_employees(current_user: dict = Depends(get_current_user)):
 async def get_clients(
     search: Optional[str] = None,
     is_vendor: Optional[bool] = None,
+    pending_approval: Optional[bool] = None,
     current_user: dict = Depends(get_current_user)
 ):
     query = {}
-    
-    # Role-based filtering - only apply for create/edit operations
-    # All users can view clients for booking purposes
-    # Managers and below see only their created clients when not explicitly viewing all
     user_role = current_user.get("role", 5)
+    user_id = current_user.get("id")
+    
+    # Employee restrictions
+    if user_role == 4:
+        # Employees cannot see vendors
+        if is_vendor == True:
+            raise HTTPException(status_code=403, detail="Employees cannot access vendors")
+        query["is_vendor"] = False
+        # Employees can only see their own clients
+        query["$or"] = [
+            {"mapped_employee_id": user_id},
+            {"created_by": user_id}
+        ]
+    else:
+        # Vendor filter for non-employees
+        if is_vendor is not None:
+            query["is_vendor"] = is_vendor
+    
+    # Pending approval filter (for admins)
+    if pending_approval and user_role <= 3:
+        query["approval_status"] = "pending"
     
     # Search filter
     if search:
-        query["$or"] = [
+        search_query = [
             {"name": {"$regex": search, "$options": "i"}},
             {"email": {"$regex": search, "$options": "i"}},
-            {"pan_number": {"$regex": search, "$options": "i"}}
+            {"pan_number": {"$regex": search, "$options": "i"}},
+            {"otc_ucc": {"$regex": search, "$options": "i"}}
         ]
-    
-    # Vendor filter
-    if is_vendor is not None:
-        query["is_vendor"] = is_vendor
+        if "$or" in query:
+            # Combine with existing $or
+            existing_or = query.pop("$or")
+            query["$and"] = [{"$or": existing_or}, {"$or": search_query}]
+        else:
+            query["$or"] = search_query
     
     clients = await db.clients.find(query, {"_id": 0, "user_id": 0}).to_list(1000)
+    return clients
+
+@api_router.get("/clients/pending-approval", response_model=List[Client])
+async def get_pending_clients(current_user: dict = Depends(get_current_user)):
+    """Get clients pending approval (admin only)"""
+    check_permission(current_user, "approve_clients")
+    
+    clients = await db.clients.find(
+        {"approval_status": "pending", "is_vendor": False},
+        {"_id": 0, "user_id": 0}
+    ).to_list(1000)
     return clients
 
 @api_router.get("/clients/{client_id}", response_model=Client)
