@@ -2763,6 +2763,77 @@ async def export_pdf(
         headers={"Content-Disposition": "attachment; filename=pnl_report.pdf"}
     )
 
+# Notification Routes
+@api_router.get("/notifications")
+async def get_notifications(
+    unread_only: bool = False,
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get user notifications"""
+    query = {"user_id": current_user["id"]}
+    if unread_only:
+        query["read"] = False
+    
+    notifications = await db.notifications.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return notifications
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_count(current_user: dict = Depends(get_current_user)):
+    """Get count of unread notifications"""
+    count = await db.notifications.count_documents({
+        "user_id": current_user["id"],
+        "read": False
+    })
+    return {"count": count}
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user: dict = Depends(get_current_user)):
+    """Mark notification as read"""
+    result = await db.notifications.update_one(
+        {"id": notification_id, "user_id": current_user["id"]},
+        {"$set": {"read": True}}
+    )
+    return {"message": "Notification marked as read"}
+
+@api_router.put("/notifications/read-all")
+async def mark_all_notifications_read(current_user: dict = Depends(get_current_user)):
+    """Mark all notifications as read"""
+    result = await db.notifications.update_many(
+        {"user_id": current_user["id"], "read": False},
+        {"$set": {"read": True}}
+    )
+    return {"message": f"Marked {result.modified_count} notifications as read"}
+
+# WebSocket endpoint for real-time notifications
+@app.websocket("/api/ws/notifications")
+async def websocket_notifications(websocket: WebSocket, token: str = Query(...)):
+    """WebSocket endpoint for real-time notifications"""
+    try:
+        # Verify token
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload["user_id"]
+        
+        await ws_manager.connect(websocket, user_id)
+        
+        try:
+            while True:
+                data = await websocket.receive_text()
+                if data == "ping":
+                    await websocket.send_text("pong")
+        except WebSocketDisconnect:
+            ws_manager.disconnect(websocket, user_id)
+    except jwt.ExpiredSignatureError:
+        await websocket.close(code=4001, reason="Token expired")
+    except jwt.InvalidTokenError:
+        await websocket.close(code=4002, reason="Invalid token")
+    except Exception as e:
+        logging.error(f"WebSocket error: {e}")
+        await websocket.close(code=1011)
+
 # Include the router
 app.include_router(api_router)
 
