@@ -516,9 +516,11 @@ async def upload_client_document(
     
     # Update client document record
     doc_record = {
-        "type": doc_type,
+        "doc_type": doc_type,
         "filename": filename,
-        "upload_date": datetime.now(timezone.utc).isoformat()
+        "file_path": str(file_path),
+        "upload_date": datetime.now(timezone.utc).isoformat(),
+        "ocr_data": None
     }
     
     await db.clients.update_one(
