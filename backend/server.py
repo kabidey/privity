@@ -2010,9 +2010,16 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
-    # Check if client is active (approved)
+    # Check if client is approved by PE Desk
+    if client.get("approval_status") != "approved":
+        raise HTTPException(
+            status_code=400, 
+            detail="Client must be approved by PE Desk before creating bookings. Current status: " + client.get("approval_status", "pending")
+        )
+    
+    # Check if client is active
     if not client.get("is_active", True):
-        raise HTTPException(status_code=400, detail="Client is pending approval and cannot be used for bookings")
+        raise HTTPException(status_code=400, detail="Client is inactive and cannot be used for bookings")
     
     # Employees can only create bookings for their own clients
     if user_role == 4:
