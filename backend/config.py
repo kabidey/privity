@@ -87,14 +87,14 @@ DEFAULT_EMAIL_TEMPLATES = {
     "welcome": {
         "key": "welcome",
         "name": "Welcome Email (Client)",
-        "subject": "Welcome to Share Booking System",
+        "subject": "Welcome to Private Equity System",
         "body": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #064E3B;">Welcome to SMIFS Share Booking System</h2>
+            <h2 style="color: #064E3B;">Welcome to SMIFS Private Equity System</h2>
             <p>Dear {{client_name}},</p>
             <p>Your account has been created successfully!</p>
             <p>You can now participate in share booking transactions through our platform.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name"],
@@ -103,7 +103,7 @@ DEFAULT_EMAIL_TEMPLATES = {
     "client_approved": {
         "key": "client_approved",
         "name": "Client Approved",
-        "subject": "Account Approved - Share Booking System",
+        "subject": "Account Approved - Private Equity System",
         "body": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #10b981;">Account Approved ✓</h2>
@@ -111,7 +111,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             <p>Your account has been <strong style="color: #10b981;">APPROVED</strong> and is now active.</p>
             <p>Your OTC UCC: <strong>{{otc_ucc}}</strong></p>
             <p>You can now participate in share booking transactions.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name", "otc_ucc"],
@@ -147,7 +147,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </table>
             
             <p style="color: #6b7280; font-size: 14px;">You will receive a confirmation request email once the booking is approved internally.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name", "booking_number", "stock_symbol", "stock_name", "quantity"],
@@ -201,7 +201,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </div>
             
             <p style="color: #6b7280; font-size: 14px;">Please review and confirm this booking. If you accept, payment can be initiated. If you deny, the booking will be cancelled.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name", "booking_number", "otc_ucc", "stock_symbol", "stock_name", "quantity", "buying_price", "total_value", "approved_by", "accept_url", "deny_url"],
@@ -232,7 +232,7 @@ DEFAULT_EMAIL_TEMPLATES = {
                 </tr>
             </table>
             
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name", "booking_number", "stock_symbol"],
@@ -278,7 +278,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </div>
             
             <p style="color: #6b7280; font-size: 14px;">This is a loss transaction booking. Please review carefully before confirming.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name", "booking_number", "stock_symbol", "quantity", "buying_price", "selling_price", "accept_url", "deny_url"],
@@ -293,7 +293,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             <h2 style="color: #064E3B;">Booking Status Updated</h2>
             <p>Dear {{client_name}},</p>
             <p>Your booking <strong>{{booking_number}}</strong> status has been updated to: <strong style="color: #064E3B;">{{status}}</strong></p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name", "booking_number", "status"],
@@ -332,7 +332,7 @@ DEFAULT_EMAIL_TEMPLATES = {
                 <p style="margin: 0; color: #065f46;"><strong>Your booking is now ready for DP transfer.</strong></p>
             </div>
             
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name", "booking_number", "stock_symbol", "quantity", "total_amount"],
@@ -387,7 +387,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </div>
             
             <p>If you have any questions, please contact us.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["client_name", "booking_number", "stock_symbol", "stock_name", "isin_number", "quantity", "dp_id", "transfer_date"],
@@ -422,7 +422,7 @@ DEFAULT_EMAIL_TEMPLATES = {
                 </tr>
             </table>
             
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["vendor_name", "stock_symbol", "quantity", "price_per_unit", "total_amount"],
@@ -477,7 +477,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </table>
             
             <p>If you have any questions regarding this payment, please contact us.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["vendor_name", "stock_symbol", "stock_name", "quantity", "purchase_date", "total_amount", "payment_amount", "total_paid", "remaining_balance", "payment_status"],
@@ -486,7 +486,7 @@ DEFAULT_EMAIL_TEMPLATES = {
     "password_otp": {
         "key": "password_otp",
         "name": "Password Reset OTP",
-        "subject": "Password Reset OTP - Share Booking System",
+        "subject": "Password Reset OTP - Private Equity System",
         "body": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #064E3B;">Password Reset Request</h2>
@@ -497,7 +497,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </div>
             <p>This OTP is valid for <strong>{{expiry_minutes}} minutes</strong>.</p>
             <p style="color: #6b7280; font-size: 14px;">If you did not request this password reset, please ignore this email.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["user_name", "otp", "expiry_minutes"],
@@ -506,10 +506,10 @@ DEFAULT_EMAIL_TEMPLATES = {
     "user_created": {
         "key": "user_created",
         "name": "User Account Created",
-        "subject": "Welcome to Share Booking System - Account Created",
+        "subject": "Welcome to Private Equity System - Account Created",
         "body": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #064E3B;">Welcome to SMIFS Share Booking System</h2>
+            <h2 style="color: #064E3B;">Welcome to SMIFS Private Equity System</h2>
             <p>Dear {{user_name}},</p>
             <p>Your staff account has been created successfully!</p>
             
@@ -525,7 +525,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </table>
             
             <p>You can now log in to the system using your credentials.</p>
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
         "variables": ["user_name", "email", "role_name"],
