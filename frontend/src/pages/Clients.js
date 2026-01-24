@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Eye, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Loader2, Sparkles, Check } from 'lucide-react';
 
 const Clients = () => {
   const navigate = useNavigate();
@@ -26,6 +26,8 @@ const Clients = () => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedOcrData, setSelectedOcrData] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [processingOcr, setProcessingOcr] = useState({});
+  const [ocrResults, setOcrResults] = useState({});
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -67,6 +69,74 @@ const Clients = () => {
       setEmployees(response.data);
     } catch (error) {
       console.error('Failed to load employees');
+    }
+  };
+
+  const processOcrAndAutofill = async (docType, file) => {
+    if (!file) return;
+    
+    setProcessingOcr(prev => ({ ...prev, [docType]: true }));
+    
+    try {
+      // Create a temporary client or use OCR preview endpoint
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('doc_type', docType);
+      
+      const response = await api.post('/ocr/preview', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      const ocrData = response.data;
+      setOcrResults(prev => ({ ...prev, [docType]: ocrData }));
+      
+      // Auto-fill form based on document type
+      if (ocrData?.extracted_data) {
+        const extracted = ocrData.extracted_data;
+        
+        if (docType === 'pan_card') {
+          setFormData(prev => ({
+            ...prev,
+            name: extracted.name || prev.name,
+            pan_number: extracted.pan_number || prev.pan_number,
+          }));
+          if (extracted.name || extracted.pan_number) {
+            toast.success('PAN card data auto-filled!');
+          }
+        } else if (docType === 'cancelled_cheque') {
+          setFormData(prev => ({
+            ...prev,
+            bank_name: extracted.bank_name || prev.bank_name,
+            account_number: extracted.account_number || prev.account_number,
+            ifsc_code: extracted.ifsc_code || prev.ifsc_code,
+          }));
+          if (extracted.bank_name || extracted.account_number) {
+            toast.success('Bank details auto-filled from cheque!');
+          }
+        } else if (docType === 'cml_copy') {
+          setFormData(prev => ({
+            ...prev,
+            dp_id: extracted.dp_id || extracted.client_id || prev.dp_id,
+            name: extracted.client_name || prev.name,
+            pan_number: extracted.pan_number || prev.pan_number,
+          }));
+          if (extracted.dp_id || extracted.client_name) {
+            toast.success('CML data auto-filled!');
+          }
+        }
+      }
+    } catch (error) {
+      // If preview endpoint doesn't exist, just store file for later upload
+      console.log('OCR preview not available, will process on save');
+    } finally {
+      setProcessingOcr(prev => ({ ...prev, [docType]: false }));
+    }
+  };
+
+  const handleFileChange = async (docType, file) => {
+    setDocFiles(prev => ({ ...prev, [docType]: file }));
+    if (file) {
+      await processOcrAndAutofill(docType, file);
     }
   };
 
@@ -112,7 +182,7 @@ const Clients = () => {
           });
         }
       }
-      toast.success('Documents uploaded and OCR processed');
+      toast.success('Documents uploaded successfully');
     } catch (error) {
       toast.error('Failed to upload some documents');
     } finally {
@@ -133,6 +203,7 @@ const Clients = () => {
       ifsc_code: client.ifsc_code || '',
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
+    setOcrResults({});
     setDialogOpen(true);
   };
 
@@ -195,6 +266,7 @@ const Clients = () => {
       ifsc_code: '',
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
+    setOcrResults({});
     setEditingClient(null);
   };
 
@@ -206,6 +278,42 @@ const Clients = () => {
       default: return <FileText className="h-4 w-4" />;
     }
   };
+
+  const DocumentUploadCard = ({ docType, label, icon: Icon, color, description }) => (
+    <div className="border rounded-lg p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Icon className={`h-5 w-5 ${color}`} />
+          <Label className="font-semibold">{label}</Label>
+        </div>
+        {processingOcr[docType] && (
+          <div className="flex items-center gap-1 text-xs text-blue-600">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Processing OCR...
+          </div>
+        )}
+        {ocrResults[docType]?.extracted_data && !processingOcr[docType] && (
+          <div className="flex items-center gap-1 text-xs text-green-600">
+            <Check className="h-3 w-3" />
+            Auto-filled
+          </div>
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground mb-2">{description}</p>
+      <Input
+        type="file"
+        accept=".jpg,.jpeg,.pdf,.png"
+        data-testid={`${docType}-upload`}
+        onChange={(e) => handleFileChange(docType, e.target.files[0])}
+      />
+      {docFiles[docType] && (
+        <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+          <Check className="h-3 w-3" />
+          {docFiles[docType].name}
+        </p>
+      )}
+    </div>
+  );
 
   return (
     <div className="p-8 page-enter" data-testid="clients-page">
