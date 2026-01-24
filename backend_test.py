@@ -252,8 +252,6 @@ class ShareBookingAPITester:
         else:
             self.log_test("Create Stock", False, f"Status: {status}, Response: {response}")
             return False
-            self.log_test("Create Stock", False, f"Status: {status}, Response: {response}")
-            return False
 
     def test_get_stocks(self):
         """Test getting all stocks"""
