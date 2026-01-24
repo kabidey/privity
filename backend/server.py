@@ -2157,6 +2157,16 @@ async def approve_booking(
                 email_body,
                 cc_email=creator.get("email") if creator else None
             )
+        
+        # Real-time notification to booking creator
+        if booking.get("created_by"):
+            await create_notification(
+                booking["created_by"],
+                "booking_approved",
+                "Booking Approved",
+                f"Your booking for '{stock['symbol'] if stock else 'N/A'}' has been approved",
+                {"booking_id": booking_id, "stock_symbol": stock['symbol'] if stock else None}
+            )
     else:
         # Create audit log for rejection
         await create_audit_log(
@@ -2168,6 +2178,17 @@ async def approve_booking(
             user_role=user_role,
             details={"stock_id": booking["stock_id"], "quantity": booking["quantity"]}
         )
+        
+        # Real-time notification to booking creator for rejection
+        stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+        if booking.get("created_by"):
+            await create_notification(
+                booking["created_by"],
+                "booking_rejected",
+                "Booking Rejected",
+                f"Your booking for '{stock['symbol'] if stock else 'N/A'}' has been rejected",
+                {"booking_id": booking_id, "stock_symbol": stock['symbol'] if stock else None}
+            )
     
     return {"message": f"Booking {'approved' if approve else 'rejected'} successfully"}
 
