@@ -452,6 +452,10 @@ class BookingWithDetails(BaseModel):
     created_at: str
     created_by: str
     created_by_name: str
+    # Client confirmation
+    client_confirmation_status: str = "pending"
+    client_confirmed_at: Optional[str] = None
+    client_denial_reason: Optional[str] = None
     # Loss booking approval
     is_loss_booking: bool = False
     loss_approval_status: str = "not_required"
