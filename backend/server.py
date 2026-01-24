@@ -2858,15 +2858,49 @@ async def add_payment_tranche(
         }
     )
     
+    # Get client and stock for notifications
+    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+    booking_number = booking.get("booking_number", booking_id[:8].upper())
+    
     # Notify booking creator about payment
     if booking.get("created_by"):
         await create_notification(
             booking["created_by"],
             "payment_received",
             "Payment Received",
-            f"Payment of ₹{payment.amount:,.2f} recorded for booking. Total paid: ₹{new_total_paid:,.2f}",
-            {"booking_id": booking_id, "amount": payment.amount}
+            f"Payment of ₹{payment.amount:,.2f} recorded for {booking_number}. Total paid: ₹{new_total_paid:,.2f}",
+            {"booking_id": booking_id, "booking_number": booking_number, "amount": payment.amount}
         )
+    
+    # If payment complete, notify all relevant parties
+    if is_complete:
+        # Notify PE Desk about completed payment
+        await notify_roles(
+            [1, 2],  # PE Desk and Zonal Manager
+            "payment_complete",
+            "Payment Complete - Ready for DP Transfer",
+            f"Booking {booking_number} ({stock['symbol'] if stock else 'Unknown'}) is fully paid and ready for DP transfer to {client['name'] if client else 'Unknown'}",
+            {"booking_id": booking_id, "booking_number": booking_number, "client_name": client["name"] if client else None}
+        )
+        
+        # Send email to client about completion
+        if client and client.get("email"):
+            await send_email(
+                client["email"],
+                f"Payment Complete - Booking {booking_number}",
+                f"""
+                <p>Dear {client['name']},</p>
+                <p>We are pleased to confirm that full payment has been received for your booking:</p>
+                <ul>
+                    <li><strong>Booking ID:</strong> {booking_number}</li>
+                    <li><strong>Stock:</strong> {stock['symbol'] if stock else 'Unknown'}</li>
+                    <li><strong>Quantity:</strong> {booking.get('quantity')}</li>
+                    <li><strong>Total Amount:</strong> ₹{total_amount:,.2f}</li>
+                </ul>
+                <p>Your booking is now ready for DP transfer.</p>
+                """
+            )
     
     return {
         "message": f"Payment tranche {new_tranche['tranche_number']} recorded",
