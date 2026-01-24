@@ -268,6 +268,10 @@ class Booking(BaseModel):
     notes: Optional[str] = None
     created_at: str
     created_by: str
+    # Booking type
+    booking_type: str = "client"  # "client", "team", or "own"
+    insider_form_uploaded: bool = False
+    insider_form_path: Optional[str] = None
     # Client confirmation
     client_confirmation_status: str = "pending"
     client_confirmation_token: Optional[str] = None
