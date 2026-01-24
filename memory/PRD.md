@@ -180,6 +180,33 @@ Build a Share Booking System for managing client share bookings, inventory track
   - `GET /api/dp-transfer-report` - Get fully paid bookings ready for transfer
   - `GET /api/dp-transfer-report/export` - Export report as CSV/Excel
 
+### Phase 11 - Loss Booking Approval Workflow (Jan 24, 2026)
+- ✅ **Loss Booking Detection**:
+  - Automatically detect when selling_price < buying_price (weighted avg)
+  - Set `is_loss_booking=true` and `loss_approval_status=pending` for such bookings
+  - Loss bookings require separate PE Desk approval before proceeding
+- ✅ **Loss Approval Workflow**:
+  - Dedicated approval endpoint: `PUT /api/bookings/{id}/approve-loss`
+  - Separate from regular booking approval (can require both)
+  - Only PE Desk (role 1) can approve/reject loss bookings
+  - Audit logging for loss approval/rejection
+  - Real-time notifications to booking creator
+- ✅ **Pending Loss Bookings API**:
+  - `GET /api/bookings/pending-loss-approval` - Returns all loss bookings pending approval
+  - Enriched with client/stock details and calculated profit/loss
+- ✅ **Enhanced Bookings UI**:
+  - New "Loss Approval" tab showing pending loss bookings count
+  - Loss booking rows highlighted with red background
+  - "Loss Pending" / "Loss Approved" / "Loss Rejected" badges
+  - Yellow TrendingDown icon buttons for loss approval actions
+  - New columns: Buy Price, Sell Price, P&L
+  - P&L column color-coded: green for profit, red for loss
+- ✅ **Model Updates**:
+  - `is_loss_booking: bool` - Flag for loss bookings
+  - `loss_approval_status: str` - pending/approved/rejected/not_required
+  - `loss_approved_by: str` - User who approved/rejected
+  - `loss_approved_at: str` - Timestamp of approval/rejection
+
 ## Pages & Routes
 | Route | Page | Description |
 |-------|------|-------------|
@@ -192,7 +219,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 | /stocks | Stocks | Stock management |
 | /purchases | Purchases | Purchase recording |
 | /inventory | Inventory | Stock levels tracking |
-| /bookings | Bookings | Booking management with payment tracking |
+| /bookings | Bookings | Booking management with payment & loss tracking |
 | /reports | Reports | P&L with filters and exports |
 | /users | UserManagement | Role management (admin only) |
 | /analytics | Analytics | Advanced analytics (PE Desk only) |
@@ -206,8 +233,10 @@ Build a Share Booking System for managing client share bookings, inventory track
 - `/api/stocks/*` - Stock CRUD + bulk upload
 - `/api/purchases/*` - Purchase tracking
 - `/api/inventory/*` - Inventory management
-- `/api/bookings/*` - Booking CRUD + bulk upload + approval + payment tracking
+- `/api/bookings/*` - Booking CRUD + bulk upload + approval + payment tracking + loss approval
 - `/api/bookings/{id}/payments` - Payment tranche management
+- `/api/bookings/{id}/approve-loss` - Loss booking approval
+- `/api/bookings/pending-loss-approval` - Get pending loss bookings
 - `/api/dp-transfer-report` - DP transfer report + export
 - `/api/dashboard/*` - Stats and analytics
 - `/api/reports/*` - P&L reports + exports
