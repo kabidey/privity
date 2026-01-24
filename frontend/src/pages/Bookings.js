@@ -221,6 +221,22 @@ const Bookings = () => {
     }
   };
 
+  const getLossApprovalBadge = (booking) => {
+    if (!booking.is_loss_booking) return null;
+    
+    const status = booking.loss_approval_status || 'not_required';
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"><TrendingDown className="h-3 w-3 mr-1" />Loss Pending</Badge>;
+      case 'approved':
+        return <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"><TrendingDown className="h-3 w-3 mr-1" />Loss Approved</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-200 text-red-900 dark:bg-red-800 dark:text-red-100"><XCircle className="h-3 w-3 mr-1" />Loss Rejected</Badge>;
+      default:
+        return null;
+    }
+  };
+
   const getPaymentBadge = (booking) => {
     const status = booking.payment_status || 'pending';
     switch (status) {
@@ -241,7 +257,7 @@ const Bookings = () => {
     }).format(value || 0);
   };
 
-  const displayedBookings = activeTab === 'pending' ? pendingBookings : bookings;
+  const displayedBookings = activeTab === 'pending' ? pendingBookings : (activeTab === 'loss' ? pendingLossBookings : bookings);
 
   // Calculate payment progress
   const getPaymentProgress = (booking) => {
