@@ -448,7 +448,7 @@ async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[
 async def process_document_ocr(file_path: str, doc_type: str) -> Optional[Dict[str, Any]]:
     """Process document OCR using AI vision model"""
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContent
+        from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
         
         # Read and encode the file
         file_ext = file_path.lower().split('.')[-1]
@@ -462,15 +462,6 @@ async def process_document_ocr(file_path: str, doc_type: str) -> Optional[Dict[s
                 "status": "pdf_uploaded",
                 "extracted_data": {"note": "PDF uploaded - manual verification required"}
             }
-        
-        # Determine MIME type
-        mime_types = {
-            'jpg': 'image/jpeg',
-            'jpeg': 'image/jpeg',
-            'png': 'image/png',
-            'webp': 'image/webp',
-        }
-        content_type = mime_types.get(file_ext, 'image/jpeg')
         
         # Read image and convert to base64
         async with aiofiles.open(file_path, 'rb') as f:
@@ -526,9 +517,9 @@ If any field is not visible, use null."""
             system_message="You are an OCR specialist. Extract information from documents accurately. Always respond with valid JSON only, no markdown."
         ).with_model("openai", "gpt-4o")
         
-        # Create FileContent with proper parameters
-        file_content = FileContent(content_type=content_type, file_content_base64=image_base64)
-        user_message = UserMessage(text=prompt, file_contents=[file_content])
+        # Create ImageContent for vision processing
+        image_content = ImageContent(image_base64=image_base64)
+        user_message = UserMessage(text=prompt, file_contents=[image_content])
         
         response = await chat.send_message(user_message)
         
