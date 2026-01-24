@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from './context/ThemeContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
 import ClientPortfolio from './pages/ClientPortfolio';
@@ -27,24 +29,27 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route
               path="/*"
               element={
                 <PrivateRoute>
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/clients" element={<Clients />} />
-                      <Route path="/clients/:clientId/portfolio" element={<ClientPortfolio />} />
-                      <Route path="/vendors" element={<Vendors />} />
-                      <Route path="/stocks" element={<Stocks />} />
-                      <Route path="/purchases" element={<Purchases />} />
-                      <Route path="/inventory" element={<Inventory />} />
-                      <Route path="/bookings" element={<Bookings />} />
-                      <Route path="/reports" element={<Reports />} />
-                      <Route path="/users" element={<UserManagement />} />
-                    </Routes>
-                  </Layout>
+                  <NotificationProvider>
+                    <Layout>
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/clients" element={<Clients />} />
+                        <Route path="/clients/:clientId/portfolio" element={<ClientPortfolio />} />
+                        <Route path="/vendors" element={<Vendors />} />
+                        <Route path="/stocks" element={<Stocks />} />
+                        <Route path="/purchases" element={<Purchases />} />
+                        <Route path="/inventory" element={<Inventory />} />
+                        <Route path="/bookings" element={<Bookings />} />
+                        <Route path="/reports" element={<Reports />} />
+                        <Route path="/users" element={<UserManagement />} />
+                      </Routes>
+                    </Layout>
+                  </NotificationProvider>
                 </PrivateRoute>
               }
             />
