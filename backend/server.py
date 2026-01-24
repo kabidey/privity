@@ -1167,10 +1167,14 @@ async def bulk_upload_clients(file: UploadFile = File(...), current_user: dict =
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing CSV: {str(e)}")
 
-# Stock Routes
+# Stock Routes (PE Desk Only for creation/edit)
 @api_router.post("/stocks", response_model=Stock)
 async def create_stock(stock_data: StockCreate, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_stocks")
+    user_role = current_user.get("role", 5)
+    
+    # Only PE Desk can create stocks
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can add stocks")
     
     stock_id = str(uuid.uuid4())
     stock_doc = {
@@ -1181,6 +1185,19 @@ async def create_stock(stock_data: StockCreate, current_user: dict = Depends(get
     }
     
     await db.stocks.insert_one(stock_doc)
+    
+    # Create audit log
+    await create_audit_log(
+        action="STOCK_CREATE",
+        entity_type="stock",
+        entity_id=stock_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=stock_data.symbol,
+        details={"symbol": stock_data.symbol, "name": stock_data.name, "isin": stock_data.isin_number}
+    )
+    
     return Stock(**{k: v for k, v in stock_doc.items() if k != "user_id"})
 
 @api_router.get("/stocks", response_model=List[Stock])
