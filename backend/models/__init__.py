@@ -222,8 +222,9 @@ class Inventory(BaseModel):
     stock_id: str
     stock_symbol: str
     stock_name: str
-    available_quantity: int
-    weighted_avg_price: float
+    available_quantity: int  # Total available (not blocked)
+    blocked_quantity: int = 0  # Blocked for approved bookings pending transfer
+    weighted_avg_price: float  # Calculated only from non-blocked stock
     total_value: float
 
 
