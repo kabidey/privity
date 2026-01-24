@@ -4,16 +4,35 @@ Pydantic models for the application
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional, Dict, Any
 
+
+# ============== Audit Log Models ==============
+class AuditLog(BaseModel):
+    id: str
+    action: str
+    action_description: str
+    entity_type: str  # user, client, vendor, stock, purchase, booking
+    entity_id: str
+    entity_name: Optional[str] = None
+    user_id: str
+    user_name: str
+    user_role: int
+    details: Optional[Dict[str, Any]] = None
+    ip_address: Optional[str] = None
+    timestamp: str
+
+
 # ============== User Models ==============
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
-    role: int = 4
+    role: int = 4  # Default to Employee for smifs.com domain
+
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -24,19 +43,24 @@ class User(BaseModel):
     role_name: str
     created_at: str
 
+
 class TokenResponse(BaseModel):
     token: str
     user: User
 
+
+# ============== Password Reset Models ==============
 class PasswordResetRequest(BaseModel):
     email: EmailStr
+
 
 class PasswordResetVerify(BaseModel):
     email: EmailStr
     otp: str
     new_password: str
 
-# ============== Notification Models ==============
+
+# ============== Notification Model ==============
 class Notification(BaseModel):
     id: str
     user_id: str
@@ -47,22 +71,24 @@ class Notification(BaseModel):
     read: bool = False
     created_at: str
 
-# ============== Bank Account Model ==============
+
+# ============== Client Models ==============
 class BankAccount(BaseModel):
     bank_name: str
     account_number: str
     ifsc_code: str
     branch_name: Optional[str] = None
     account_holder_name: Optional[str] = None
-    source: str = "manual"
+    source: str = "manual"  # manual, cml_copy, cancelled_cheque
 
-# ============== Client Models ==============
+
 class ClientDocument(BaseModel):
-    doc_type: str
+    doc_type: str  # pan_card, cml_copy, cancelled_cheque
     filename: str
     file_path: str = ""
     upload_date: str
     ocr_data: Optional[Dict[str, Any]] = None
+
 
 class ClientCreate(BaseModel):
     name: str
@@ -76,10 +102,11 @@ class ClientCreate(BaseModel):
     bank_accounts: List[BankAccount] = []
     is_vendor: bool = False
 
+
 class Client(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    otc_ucc: str
+    otc_ucc: str  # Unique OTC UCC code
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -91,13 +118,14 @@ class Client(BaseModel):
     bank_accounts: List[BankAccount] = []
     is_vendor: bool = False
     is_active: bool = True
-    approval_status: str = "approved"
+    approval_status: str = "approved"  # pending, approved, rejected
     documents: List[ClientDocument] = []
     created_at: str
     created_by: str
     created_by_role: int = 5
     mapped_employee_id: Optional[str] = None
     mapped_employee_name: Optional[str] = None
+
 
 # ============== Stock Models ==============
 class StockCreate(BaseModel):
@@ -108,6 +136,7 @@ class StockCreate(BaseModel):
     sector: Optional[str] = None
     product: Optional[str] = None
     face_value: Optional[float] = None
+
 
 class Stock(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -121,15 +150,17 @@ class Stock(BaseModel):
     face_value: Optional[float] = None
     created_at: str
 
+
 # ============== Corporate Actions Models ==============
 class CorporateActionCreate(BaseModel):
     stock_id: str
-    action_type: str
+    action_type: str  # stock_split, bonus
     ratio_from: int
     ratio_to: int
-    record_date: str
     new_face_value: Optional[float] = None
+    record_date: str
     notes: Optional[str] = None
+
 
 class CorporateAction(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -140,12 +171,14 @@ class CorporateAction(BaseModel):
     action_type: str
     ratio_from: int
     ratio_to: int
-    record_date: str
     new_face_value: Optional[float] = None
+    record_date: str
+    status: str = "pending"  # pending, applied
+    applied_at: Optional[str] = None
     notes: Optional[str] = None
-    applied: bool = False
     created_at: str
     created_by: str
+
 
 # ============== Purchase Models ==============
 class PurchaseCreate(BaseModel):
@@ -153,7 +186,9 @@ class PurchaseCreate(BaseModel):
     stock_id: str
     quantity: int
     price_per_unit: float
-    purchase_date: Optional[str] = None
+    purchase_date: str
+    notes: Optional[str] = None
+
 
 class Purchase(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -164,157 +199,177 @@ class Purchase(BaseModel):
     stock_symbol: str
     quantity: int
     price_per_unit: float
-    total_value: float
+    total_amount: float
     purchase_date: str
+    notes: Optional[str] = None
     created_at: str
+    created_by: str
+
+
+# ============== Inventory Model ==============
+class Inventory(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    stock_id: str
+    stock_symbol: str
+    stock_name: str
+    available_quantity: int
+    weighted_avg_price: float
+    total_value: float
+
+
+# ============== Payment Models ==============
+class PaymentTranche(BaseModel):
+    tranche_number: int  # 1 to 4
+    amount: float
+    payment_date: str
+    recorded_by: str
+    recorded_at: str
+    notes: Optional[str] = None
+
+
+class PaymentTrancheCreate(BaseModel):
+    amount: float
+    payment_date: str
+    notes: Optional[str] = None
+
 
 # ============== Booking Models ==============
 class BookingCreate(BaseModel):
     client_id: str
     stock_id: str
     quantity: int
-    selling_price: float
     buying_price: Optional[float] = None
-    status: str = "pending"
-    booking_date: Optional[str] = None
+    selling_price: Optional[float] = None
+    booking_date: str
+    status: str = "open"
     notes: Optional[str] = None
+
 
 class Booking(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
+    booking_number: Optional[str] = None
     client_id: str
-    client_name: Optional[str] = None
     stock_id: str
-    stock_symbol: Optional[str] = None
     quantity: int
     buying_price: float
-    selling_price: float
+    selling_price: Optional[float] = None
+    booking_date: str
     status: str
     approval_status: str = "pending"
+    approved_by: Optional[str] = None
+    approved_at: Optional[str] = None
+    notes: Optional[str] = None
     created_at: str
     created_by: str
+    # Client confirmation
+    client_confirmation_status: str = "pending"
+    client_confirmation_token: Optional[str] = None
+    client_confirmed_at: Optional[str] = None
+    client_denial_reason: Optional[str] = None
+    # Loss booking approval
+    is_loss_booking: bool = False
+    loss_approval_status: str = "not_required"
+    loss_approved_by: Optional[str] = None
+    loss_approved_at: Optional[str] = None
+    # Payment tracking
+    payments: List[PaymentTranche] = []
+    total_paid: float = 0
+    payment_status: str = "pending"
+    payment_completed_at: Optional[str] = None
+    dp_transfer_ready: bool = False
+
 
 class BookingWithDetails(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
+    booking_number: Optional[str] = None
     client_id: str
     client_name: str
+    client_pan: Optional[str] = None
+    client_dp_id: Optional[str] = None
     stock_id: str
     stock_symbol: str
     stock_name: str
     quantity: int
     buying_price: float
-    selling_price: float
-    total_value: float
+    selling_price: Optional[float] = None
+    total_amount: Optional[float] = None
+    booking_date: str
     status: str
+    approval_status: str = "pending"
+    approved_by: Optional[str] = None
+    approved_at: Optional[str] = None
+    notes: Optional[str] = None
+    profit_loss: Optional[float] = None
     created_at: str
-    closed_at: Optional[str] = None
     created_by: str
     created_by_name: str
-    profit_loss: float
-    profit_loss_percent: float
-    approval_status: str = "approved"
+    # Client confirmation
+    client_confirmation_status: str = "pending"
+    client_confirmed_at: Optional[str] = None
+    client_denial_reason: Optional[str] = None
+    # Loss booking approval
+    is_loss_booking: bool = False
+    loss_approval_status: str = "not_required"
+    loss_approved_by: Optional[str] = None
+    loss_approved_at: Optional[str] = None
+    # Payment tracking
+    payments: List[PaymentTranche] = []
+    total_paid: float = 0
+    payment_status: str = "pending"
+    payment_completed_at: Optional[str] = None
+    dp_transfer_ready: bool = False
 
-# ============== Inventory Models ==============
-class Inventory(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    stock_id: str
-    stock_symbol: str
-    stock_name: str
-    total_quantity: int
-    available_quantity: int
-    booked_quantity: int
-    weighted_avg_price: float
-    total_value: float
 
-# ============== Audit Log Model ==============
-class AuditLog(BaseModel):
-    id: str
-    action: str
-    action_description: str
-    entity_type: str
-    entity_id: str
-    entity_name: Optional[str] = None
-    user_id: str
-    user_name: str
-    user_role: int
-    details: Optional[Dict[str, Any]] = None
-    ip_address: Optional[str] = None
-    timestamp: str
-
-# ============== Client Portfolio Models ==============
-class ClientHolding(BaseModel):
-    stock_id: str
+# ============== DP Transfer Report Model ==============
+class DPTransferRecord(BaseModel):
+    booking_id: str
+    client_name: str
+    pan_number: str
+    dp_id: str
     stock_symbol: str
     stock_name: str
     quantity: int
-    avg_buy_price: float
-    total_invested: float
-    current_value: float
-    profit_loss: float
-    profit_loss_percent: float
+    total_amount: float
+    total_paid: float
+    payment_completed_at: str
+
+
+# ============== Dashboard Models ==============
+class DashboardStats(BaseModel):
+    total_clients: int
+    total_vendors: int
+    total_stocks: int
+    total_bookings: int
+    open_bookings: int
+    closed_bookings: int
+    total_profit_loss: float
+    total_inventory_value: float
+    total_purchases: int
+
 
 class ClientPortfolio(BaseModel):
     client_id: str
     client_name: str
-    total_invested: float
-    total_current_value: float
+    total_bookings: int
+    open_bookings: int
+    closed_bookings: int
     total_profit_loss: float
-    total_profit_loss_percent: float
-    holdings: List[ClientHolding]
+    bookings: List[BookingWithDetails]
+
+
+# ============== Client Confirmation Request ==============
+class ClientConfirmationRequest(BaseModel):
+    reason: Optional[str] = None
+
 
 # ============== Email Template Models ==============
-class EmailTemplate(BaseModel):
-    id: str
-    key: str
-    name: str
-    subject: str
-    body: str
-    variables: List[str] = []
-    is_active: bool = True
-    updated_at: str
-    updated_by: Optional[str] = None
-
 class EmailTemplateUpdate(BaseModel):
     subject: Optional[str] = None
     body: Optional[str] = None
     is_active: Optional[bool] = None
 
-# ============== Analytics Models ==============
-class DailyStats(BaseModel):
-    date: str
-    bookings_count: int
-    bookings_value: float
-    profit_loss: float
-    new_clients: int
 
-class StockPerformance(BaseModel):
-    stock_id: str
-    stock_symbol: str
-    stock_name: str
-    total_quantity_sold: int
-    total_revenue: float
-    total_cost: float
-    profit_loss: float
-    profit_margin: float
-
-class EmployeePerformance(BaseModel):
-    user_id: str
-    user_name: str
-    total_bookings: int
-    total_value: float
-    total_profit: float
-    clients_count: int
-
-class AnalyticsSummary(BaseModel):
-    total_revenue: float
-    total_profit: float
-    total_bookings: int
-    total_clients: int
-    avg_booking_value: float
-    profit_margin: float
-    top_stocks: List[StockPerformance]
-    top_employees: List[EmployeePerformance]
-    daily_trend: List[DailyStats]
-    client_growth: List[Dict[str, Any]]
-    sector_distribution: List[Dict[str, Any]]
+class EmailTemplatePreview(BaseModel):
+    variables: Dict[str, str]
