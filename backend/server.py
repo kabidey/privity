@@ -2984,6 +2984,13 @@ async def add_payment_tranche(
         "dp_transfer_ready": is_complete
     }
     
+    # If this is the first payment, automatically set client confirmation to accepted
+    # (PE Desk entering payment implies client has accepted)
+    if new_tranche["tranche_number"] == 1:
+        if booking.get("client_confirmation_status") != "accepted":
+            update_data["client_confirmation_status"] = "accepted"
+            update_data["client_confirmed_at"] = datetime.now(timezone.utc).isoformat()
+    
     if is_complete:
         update_data["payment_completed_at"] = payment.payment_date
     
