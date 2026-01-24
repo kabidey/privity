@@ -544,7 +544,8 @@ const Clients = () => {
     </div>
   );
 
-  const displayedClients = activeTab === 'pending' ? pendingClients : clients;
+  // Use filtered clients based on search
+  const displayedClients = activeTab === 'pending' ? filteredPendingClients : filteredClients;
 
   return (
     <div className="p-8 page-enter" data-testid="clients-page">
