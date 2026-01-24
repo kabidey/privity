@@ -72,7 +72,7 @@ from models import (
 from utils.auth import hash_password, verify_password, create_token, get_current_user, check_permission
 
 # Import email functions from services  
-from services.email_service import send_email, generate_otp, send_otp_email
+from services.email_service import send_email, send_templated_email, generate_otp, send_otp_email
 
 # Import audit service
 from services.audit_service import create_audit_log
