@@ -143,6 +143,18 @@ const Purchases = () => {
     return purchase.total_amount - totalPaid;
   };
 
+  const handleDeletePurchase = async (purchaseId) => {
+    if (!window.confirm('Are you sure you want to delete this purchase? This will update the inventory.')) return;
+    
+    try {
+      await api.delete(`/purchases/${purchaseId}`);
+      toast.success('Purchase deleted successfully');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete purchase');
+    }
+  };
+
   return (
     <div className="p-8 page-enter" data-testid="purchases-page">
       <div className="flex justify-between items-center mb-8">
