@@ -15,6 +15,42 @@ from config import (
 )
 
 
+async def get_smtp_config():
+    """Get SMTP configuration from database or fall back to environment variables"""
+    from database import db
+    
+    config = await db.email_config.find_one({"_id": "smtp_config"})
+    
+    if config and config.get("is_enabled") and config.get("smtp_password"):
+        return {
+            "host": config["smtp_host"],
+            "port": config["smtp_port"],
+            "username": config["smtp_username"],
+            "password": config["smtp_password"],
+            "from_email": config["smtp_from_email"],
+            "from_name": config.get("smtp_from_name", "SMIFS Share Booking System"),
+            "use_tls": config.get("use_tls", True),
+            "use_ssl": config.get("use_ssl", False),
+            "timeout": config.get("timeout", 30)
+        }
+    
+    # Fall back to environment variables
+    if EMAIL_USERNAME and EMAIL_PASSWORD:
+        return {
+            "host": EMAIL_HOST,
+            "port": EMAIL_PORT,
+            "username": EMAIL_USERNAME,
+            "password": EMAIL_PASSWORD,
+            "from_email": EMAIL_FROM,
+            "from_name": "SMIFS Share Booking System",
+            "use_tls": True,
+            "use_ssl": False,
+            "timeout": 30
+        }
+    
+    return None
+
+
 async def get_email_template(template_key: str) -> dict:
     """Get email template from database or fall back to default"""
     from database import db
@@ -68,16 +104,51 @@ async def send_templated_email(
 
 
 async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[str] = None):
-    """Send email via MS Exchange with optional CC"""
-    if not EMAIL_USERNAME or not EMAIL_PASSWORD:
-        logging.warning("Email credentials not configured")
+    """Send email via SMTP with optional CC - uses database config or env vars"""
+    smtp_config = await get_smtp_config()
+    
+    if not smtp_config:
+        logging.warning("Email not configured - neither database config nor environment variables set")
         return
     
     try:
         msg = MIMEMultipart()
-        msg['From'] = EMAIL_FROM
+        from_display = f"{smtp_config['from_name']} <{smtp_config['from_email']}>"
+        msg['From'] = from_display
         msg['To'] = to_email
         if cc_email:
+            msg['Cc'] = cc_email
+        msg['Subject'] = subject
+        
+        msg.attach(MIMEText(body, 'html'))
+        
+        recipients = [to_email]
+        if cc_email:
+            recipients.append(cc_email)
+        
+        # Connect using appropriate method
+        if smtp_config['use_ssl']:
+            server = smtplib.SMTP_SSL(
+                smtp_config['host'], 
+                smtp_config['port'], 
+                timeout=smtp_config['timeout']
+            )
+        else:
+            server = smtplib.SMTP(
+                smtp_config['host'], 
+                smtp_config['port'], 
+                timeout=smtp_config['timeout']
+            )
+            if smtp_config['use_tls']:
+                server.starttls()
+        
+        server.login(smtp_config['username'], smtp_config['password'])
+        server.sendmail(smtp_config['from_email'], recipients, msg.as_string())
+        server.quit()
+        
+        logging.info(f"Email sent successfully to {to_email}")
+    except Exception as e:
+        logging.error(f"Failed to send email: {e}")
             msg['Cc'] = cc_email
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'html'))
