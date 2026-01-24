@@ -1,7 +1,12 @@
 """
-Router package - Exports all API routers
-Note: Currently server.py contains all routes inline.
-These separate router files are prepared for future refactoring.
+Routers package initialization
 """
-# from routers.auth import router as auth_router
-# from routers.notifications import router as notifications_router
+from .auth import router as auth_router
+from .users import router as users_router
+from .notifications import router as notifications_router
+
+__all__ = [
+    'auth_router',
+    'users_router',
+    'notifications_router',
+]
