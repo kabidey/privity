@@ -379,6 +379,11 @@ class ClientPortfolio(BaseModel):
     bookings: List[BookingWithDetails]
 
 
+# ============== Client Suspension Request ==============
+class ClientSuspensionRequest(BaseModel):
+    reason: str
+
+
 # ============== Client Confirmation Request ==============
 class ClientConfirmationRequest(BaseModel):
     reason: Optional[str] = None
