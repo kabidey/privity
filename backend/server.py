@@ -3172,66 +3172,24 @@ async def add_purchase_payment(
         }
     )
     
-    # Send email to vendor
+    # Send email to vendor using template
     if vendor and vendor.get("email"):
-        status_badge = "FULL PAYMENT" if is_complete else "PARTIAL PAYMENT"
-        status_color = "#10b981" if is_complete else "#f59e0b"
-        
-        email_body = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: {status_color};">Payment Received - {status_badge}</h2>
-            <p>Dear {vendor['name']},</p>
-            <p>We are pleased to inform you that a payment has been processed for your stock purchase.</p>
-            
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
-                <tr style="background-color: #064E3B; color: white;">
-                    <th colspan="2" style="padding: 12px; text-align: left;">Payment Details</th>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Stock</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'} - {stock['name'] if stock else 'N/A'}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Purchase Quantity</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{purchase.get('quantity', 0)}</td>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Purchase Date</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{purchase.get('purchase_date', 'N/A')}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Purchase Amount</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{purchase['total_amount']:,.2f}</td>
-                </tr>
-                <tr style="background-color: #d1fae5;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>This Payment</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong style="color: #10b981;">₹{payment.amount:,.2f}</strong></td>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Paid Till Date</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{new_total_paid:,.2f}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Balance Remaining</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{(purchase['total_amount'] - new_total_paid):,.2f}</td>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Payment Status</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><span style="color: {status_color}; font-weight: bold;">{payment_status.upper()}</span></td>
-                </tr>
-            </table>
-            
-            {"<div style='background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;'><p style='margin: 0; color: #065f46;'><strong>Payment Complete!</strong> Thank you for your business.</p></div>" if is_complete else ""}
-            
-            <p>If you have any questions regarding this payment, please contact us.</p>
-            
-            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
-        </div>
-        """
-        await send_email(
+        await send_templated_email(
+            "vendor_payment_received",
             vendor["email"],
-            f"Payment Received - {stock['symbol'] if stock else 'N/A'} Purchase | ₹{payment.amount:,.2f}",
-            email_body
+            {
+                "vendor_name": vendor["name"],
+                "stock_symbol": stock["symbol"] if stock else "N/A",
+                "stock_name": stock["name"] if stock else "N/A",
+                "quantity": purchase.get("quantity", 0),
+                "purchase_date": purchase.get("purchase_date", "N/A"),
+                "total_amount": f"{purchase['total_amount']:,.2f}",
+                "payment_amount": f"{payment.amount:,.2f}",
+                "total_paid": f"{new_total_paid:,.2f}",
+                "remaining_balance": f"{(purchase['total_amount'] - new_total_paid):,.2f}",
+                "payment_status": payment_status.upper(),
+                "is_complete": is_complete
+            }
         )
     
     return {
