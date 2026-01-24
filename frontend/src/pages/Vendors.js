@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +12,7 @@ import api from '../utils/api';
 import { Plus, Pencil, Trash2, Building2 } from 'lucide-react';
 
 const Vendors = () => {
+  const navigate = useNavigate();
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -27,9 +29,18 @@ const Vendors = () => {
     is_vendor: true,
   });
 
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isPEDesk = currentUser.role === 1;
+
   useEffect(() => {
+    // Only PE Desk can access vendors
+    if (!isPEDesk) {
+      toast.error('Access denied. Only PE Desk can manage vendors.');
+      navigate('/');
+      return;
+    }
     fetchVendors();
-  }, []);
+  }, [isPEDesk, navigate]);
 
   const fetchVendors = async () => {
     try {
