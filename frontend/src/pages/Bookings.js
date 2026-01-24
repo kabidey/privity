@@ -108,6 +108,7 @@ const Bookings = () => {
     const inv = inventory.find(i => i.stock_id === stockId);
     return {
       availableQty: inv?.available_quantity || 0,
+      blockedQty: inv?.blocked_quantity || 0,
       weightedAvgPrice: inv?.weighted_avg_price || 0,
       stockSymbol: inv?.stock_symbol || ''
     };
