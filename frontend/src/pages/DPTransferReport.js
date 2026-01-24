@@ -259,6 +259,89 @@ const DPTransferReport = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Stock Transfer Confirmation Dialog */}
+      <Dialog open={transferDialog.open} onOpenChange={(open) => {
+        setTransferDialog({ open, record: open ? transferDialog.record : null });
+        if (!open) setTransferNotes('');
+      }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Check className="h-5 w-5 text-emerald-600" />
+              Confirm Stock Transfer
+            </DialogTitle>
+            <DialogDescription>
+              Mark this stock as transferred to the client's Demat account. An email notification will be sent to the client.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {transferDialog.record && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <span className="text-muted-foreground">Client:</span>
+                  <span className="font-medium">{transferDialog.record.client_name}</span>
+                  
+                  <span className="text-muted-foreground">DP ID:</span>
+                  <span className="font-mono font-medium">{transferDialog.record.dp_id}</span>
+                  
+                  <span className="text-muted-foreground">Stock:</span>
+                  <span className="font-medium">{transferDialog.record.stock_symbol}</span>
+                  
+                  <span className="text-muted-foreground">ISIN:</span>
+                  <span className="font-mono text-xs">{transferDialog.record.isin_number}</span>
+                  
+                  <span className="text-muted-foreground">Quantity:</span>
+                  <span className="font-medium">{transferDialog.record.quantity}</span>
+                  
+                  <span className="text-muted-foreground">Amount:</span>
+                  <span className="font-medium">{formatCurrency(transferDialog.record.total_amount)}</span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="transfer-notes">Transfer Notes (Optional)</Label>
+                <Textarea
+                  id="transfer-notes"
+                  placeholder="Add any notes about this transfer..."
+                  value={transferNotes}
+                  onChange={(e) => setTransferNotes(e.target.value)}
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setTransferDialog({ open: false, record: null })}
+              disabled={transferLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleTransferConfirm}
+              disabled={transferLoading}
+              className="bg-emerald-600 hover:bg-emerald-700"
+              data-testid="confirm-transfer-btn"
+            >
+              {transferLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Confirm Transfer & Notify Client
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
