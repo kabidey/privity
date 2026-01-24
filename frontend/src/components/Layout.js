@@ -70,6 +70,7 @@ const Layout = ({ children }) => {
   if (user.role === 1) {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
+    menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
   }
 
   return (
