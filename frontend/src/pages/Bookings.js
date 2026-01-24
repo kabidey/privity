@@ -532,6 +532,7 @@ const Bookings = () => {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {isPEDesk && (pendingBookings.length > 0 || pendingLossBookings.length > 0) && (
