@@ -417,6 +417,12 @@ class ShareBookingAPITester:
             if not success:
                 cleanup_success = False
         
+        # Delete vendor
+        if self.test_vendor_id:
+            success, _, _ = self.make_request("DELETE", f"clients/{self.test_vendor_id}", expected_status=200)
+            if not success:
+                cleanup_success = False
+        
         self.log_test("Cleanup Test Data", cleanup_success)
         return cleanup_success
 
