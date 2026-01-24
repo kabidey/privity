@@ -1287,6 +1287,236 @@ async def bulk_upload_stocks(file: UploadFile = File(...), current_user: dict = 
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error processing CSV: {str(e)}")
 
+# Corporate Actions Routes (PE Desk Only)
+@api_router.post("/corporate-actions", response_model=CorporateAction)
+async def create_corporate_action(
+    action_data: CorporateActionCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a corporate action (Stock Split or Bonus) - PE Desk only"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can create corporate actions")
+    
+    # Verify stock exists
+    stock = await db.stocks.find_one({"id": action_data.stock_id}, {"_id": 0})
+    if not stock:
+        raise HTTPException(status_code=404, detail="Stock not found")
+    
+    # Validate action type
+    if action_data.action_type not in ["stock_split", "bonus"]:
+        raise HTTPException(status_code=400, detail="Action type must be 'stock_split' or 'bonus'")
+    
+    # For stock split, new_face_value is required
+    if action_data.action_type == "stock_split" and not action_data.new_face_value:
+        raise HTTPException(status_code=400, detail="New face value is required for stock split")
+    
+    action_id = str(uuid.uuid4())
+    action_doc = {
+        "id": action_id,
+        "stock_id": action_data.stock_id,
+        "action_type": action_data.action_type,
+        "ratio_from": action_data.ratio_from,
+        "ratio_to": action_data.ratio_to,
+        "new_face_value": action_data.new_face_value,
+        "record_date": action_data.record_date,
+        "status": "pending",
+        "applied_at": None,
+        "notes": action_data.notes,
+        "created_by": current_user["id"],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.corporate_actions.insert_one(action_doc)
+    
+    # Create audit log
+    await create_audit_log(
+        action="CORPORATE_ACTION_CREATE",
+        entity_type="corporate_action",
+        entity_id=action_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol']} - {action_data.action_type}",
+        details={
+            "stock_symbol": stock["symbol"],
+            "action_type": action_data.action_type,
+            "ratio": f"{action_data.ratio_from}:{action_data.ratio_to}",
+            "record_date": action_data.record_date
+        }
+    )
+    
+    return CorporateAction(
+        **action_doc,
+        stock_symbol=stock["symbol"],
+        stock_name=stock["name"]
+    )
+
+@api_router.get("/corporate-actions", response_model=List[CorporateAction])
+async def get_corporate_actions(
+    stock_id: Optional[str] = None,
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get corporate actions - PE Desk only"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can view corporate actions")
+    
+    query = {}
+    if stock_id:
+        query["stock_id"] = stock_id
+    if status:
+        query["status"] = status
+    
+    actions = await db.corporate_actions.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    # Enrich with stock details
+    stock_ids = list(set(a["stock_id"] for a in actions))
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    stock_map = {s["id"]: s for s in stocks}
+    
+    enriched = []
+    for a in actions:
+        stock = stock_map.get(a["stock_id"], {})
+        enriched.append(CorporateAction(
+            **a,
+            stock_symbol=stock.get("symbol", "Unknown"),
+            stock_name=stock.get("name", "Unknown")
+        ))
+    
+    return enriched
+
+@api_router.put("/corporate-actions/{action_id}/apply")
+async def apply_corporate_action(
+    action_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Apply a corporate action on record date - adjusts buy prices in inventory"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can apply corporate actions")
+    
+    action = await db.corporate_actions.find_one({"id": action_id}, {"_id": 0})
+    if not action:
+        raise HTTPException(status_code=404, detail="Corporate action not found")
+    
+    if action["status"] == "applied":
+        raise HTTPException(status_code=400, detail="Corporate action already applied")
+    
+    # Check if today is the record date
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if action["record_date"] != today:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Corporate action can only be applied on record date ({action['record_date']}). Today is {today}"
+        )
+    
+    stock_id = action["stock_id"]
+    ratio_from = action["ratio_from"]
+    ratio_to = action["ratio_to"]
+    action_type = action["action_type"]
+    
+    # Calculate adjustment factor
+    if action_type == "stock_split":
+        # Stock split: If 1:2 split, new price = old price / 2
+        adjustment_factor = ratio_from / ratio_to
+    else:  # bonus
+        # Bonus: If 1:1 bonus, shares double, price halves
+        # ratio_from:ratio_to means for every ratio_from shares, you get ratio_to bonus
+        adjustment_factor = ratio_from / (ratio_from + ratio_to)
+    
+    # Update inventory weighted average price
+    inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+    if inventory:
+        new_avg_price = inventory["weighted_avg_price"] * adjustment_factor
+        
+        # For bonus/split, quantity increases
+        if action_type == "stock_split":
+            new_quantity = int(inventory["available_quantity"] * (ratio_to / ratio_from))
+        else:  # bonus
+            bonus_shares = int(inventory["available_quantity"] * (ratio_to / ratio_from))
+            new_quantity = inventory["available_quantity"] + bonus_shares
+        
+        await db.inventory.update_one(
+            {"stock_id": stock_id},
+            {"$set": {
+                "weighted_avg_price": new_avg_price,
+                "available_quantity": new_quantity
+            }}
+        )
+    
+    # Update all purchases for this stock (historical record)
+    await db.purchases.update_many(
+        {"stock_id": stock_id},
+        {"$mul": {"price_per_unit": adjustment_factor}}
+    )
+    
+    # Update all bookings for this stock
+    await db.bookings.update_many(
+        {"stock_id": stock_id},
+        {"$mul": {"buying_price": adjustment_factor}}
+    )
+    
+    # Update stock face value if stock split
+    if action_type == "stock_split" and action.get("new_face_value"):
+        await db.stocks.update_one(
+            {"id": stock_id},
+            {"$set": {"face_value": action["new_face_value"]}}
+        )
+    
+    # Mark action as applied
+    await db.corporate_actions.update_one(
+        {"id": action_id},
+        {"$set": {
+            "status": "applied",
+            "applied_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Create audit log
+    stock = await db.stocks.find_one({"id": stock_id}, {"_id": 0})
+    await create_audit_log(
+        action="CORPORATE_ACTION_APPLY",
+        entity_type="corporate_action",
+        entity_id=action_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {action_type}",
+        details={
+            "adjustment_factor": adjustment_factor,
+            "action_type": action_type,
+            "ratio": f"{ratio_from}:{ratio_to}"
+        }
+    )
+    
+    return {
+        "message": f"Corporate action applied successfully. Prices adjusted by factor {adjustment_factor:.4f}",
+        "adjustment_factor": adjustment_factor
+    }
+
+@api_router.delete("/corporate-actions/{action_id}")
+async def delete_corporate_action(action_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a pending corporate action - PE Desk only"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete corporate actions")
+    
+    action = await db.corporate_actions.find_one({"id": action_id}, {"_id": 0})
+    if not action:
+        raise HTTPException(status_code=404, detail="Corporate action not found")
+    
+    if action["status"] == "applied":
+        raise HTTPException(status_code=400, detail="Cannot delete applied corporate action")
+    
+    await db.corporate_actions.delete_one({"id": action_id})
+    return {"message": "Corporate action deleted successfully"}
+
 # Purchase Routes (from Vendors)
 @api_router.post("/purchases", response_model=Purchase)
 async def create_purchase(purchase_data: PurchaseCreate, current_user: dict = Depends(get_current_user)):
