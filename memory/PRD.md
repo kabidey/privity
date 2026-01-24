@@ -131,6 +131,10 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ **Client Form Validation** - Required fields (Name, PAN, DP ID) enforced on frontend and backend
 - ✅ **Document Upload** - Fixed permission to allow employees to upload docs to their own clients
 - ✅ **OCR Integration** - Fixed ImageContent usage in emergentintegrations library for GPT-4o vision
+- ✅ **PDF OCR Support** - Added pdf2image conversion to process PDF documents (CML, PAN, Cheques)
+- ✅ **Full DP ID Extraction** - OCR now extracts and combines DP ID + Client ID (e.g., IN301629-10242225)
+- ✅ **Mobile Number Cleaning** - Removes ISD codes (+91) and keeps only 10-digit numbers
+- ✅ **Vendor Access Restriction** - Vendors tab now visible only to PE Desk (Role 1)
 
 ## Tech Stack
 - React 18 with React Router v6
