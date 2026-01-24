@@ -2099,7 +2099,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
                     <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_data.quantity}</td>
                 </tr>
                 <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Buying Price</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Landing Price</strong></td>
                     <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{buying_price:,.2f}</td>
                 </tr>
                 <tr>
@@ -3166,7 +3166,7 @@ async def export_excel(
     ws.title = "P&L Report"
     
     # Headers
-    headers = ["Client", "Stock Symbol", "Stock Name", "Quantity", "Buying Price", "Selling Price", "Date", "Status", "P&L"]
+    headers = ["Client", "Stock Symbol", "Stock Name", "Quantity", "Landing Price", "Selling Price", "Date", "Status", "P&L"]
     ws.append(headers)
     
     # Style headers
@@ -3249,7 +3249,7 @@ async def export_pdf(
     elements.append(Paragraph("Profit & Loss Report", title_style))
     elements.append(Spacer(1, 0.3*inch))
     
-    data = [["Client", "Stock", "Qty", "Buy Price", "Sell Price", "Status", "P&L"]]
+    data = [["Client", "Stock", "Qty", "Landing Price", "Sell Price", "Status", "P&L"]]
     
     if bookings:
         client_ids = list(set(b["client_id"] for b in bookings))
