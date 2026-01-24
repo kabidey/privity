@@ -185,24 +185,53 @@ async def update_inventory(stock_id: str):
 # Startup event to seed admin user
 @app.on_event("startup")
 async def seed_admin_user():
-    """Create default PE Desk super admin if no admin exists"""
+    """Create default PE Desk super admin - ALWAYS ensures admin exists"""
     try:
-        # Check if any admin user exists (role 1 or 2)
-        admin_exists = await db.users.find_one({"role": {"$lte": 2}}, {"_id": 0})
-        if not admin_exists:
-            admin_id = str(uuid.uuid4())
-            admin_doc = {
-                "id": admin_id,
-                "email": "pedesk@smifs.com",
-                "password": hash_password("Kutta@123"),
-                "name": "PE Desk Super Admin",
-                "role": 1,  # PE Desk - full access
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.users.insert_one(admin_doc)
-            logging.info("Default PE Desk super admin created: pedesk@smifs.com")
+        # Check if pedesk@smifs.com user exists
+        pedesk_user = await db.users.find_one({"email": "pedesk@smifs.com"}, {"_id": 0})
+        
+        if pedesk_user:
+            # User exists - update password to ensure it's correct
+            await db.users.update_one(
+                {"email": "pedesk@smifs.com"},
+                {"$set": {
+                    "password": hash_password("Kutta@123"),
+                    "role": 1,
+                    "name": "PE Desk Super Admin"
+                }}
+            )
+            logging.info("PE Desk super admin password reset: pedesk@smifs.com")
         else:
-            logging.info("Admin user already exists, skipping seed")
+            # Check if any admin exists
+            admin_exists = await db.users.find_one({"role": {"$lte": 2}}, {"_id": 0})
+            
+            if not admin_exists:
+                # Create new admin
+                admin_id = str(uuid.uuid4())
+                admin_doc = {
+                    "id": admin_id,
+                    "email": "pedesk@smifs.com",
+                    "password": hash_password("Kutta@123"),
+                    "name": "PE Desk Super Admin",
+                    "role": 1,  # PE Desk - full access
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.users.insert_one(admin_doc)
+                logging.info("Default PE Desk super admin created: pedesk@smifs.com")
+            else:
+                # Admin exists but not pedesk - create pedesk anyway
+                admin_id = str(uuid.uuid4())
+                admin_doc = {
+                    "id": admin_id,
+                    "email": "pedesk@smifs.com",
+                    "password": hash_password("Kutta@123"),
+                    "name": "PE Desk Super Admin",
+                    "role": 1,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.users.insert_one(admin_doc)
+                logging.info("PE Desk super admin created alongside existing admin: pedesk@smifs.com")
+                
     except Exception as e:
         logging.error(f"Error seeding admin user: {e}")
 
