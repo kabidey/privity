@@ -440,6 +440,26 @@ const Bookings = () => {
                 </Select>
               </div>
               
+              {/* Show Average Price prominently when stock is selected */}
+              {formData.stock_id && selectedInventory && (
+                <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium opacity-90">Current Average Price</p>
+                      <p className="text-3xl font-bold">
+                        {formatCurrency(selectedInventory.weightedAvgPrice)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium opacity-90">Available Stock</p>
+                      <p className="text-2xl font-bold">
+                        {selectedInventory.availableQty.toLocaleString()} units
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Quantity *</Label>
