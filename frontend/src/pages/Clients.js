@@ -450,6 +450,45 @@ const Clients = () => {
     }
   };
 
+  const handleSuspendClient = async () => {
+    if (!selectedSuspendClient || !suspensionReason.trim()) {
+      toast.error('Please provide a suspension reason');
+      return;
+    }
+    try {
+      await api.put(`/clients/${selectedSuspendClient.id}/suspend`, { reason: suspensionReason });
+      toast.success(`Client ${selectedSuspendClient.name} has been suspended`);
+      setSuspendDialogOpen(false);
+      setSelectedSuspendClient(null);
+      setSuspensionReason('');
+      fetchClients();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to suspend client');
+    }
+  };
+
+  const handleUnsuspendClient = async (client) => {
+    if (!window.confirm(`Are you sure you want to unsuspend "${client.name}"?`)) return;
+    try {
+      await api.put(`/clients/${client.id}/unsuspend`);
+      toast.success(`Client ${client.name} has been unsuspended`);
+      fetchClients();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to unsuspend client');
+    }
+  };
+
+  const openSuspendDialog = (client) => {
+    setSelectedSuspendClient(client);
+    setSuspensionReason('');
+    setSuspendDialogOpen(true);
+  };
+
+  const viewSuspensionReason = (client) => {
+    setSelectedSuspendClient(client);
+    setSuspensionReasonDialogOpen(true);
+  };
+
   const handleCloneToVendor = async (client) => {
     if (!isPEDesk) {
       toast.error('Only PE Desk can clone clients');
