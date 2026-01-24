@@ -111,6 +111,13 @@ const Bookings = () => {
   const isLowInventory = selectedInventory && formData.quantity && 
     parseInt(formData.quantity) > selectedInventory.availableQty;
 
+  // Filter clients based on search query for booking form
+  const filteredClients = clients.filter(client => {
+    if (!clientSearchQuery) return true;
+    const query = clientSearchQuery.toLowerCase();
+    return client.name?.toLowerCase().includes(query);
+  });
+
   // Calculate real-time Revenue for form
   const calculateFormPnL = () => {
     if (!formData.stock_id || !formData.quantity || !formData.selling_price) {
