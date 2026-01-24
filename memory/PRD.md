@@ -316,6 +316,12 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ **Backend Imports Updated**: server.py now imports from modular structure
 - 🔄 **Remaining Work**: Move client, stock, booking, report, analytics routes to separate files
 
+### Bug Fix - Client Documents Display (Jan 24, 2026)
+- ✅ **Documents Column Added**: Clients table now shows document count with folder icon
+- ✅ **Documents Dialog**: Click to view all uploaded documents (PAN Card, CML Copy, Cancelled Cheque)
+- ✅ **Download Feature**: PE Desk can download client documents directly from the dialog
+- ✅ **OCR Data View**: View extracted OCR data from the documents dialog
+
 ## Next Tasks
 1. **(P0) Continue Backend Modularization** - Move remaining routes from server.py:
    - Move client routes to `/routers/clients.py`
