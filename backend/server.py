@@ -2673,11 +2673,53 @@ async def update_booking(booking_id: str, booking_data: BookingCreate, current_u
 
 @api_router.delete("/bookings/{booking_id}")
 async def delete_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_bookings")
+    user_role = current_user.get("role", 5)
+    
+    # Only PE Desk can delete bookings
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete bookings")
+    
+    # Get booking details for alert
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Get related info for notification
+    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
     
     result = await db.bookings.delete_one({"id": booking_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Audit log
+    await create_audit_log(
+        action="BOOKING_DELETE",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {client['name'] if client else 'Unknown'}",
+        details={
+            "booking_number": booking.get("booking_number", booking_id[:8].upper()),
+            "client_name": client["name"] if client else "Unknown",
+            "stock_symbol": stock["symbol"] if stock else "Unknown",
+            "quantity": booking.get("quantity"),
+            "deleted_by": current_user["name"]
+        }
+    )
+    
+    # Alert: Notify booking creator about deletion
+    if booking.get("created_by") and booking["created_by"] != current_user["id"]:
+        await create_notification(
+            booking["created_by"],
+            "booking_deleted",
+            "Booking Deleted",
+            f"Your booking {booking.get('booking_number', booking_id[:8].upper())} for {stock['symbol'] if stock else 'Unknown'} has been deleted by PE Desk",
+            {"booking_id": booking_id, "stock_symbol": stock["symbol"] if stock else None, "deleted_by": current_user["name"]}
+        )
+    
     return {"message": "Booking deleted successfully"}
 
 # ============== Payment Tracking Endpoints (PE Desk & Zonal Manager Only) ==============
