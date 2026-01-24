@@ -1,13 +1,31 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Users, Building2, Package, ShoppingCart, Boxes, FileText, BarChart3, LogOut, Menu, X } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { 
+  LayoutDashboard, 
+  Users, 
+  Building2, 
+  Package, 
+  ShoppingCart, 
+  Boxes, 
+  FileText, 
+  BarChart3, 
+  LogOut, 
+  Menu, 
+  X,
+  Sun,
+  Moon,
+  Settings,
+  UserCog
+} from 'lucide-react';
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -26,19 +44,25 @@ const Layout = ({ children }) => {
     { icon: BarChart3, label: 'Reports', path: '/reports' },
   ];
 
+  // Add user management for admin roles (1 and 2)
+  if (user.role <= 2) {
+    menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
+  }
+
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-background">
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex lg:flex-col w-64 bg-card border-r border-border fixed h-full">
         <div className="p-6 border-b border-border">
           <h1 className="text-2xl font-bold" data-testid="app-title">ShareBook</h1>
           <p className="text-xs text-muted-foreground mt-1">Share Booking System</p>
         </div>
-        <nav className="flex-1 p-4" data-testid="sidebar-nav">
+        <nav className="flex-1 p-4 overflow-y-auto" data-testid="sidebar-nav">
           <div className="space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+              const isActive = location.pathname === item.path || 
+                (item.path !== '/' && location.pathname.startsWith(item.path));
               return (
                 <button
                   key={item.path}
@@ -58,9 +82,30 @@ const Layout = ({ children }) => {
           </div>
         </nav>
         <div className="p-4 border-t border-border">
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            className="w-full justify-start mb-3"
+            data-testid="theme-toggle"
+          >
+            {theme === 'light' ? (
+              <>
+                <Moon className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                Dark Mode
+              </>
+            ) : (
+              <>
+                <Sun className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                Light Mode
+              </>
+            )}
+          </Button>
+          
           <div className="mb-3 px-4">
             <div className="text-sm font-medium" data-testid="user-name">{user.name}</div>
-            <div className="text-xs text-muted-foreground" data-testid="user-email">{user.email}</div>
+            <div className="text-xs text-muted-foreground" data-testid="user-role">{user.role_name}</div>
           </div>
           <Button
             variant="outline"
@@ -77,13 +122,23 @@ const Layout = ({ children }) => {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-40 flex items-center justify-between px-4">
         <h1 className="text-xl font-bold" data-testid="app-title-mobile">ShareBook</h1>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          data-testid="mobile-menu-button"
-          className="p-2 hover:bg-muted rounded-md"
-        >
-          {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            data-testid="mobile-theme-toggle"
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            data-testid="mobile-menu-button"
+            className="p-2 hover:bg-muted rounded-md"
+          >
+            {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Sidebar */}
@@ -97,7 +152,8 @@ const Layout = ({ children }) => {
               <div className="space-y-1">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
+                  const isActive = location.pathname === item.path ||
+                    (item.path !== '/' && location.pathname.startsWith(item.path));
                   return (
                     <button
                       key={item.path}
@@ -122,7 +178,7 @@ const Layout = ({ children }) => {
             <div className="p-4 border-t border-border absolute bottom-0 left-0 right-0">
               <div className="mb-3 px-4">
                 <div className="text-sm font-medium">{user.name}</div>
-                <div className="text-xs text-muted-foreground">{user.email}</div>
+                <div className="text-xs text-muted-foreground">{user.role_name}</div>
               </div>
               <Button
                 variant="outline"
