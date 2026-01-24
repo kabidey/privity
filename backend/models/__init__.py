@@ -123,6 +123,12 @@ class Client(BaseModel):
     is_vendor: bool = False
     is_active: bool = True
     approval_status: str = "approved"  # pending, approved, rejected
+    # Suspension fields
+    is_suspended: bool = False
+    suspension_reason: Optional[str] = None
+    suspended_by: Optional[str] = None
+    suspended_by_name: Optional[str] = None
+    suspended_at: Optional[str] = None
     documents: List[ClientDocument] = []
     created_at: str
     created_by: str
