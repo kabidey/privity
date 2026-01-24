@@ -96,6 +96,31 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ **Record Date Validation** - Corporate actions can only be applied on their record date
 - ✅ **Audit Logging** - All corporate actions logged for compliance
 
+### Phase 8 - Real-time Notifications & Password Reset (Jan 24, 2026)
+- ✅ **Real-time Notifications via WebSocket** - Instant updates for approvals/rejections
+  - Client pending approval → Notifies Managers (roles 1, 2, 3)
+  - Client approved/rejected → Notifies creator
+  - Booking pending approval → Notifies PE Desk (role 1)
+  - Booking approved/rejected → Notifies creator
+- ✅ **Notification Bell Component** - Bell icon with unread count badge
+- ✅ **Notification Popover** - Click to see notification history
+- ✅ **Mark as Read** - Individual and bulk mark as read
+- ✅ **Notification Persistence** - Stored in MongoDB for history
+- ✅ **Password Reset with Email OTP** - Self-service password reset
+  - Request OTP via email
+  - 6-digit OTP with 10-minute expiry
+  - Rate limiting (max 3 attempts)
+  - Secure password update
+- ✅ **Forgot Password Page** - Clean 3-step UI (email → OTP → success)
+- ✅ **Backend Modular Structure Prepared** - Files created for future refactoring:
+  - `/app/backend/config.py` - Configuration constants
+  - `/app/backend/database.py` - MongoDB connection
+  - `/app/backend/models/__init__.py` - Pydantic models
+  - `/app/backend/utils/auth.py` - Authentication helpers
+  - `/app/backend/utils/email.py` - Email utilities
+  - `/app/backend/utils/notifications.py` - WebSocket manager
+  - `/app/backend/routers/` - Prepared for route separation
+
 ## Pages & Routes
 | Route | Page | Description |
 |-------|------|-------------|
