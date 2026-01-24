@@ -335,7 +335,10 @@ const Purchases = () => {
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Quantity</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Price/Unit</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Total Amount</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Paid</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Date</TableHead>
+                    {isPEDesk && <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Action</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -346,7 +349,26 @@ const Purchases = () => {
                       <TableCell className="mono">{purchase.quantity.toLocaleString('en-IN')}</TableCell>
                       <TableCell className="mono">₹{purchase.price_per_unit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell className="mono font-semibold">₹{purchase.total_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="mono text-green-600">₹{(purchase.total_paid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell>{getPaymentStatus(purchase)}</TableCell>
                       <TableCell className="text-sm">{new Date(purchase.purchase_date).toLocaleDateString('en-IN')}</TableCell>
+                      {isPEDesk && (
+                        <TableCell className="text-center">
+                          {getRemainingAmount(purchase) > 0 ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setPaymentDialog({ open: true, purchase })}
+                              data-testid={`pay-btn-${purchase.id}`}
+                            >
+                              <CreditCard className="h-3 w-3 mr-1" />
+                              Pay
+                            </Button>
+                          ) : (
+                            <span className="text-green-600 text-sm font-medium">✓ Complete</span>
+                          )}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
