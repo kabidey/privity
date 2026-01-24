@@ -414,6 +414,48 @@ const Bookings = () => {
                 </div>
               </div>
               
+              {/* Real-time P&L Calculation */}
+              {formPnL && (
+                <div className={`p-4 rounded-lg border-2 ${formPnL.isLoss ? 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-muted-foreground">Estimated P&L</span>
+                    <div className={`flex items-center gap-1 ${formPnL.isLoss ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                      {formPnL.isLoss ? <TrendingDown className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                      <span className="text-lg font-bold">
+                        {formPnL.pnl >= 0 ? '+' : ''}{formatCurrency(formPnL.pnl)}
+                      </span>
+                      <span className="text-sm">
+                        ({formPnL.pnlPercentage >= 0 ? '+' : ''}{formPnL.pnlPercentage.toFixed(2)}%)
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                    <div>
+                      <span className="block">Buy Price</span>
+                      <span className="font-medium text-foreground">{formatCurrency(formPnL.buyingPrice)}</span>
+                    </div>
+                    <div>
+                      <span className="block">Sell Price</span>
+                      <span className="font-medium text-foreground">{formatCurrency(formPnL.sellingPrice)}</span>
+                    </div>
+                    <div>
+                      <span className="block">Quantity</span>
+                      <span className="font-medium text-foreground">{formPnL.qty}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Loss Warning */}
+                  {formPnL.isLoss && (
+                    <div className="mt-3 p-2 bg-red-100 dark:bg-red-900/50 rounded flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-red-700 dark:text-red-300">
+                        <strong>Loss Booking:</strong> This booking will require <strong>PE Desk approval</strong> due to selling below purchase price.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
