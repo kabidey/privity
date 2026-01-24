@@ -204,6 +204,7 @@ const DPTransferReport = () => {
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Payment Date</TableHead>
                     <TableHead>Status</TableHead>
+                    {isPEDesk && <TableHead className="text-center">Action</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -237,6 +238,19 @@ const DPTransferReport = () => {
                           Ready
                         </Badge>
                       </TableCell>
+                      {isPEDesk && (
+                        <TableCell className="text-center">
+                          <Button
+                            size="sm"
+                            onClick={() => setTransferDialog({ open: true, record })}
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                            data-testid={`transfer-btn-${record.booking_id}`}
+                          >
+                            <Send className="h-3 w-3 mr-1" />
+                            Transfer
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
