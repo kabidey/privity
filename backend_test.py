@@ -105,7 +105,7 @@ class ShareBookingAPITester:
             return False
 
     def test_create_client(self):
-        """Test creating a client"""
+        """Test creating a client with OTC UCC auto-generation"""
         client_data = {
             "name": "Test Client",
             "email": "testclient@example.com",
@@ -119,12 +119,18 @@ class ShareBookingAPITester:
         
         success, response, status = self.make_request("POST", "clients", client_data, 200)
         
-        if success and 'id' in response:
+        if success and 'id' in response and 'otc_ucc' in response:
             self.test_client_id = response['id']
-            self.log_test("Create Client", True)
-            return True
+            otc_ucc = response['otc_ucc']
+            # Verify OTC UCC format: OTC{YYYYMMDD}{UUID8}
+            if otc_ucc.startswith('OTC') and len(otc_ucc) >= 19:
+                self.log_test("Create Client with OTC UCC", True, f"OTC UCC: {otc_ucc}")
+                return True
+            else:
+                self.log_test("Create Client with OTC UCC", False, f"Invalid OTC UCC format: {otc_ucc}")
+                return False
         else:
-            self.log_test("Create Client", False, f"Status: {status}, Response: {response}")
+            self.log_test("Create Client with OTC UCC", False, f"Status: {status}, Response: {response}")
             return False
 
     def test_get_clients(self):
