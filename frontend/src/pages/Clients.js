@@ -9,13 +9,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Loader2, Sparkles, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Loader2, Sparkles, Check, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 const Clients = () => {
   const navigate = useNavigate();
   const [clients, setClients] = useState([]);
+  const [pendingClients, setPendingClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -28,16 +30,28 @@ const Clients = () => {
   const [uploading, setUploading] = useState(false);
   const [processingOcr, setProcessingOcr] = useState({});
   const [ocrResults, setOcrResults] = useState({});
+  const [activeTab, setActiveTab] = useState('all');
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    mobile: '',
     pan_number: '',
     dp_id: '',
+    address: '',
+    pin_code: '',
+    bank_accounts: [],
+  });
+  
+  const [newBankAccount, setNewBankAccount] = useState({
     bank_name: '',
     account_number: '',
     ifsc_code: '',
+    branch_name: '',
+    source: 'manual'
   });
+  
   const [docFiles, setDocFiles] = useState({
     pan_card: null,
     cml_copy: null,
@@ -46,10 +60,15 @@ const Clients = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = currentUser.role <= 2;
+  const isManager = currentUser.role <= 3;
+  const isEmployee = currentUser.role === 4;
 
   useEffect(() => {
     fetchClients();
-    fetchEmployees();
+    if (!isEmployee) {
+      fetchEmployees();
+      if (isManager) fetchPendingClients();
+    }
   }, []);
 
   const fetchClients = async () => {
@@ -60,6 +79,15 @@ const Clients = () => {
       toast.error('Failed to load clients');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPendingClients = async () => {
+    try {
+      const response = await api.get('/clients/pending-approval');
+      setPendingClients(response.data);
+    } catch (error) {
+      console.error('Failed to load pending clients');
     }
   };
 
@@ -78,7 +106,6 @@ const Clients = () => {
     setProcessingOcr(prev => ({ ...prev, [docType]: true }));
     
     try {
-      // Create a temporary client or use OCR preview endpoint
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
       formDataUpload.append('doc_type', docType);
@@ -90,7 +117,6 @@ const Clients = () => {
       const ocrData = response.data;
       setOcrResults(prev => ({ ...prev, [docType]: ocrData }));
       
-      // Auto-fill form based on document type
       if (ocrData?.extracted_data) {
         const extracted = ocrData.extracted_data;
         
@@ -104,14 +130,25 @@ const Clients = () => {
             toast.success('PAN card data auto-filled!');
           }
         } else if (docType === 'cancelled_cheque') {
-          setFormData(prev => ({
-            ...prev,
-            bank_name: extracted.bank_name || prev.bank_name,
-            account_number: extracted.account_number || prev.account_number,
-            ifsc_code: extracted.ifsc_code || prev.ifsc_code,
-          }));
-          if (extracted.bank_name || extracted.account_number) {
-            toast.success('Bank details auto-filled from cheque!');
+          // Add as new bank account if different from existing
+          if (extracted.account_number && extracted.ifsc_code) {
+            const newBank = {
+              bank_name: extracted.bank_name || '',
+              account_number: extracted.account_number,
+              ifsc_code: extracted.ifsc_code,
+              branch_name: extracted.branch_name || '',
+              account_holder_name: extracted.account_holder_name || '',
+              source: 'cancelled_cheque'
+            };
+            
+            setFormData(prev => {
+              const exists = prev.bank_accounts.some(b => b.account_number === newBank.account_number);
+              if (!exists) {
+                toast.success('Bank account added from cheque!');
+                return { ...prev, bank_accounts: [...prev.bank_accounts, newBank] };
+              }
+              return prev;
+            });
           }
         } else if (docType === 'cml_copy') {
           setFormData(prev => ({
@@ -119,15 +156,36 @@ const Clients = () => {
             dp_id: extracted.dp_id || extracted.client_id || prev.dp_id,
             name: extracted.client_name || prev.name,
             pan_number: extracted.pan_number || prev.pan_number,
+            email: extracted.email || prev.email,
+            mobile: extracted.mobile || prev.mobile,
+            address: extracted.address || prev.address,
+            pin_code: extracted.pin_code || prev.pin_code,
           }));
-          if (extracted.dp_id || extracted.client_name) {
-            toast.success('CML data auto-filled!');
+          
+          // Add bank from CML if present
+          if (extracted.account_number && extracted.ifsc_code) {
+            const newBank = {
+              bank_name: extracted.bank_name || '',
+              account_number: extracted.account_number,
+              ifsc_code: extracted.ifsc_code,
+              branch_name: extracted.branch_name || '',
+              source: 'cml_copy'
+            };
+            
+            setFormData(prev => {
+              const exists = prev.bank_accounts.some(b => b.account_number === newBank.account_number);
+              if (!exists) {
+                return { ...prev, bank_accounts: [...prev.bank_accounts, newBank] };
+              }
+              return prev;
+            });
           }
+          
+          toast.success('CML data auto-filled!');
         }
       }
     } catch (error) {
-      // If preview endpoint doesn't exist, just store file for later upload
-      console.log('OCR preview not available, will process on save');
+      console.log('OCR preview not available');
     } finally {
       setProcessingOcr(prev => ({ ...prev, [docType]: false }));
     }
@@ -138,6 +196,26 @@ const Clients = () => {
     if (file) {
       await processOcrAndAutofill(docType, file);
     }
+  };
+
+  const addBankAccount = () => {
+    if (newBankAccount.bank_name && newBankAccount.account_number && newBankAccount.ifsc_code) {
+      setFormData(prev => ({
+        ...prev,
+        bank_accounts: [...prev.bank_accounts, { ...newBankAccount }]
+      }));
+      setNewBankAccount({ bank_name: '', account_number: '', ifsc_code: '', branch_name: '', source: 'manual' });
+      toast.success('Bank account added');
+    } else {
+      toast.error('Please fill bank name, account number and IFSC');
+    }
+  };
+
+  const removeBankAccount = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      bank_accounts: prev.bank_accounts.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -151,10 +229,13 @@ const Clients = () => {
       } else {
         const response = await api.post('/clients', formData);
         clientId = response.data.id;
-        toast.success('Client created successfully');
+        if (isEmployee) {
+          toast.success('Client created - pending approval');
+        } else {
+          toast.success('Client created successfully');
+        }
       }
       
-      // Upload documents if any
       const hasDocuments = Object.values(docFiles).some(f => f !== null);
       if (hasDocuments && clientId) {
         await uploadDocuments(clientId);
@@ -163,6 +244,7 @@ const Clients = () => {
       setDialogOpen(false);
       resetForm();
       fetchClients();
+      if (isManager) fetchPendingClients();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'An error occurred');
     }
@@ -173,11 +255,10 @@ const Clients = () => {
     try {
       for (const [docType, file] of Object.entries(docFiles)) {
         if (file) {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('doc_type', docType);
-          
-          await api.post(`/clients/${clientId}/documents`, formData, {
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('doc_type', docType);
+          await api.post(`/clients/${clientId}/documents`, fd, {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
         }
@@ -190,17 +271,29 @@ const Clients = () => {
     }
   };
 
+  const handleApprove = async (clientId, approve) => {
+    try {
+      await api.put(`/clients/${clientId}/approve?approve=${approve}`);
+      toast.success(approve ? 'Client approved' : 'Client rejected');
+      fetchClients();
+      fetchPendingClients();
+    } catch (error) {
+      toast.error('Failed to update approval status');
+    }
+  };
+
   const handleEdit = (client) => {
     setEditingClient(client);
     setFormData({
       name: client.name,
       email: client.email || '',
       phone: client.phone || '',
+      mobile: client.mobile || '',
       pan_number: client.pan_number,
       dp_id: client.dp_id,
-      bank_name: client.bank_name || '',
-      account_number: client.account_number || '',
-      ifsc_code: client.ifsc_code || '',
+      address: client.address || '',
+      pin_code: client.pin_code || '',
+      bank_accounts: client.bank_accounts || [],
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
     setOcrResults({});
@@ -216,19 +309,6 @@ const Clients = () => {
     } catch (error) {
       toast.error('Failed to delete client');
     }
-  };
-
-  const handleUploadMore = (client) => {
-    setSelectedClient(client);
-    setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
-    setDocDialogOpen(true);
-  };
-
-  const handleUploadSubmit = async () => {
-    if (!selectedClient) return;
-    await uploadDocuments(selectedClient.id);
-    setDocDialogOpen(false);
-    fetchClients();
   };
 
   const handleMapping = (client) => {
@@ -256,14 +336,8 @@ const Clients = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      pan_number: '',
-      dp_id: '',
-      bank_name: '',
-      account_number: '',
-      ifsc_code: '',
+      name: '', email: '', phone: '', mobile: '', pan_number: '', dp_id: '',
+      address: '', pin_code: '', bank_accounts: [],
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
     setOcrResults({});
@@ -277,6 +351,19 @@ const Clients = () => {
       case 'cancelled_cheque': return <FileText className="h-4 w-4" />;
       default: return <FileText className="h-4 w-4" />;
     }
+  };
+
+  const getStatusBadge = (client) => {
+    if (client.approval_status === 'pending') {
+      return <Badge variant="outline" className="text-orange-600 border-orange-600"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+    }
+    if (client.approval_status === 'rejected') {
+      return <Badge variant="outline" className="text-red-600 border-red-600"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+    }
+    if (client.is_active) {
+      return <Badge variant="outline" className="text-green-600 border-green-600"><CheckCircle className="h-3 w-3 mr-1" />Active</Badge>;
+    }
+    return null;
   };
 
   const DocumentUploadCard = ({ docType, label, icon: Icon, color, description }) => (
@@ -315,32 +402,34 @@ const Clients = () => {
     </div>
   );
 
+  const displayedClients = activeTab === 'pending' ? pendingClients : clients;
+
   return (
     <div className="p-8 page-enter" data-testid="clients-page">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-bold mb-2">Clients</h1>
-          <p className="text-muted-foreground text-base">Manage clients with documents and employee mapping</p>
+          <p className="text-muted-foreground text-base">
+            {isEmployee ? 'Manage your clients' : 'Manage clients with documents and employee mapping'}
+          </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) resetForm();
-        }}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="rounded-sm" data-testid="add-client-button">
               <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
               Add Client
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" aria-describedby="client-dialog-desc">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="client-dialog-desc">
             <DialogHeader>
               <DialogTitle>{editingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
             </DialogHeader>
             <p id="client-dialog-desc" className="sr-only">Form to add or edit client details</p>
             
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Client Details</TabsTrigger>
+                <TabsTrigger value="bank">Bank Accounts</TabsTrigger>
                 <TabsTrigger value="documents">Documents & OCR</TabsTrigger>
               </TabsList>
               
@@ -348,92 +437,81 @@ const Clients = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Name *</Label>
-                      <Input
-                        id="name"
-                        data-testid="client-name-input"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                      />
+                      <Label>Name *</Label>
+                      <Input data-testid="client-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        data-testid="client-email-input"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      />
+                      <Label>Email</Label>
+                      <Input type="email" data-testid="client-email-input" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        data-testid="client-phone-input"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      />
+                      <Label>Phone</Label>
+                      <Input data-testid="client-phone-input" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="pan_number">PAN Number *</Label>
-                      <Input
-                        id="pan_number"
-                        data-testid="client-pan-input"
-                        value={formData.pan_number}
-                        onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })}
-                        required
-                      />
+                      <Label>Mobile</Label>
+                      <Input data-testid="client-mobile-input" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="dp_id">DP ID *</Label>
-                      <Input
-                        id="dp_id"
-                        data-testid="client-dpid-input"
-                        value={formData.dp_id}
-                        onChange={(e) => setFormData({ ...formData, dp_id: e.target.value })}
-                        required
-                      />
+                      <Label>PAN Number *</Label>
+                      <Input data-testid="client-pan-input" value={formData.pan_number} onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })} required />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="bank_name">Bank Name</Label>
-                      <Input
-                        id="bank_name"
-                        data-testid="client-bank-input"
-                        value={formData.bank_name}
-                        onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-                      />
+                      <Label>DP ID *</Label>
+                      <Input data-testid="client-dpid-input" value={formData.dp_id} onChange={(e) => setFormData({ ...formData, dp_id: e.target.value })} required />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label>Address</Label>
+                      <Textarea data-testid="client-address-input" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} rows={2} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="account_number">Account Number</Label>
-                      <Input
-                        id="account_number"
-                        data-testid="client-account-input"
-                        value={formData.account_number}
-                        onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="ifsc_code">IFSC Code</Label>
-                      <Input
-                        id="ifsc_code"
-                        data-testid="client-ifsc-input"
-                        value={formData.ifsc_code}
-                        onChange={(e) => setFormData({ ...formData, ifsc_code: e.target.value.toUpperCase() })}
-                      />
+                      <Label>Pin Code</Label>
+                      <Input data-testid="client-pincode-input" value={formData.pin_code} onChange={(e) => setFormData({ ...formData, pin_code: e.target.value })} />
                     </div>
                   </div>
                   <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                      Cancel
-                    </Button>
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
                     <Button type="submit" className="rounded-sm" data-testid="save-client-button" disabled={uploading}>
-                      {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {editingClient ? 'Update' : 'Create'}
                     </Button>
                   </div>
                 </form>
+              </TabsContent>
+              
+              <TabsContent value="bank">
+                <div className="space-y-4">
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-semibold mb-3">Add Bank Account</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input placeholder="Bank Name" value={newBankAccount.bank_name} onChange={(e) => setNewBankAccount({ ...newBankAccount, bank_name: e.target.value })} />
+                      <Input placeholder="Account Number" value={newBankAccount.account_number} onChange={(e) => setNewBankAccount({ ...newBankAccount, account_number: e.target.value })} />
+                      <Input placeholder="IFSC Code" value={newBankAccount.ifsc_code} onChange={(e) => setNewBankAccount({ ...newBankAccount, ifsc_code: e.target.value.toUpperCase() })} />
+                      <Input placeholder="Branch Name" value={newBankAccount.branch_name} onChange={(e) => setNewBankAccount({ ...newBankAccount, branch_name: e.target.value })} />
+                    </div>
+                    <Button type="button" onClick={addBankAccount} className="mt-3" variant="outline" size="sm">
+                      <Plus className="h-4 w-4 mr-1" /> Add Bank Account
+                    </Button>
+                  </div>
+                  
+                  {formData.bank_accounts.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">Bank Accounts ({formData.bank_accounts.length})</h4>
+                      {formData.bank_accounts.map((bank, idx) => (
+                        <div key={idx} className="border rounded-lg p-3 flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{bank.bank_name}</p>
+                            <p className="text-sm text-muted-foreground">A/C: {bank.account_number} | IFSC: {bank.ifsc_code}</p>
+                            <Badge variant="outline" className="text-xs mt-1">{bank.source}</Badge>
+                          </div>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => removeBankAccount(idx)}>
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </TabsContent>
               
               <TabsContent value="documents">
@@ -441,50 +519,19 @@ const Clients = () => {
                   <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                     <Sparkles className="h-5 w-5 text-blue-600" />
                     <p className="text-sm text-blue-800 dark:text-blue-200">
-                      <strong>AI Auto-fill:</strong> Upload documents and OCR will automatically extract and fill the form fields.
+                      <strong>AI Auto-fill:</strong> Upload documents and OCR will extract and fill form fields. Different bank accounts are automatically added.
                     </p>
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    <DocumentUploadCard
-                      docType="pan_card"
-                      label="PAN Card"
-                      icon={CreditCard}
-                      color="text-blue-600"
-                      description="Extracts: Name, PAN Number, Date of Birth"
-                    />
-                    
-                    <DocumentUploadCard
-                      docType="cml_copy"
-                      label="CML Copy"
-                      icon={FileCheck}
-                      color="text-purple-600"
-                      description="Extracts: DP ID, Client ID, Name, PAN"
-                    />
-                    
-                    <DocumentUploadCard
-                      docType="cancelled_cheque"
-                      label="Cancelled Cheque"
-                      icon={FileText}
-                      color="text-orange-600"
-                      description="Extracts: Bank Name, Account Number, IFSC Code"
-                    />
+                    <DocumentUploadCard docType="pan_card" label="PAN Card" icon={CreditCard} color="text-blue-600" description="Extracts: Name, PAN Number" />
+                    <DocumentUploadCard docType="cml_copy" label="CML Copy" icon={FileCheck} color="text-purple-600" description="Extracts: DP ID, Name, PAN, Email, Mobile, Address, Bank Details" />
+                    <DocumentUploadCard docType="cancelled_cheque" label="Cancelled Cheque" icon={FileText} color="text-orange-600" description="Extracts: Bank Name, Account Number, IFSC Code (adds as separate bank account)" />
                   </div>
                   
-                  {Object.keys(ocrResults).length > 0 && (
-                    <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                      <p className="text-sm text-green-800 dark:text-green-200 flex items-center gap-2">
-                        <Check className="h-4 w-4" />
-                        Form fields have been auto-filled from OCR. Switch to "Client Details" tab to review.
-                      </p>
-                    </div>
-                  )}
-                  
                   <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSubmit} className="rounded-sm" disabled={uploading || Object.values(processingOcr).some(v => v)}>
+                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSubmit} disabled={uploading || Object.values(processingOcr).some(v => v)}>
                       {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                       {editingClient ? 'Update & Upload' : 'Create & Upload'}
                     </Button>
@@ -496,107 +543,79 @@ const Clients = () => {
         </Dialog>
       </div>
 
+      {isManager && pendingClients.length > 0 && (
+        <div className="mb-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="all">All Clients ({clients.length})</TabsTrigger>
+              <TabsTrigger value="pending" className="text-orange-600">
+                <Clock className="h-4 w-4 mr-1" />
+                Pending Approval ({pendingClients.length})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      )}
+
       <Card className="border shadow-sm">
         <CardHeader>
-          <CardTitle>All Clients</CardTitle>
+          <CardTitle>{activeTab === 'pending' ? 'Pending Approval' : 'All Clients'}</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div>Loading...</div>
-          ) : clients.length === 0 ? (
-            <div className="text-center py-12" data-testid="no-clients-message">
-              <p className="text-muted-foreground">No clients found.</p>
-            </div>
+          {loading ? <div>Loading...</div> : displayedClients.length === 0 ? (
+            <div className="text-center py-12"><p className="text-muted-foreground">No clients found.</p></div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">OTC UCC</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Name</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">PAN</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">DP ID</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Mapped To</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Documents</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold text-right">Actions</TableHead>
+                    <TableHead className="text-xs uppercase">OTC UCC</TableHead>
+                    <TableHead className="text-xs uppercase">Name</TableHead>
+                    <TableHead className="text-xs uppercase">PAN</TableHead>
+                    <TableHead className="text-xs uppercase">Mobile</TableHead>
+                    <TableHead className="text-xs uppercase">Status</TableHead>
+                    {!isEmployee && <TableHead className="text-xs uppercase">Mapped To</TableHead>}
+                    <TableHead className="text-xs uppercase">Banks</TableHead>
+                    <TableHead className="text-xs uppercase text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {clients.map((client) => (
-                    <TableRow key={client.id} className="table-row" data-testid="client-row">
-                      <TableCell className="font-mono text-sm font-bold text-primary">
-                        {client.otc_ucc || 'N/A'}
-                      </TableCell>
+                  {displayedClients.map((client) => (
+                    <TableRow key={client.id} data-testid="client-row">
+                      <TableCell className="font-mono text-sm font-bold text-primary">{client.otc_ucc || 'N/A'}</TableCell>
                       <TableCell className="font-medium">{client.name}</TableCell>
                       <TableCell className="mono text-sm">{client.pan_number}</TableCell>
-                      <TableCell className="mono text-sm">{client.dp_id}</TableCell>
+                      <TableCell className="text-sm">{client.mobile || client.phone || '-'}</TableCell>
+                      <TableCell>{getStatusBadge(client)}</TableCell>
+                      {!isEmployee && (
+                        <TableCell>
+                          {client.mapped_employee_name ? <Badge variant="secondary">{client.mapped_employee_name}</Badge> : <span className="text-xs text-muted-foreground">Not mapped</span>}
+                        </TableCell>
+                      )}
                       <TableCell>
-                        {client.mapped_employee_name ? (
-                          <Badge variant="secondary">{client.mapped_employee_name}</Badge>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Not mapped</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          {client.documents?.map((doc, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => viewOcrData(client, doc)}
-                              className="p-1 hover:bg-muted rounded"
-                              title={`${doc.doc_type} - Click to view OCR`}
-                            >
-                              {getDocIcon(doc.doc_type)}
-                            </button>
-                          ))}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleUploadMore(client)}
-                            data-testid="upload-doc-button"
-                            title="Upload documents"
-                          >
-                            <Upload className="h-4 w-4" strokeWidth={1.5} />
-                          </Button>
-                        </div>
+                        <Badge variant="outline">{client.bank_accounts?.length || 0}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/clients/${client.id}/portfolio`)}
-                          data-testid="view-portfolio-button"
-                          title="View Portfolio"
-                        >
-                          <PieChart className="h-4 w-4" strokeWidth={1.5} />
+                        {activeTab === 'pending' && isManager && (
+                          <>
+                            <Button variant="ghost" size="sm" onClick={() => handleApprove(client.id, true)} className="text-green-600">
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleApprove(client.id, false)} className="text-red-600">
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/clients/${client.id}/portfolio`)} title="View Portfolio">
+                          <PieChart className="h-4 w-4" />
                         </Button>
                         {isAdmin && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleMapping(client)}
-                            data-testid="map-employee-button"
-                            title="Map to Employee"
-                          >
-                            <UserCog className="h-4 w-4" strokeWidth={1.5} />
+                          <Button variant="ghost" size="sm" onClick={() => handleMapping(client)} title="Map to Employee">
+                            <UserCog className="h-4 w-4" />
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(client)}
-                          data-testid="edit-client-button"
-                        >
-                          <Pencil className="h-4 w-4" strokeWidth={1.5} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(client.id)}
-                          data-testid="delete-client-button"
-                        >
-                          <Trash2 className="h-4 w-4" strokeWidth={1.5} />
-                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(client)}><Pencil className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(client.id)}><Trash2 className="h-4 w-4" /></Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -607,134 +626,48 @@ const Clients = () => {
         </CardContent>
       </Card>
 
-      {/* Document Upload Dialog */}
-      <Dialog open={docDialogOpen} onOpenChange={setDocDialogOpen}>
-        <DialogContent aria-describedby="doc-upload-desc">
-          <DialogHeader>
-            <DialogTitle>Upload Documents for {selectedClient?.name}</DialogTitle>
-          </DialogHeader>
-          <p id="doc-upload-desc" className="sr-only">Upload documents for client</p>
-          <div className="space-y-4">
-            <div className="border rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <CreditCard className="h-5 w-5 text-blue-600" />
-                <Label className="font-semibold">PAN Card</Label>
-              </div>
-              <Input
-                type="file"
-                accept=".jpg,.jpeg,.pdf,.png"
-                onChange={(e) => setDocFiles({ ...docFiles, pan_card: e.target.files[0] })}
-              />
-            </div>
-            <div className="border rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <FileCheck className="h-5 w-5 text-purple-600" />
-                <Label className="font-semibold">CML Copy</Label>
-              </div>
-              <Input
-                type="file"
-                accept=".jpg,.jpeg,.pdf,.png"
-                onChange={(e) => setDocFiles({ ...docFiles, cml_copy: e.target.files[0] })}
-              />
-            </div>
-            <div className="border rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-5 w-5 text-orange-600" />
-                <Label className="font-semibold">Cancelled Cheque</Label>
-              </div>
-              <Input
-                type="file"
-                accept=".jpg,.jpeg,.pdf,.png"
-                onChange={(e) => setDocFiles({ ...docFiles, cancelled_cheque: e.target.files[0] })}
-              />
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDocDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleUploadSubmit} disabled={uploading}>
-                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
-                Upload & Process OCR
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Employee Mapping Dialog */}
+      {/* Dialogs */}
       <Dialog open={mappingDialogOpen} onOpenChange={setMappingDialogOpen}>
         <DialogContent aria-describedby="mapping-desc">
-          <DialogHeader>
-            <DialogTitle>Map Client to Employee</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Map Client to Employee</DialogTitle></DialogHeader>
           <p id="mapping-desc" className="sr-only">Map or unmap client to employee</p>
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Client: <span className="font-semibold">{selectedClient?.name}</span>
-              {selectedClient?.mapped_employee_name && (
-                <span className="ml-2">(Currently mapped to: {selectedClient.mapped_employee_name})</span>
-              )}
-            </p>
-            <div className="space-y-2">
-              <Label>Select Employee</Label>
-              <Select onValueChange={(value) => handleMappingSubmit(value === 'unmap' ? null : value)}>
-                <SelectTrigger data-testid="employee-select">
-                  <SelectValue placeholder="Select an employee" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unmap">-- Unmap (Remove Assignment) --</SelectItem>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.role_name})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <p className="text-sm text-muted-foreground">Client: <span className="font-semibold">{selectedClient?.name}</span></p>
+            <Select onValueChange={(value) => handleMappingSubmit(value === 'unmap' ? null : value)}>
+              <SelectTrigger><SelectValue placeholder="Select an employee" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unmap">-- Unmap --</SelectItem>
+                {employees.map((emp) => (
+                  <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.role_name})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* OCR Data Dialog */}
       <Dialog open={ocrDialogOpen} onOpenChange={setOcrDialogOpen}>
         <DialogContent className="max-w-2xl" aria-describedby="ocr-desc">
-          <DialogHeader>
-            <DialogTitle>OCR Extracted Data</DialogTitle>
-          </DialogHeader>
-          <p id="ocr-desc" className="sr-only">View OCR extracted data from document</p>
+          <DialogHeader><DialogTitle>OCR Extracted Data</DialogTitle></DialogHeader>
+          <p id="ocr-desc" className="sr-only">View OCR data</p>
           {selectedOcrData && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 {getDocIcon(selectedOcrData.doc?.doc_type)}
-                <span className="font-semibold capitalize">
-                  {selectedOcrData.doc?.doc_type?.replace('_', ' ')}
-                </span>
-                <Badge variant="outline" className="ml-auto">
-                  {selectedOcrData.doc?.ocr_data?.status || 'Unknown'}
-                </Badge>
+                <span className="font-semibold capitalize">{selectedOcrData.doc?.doc_type?.replace('_', ' ')}</span>
               </div>
-              
               <div className="border rounded-lg p-4 bg-muted/30">
-                <h4 className="font-semibold mb-3">Extracted Information</h4>
                 {selectedOcrData.doc?.ocr_data?.extracted_data ? (
                   <div className="grid grid-cols-2 gap-3">
                     {Object.entries(selectedOcrData.doc.ocr_data.extracted_data).map(([key, value]) => (
                       <div key={key} className="space-y-1">
-                        <Label className="text-xs text-muted-foreground capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </Label>
-                        <p className="font-mono text-sm">{value || 'N/A'}</p>
+                        <Label className="text-xs text-muted-foreground capitalize">{key.replace(/_/g, ' ')}</Label>
+                        <p className="font-mono text-sm">{String(value) || 'N/A'}</p>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-muted-foreground">No OCR data available</p>
-                )}
+                ) : <p className="text-muted-foreground">No OCR data available</p>}
               </div>
-              
-              <p className="text-xs text-muted-foreground">
-                Processed: {selectedOcrData.doc?.ocr_data?.processed_at 
-                  ? new Date(selectedOcrData.doc.ocr_data.processed_at).toLocaleString() 
-                  : 'N/A'}
-              </p>
             </div>
           )}
         </DialogContent>
