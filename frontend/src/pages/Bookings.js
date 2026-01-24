@@ -642,6 +642,47 @@ const Bookings = () => {
                 </div>
               )}
               
+              {/* Booking Type Selection */}
+              <div className="space-y-3">
+                <Label className="font-medium">Booking For *</Label>
+                <RadioGroup 
+                  value={formData.booking_type} 
+                  onValueChange={handleBookingTypeChange}
+                  className="flex gap-4"
+                  data-testid="booking-type-radio-group"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="client" id="booking-type-client" data-testid="booking-type-client" />
+                    <Label htmlFor="booking-type-client" className="flex items-center gap-1 cursor-pointer font-normal">
+                      <User className="h-4 w-4 text-blue-600" />
+                      Client
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="team" id="booking-type-team" data-testid="booking-type-team" />
+                    <Label htmlFor="booking-type-team" className="flex items-center gap-1 cursor-pointer font-normal">
+                      <Users className="h-4 w-4 text-green-600" />
+                      Team
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="own" id="booking-type-own" data-testid="booking-type-own" />
+                    <Label htmlFor="booking-type-own" className="flex items-center gap-1 cursor-pointer font-normal">
+                      <UserCircle className="h-4 w-4 text-orange-600" />
+                      Own
+                    </Label>
+                  </div>
+                </RadioGroup>
+                
+                {/* Own booking acknowledgment indicator */}
+                {formData.booking_type === 'own' && formData.insider_form_acknowledged && (
+                  <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-xs text-green-700 dark:text-green-300">Insider Trading Policy acknowledged - upload form after booking</span>
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
