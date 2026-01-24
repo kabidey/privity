@@ -1848,11 +1848,11 @@ async def approve_booking(
                     
                     <div style="margin: 30px 0; text-align: center;">
                         <p style="margin-bottom: 20px; font-weight: bold;">Please confirm your booking:</p>
-                        <a href="{os.environ.get('FRONTEND_URL', 'https://share-trade-mgmt.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/accept" 
+                        <a href="{os.environ.get('FRONTEND_URL', 'https://tradeprivity.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/accept" 
                            style="display: inline-block; background-color: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin-right: 10px; font-weight: bold;">
                             ✓ ACCEPT BOOKING
                         </a>
-                        <a href="{os.environ.get('FRONTEND_URL', 'https://share-trade-mgmt.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/deny" 
+                        <a href="{os.environ.get('FRONTEND_URL', 'https://tradeprivity.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/deny" 
                            style="display: inline-block; background-color: #ef4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                             ✗ DENY BOOKING
                         </a>
@@ -1995,11 +1995,11 @@ async def approve_loss_booking(
                 
                 <div style="margin: 30px 0; text-align: center;">
                     <p style="margin-bottom: 20px; font-weight: bold;">Please confirm your booking:</p>
-                    <a href="{os.environ.get('FRONTEND_URL', 'https://share-trade-mgmt.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/accept" 
+                    <a href="{os.environ.get('FRONTEND_URL', 'https://tradeprivity.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/accept" 
                        style="display: inline-block; background-color: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin-right: 10px; font-weight: bold;">
                         ✓ ACCEPT BOOKING
                     </a>
-                    <a href="{os.environ.get('FRONTEND_URL', 'https://share-trade-mgmt.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/deny" 
+                    <a href="{os.environ.get('FRONTEND_URL', 'https://tradeprivity.preview.emergentagent.com')}/booking-confirm/{booking_id}/{confirmation_token}/deny" 
                        style="display: inline-block; background-color: #ef4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                         ✗ DENY BOOKING
                     </a>
