@@ -845,12 +845,24 @@ async def upload_client_document(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    check_permission(current_user, "manage_clients")
+    # Allow both manage_clients (managers+) and create_clients (employees) to upload docs
+    user_role = current_user.get("role", 5)
+    if user_role == 4:
+        check_permission(current_user, "create_clients")
+        # Employees can only upload docs to their own clients
+        client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        if client.get("created_by") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You can only upload documents to your own clients")
+    else:
+        check_permission(current_user, "manage_clients")
     
-    # Verify client exists
-    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
-    if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
+    # Verify client exists (only if not already verified for employees)
+    if user_role != 4:
+        client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
     
     # Create client directory
     client_dir = UPLOAD_DIR / client_id
