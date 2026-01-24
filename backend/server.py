@@ -386,8 +386,8 @@ def check_permission(user: dict, required_permission: str):
     
     raise HTTPException(status_code=403, detail="Insufficient permissions")
 
-async def send_email(to_email: str, subject: str, body: str):
-    """Send email via MS Exchange"""
+async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[str] = None):
+    """Send email via MS Exchange with optional CC"""
     if not EMAIL_USERNAME or not EMAIL_PASSWORD:
         logging.warning("Email credentials not configured")
         return
@@ -396,6 +396,8 @@ async def send_email(to_email: str, subject: str, body: str):
         msg = MIMEMultipart()
         msg['From'] = EMAIL_FROM
         msg['To'] = to_email
+        if cc_email:
+            msg['Cc'] = cc_email
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'html'))
         
