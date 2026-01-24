@@ -720,6 +720,9 @@ const Bookings = () => {
                             <span className="text-xs text-muted-foreground">-</span>
                           )}
                         </TableCell>
+                        <TableCell>
+                          <span className="text-sm">{booking.created_by_name || '-'}</span>
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             {/* Loss booking approval buttons */}
