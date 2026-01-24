@@ -32,7 +32,6 @@ const Bookings = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [editingBooking, setEditingBooking] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
-  const [clientSearchQuery, setClientSearchQuery] = useState('');
   const [insiderWarningOpen, setInsiderWarningOpen] = useState(false);
   const [insiderFormDialogOpen, setInsiderFormDialogOpen] = useState(false);
   const [selectedInsiderBooking, setSelectedInsiderBooking] = useState(null);
