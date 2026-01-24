@@ -95,6 +95,21 @@ const Bookings = () => {
     return inv?.weighted_avg_price || 0;
   };
 
+  // Get inventory info for selected stock
+  const getInventoryInfo = (stockId) => {
+    const inv = inventory.find(i => i.stock_id === stockId);
+    return {
+      availableQty: inv?.available_quantity || 0,
+      weightedAvgPrice: inv?.weighted_avg_price || 0,
+      stockSymbol: inv?.stock_symbol || ''
+    };
+  };
+
+  // Check if quantity exceeds available inventory
+  const selectedInventory = formData.stock_id ? getInventoryInfo(formData.stock_id) : null;
+  const isLowInventory = selectedInventory && formData.quantity && 
+    parseInt(formData.quantity) > selectedInventory.availableQty;
+
   // Calculate real-time Revenue for form
   const calculateFormPnL = () => {
     if (!formData.stock_id || !formData.quantity || !formData.selling_price) {
