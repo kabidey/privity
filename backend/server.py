@@ -129,6 +129,7 @@ ALLOWED_EMAIL_DOMAINS = ["smifs.com"]
 AUDIT_ACTIONS = {
     "USER_REGISTER": "User Registration",
     "USER_LOGIN": "User Login",
+    "USER_PASSWORD_RESET": "Password Reset",
     "CLIENT_CREATE": "Client Created",
     "CLIENT_UPDATE": "Client Updated",
     "CLIENT_DELETE": "Client Deleted",
@@ -142,7 +143,9 @@ AUDIT_ACTIONS = {
     "BOOKING_APPROVE": "Booking Approved",
     "BOOKING_REJECT": "Booking Rejected",
     "BOOKING_UPDATE": "Booking Updated",
+    "PAYMENT_RECORDED": "Payment Recorded",
     "INVENTORY_ADJUST": "Inventory Adjusted",
+    "EMAIL_TEMPLATE_UPDATE": "Email Template Updated",
 }
 
 # Audit Log Model
