@@ -771,6 +771,29 @@ def generate_otc_ucc() -> str:
     unique_part = str(uuid.uuid4())[:8].upper()
     return f"OTC{date_part}{unique_part}"
 
+async def generate_booking_number() -> str:
+    """Generate unique human-readable booking number (e.g., BK-2026-00001)"""
+    year = datetime.now(timezone.utc).strftime("%Y")
+    
+    # Get the last booking number for this year
+    last_booking = await db.bookings.find_one(
+        {"booking_number": {"$regex": f"^BK-{year}-"}},
+        {"_id": 0, "booking_number": 1},
+        sort=[("booking_number", -1)]
+    )
+    
+    if last_booking and last_booking.get("booking_number"):
+        # Extract the sequence number and increment
+        try:
+            last_seq = int(last_booking["booking_number"].split("-")[-1])
+            new_seq = last_seq + 1
+        except (ValueError, IndexError):
+            new_seq = 1
+    else:
+        new_seq = 1
+    
+    return f"BK-{year}-{new_seq:05d}"
+
 async def update_inventory(stock_id: str):
     """Recalculate weighted average and available quantity for a stock"""
     # Get all purchases for this stock
