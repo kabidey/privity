@@ -449,7 +449,7 @@ const Bookings = () => {
                     <div className="mt-3 p-2 bg-red-100 dark:bg-red-900/50 rounded flex items-start gap-2">
                       <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
                       <p className="text-xs text-red-700 dark:text-red-300">
-                        <strong>Loss Booking:</strong> This booking will require <strong>PE Desk approval</strong> due to selling below purchase price.
+                        <strong>Loss Booking:</strong> This booking will require <strong>PE Desk approval</strong> due to selling below landing price.
                       </p>
                     </div>
                   )}
