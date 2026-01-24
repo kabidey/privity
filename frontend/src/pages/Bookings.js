@@ -416,15 +416,23 @@ const Bookings = () => {
         </Dialog>
       </div>
 
-      {isPEDesk && pendingBookings.length > 0 && (
+      {isPEDesk && (pendingBookings.length > 0 || pendingLossBookings.length > 0) && (
         <div className="mb-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
               <TabsTrigger value="all">All Bookings ({bookings.length})</TabsTrigger>
-              <TabsTrigger value="pending" className="text-orange-600">
-                <Clock className="h-4 w-4 mr-1" />
-                Pending Approval ({pendingBookings.length})
-              </TabsTrigger>
+              {pendingBookings.length > 0 && (
+                <TabsTrigger value="pending" className="text-orange-600">
+                  <Clock className="h-4 w-4 mr-1" />
+                  Pending Approval ({pendingBookings.length})
+                </TabsTrigger>
+              )}
+              {pendingLossBookings.length > 0 && (
+                <TabsTrigger value="loss" className="text-red-600">
+                  <TrendingDown className="h-4 w-4 mr-1" />
+                  Loss Approval ({pendingLossBookings.length})
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
         </div>
