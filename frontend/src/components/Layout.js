@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Users, Package, FileText, BarChart3, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Package, ShoppingCart, Boxes, FileText, BarChart3, LogOut, Menu, X } from 'lucide-react';
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
@@ -18,7 +18,10 @@ const Layout = ({ children }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Clients', path: '/clients' },
+    { icon: Building2, label: 'Vendors', path: '/vendors' },
     { icon: Package, label: 'Stocks', path: '/stocks' },
+    { icon: ShoppingCart, label: 'Purchases', path: '/purchases' },
+    { icon: Boxes, label: 'Inventory', path: '/inventory' },
     { icon: FileText, label: 'Bookings', path: '/bookings' },
     { icon: BarChart3, label: 'Reports', path: '/reports' },
   ];
