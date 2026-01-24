@@ -164,7 +164,76 @@ class ShareBookingAPITester:
             self.log_test("Update Client", False, f"Status: {status}, Response: {response}")
             return False
 
-    def test_create_stock(self):
+    def test_create_vendor(self):
+        """Test creating a vendor (client with is_vendor=True)"""
+        vendor_data = {
+            "name": "Test Vendor",
+            "email": "testvendor@example.com",
+            "phone": "9876543210",
+            "pan_number": "VEND1234F",
+            "dp_id": "87654321",
+            "bank_name": "Vendor Bank",
+            "account_number": "0987654321",
+            "ifsc_code": "VEND0001234",
+            "is_vendor": True
+        }
+        
+        success, response, status = self.make_request("POST", "clients", vendor_data, 200)
+        
+        if success and 'id' in response:
+            self.test_vendor_id = response['id']
+            self.log_test("Create Vendor", True)
+            return True
+        else:
+            self.log_test("Create Vendor", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_create_purchase(self):
+        """Test creating a purchase to build inventory"""
+        if not self.test_vendor_id or not self.test_stock_id:
+            self.log_test("Create Purchase", False, "Missing vendor or stock ID")
+            return False
+            
+        purchase_data = {
+            "vendor_id": self.test_vendor_id,
+            "stock_id": self.test_stock_id,
+            "quantity": 500,  # Buy 500 shares
+            "price_per_unit": 140.00,
+            "purchase_date": datetime.now().strftime("%Y-%m-%d"),
+            "notes": "Test purchase for inventory"
+        }
+        
+        success, response, status = self.make_request("POST", "purchases", purchase_data, 200)
+        
+        if success and 'id' in response:
+            self.test_purchase_id = response['id']
+            self.log_test("Create Purchase", True)
+            return True
+        else:
+            self.log_test("Create Purchase", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_get_purchases(self):
+        """Test getting all purchases"""
+        success, response, status = self.make_request("GET", "purchases", expected_status=200)
+        
+        if success and isinstance(response, list):
+            self.log_test("Get Purchases", True, f"Found {len(response)} purchases")
+            return True
+        else:
+            self.log_test("Get Purchases", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_get_inventory(self):
+        """Test getting inventory"""
+        success, response, status = self.make_request("GET", "inventory", expected_status=200)
+        
+        if success and isinstance(response, list):
+            self.log_test("Get Inventory", True, f"Found {len(response)} inventory items")
+            return True
+        else:
+            self.log_test("Get Inventory", False, f"Status: {status}, Response: {response}")
+            return False
         """Test creating a stock"""
         stock_data = {
             "symbol": "TESTSTOCK",
