@@ -256,13 +256,29 @@ const Bookings = () => {
   };
 
   const handleDelete = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    if (!window.confirm('Are you sure you want to delete this booking? This will release blocked inventory.')) return;
     try {
       await api.delete(`/bookings/${bookingId}`);
-      toast.success('Booking deleted successfully');
+      toast.success('Booking deleted successfully. Inventory released.');
       fetchData();
     } catch (error) {
-      toast.error('Failed to delete booking');
+      toast.error(error.response?.data?.detail || 'Failed to delete booking');
+    }
+  };
+
+  const handleVoidBooking = async (bookingId, bookingNumber) => {
+    const reason = window.prompt(`Enter reason for voiding booking ${bookingNumber}:`);
+    if (reason === null) return; // User cancelled
+    if (!reason.trim()) {
+      toast.error('Please provide a reason for voiding');
+      return;
+    }
+    try {
+      await api.put(`/bookings/${bookingId}/void?reason=${encodeURIComponent(reason)}`);
+      toast.success('Booking voided successfully. Inventory released.');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to void booking');
     }
   };
 
