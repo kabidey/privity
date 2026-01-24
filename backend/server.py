@@ -466,10 +466,16 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
     check_permission(current_user, "manage_clients")
     
     client_id = str(uuid.uuid4())
+    # Generate unique OTC UCC code
+    otc_ucc = f"OTC{datetime.now().strftime('%Y%m%d')}{client_id[:8].upper()}"
+    
     client_doc = {
         "id": client_id,
+        "otc_ucc": otc_ucc,
         **client_data.model_dump(),
         "documents": [],
+        "mapped_employee_id": None,
+        "mapped_employee_name": None,
         "user_id": current_user["id"],
         "created_by": current_user["id"],
         "created_at": datetime.now(timezone.utc).isoformat()
