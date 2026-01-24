@@ -96,7 +96,24 @@ const Vendors = () => {
       toast.success('Vendor deleted successfully');
       fetchVendors();
     } catch (error) {
-      toast.error('Failed to delete vendor');
+      toast.error(error.response?.data?.detail || 'Failed to delete vendor');
+    }
+  };
+
+  const handleCloneToClient = async (vendor) => {
+    if (!window.confirm(`Clone vendor "${vendor.name}" as a Client?\n\nThis will create a new client entry with the same details.`)) return;
+    setCloning(true);
+    try {
+      const response = await api.post(`/clients/${vendor.id}/clone?target_type=client`);
+      toast.success(response.data.message);
+      // Optionally navigate to clients page
+      if (window.confirm('Clone successful! Do you want to view the new client?')) {
+        navigate('/clients');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to clone vendor as client');
+    } finally {
+      setCloning(false);
     }
   };
 
