@@ -75,6 +75,15 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ **Vendor System** - Same document/OCR system applies to vendors
 - ✅ **Role-Based Visibility** - Client of one employee not visible to another
 
+### Phase 6 - Audit Trail & Approvals (Jan 24, 2026)
+- ✅ **Audit Trail Logging** - All actions logged with user, timestamp, details
+- ✅ **Domain Restriction** - Only @smifs.com employees can register
+- ✅ **Auto Employee Role** - New registrations get Employee role by default
+- ✅ **Email Notifications** - Detailed booking emails to clients with CC to creator
+- ✅ **Booking Approval Workflow** - PE Desk must approve bookings before inventory adjustment
+- ✅ **Pending Bookings View** - PE Desk can see and approve/reject pending bookings
+- ✅ **Audit Log API** - Admin-only endpoints to view audit history
+
 ## Pages & Routes
 | Route | Page | Description |
 |-------|------|-------------|
