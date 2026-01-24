@@ -75,9 +75,9 @@ ROLES = {
 # Role Permissions
 ROLE_PERMISSIONS = {
     1: ["all"],  # PE Desk - full access
-    2: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "view_reports"],  # Zonal Manager
-    3: ["view_own", "manage_clients", "manage_bookings", "manage_purchases", "view_reports"],  # Manager
-    4: ["view_own", "create_bookings", "view_clients"],  # Employee
+    2: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "manage_vendors", "view_reports", "approve_clients"],  # Zonal Manager
+    3: ["view_all", "manage_clients", "manage_bookings", "manage_purchases", "manage_vendors", "view_reports", "approve_clients"],  # Manager
+    4: ["view_own", "create_bookings", "view_clients", "create_clients"],  # Employee - no vendor access, can only see own clients
     5: ["view_own"]  # Viewer - read only
 }
 
