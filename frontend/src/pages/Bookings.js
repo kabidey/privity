@@ -438,7 +438,7 @@ const Bookings = () => {
         <div>
           <h1 className="text-4xl font-bold mb-2">Bookings</h1>
           <p className="text-muted-foreground text-base">
-            {isEmployee ? 'Create bookings for your clients' : 'Manage share bookings and payments'}
+            {isEmployee ? 'Create bookings for your clients' : 'Manage private equity bookings and payments'}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1037,7 +1037,7 @@ const Bookings = () => {
               Insider Trading Policy Warning
             </DialogTitle>
             <DialogDescription>
-              Important compliance information for personal share bookings
+              Important compliance information for personal bookings
             </DialogDescription>
           </DialogHeader>
           
@@ -1061,7 +1061,7 @@ const Bookings = () => {
                 Please write to the PE Desk to obtain the necessary compliance forms:
               </p>
               <a 
-                href="mailto:pe@smifs.com?subject=Request for Insider Trading Compliance Forms&body=Dear PE Desk,%0D%0A%0D%0AI am requesting the requisite forms for personal share booking as per the Insider Trading Policy.%0D%0A%0D%0ARegards"
+                href="mailto:pe@smifs.com?subject=Request for Insider Trading Compliance Forms&body=Dear PE Desk,%0D%0A%0D%0AI am requesting the requisite forms for personal booking as per the Insider Trading Policy.%0D%0A%0D%0ARegards"
                 className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-medium"
               >
                 <Mail className="h-4 w-4" />

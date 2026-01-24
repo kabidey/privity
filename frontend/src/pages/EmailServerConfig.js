@@ -29,7 +29,7 @@ const EmailServerConfig = () => {
     smtp_username: '',
     smtp_password: '',
     smtp_from_email: '',
-    smtp_from_name: 'SMIFS Share Booking System',
+    smtp_from_name: 'SMIFS Private Equity System',
     use_tls: true,
     use_ssl: false,
     timeout: 30,
@@ -265,7 +265,7 @@ const EmailServerConfig = () => {
                     id="smtp_from_name"
                     value={config.smtp_from_name}
                     onChange={(e) => setConfig({ ...config, smtp_from_name: e.target.value })}
-                    placeholder="SMIFS Share Booking System"
+                    placeholder="SMIFS Private Equity System"
                   />
                 </div>
               </div>
