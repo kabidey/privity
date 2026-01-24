@@ -366,19 +366,30 @@ const Purchases = () => {
                       <TableCell className="text-sm">{new Date(purchase.purchase_date).toLocaleDateString('en-IN')}</TableCell>
                       {isPEDesk && (
                         <TableCell className="text-center">
-                          {getRemainingAmount(purchase) > 0 ? (
+                          <div className="flex items-center justify-center gap-1">
+                            {getRemainingAmount(purchase) > 0 ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setPaymentDialog({ open: true, purchase })}
+                                data-testid={`pay-btn-${purchase.id}`}
+                              >
+                                <CreditCard className="h-3 w-3 mr-1" />
+                                Pay
+                              </Button>
+                            ) : (
+                              <span className="text-green-600 text-sm font-medium mr-2">✓ Paid</span>
+                            )}
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => setPaymentDialog({ open: true, purchase })}
-                              data-testid={`pay-btn-${purchase.id}`}
+                              variant="ghost"
+                              onClick={() => handleDeletePurchase(purchase.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              data-testid={`delete-purchase-btn-${purchase.id}`}
                             >
-                              <CreditCard className="h-3 w-3 mr-1" />
-                              Pay
+                              <Trash2 className="h-4 w-4" />
                             </Button>
-                          ) : (
-                            <span className="text-green-600 text-sm font-medium">✓ Complete</span>
-                          )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
