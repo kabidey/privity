@@ -380,6 +380,21 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Add additional documents when editing
 - ✅ **DOCS Column in Vendors Table**: Shows document count with folder icon for viewing
 
+### Feature - Client Mandatory Documents & Booking Enhancements (Jan 24, 2026)
+- ✅ **Client Mandatory Document Upload**: 
+  - Same as vendors - all three documents required (PAN Card, CML Copy, Cancelled Cheque)
+  - Yellow warning banner: "All documents are mandatory"
+  - Validation prevents client creation without documents
+  - Document labels now show asterisk (*) for new clients
+- ✅ **Booking Page - Client Search**:
+  - Real-time search input "Search client by name..." above client dropdown
+  - Filters approved clients as you type
+  - Shows "No clients found matching..." when no results
+- ✅ **Booking Page - Created By Column**:
+  - New "CREATED BY" column in bookings table
+  - Shows the name of user who created each booking
+  - Helps PE Desk identify booking sources (Employee vs Admin)
+
 ## Next Tasks
 1. **(P0) Continue Backend Modularization** - Move remaining routes from server.py:
    - Move client routes to `/routers/clients.py`
