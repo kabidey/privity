@@ -3053,6 +3053,9 @@ async def confirm_stock_transfer(
     
     await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
     
+    # Update inventory - this will move quantity from blocked to transferred
+    await update_inventory(booking["stock_id"])
+    
     # Get client and stock details for email
     client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
     stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
