@@ -128,6 +128,7 @@ const Layout = ({ children }) => {
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-40 flex items-center justify-between px-4">
         <h1 className="text-xl font-bold" data-testid="app-title-mobile">ShareBook</h1>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <Button
             variant="ghost"
             size="icon"
