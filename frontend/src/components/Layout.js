@@ -20,7 +20,8 @@ import {
   Settings,
   UserCog,
   PieChart,
-  Mail
+  Mail,
+  Banknote
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
