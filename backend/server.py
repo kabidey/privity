@@ -2016,6 +2016,13 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     
     booking_id = str(uuid.uuid4())
     
+    # Check if this is a loss booking (selling price < buying price)
+    is_loss_booking = False
+    loss_approval_status = "not_required"
+    if booking_data.selling_price is not None and booking_data.selling_price < buying_price:
+        is_loss_booking = True
+        loss_approval_status = "pending"  # Requires PE Desk approval for loss
+    
     # All bookings require PE Desk approval before inventory adjustment
     booking_doc = {
         "id": booking_id,
@@ -2029,6 +2036,10 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "approval_status": "pending",  # Requires PE Desk approval
         "approved_by": None,
         "approved_at": None,
+        "is_loss_booking": is_loss_booking,
+        "loss_approval_status": loss_approval_status,
+        "loss_approved_by": None,
+        "loss_approved_at": None,
         "notes": booking_data.notes,
         "user_id": current_user["id"],
         "created_by": current_user["id"],
