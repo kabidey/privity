@@ -105,6 +105,14 @@ class TokenResponse(BaseModel):
     token: str
     user: User
 
+class BankAccount(BaseModel):
+    bank_name: str
+    account_number: str
+    ifsc_code: str
+    branch_name: Optional[str] = None
+    account_holder_name: Optional[str] = None
+    source: str = "manual"  # manual, cml_copy, cancelled_cheque
+
 class ClientDocument(BaseModel):
     doc_type: str  # pan_card, cml_copy, cancelled_cheque
     filename: str
@@ -116,11 +124,12 @@ class ClientCreate(BaseModel):
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
+    mobile: Optional[str] = None
     pan_number: str
     dp_id: str
-    bank_name: Optional[str] = None
-    account_number: Optional[str] = None
-    ifsc_code: Optional[str] = None
+    address: Optional[str] = None
+    pin_code: Optional[str] = None
+    bank_accounts: List[BankAccount] = []
     is_vendor: bool = False
 
 class Client(BaseModel):
@@ -130,15 +139,19 @@ class Client(BaseModel):
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
+    mobile: Optional[str] = None
     pan_number: str
     dp_id: str
-    bank_name: Optional[str] = None
-    account_number: Optional[str] = None
-    ifsc_code: Optional[str] = None
+    address: Optional[str] = None
+    pin_code: Optional[str] = None
+    bank_accounts: List[BankAccount] = []
     is_vendor: bool = False
+    is_active: bool = True  # Requires approval for employee-created clients
+    approval_status: str = "approved"  # pending, approved, rejected
     documents: List[ClientDocument] = []
     created_at: str
     created_by: str
+    created_by_role: int = 5
     mapped_employee_id: Optional[str] = None
     mapped_employee_name: Optional[str] = None
 
