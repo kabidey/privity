@@ -2790,6 +2790,323 @@ async def export_dp_transfer_report(
             headers={"Content-Disposition": "attachment; filename=dp_transfer_report.csv"}
         )
 
+# ============== Stock Transfer Confirmation ==============
+
+class StockTransferConfirm(BaseModel):
+    notes: Optional[str] = None
+
+@api_router.put("/bookings/{booking_id}/confirm-transfer")
+async def confirm_stock_transfer(
+    booking_id: str,
+    data: StockTransferConfirm = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Mark a booking as stock transferred and notify client (PE Desk only)"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can confirm stock transfers")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("dp_transfer_ready"):
+        raise HTTPException(status_code=400, detail="Booking is not ready for DP transfer. Full payment required.")
+    
+    if booking.get("stock_transferred"):
+        raise HTTPException(status_code=400, detail="Stock has already been transferred for this booking")
+    
+    # Update booking with transfer confirmation
+    update_data = {
+        "stock_transferred": True,
+        "stock_transferred_at": datetime.now(timezone.utc).isoformat(),
+        "stock_transferred_by": current_user["id"],
+        "stock_transfer_notes": data.notes if data else None
+    }
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Get client and stock details for email
+    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+    booking_number = booking.get("booking_number", booking_id[:8].upper())
+    
+    # Create audit log
+    await create_audit_log(
+        action="STOCK_TRANSFER",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {client['name'] if client else 'Unknown'}",
+        details={
+            "booking_number": booking_number,
+            "client_name": client["name"] if client else "Unknown",
+            "client_dp_id": client.get("dp_id", "N/A") if client else "N/A",
+            "stock_symbol": stock["symbol"] if stock else "Unknown",
+            "quantity": booking.get("quantity"),
+            "transfer_notes": data.notes if data else None
+        }
+    )
+    
+    # Send email to client
+    if client and client.get("email"):
+        email_body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #10b981;">✓ Stock Transfer Completed</h2>
+            <p>Dear {client['name']},</p>
+            <p>We are pleased to inform you that your stock has been successfully transferred to your Demat account.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
+                <tr style="background-color: #064E3B; color: white;">
+                    <th colspan="2" style="padding: 12px; text-align: left;">Transfer Details</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Booking Reference</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock Symbol</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock Name</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['name'] if stock else 'N/A'}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>ISIN Number</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock.get('isin_number', 'N/A') if stock else 'N/A'}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity Transferred</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking.get('quantity', 0)}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Your DP ID</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong style="color: #064E3B;">{client.get('dp_id', 'N/A')}</strong></td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Transfer Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{datetime.now(timezone.utc).strftime('%d %b %Y, %H:%M')}</td>
+                </tr>
+            </table>
+            
+            <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #065f46;"><strong>Note:</strong> Please verify the credit in your Demat account. The shares should reflect within 1-2 working days.</p>
+            </div>
+            
+            <p>If you have any questions, please contact us.</p>
+            
+            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+        </div>
+        """
+        await send_email(
+            client["email"],
+            f"Stock Transfer Completed - {stock['symbol'] if stock else 'N/A'} | {booking_number}",
+            email_body
+        )
+    
+    # Notify the booking creator
+    if booking.get("created_by"):
+        await create_notification(
+            booking["created_by"],
+            "stock_transferred",
+            "Stock Transfer Completed",
+            f"Stock transfer completed for booking {booking_number} - {stock['symbol'] if stock else 'Unknown'} to {client['name'] if client else 'Unknown'}",
+            {"booking_id": booking_id, "booking_number": booking_number, "client_name": client["name"] if client else None}
+        )
+    
+    return {
+        "message": "Stock transfer confirmed and client notified",
+        "booking_id": booking_id,
+        "booking_number": booking_number,
+        "client_email": client.get("email") if client else None
+    }
+
+
+# ============== Purchase Payment Tracking ==============
+
+class PurchasePaymentCreate(BaseModel):
+    amount: float
+    payment_date: str
+    notes: Optional[str] = None
+
+@api_router.post("/purchases/{purchase_id}/payments")
+async def add_purchase_payment(
+    purchase_id: str,
+    payment: PurchasePaymentCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Record payment for a vendor purchase and notify vendor (PE Desk only)"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can record purchase payments")
+    
+    purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
+    if not purchase:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    
+    vendor = await db.clients.find_one({"id": purchase["vendor_id"], "is_vendor": True}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": purchase["stock_id"]}, {"_id": 0})
+    
+    # Get current payment info
+    payments = purchase.get("payments", [])
+    current_paid = purchase.get("total_paid", 0)
+    remaining = purchase["total_amount"] - current_paid
+    
+    if payment.amount > remaining + 0.01:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Payment amount ({payment.amount}) exceeds remaining balance ({remaining:.2f})"
+        )
+    
+    # Add new payment tranche
+    new_payment = {
+        "tranche_number": len(payments) + 1,
+        "amount": payment.amount,
+        "payment_date": payment.payment_date,
+        "recorded_by": current_user["id"],
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+        "notes": payment.notes
+    }
+    
+    payments.append(new_payment)
+    new_total_paid = current_paid + payment.amount
+    
+    is_complete = abs(new_total_paid - purchase["total_amount"]) < 0.01
+    payment_status = "completed" if is_complete else ("partial" if new_total_paid > 0 else "pending")
+    
+    update_data = {
+        "payments": payments,
+        "total_paid": new_total_paid,
+        "payment_status": payment_status
+    }
+    
+    if is_complete:
+        update_data["payment_completed_at"] = payment.payment_date
+    
+    await db.purchases.update_one({"id": purchase_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(
+        action="PURCHASE_PAYMENT",
+        entity_type="purchase",
+        entity_id=purchase_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {vendor['name'] if vendor else 'Unknown'}",
+        details={
+            "vendor_name": vendor["name"] if vendor else "Unknown",
+            "stock_symbol": stock["symbol"] if stock else "Unknown",
+            "tranche_number": new_payment["tranche_number"],
+            "amount": payment.amount,
+            "total_paid": new_total_paid,
+            "payment_status": payment_status
+        }
+    )
+    
+    # Send email to vendor
+    if vendor and vendor.get("email"):
+        status_badge = "FULL PAYMENT" if is_complete else "PARTIAL PAYMENT"
+        status_color = "#10b981" if is_complete else "#f59e0b"
+        
+        email_body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: {status_color};">Payment Received - {status_badge}</h2>
+            <p>Dear {vendor['name']},</p>
+            <p>We are pleased to inform you that a payment has been processed for your stock purchase.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
+                <tr style="background-color: #064E3B; color: white;">
+                    <th colspan="2" style="padding: 12px; text-align: left;">Payment Details</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Stock</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'} - {stock['name'] if stock else 'N/A'}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Purchase Quantity</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{purchase.get('quantity', 0)}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Purchase Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{purchase.get('purchase_date', 'N/A')}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Purchase Amount</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{purchase['total_amount']:,.2f}</td>
+                </tr>
+                <tr style="background-color: #d1fae5;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>This Payment</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong style="color: #10b981;">₹{payment.amount:,.2f}</strong></td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Paid Till Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{new_total_paid:,.2f}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Balance Remaining</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{(purchase['total_amount'] - new_total_paid):,.2f}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Payment Status</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><span style="color: {status_color}; font-weight: bold;">{payment_status.upper()}</span></td>
+                </tr>
+            </table>
+            
+            {"<div style='background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;'><p style='margin: 0; color: #065f46;'><strong>Payment Complete!</strong> Thank you for your business.</p></div>" if is_complete else ""}
+            
+            <p>If you have any questions regarding this payment, please contact us.</p>
+            
+            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+        </div>
+        """
+        await send_email(
+            vendor["email"],
+            f"Payment Received - {stock['symbol'] if stock else 'N/A'} Purchase | ₹{payment.amount:,.2f}",
+            email_body
+        )
+    
+    return {
+        "message": f"Payment recorded and vendor notified",
+        "tranche_number": new_payment["tranche_number"],
+        "amount": payment.amount,
+        "total_paid": new_total_paid,
+        "remaining": purchase["total_amount"] - new_total_paid,
+        "payment_status": payment_status,
+        "vendor_email": vendor.get("email") if vendor else None
+    }
+
+
+@api_router.get("/purchases/{purchase_id}/payments")
+async def get_purchase_payments(
+    purchase_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get payment details for a purchase"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can view purchase payments")
+    
+    purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
+    if not purchase:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    
+    return {
+        "purchase_id": purchase_id,
+        "total_amount": purchase.get("total_amount", 0),
+        "total_paid": purchase.get("total_paid", 0),
+        "remaining": purchase.get("total_amount", 0) - purchase.get("total_paid", 0),
+        "payment_status": purchase.get("payment_status", "pending"),
+        "payments": purchase.get("payments", []),
+        "payment_completed_at": purchase.get("payment_completed_at")
+    }
+
 @api_router.post("/bookings/bulk-upload")
 async def bulk_upload_bookings(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     check_permission(current_user, "manage_bookings")
