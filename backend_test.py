@@ -436,9 +436,17 @@ class ShareBookingAPITester:
         self.test_get_clients()
         self.test_update_client()
         
+        # Vendor Management Tests
+        self.test_create_vendor()
+        
         # Stock Management Tests
         self.test_create_stock()
         self.test_get_stocks()
+        
+        # Purchase & Inventory Tests
+        self.test_create_purchase()
+        self.test_get_purchases()
+        self.test_get_inventory()
         
         # Booking Management Tests
         self.test_create_booking()
