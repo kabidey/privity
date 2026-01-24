@@ -74,19 +74,89 @@ ROLES = {
 
 # Role Permissions
 ROLE_PERMISSIONS = {
-    1: ["all"],  # PE Desk - full access
+    1: ["all"],  # PE Desk - full access, can approve bookings
     2: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "manage_vendors", "view_reports", "approve_clients"],  # Zonal Manager
     3: ["view_all", "manage_clients", "manage_bookings", "manage_purchases", "manage_vendors", "view_reports", "approve_clients"],  # Manager
     4: ["view_own", "create_bookings", "view_clients", "create_clients"],  # Employee - no vendor access, can only see own clients
     5: ["view_own"]  # Viewer - read only
 }
 
+# Allowed email domains for registration
+ALLOWED_EMAIL_DOMAINS = ["smifs.com"]
+
+# Audit Log Types
+AUDIT_ACTIONS = {
+    "USER_REGISTER": "User Registration",
+    "USER_LOGIN": "User Login",
+    "CLIENT_CREATE": "Client Created",
+    "CLIENT_UPDATE": "Client Updated",
+    "CLIENT_DELETE": "Client Deleted",
+    "CLIENT_APPROVE": "Client Approved",
+    "CLIENT_REJECT": "Client Rejected",
+    "CLIENT_MAP": "Client Mapped to Employee",
+    "VENDOR_CREATE": "Vendor Created",
+    "STOCK_CREATE": "Stock Created",
+    "PURCHASE_CREATE": "Purchase Created",
+    "BOOKING_CREATE": "Booking Created",
+    "BOOKING_APPROVE": "Booking Approved",
+    "BOOKING_REJECT": "Booking Rejected",
+    "BOOKING_UPDATE": "Booking Updated",
+    "INVENTORY_ADJUST": "Inventory Adjusted",
+}
+
+# Audit Log Model
+class AuditLog(BaseModel):
+    id: str
+    action: str
+    action_description: str
+    entity_type: str  # user, client, vendor, stock, purchase, booking
+    entity_id: str
+    entity_name: Optional[str] = None
+    user_id: str
+    user_name: str
+    user_role: int
+    details: Optional[Dict[str, Any]] = None
+    ip_address: Optional[str] = None
+    timestamp: str
+
+async def create_audit_log(
+    action: str,
+    entity_type: str,
+    entity_id: str,
+    user_id: str,
+    user_name: str,
+    user_role: int,
+    entity_name: Optional[str] = None,
+    details: Optional[Dict[str, Any]] = None,
+    ip_address: Optional[str] = None
+):
+    """Create an audit log entry"""
+    try:
+        audit_doc = {
+            "id": str(uuid.uuid4()),
+            "action": action,
+            "action_description": AUDIT_ACTIONS.get(action, action),
+            "entity_type": entity_type,
+            "entity_id": entity_id,
+            "entity_name": entity_name,
+            "user_id": user_id,
+            "user_name": user_name,
+            "user_role": user_role,
+            "details": details,
+            "ip_address": ip_address,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await db.audit_logs.insert_one(audit_doc)
+        logging.info(f"Audit: {action} by {user_name} on {entity_type}/{entity_id}")
+    except Exception as e:
+        logging.error(f"Failed to create audit log: {e}")
+
 # Models
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
-    role: int = 5  # Default to Viewer
+    role: int = 4  # Default to Employee for smifs.com domain
 
 class UserLogin(BaseModel):
     email: EmailStr
