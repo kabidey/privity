@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '../context/ThemeContext';
+import NotificationBell from './NotificationBell';
 import { 
   LayoutDashboard, 
   Users, 
