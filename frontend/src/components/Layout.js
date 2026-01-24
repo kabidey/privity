@@ -87,6 +87,12 @@ const Layout = ({ children }) => {
           </div>
         </nav>
         <div className="p-4 border-t border-border">
+          {/* Notifications */}
+          <div className="flex items-center justify-between mb-3 px-2">
+            <span className="text-sm text-muted-foreground">Notifications</span>
+            <NotificationBell />
+          </div>
+          
           {/* Theme Toggle */}
           <Button
             variant="ghost"
