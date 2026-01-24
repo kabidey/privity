@@ -102,6 +102,47 @@ const Purchases = () => {
     });
   };
 
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
+    if (!paymentDialog.purchase) return;
+    
+    setPaymentLoading(true);
+    try {
+      await api.post(`/purchases/${paymentDialog.purchase.id}/payments`, {
+        amount: parseFloat(paymentForm.amount),
+        payment_date: paymentForm.payment_date,
+        notes: paymentForm.notes || null
+      });
+      toast.success('Payment recorded! Vendor has been notified via email.');
+      setPaymentDialog({ open: false, purchase: null });
+      setPaymentForm({
+        amount: '',
+        payment_date: new Date().toISOString().split('T')[0],
+        notes: ''
+      });
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to record payment');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const getPaymentStatus = (purchase) => {
+    const status = purchase.payment_status || 'pending';
+    if (status === 'completed') {
+      return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Paid</Badge>;
+    } else if (status === 'partial') {
+      return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Partial</Badge>;
+    }
+    return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+  };
+
+  const getRemainingAmount = (purchase) => {
+    const totalPaid = purchase.total_paid || 0;
+    return purchase.total_amount - totalPaid;
+  };
+
   return (
     <div className="p-8 page-enter" data-testid="purchases-page">
       <div className="flex justify-between items-center mb-8">
