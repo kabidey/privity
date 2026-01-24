@@ -2582,6 +2582,87 @@ async def delete_booking(booking_id: str, current_user: dict = Depends(get_curre
     
     return {"message": "Booking deleted successfully. Inventory released."}
 
+
+# Void Booking (PE Desk Only) - Release inventory without deleting record
+@api_router.put("/bookings/{booking_id}/void")
+async def void_booking(
+    booking_id: str,
+    reason: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Void a booking and release blocked inventory (PE Desk only).
+    
+    Use this instead of delete when you want to keep the booking record for audit purposes.
+    """
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can void bookings")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("is_voided"):
+        raise HTTPException(status_code=400, detail="Booking is already voided")
+    
+    if booking.get("stock_transferred"):
+        raise HTTPException(status_code=400, detail="Cannot void a booking where stock has already been transferred")
+    
+    # Get related info
+    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+    
+    # Update booking as voided
+    update_data = {
+        "is_voided": True,
+        "voided_at": datetime.now(timezone.utc).isoformat(),
+        "voided_by": current_user["id"],
+        "voided_by_name": current_user["name"],
+        "void_reason": reason or "No reason provided",
+        "status": "voided"
+    }
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Update inventory to release blocked quantity
+    await update_inventory(booking["stock_id"])
+    
+    # Audit log
+    await create_audit_log(
+        action="BOOKING_VOIDED",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {client['name'] if client else 'Unknown'}",
+        details={
+            "booking_number": booking.get("booking_number", booking_id[:8].upper()),
+            "client_name": client["name"] if client else "Unknown",
+            "stock_symbol": stock["symbol"] if stock else "Unknown",
+            "quantity": booking.get("quantity"),
+            "void_reason": reason,
+            "inventory_released": True
+        }
+    )
+    
+    # Notify booking creator
+    if booking.get("created_by") and booking["created_by"] != current_user["id"]:
+        await create_notification(
+            booking["created_by"],
+            "booking_voided",
+            "Booking Voided",
+            f"Booking {booking.get('booking_number', booking_id[:8].upper())} for {stock['symbol'] if stock else 'Unknown'} has been voided by PE Desk. Reason: {reason or 'Not specified'}",
+            {"booking_id": booking_id, "stock_symbol": stock["symbol"] if stock else None, "void_reason": reason}
+        )
+    
+    return {
+        "message": f"Booking {booking.get('booking_number', booking_id[:8].upper())} has been voided. Inventory released.",
+        "quantity_released": booking.get("quantity", 0)
+    }
+
+
 # ============== Payment Tracking Endpoints (PE Desk & Zonal Manager Only) ==============
 @api_router.post("/bookings/{booking_id}/payments")
 async def add_payment_tranche(
