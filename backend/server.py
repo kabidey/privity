@@ -3163,10 +3163,10 @@ async def export_excel(
     
     wb = Workbook()
     ws = wb.active
-    ws.title = "P&L Report"
+    ws.title = "Revenue Report"
     
     # Headers
-    headers = ["Client", "Stock Symbol", "Stock Name", "Quantity", "Landing Price", "Selling Price", "Date", "Status", "P&L"]
+    headers = ["Client", "Stock Symbol", "Stock Name", "Quantity", "Landing Price", "Selling Price", "Date", "Status", "Revenue"]
     ws.append(headers)
     
     # Style headers
@@ -3249,7 +3249,7 @@ async def export_pdf(
     elements.append(Paragraph("Profit & Loss Report", title_style))
     elements.append(Spacer(1, 0.3*inch))
     
-    data = [["Client", "Stock", "Qty", "Landing Price", "Sell Price", "Status", "P&L"]]
+    data = [["Client", "Stock", "Qty", "Landing Price", "Sell Price", "Status", "Revenue"]]
     
     if bookings:
         client_ids = list(set(b["client_id"] for b in bookings))
