@@ -3008,7 +3008,8 @@ async def add_payment_tranche(
             "tranche_number": new_tranche["tranche_number"],
             "amount": payment.amount,
             "total_paid": new_total_paid,
-            "payment_status": payment_status
+            "payment_status": payment_status,
+            "auto_client_accepted": new_tranche["tranche_number"] == 1 and booking.get("client_confirmation_status") != "accepted"
         }
     )
     
@@ -3016,6 +3017,16 @@ async def add_payment_tranche(
     client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
     stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
     booking_number = booking.get("booking_number", booking_id[:8].upper())
+    
+    # If first payment auto-accepted client, create notification
+    if new_tranche["tranche_number"] == 1 and booking.get("client_confirmation_status") != "accepted":
+        await notify_roles(
+            [1],  # PE Desk
+            "client_auto_accepted",
+            "Client Auto-Accepted via Payment",
+            f"Booking {booking_number} automatically marked as client accepted (first payment recorded)",
+            {"booking_id": booking_id, "booking_number": booking_number}
+        )
     
     # Notify booking creator about payment
     if booking.get("created_by"):
