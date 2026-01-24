@@ -18,7 +18,9 @@ import {
   Sun,
   Moon,
   Settings,
-  UserCog
+  UserCog,
+  PieChart,
+  Mail
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -52,6 +54,12 @@ const Layout = ({ children }) => {
   // Add user management for admin roles (1 and 2)
   if (user.role <= 2) {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
+  }
+
+  // Add Analytics and Email Templates for PE Desk only (role 1)
+  if (user.role === 1) {
+    menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
+    menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
   }
 
   return (
