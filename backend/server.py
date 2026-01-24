@@ -2258,6 +2258,124 @@ async def approve_booking(
     
     return {"message": f"Booking {'approved' if approve else 'rejected'} successfully"}
 
+@api_router.put("/bookings/{booking_id}/approve-loss")
+async def approve_loss_booking(
+    booking_id: str,
+    approve: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Approve or reject a loss booking (selling price < buying price) - PE Desk only"""
+    user_role = current_user.get("role", 5)
+    
+    # Only PE Desk (role 1) can approve loss bookings
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can approve loss bookings")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("is_loss_booking", False):
+        raise HTTPException(status_code=400, detail="This is not a loss booking")
+    
+    if booking.get("loss_approval_status") != "pending":
+        raise HTTPException(status_code=400, detail="Loss booking already processed")
+    
+    update_data = {
+        "loss_approval_status": "approved" if approve else "rejected",
+        "loss_approved_by": current_user["id"],
+        "loss_approved_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Audit logging
+    action = "LOSS_BOOKING_APPROVE" if approve else "LOSS_BOOKING_REJECT"
+    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+    
+    await create_audit_log(
+        action=action,
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        details={
+            "stock_id": booking["stock_id"],
+            "stock_symbol": stock['symbol'] if stock else "Unknown",
+            "buying_price": booking["buying_price"],
+            "selling_price": booking["selling_price"],
+            "loss_amount": (booking["buying_price"] - booking["selling_price"]) * booking["quantity"]
+        }
+    )
+    
+    # Notification to booking creator
+    if booking.get("created_by"):
+        message = f"Loss booking for '{stock['symbol'] if stock else 'N/A'}' has been {'approved' if approve else 'rejected'}"
+        await create_notification(
+            booking["created_by"],
+            "loss_booking_approved" if approve else "loss_booking_rejected",
+            "Loss Booking " + ("Approved" if approve else "Rejected"),
+            message,
+            {"booking_id": booking_id, "stock_symbol": stock['symbol'] if stock else None}
+        )
+    
+    return {"message": f"Loss booking {'approved' if approve else 'rejected'} successfully"}
+
+@api_router.get("/bookings/pending-loss-approval", response_model=List[BookingWithDetails])
+async def get_pending_loss_bookings(current_user: dict = Depends(get_current_user)):
+    """Get loss bookings pending approval (PE Desk only)"""
+    user_role = current_user.get("role", 5)
+    
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can view pending loss bookings")
+    
+    bookings = await db.bookings.find(
+        {"is_loss_booking": True, "loss_approval_status": "pending"},
+        {"_id": 0, "user_id": 0}
+    ).to_list(1000)
+    
+    if not bookings:
+        return []
+    
+    # Enrich with client and stock details
+    client_ids = list(set(b["client_id"] for b in bookings))
+    stock_ids = list(set(b["stock_id"] for b in bookings))
+    user_ids = list(set(b["created_by"] for b in bookings))
+    
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0}).to_list(1000)
+    
+    client_map = {c["id"]: c for c in clients}
+    stock_map = {s["id"]: s for s in stocks}
+    user_map = {u["id"]: u for u in users}
+    
+    enriched = []
+    for b in bookings:
+        client = client_map.get(b["client_id"], {})
+        stock = stock_map.get(b["stock_id"], {})
+        user = user_map.get(b["created_by"], {})
+        
+        profit_loss = None
+        if b.get("selling_price"):
+            profit_loss = (b["selling_price"] - b["buying_price"]) * b["quantity"]
+        
+        booking_data = {k: v for k, v in b.items() if k not in ["client_name", "stock_symbol", "stock_name", "created_by_name", "profit_loss"]}
+        
+        enriched.append(BookingWithDetails(
+            **booking_data,
+            client_name=client.get("name", "Unknown"),
+            client_pan=client.get("pan_number"),
+            client_dp_id=client.get("dp_id"),
+            stock_symbol=stock.get("symbol", "Unknown"),
+            stock_name=stock.get("name", "Unknown"),
+            created_by_name=user.get("name", "Unknown"),
+            profit_loss=profit_loss
+        ))
+    
+    return enriched
+
 @api_router.get("/bookings/pending-approval", response_model=List[BookingWithDetails])
 async def get_pending_bookings(current_user: dict = Depends(get_current_user)):
     """Get bookings pending approval (PE Desk only)"""
