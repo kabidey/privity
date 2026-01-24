@@ -123,9 +123,14 @@ Build a Share Booking System for managing client share bookings, inventory track
 - `/api/reports/*` - P&L reports + exports
 
 ## Test Results (Latest)
-- Backend: 96% pass rate (22/23 tests)
+- Backend: 100% pass rate (9/9 tests for bug fixes)
 - Frontend: 100% pass rate
-- Overall: 98% success
+- Overall: 100% success
+
+### Bug Fixes (Jan 24, 2026)
+- ✅ **Client Form Validation** - Required fields (Name, PAN, DP ID) enforced on frontend and backend
+- ✅ **Document Upload** - Fixed permission to allow employees to upload docs to their own clients
+- ✅ **OCR Integration** - Fixed ImageContent usage in emergentintegrations library for GPT-4o vision
 
 ## Tech Stack
 - React 18 with React Router v6
