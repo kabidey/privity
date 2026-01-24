@@ -192,11 +192,12 @@ Build a Share Booking System for managing client share bookings, inventory track
 | /stocks | Stocks | Stock management |
 | /purchases | Purchases | Purchase recording |
 | /inventory | Inventory | Stock levels tracking |
-| /bookings | Bookings | Booking management |
+| /bookings | Bookings | Booking management with payment tracking |
 | /reports | Reports | P&L with filters and exports |
 | /users | UserManagement | Role management (admin only) |
 | /analytics | Analytics | Advanced analytics (PE Desk only) |
 | /email-templates | EmailTemplates | Email template editor (PE Desk only) |
+| /dp-transfer | DPTransferReport | Bookings ready for DP transfer (PE Desk & Zonal Manager) |
 
 ## API Endpoints
 - `/api/auth/*` - Authentication (register, login, me, forgot-password, reset-password)
