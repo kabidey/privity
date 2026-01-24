@@ -810,26 +810,26 @@ class SMIFSShareBookingTester:
         return success
 
 def main():
-    print("🚀 Starting Privity Share Booking System Enhanced Features Test")
-    print("=" * 60)
+    print("🚀 Starting SMIFS Share Booking System - New Features Test")
+    print("Testing: Domain restriction, Audit logs, Booking approval workflow")
+    print("=" * 70)
     
-    tester = PrivityShareBookingTester()
+    tester = SMIFSShareBookingTester()
     
-    # Test sequence
+    # Test sequence for NEW features
     tests = [
-        ("Admin Login", tester.test_admin_login),
-        ("Create Employee User", tester.test_create_employee),
-        ("Client Creation with New Fields", tester.test_client_creation_with_new_fields),
-        ("Multiple Bank Accounts", tester.test_multiple_bank_accounts),
-        ("Employee Vendor Restriction", tester.test_employee_vendor_restriction),
-        ("Employee Cannot Create Vendor", tester.test_employee_cannot_create_vendor),
-        ("Employee Client Creation (Needs Approval)", tester.test_employee_client_creation_approval),
-        ("Pending Approval Endpoint", tester.test_pending_approval_endpoint),
-        ("Client Approval", tester.test_client_approval),
-        ("Employee Own Clients Only", tester.test_employee_own_clients_only),
-        ("Employee Purchase Restriction", tester.test_employee_purchase_restriction),
-        ("Employee Booking Price Restriction", tester.test_employee_booking_buying_price_restriction),
-        ("Admin Client Mapping", tester.test_admin_client_mapping),
+        ("Admin Login (PE Desk)", tester.test_admin_login),
+        ("Domain Restriction - Invalid Domain", tester.test_domain_restriction_invalid),
+        ("Domain Restriction - Valid @smifs.com", tester.test_domain_restriction_valid),
+        ("Audit Logs - Admin Access", tester.test_audit_logs_admin_access),
+        ("Audit Logs - Employee Denied", tester.test_audit_logs_employee_denied),
+        ("Create Test Data", tester.test_create_test_data),
+        ("Booking Requires PE Desk Approval", tester.test_booking_requires_approval),
+        ("Pending Bookings - PE Desk Only", tester.test_pending_bookings_pe_desk_only),
+        ("Pending Bookings - Employee Denied", tester.test_pending_bookings_employee_denied),
+        ("Booking Approval - PE Desk Only", tester.test_booking_approval_pe_desk_only),
+        ("Booking Approval - Employee Denied", tester.test_booking_approval_employee_denied),
+        ("Inventory Not Adjusted Until Approved", tester.test_inventory_not_adjusted_until_approved),
     ]
     
     failed_tests = []
@@ -843,7 +843,7 @@ def main():
             failed_tests.append(test_name)
     
     # Print results
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 70)
     print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} passed")
     
     if failed_tests:
@@ -853,15 +853,14 @@ def main():
     else:
         print("\n✅ All tests passed!")
     
-    print("\n🎯 Key Features Tested:")
-    print("   ✓ Client creation with new fields (address, pin_code, mobile, bank_accounts)")
-    print("   ✓ Multiple bank accounts per client")
-    print("   ✓ Employee restrictions (no vendor access, own clients only)")
-    print("   ✓ Employee cannot view purchase history")
-    print("   ✓ Employee-created clients require approval")
-    print("   ✓ Client approval workflow")
-    print("   ✓ Employee cannot edit buying price in bookings")
-    print("   ✓ Admin can map/unmap clients to employees")
+    print("\n🎯 NEW Features Tested:")
+    print("   ✓ Registration domain restriction (@smifs.com only)")
+    print("   ✓ Registration creates Employee role (4)")
+    print("   ✓ Audit log API endpoints (admin only)")
+    print("   ✓ Booking creation requires PE Desk approval")
+    print("   ✓ Booking approval endpoint (PE Desk only)")
+    print("   ✓ Pending bookings endpoint (PE Desk only)")
+    print("   ✓ Inventory NOT adjusted until booking approved")
     
     return 0 if len(failed_tests) == 0 else 1
 
