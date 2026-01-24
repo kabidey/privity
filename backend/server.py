@@ -112,23 +112,46 @@ async def generate_booking_number() -> str:
     return f"BK-{year}-{new_seq:05d}"
 
 async def update_inventory(stock_id: str):
-    """Recalculate weighted average and available quantity for a stock"""
+    """Recalculate weighted average and available quantity for a stock.
+    
+    Inventory Logic:
+    - available_quantity: Stock available for new bookings (purchased - transferred - blocked)
+    - blocked_quantity: Stock reserved for approved bookings pending transfer
+    - weighted_avg_price: Calculated from total purchased value / total purchased quantity
+    - Blocked stock is NOT used in weighted average calculation for new bookings
+    """
     # Get all purchases for this stock
     purchases = await db.purchases.find({"stock_id": stock_id}, {"_id": 0}).to_list(10000)
     
-    # Get all bookings (sales) for this stock
+    # Get all bookings for this stock
     bookings = await db.bookings.find({"stock_id": stock_id}, {"_id": 0}).to_list(10000)
     
     # Calculate total purchased
     total_purchased_qty = sum(p["quantity"] for p in purchases)
     total_purchased_value = sum(p["quantity"] * p["price_per_unit"] for p in purchases)
     
-    # Calculate total sold
-    total_sold_qty = sum(b["quantity"] for b in bookings)
+    # Calculate blocked quantity (approved bookings not yet transferred)
+    # Booking must be: approval_status=approved, client_confirmed=true, NOT voided, NOT transferred
+    blocked_qty = sum(
+        b["quantity"] for b in bookings 
+        if b.get("approval_status") == "approved" 
+        and b.get("client_confirmed") == True
+        and not b.get("is_voided", False)
+        and not b.get("stock_transferred", False)
+    )
     
-    # Calculate weighted average
+    # Calculate transferred quantity (completed sales)
+    transferred_qty = sum(
+        b["quantity"] for b in bookings 
+        if b.get("stock_transferred") == True
+        and not b.get("is_voided", False)
+    )
+    
+    # Available = purchased - transferred - blocked
+    available_qty = total_purchased_qty - transferred_qty - blocked_qty
+    
+    # Calculate weighted average from total purchases (not affected by blocked)
     weighted_avg = total_purchased_value / total_purchased_qty if total_purchased_qty > 0 else 0
-    available_qty = total_purchased_qty - total_sold_qty
     
     # Get stock details
     stock = await db.stocks.find_one({"id": stock_id}, {"_id": 0})
@@ -138,9 +161,10 @@ async def update_inventory(stock_id: str):
         "stock_id": stock_id,
         "stock_symbol": stock["symbol"] if stock else "Unknown",
         "stock_name": stock["name"] if stock else "Unknown",
-        "available_quantity": available_qty,
+        "available_quantity": max(0, available_qty),  # Ensure non-negative
+        "blocked_quantity": blocked_qty,
         "weighted_avg_price": weighted_avg,
-        "total_value": available_qty * weighted_avg
+        "total_value": max(0, available_qty) * weighted_avg
     }
     
     await db.inventory.update_one(
