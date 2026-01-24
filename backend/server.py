@@ -320,40 +320,111 @@ async def send_email(to_email: str, subject: str, body: str):
         logging.error(f"Failed to send email: {str(e)}")
 
 async def process_document_ocr(file_path: str, doc_type: str) -> Optional[Dict[str, Any]]:
-    """Process document OCR - placeholder for future OCR integration"""
+    """Process document OCR using AI vision model"""
     try:
-        # Placeholder OCR processing
-        # In a real implementation, this would use OCR libraries like pytesseract, AWS Textract, etc.
-        ocr_data = {
+        from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+        
+        # Read and encode the file
+        file_ext = file_path.lower().split('.')[-1]
+        
+        # For PDF, we'd need to convert to image first - for now handle images
+        if file_ext == 'pdf':
+            # Return basic info for PDF - full OCR would need pdf2image
+            return {
+                "processed_at": datetime.now(timezone.utc).isoformat(),
+                "doc_type": doc_type,
+                "status": "pdf_uploaded",
+                "extracted_data": {"note": "PDF uploaded - manual verification required"}
+            }
+        
+        # Read image and convert to base64
+        async with aiofiles.open(file_path, 'rb') as f:
+            image_bytes = await f.read()
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        
+        # Determine prompt based on document type
+        if doc_type == "pan_card":
+            prompt = """Extract the following information from this PAN card image:
+1. PAN Number (10 character alphanumeric)
+2. Full Name
+3. Father's Name
+4. Date of Birth
+
+Return ONLY a JSON object with keys: pan_number, name, father_name, date_of_birth
+If any field is not visible, use null."""
+
+        elif doc_type == "cancelled_cheque":
+            prompt = """Extract the following information from this cancelled cheque image:
+1. Account Number
+2. IFSC Code
+3. Bank Name
+4. Branch Name
+5. Account Holder Name
+
+Return ONLY a JSON object with keys: account_number, ifsc_code, bank_name, branch_name, account_holder_name
+If any field is not visible, use null."""
+
+        elif doc_type == "cml_copy":
+            prompt = """Extract the following information from this CML (Client Master List) copy:
+1. DP ID (Depository Participant ID)
+2. Client ID
+3. Client Name
+4. PAN Number
+5. Bank Account Details
+
+Return ONLY a JSON object with keys: dp_id, client_id, client_name, pan_number, bank_details
+If any field is not visible, use null."""
+        else:
+            prompt = "Extract all text and relevant information from this document. Return as JSON."
+
+        # Use AI for OCR
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"ocr-{uuid.uuid4()}",
+            system_message="You are an OCR specialist. Extract information from documents accurately. Always respond with valid JSON only, no markdown."
+        ).with_model("openai", "gpt-4o")
+        
+        image_content = ImageContent(image_base64=image_base64)
+        user_message = UserMessage(text=prompt, image_contents=[image_content])
+        
+        response = await chat.send_message(user_message)
+        
+        # Parse the response as JSON
+        import json
+        try:
+            # Clean response - remove markdown code blocks if present
+            cleaned = response.strip()
+            if cleaned.startswith('```'):
+                cleaned = cleaned.split('\n', 1)[1] if '\n' in cleaned else cleaned
+                cleaned = cleaned.rsplit('```', 1)[0] if '```' in cleaned else cleaned
+            if cleaned.startswith('json'):
+                cleaned = cleaned[4:].strip()
+            extracted_data = json.loads(cleaned)
+        except json.JSONDecodeError:
+            extracted_data = {"raw_text": response}
+        
+        return {
             "processed_at": datetime.now(timezone.utc).isoformat(),
             "doc_type": doc_type,
             "status": "processed",
-            "extracted_data": {}
+            "extracted_data": extracted_data
         }
         
-        # Mock extraction based on document type
-        if doc_type == "pan_card":
-            ocr_data["extracted_data"] = {
-                "pan_number": "MOCK12345A",
-                "name": "Mock Name",
-                "father_name": "Mock Father Name"
-            }
-        elif doc_type == "cancelled_cheque":
-            ocr_data["extracted_data"] = {
-                "account_number": "1234567890",
-                "ifsc_code": "MOCK0001234",
-                "bank_name": "Mock Bank"
-            }
-        elif doc_type == "cml_copy":
-            ocr_data["extracted_data"] = {
-                "dp_id": "12345678",
-                "client_name": "Mock Client Name"
-            }
-        
-        return ocr_data
     except Exception as e:
         logging.error(f"OCR processing failed: {str(e)}")
-        return None
+        return {
+            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "doc_type": doc_type,
+            "status": "error",
+            "error": str(e),
+            "extracted_data": {}
+        }
+
+def generate_otc_ucc() -> str:
+    """Generate unique OTC UCC code"""
+    date_part = datetime.now(timezone.utc).strftime("%Y%m%d")
+    unique_part = str(uuid.uuid4())[:8].upper()
+    return f"OTC{date_part}{unique_part}"
 
 async def update_inventory(stock_id: str):
     """Recalculate weighted average and available quantity for a stock"""
