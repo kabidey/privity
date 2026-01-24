@@ -691,6 +691,61 @@ async def get_document_ocr(
         "upload_date": document.get("upload_date")
     }
 
+@api_router.put("/clients/{client_id}/employee-mapping")
+async def update_client_employee_mapping(
+    client_id: str,
+    employee_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Map or unmap a client to an employee (admin only)"""
+    # Only PE Desk and Zonal Manager can map/unmap clients
+    if current_user.get("role", 5) > 2:
+        raise HTTPException(status_code=403, detail="Only admins can map/unmap clients")
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    update_data = {}
+    
+    if employee_id:
+        # Map to employee
+        employee = await db.users.find_one({"id": employee_id}, {"_id": 0})
+        if not employee:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+        update_data = {
+            "mapped_employee_id": employee_id,
+            "mapped_employee_name": employee.get("name")
+        }
+    else:
+        # Unmap (set to None)
+        update_data = {
+            "mapped_employee_id": None,
+            "mapped_employee_name": None
+        }
+    
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$set": update_data}
+    )
+    
+    action = "mapped" if employee_id else "unmapped"
+    return {"message": f"Client successfully {action}", "client_id": client_id, **update_data}
+
+@api_router.get("/employees", response_model=List[User])
+async def get_employees(current_user: dict = Depends(get_current_user)):
+    """Get list of employees for mapping"""
+    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    return [User(
+        id=u["id"],
+        email=u["email"],
+        name=u["name"],
+        role=u["role"],
+        role_name=ROLES.get(u["role"], "Unknown"),
+        created_at=u["created_at"]
+    ) for u in users]
+
 @api_router.get("/clients", response_model=List[Client])
 async def get_clients(
     search: Optional[str] = None,
