@@ -341,7 +341,6 @@ const Bookings = () => {
       insider_form_acknowledged: false,
     });
     setEditingBooking(null);
-    setClientSearchQuery('');
   };
 
   const getApprovalBadge = (status) => {
