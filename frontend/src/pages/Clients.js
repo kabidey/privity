@@ -151,37 +151,47 @@ const Clients = () => {
             });
           }
         } else if (docType === 'cml_copy') {
-          setFormData(prev => ({
-            ...prev,
-            dp_id: extracted.dp_id || extracted.client_id || prev.dp_id,
-            name: extracted.client_name || prev.name,
-            pan_number: extracted.pan_number || prev.pan_number,
-            email: extracted.email || prev.email,
-            mobile: extracted.mobile || prev.mobile,
-            address: extracted.address || prev.address,
-            pin_code: extracted.pin_code || prev.pin_code,
-          }));
+          // Check if we got actual extracted data (not just raw_text)
+          const hasValidData = extracted.dp_id || extracted.client_id || extracted.client_name || 
+                               extracted.pan_number || extracted.email || extracted.mobile;
           
-          // Add bank from CML if present
-          if (extracted.account_number && extracted.ifsc_code) {
-            const newBank = {
-              bank_name: extracted.bank_name || '',
-              account_number: extracted.account_number,
-              ifsc_code: extracted.ifsc_code,
-              branch_name: extracted.branch_name || '',
-              source: 'cml_copy'
-            };
+          if (hasValidData) {
+            setFormData(prev => ({
+              ...prev,
+              dp_id: extracted.dp_id || extracted.client_id || prev.dp_id,
+              name: extracted.client_name || prev.name,
+              pan_number: extracted.pan_number || prev.pan_number,
+              email: extracted.email || prev.email,
+              mobile: extracted.mobile || prev.mobile,
+              address: extracted.address || prev.address,
+              pin_code: extracted.pin_code || prev.pin_code,
+            }));
             
-            setFormData(prev => {
-              const exists = prev.bank_accounts.some(b => b.account_number === newBank.account_number);
-              if (!exists) {
-                return { ...prev, bank_accounts: [...prev.bank_accounts, newBank] };
-              }
-              return prev;
-            });
+            // Add bank from CML if present
+            if (extracted.account_number && extracted.ifsc_code) {
+              const newBank = {
+                bank_name: extracted.bank_name || '',
+                account_number: extracted.account_number,
+                ifsc_code: extracted.ifsc_code,
+                branch_name: extracted.branch_name || '',
+                source: 'cml_copy'
+              };
+              
+              setFormData(prev => {
+                const exists = prev.bank_accounts.some(b => b.account_number === newBank.account_number);
+                if (!exists) {
+                  return { ...prev, bank_accounts: [...prev.bank_accounts, newBank] };
+                }
+                return prev;
+              });
+            }
+            
+            toast.success('CML data auto-filled!');
+          } else if (extracted.raw_text) {
+            toast.warning('Could not extract structured data from CML. Please fill fields manually.');
+          } else {
+            toast.warning('No data could be extracted from CML.');
           }
-          
-          toast.success('CML data auto-filled!');
         }
       }
     } catch (error) {
