@@ -77,6 +77,13 @@ from services.email_service import send_email, send_templated_email, generate_ot
 # Import audit service
 from services.audit_service import create_audit_log
 
+# Import modular routers
+from routers import (
+    email_templates_router,
+    smtp_config_router,
+    stocks_router
+)
+
 # Keep local Inventory alias for backward compatibility
 Inventory = InventoryModel
 
