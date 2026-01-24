@@ -421,43 +421,404 @@ class SMIFSStockManagementTester:
         
         return False
 
-    def test_client_creation_with_new_fields(self):
-        """Test client creation with new fields (address, pin_code, mobile, bank_accounts)"""
-        client_data = {
-            "name": "Test Client Enhanced",
-            "email": "testclient@example.com",
-            "phone": "9876543210",
-            "mobile": "9876543211",
-            "pan_number": "ABCDE1234F",
-            "dp_id": "12345678",
-            "address": "123 Test Street, Test City, Test State",
-            "pin_code": "123456",
-            "bank_accounts": [
-                {
-                    "bank_name": "Test Bank 1",
-                    "account_number": "1234567890",
-                    "ifsc_code": "TEST0001234",
-                    "branch_name": "Test Branch 1",
-                    "account_holder_name": "Test Client Enhanced",
-                    "source": "manual"
-                }
-            ],
-            "is_vendor": False
+    def test_stock_creation_pe_desk_only(self):
+        """Test that only PE Desk can create stocks"""
+        stock_data = {
+            "symbol": "NEWSTOCK",
+            "name": "New Test Stock",
+            "exchange": "NSE",
+            "isin_number": "INE123A01018",
+            "sector": "IT",
+            "product": "Equity",
+            "face_value": 10.0
         }
         
+        # Test employee cannot create stock
         success, response = self.run_test(
-            "Create Client with New Fields",
+            "Stock Creation by Employee (Should Fail)",
             "POST",
-            "clients",
+            "stocks",
+            403,  # Should be forbidden
+            data=stock_data,
+            token=self.employee_token
+        )
+        
+        if not success:
+            return False
+        
+        # Test PE Desk can create stock
+        success, response = self.run_test(
+            "Stock Creation by PE Desk",
+            "POST",
+            "stocks",
             200,
-            data=client_data,
-            token=self.admin_token
+            data=stock_data,
+            token=self.pe_desk_token
         )
         
         if success:
-            self.test_client_id = response['id']
-            print(f"   Client ID: {self.test_client_id}")
+            self.test_stock_id = response['id']
+            # Verify new fields are present
+            required_fields = ['isin_number', 'sector', 'product', 'face_value']
+            for field in required_fields:
+                if field not in response:
+                    print(f"   ❌ Missing field: {field}")
+                    return False
+                print(f"   ✓ {field}: {response[field]}")
             return True
+        return False
+
+    def test_stock_update_pe_desk_only(self):
+        """Test that only PE Desk can update stocks"""
+        if not self.test_stock_id:
+            print("❌ No test stock available")
+            return False
+            
+        update_data = {
+            "symbol": "NEWSTOCK",
+            "name": "Updated Test Stock",
+            "exchange": "BSE",
+            "isin_number": "INE123A01018",
+            "sector": "Banking",
+            "product": "Preference",
+            "face_value": 5.0
+        }
+        
+        # Test employee cannot update stock
+        success, response = self.run_test(
+            "Stock Update by Employee (Should Fail)",
+            "PUT",
+            f"stocks/{self.test_stock_id}",
+            403,  # Should be forbidden
+            data=update_data,
+            token=self.employee_token
+        )
+        
+        if not success:
+            return False
+        
+        # Test PE Desk can update stock
+        success, response = self.run_test(
+            "Stock Update by PE Desk",
+            "PUT",
+            f"stocks/{self.test_stock_id}",
+            200,
+            data=update_data,
+            token=self.pe_desk_token
+        )
+        
+        if success:
+            # Verify updated fields
+            if response.get('sector') == 'Banking' and response.get('face_value') == 5.0:
+                print(f"   ✓ Updated sector: {response['sector']}")
+                print(f"   ✓ Updated face_value: {response['face_value']}")
+                return True
+        return False
+
+    def test_stock_delete_pe_desk_only(self):
+        """Test that only PE Desk can delete stocks"""
+        # Create a stock to delete
+        stock_data = {
+            "symbol": "DELSTOCK",
+            "name": "Stock to Delete",
+            "exchange": "NSE"
+        }
+        
+        success, response = self.run_test(
+            "Create Stock for Deletion Test",
+            "POST",
+            "stocks",
+            200,
+            data=stock_data,
+            token=self.pe_desk_token
+        )
+        
+        if not success:
+            return False
+            
+        delete_stock_id = response['id']
+        
+        # Test employee cannot delete stock
+        success, response = self.run_test(
+            "Stock Deletion by Employee (Should Fail)",
+            "DELETE",
+            f"stocks/{delete_stock_id}",
+            403,  # Should be forbidden
+            token=self.employee_token
+        )
+        
+        if not success:
+            return False
+        
+        # Test PE Desk can delete stock
+        success, response = self.run_test(
+            "Stock Deletion by PE Desk",
+            "DELETE",
+            f"stocks/{delete_stock_id}",
+            200,
+            token=self.pe_desk_token
+        )
+        
+        return success
+
+    def test_corporate_action_creation_pe_desk_only(self):
+        """Test corporate action creation (PE Desk only)"""
+        if not self.test_stock_id:
+            print("❌ No test stock available")
+            return False
+            
+        action_data = {
+            "stock_id": self.test_stock_id,
+            "action_type": "stock_split",
+            "ratio_from": 1,
+            "ratio_to": 2,
+            "new_face_value": 5.0,
+            "record_date": date.today().strftime("%Y-%m-%d"),
+            "notes": "Test stock split 1:2"
+        }
+        
+        # Test employee cannot create corporate action
+        success, response = self.run_test(
+            "Corporate Action Creation by Employee (Should Fail)",
+            "POST",
+            "corporate-actions",
+            403,  # Should be forbidden
+            data=action_data,
+            token=self.employee_token
+        )
+        
+        if not success:
+            return False
+        
+        # Test PE Desk can create corporate action
+        success, response = self.run_test(
+            "Corporate Action Creation by PE Desk",
+            "POST",
+            "corporate-actions",
+            200,
+            data=action_data,
+            token=self.pe_desk_token
+        )
+        
+        if success:
+            self.test_corporate_action_id = response['id']
+            # Verify required fields
+            required_fields = ['action_type', 'ratio_from', 'ratio_to', 'record_date', 'status']
+            for field in required_fields:
+                if field not in response:
+                    print(f"   ❌ Missing field: {field}")
+                    return False
+                print(f"   ✓ {field}: {response[field]}")
+            return True
+        return False
+
+    def test_corporate_action_types(self):
+        """Test both stock_split and bonus action types"""
+        if not self.test_stock_id:
+            print("❌ No test stock available")
+            return False
+            
+        # Test bonus action
+        bonus_data = {
+            "stock_id": self.test_stock_id,
+            "action_type": "bonus",
+            "ratio_from": 1,
+            "ratio_to": 1,
+            "record_date": date.today().strftime("%Y-%m-%d"),
+            "notes": "Test bonus 1:1"
+        }
+        
+        success, response = self.run_test(
+            "Corporate Action - Bonus Type",
+            "POST",
+            "corporate-actions",
+            200,
+            data=bonus_data,
+            token=self.pe_desk_token
+        )
+        
+        if success and response.get('action_type') == 'bonus':
+            print(f"   ✓ Bonus action created: {response['ratio_from']}:{response['ratio_to']}")
+            return True
+        return False
+
+    def test_corporate_action_get_pe_desk_only(self):
+        """Test GET /api/corporate-actions (PE Desk only)"""
+        # Test employee cannot access corporate actions
+        success, response = self.run_test(
+            "Get Corporate Actions by Employee (Should Fail)",
+            "GET",
+            "corporate-actions",
+            403,  # Should be forbidden
+            token=self.employee_token
+        )
+        
+        if not success:
+            return False
+        
+        # Test PE Desk can access corporate actions
+        success, response = self.run_test(
+            "Get Corporate Actions by PE Desk",
+            "GET",
+            "corporate-actions",
+            200,
+            token=self.pe_desk_token
+        )
+        
+        if success:
+            print(f"   ✓ Corporate actions count: {len(response)}")
+            return True
+        return False
+
+    def test_corporate_action_apply_record_date_validation(self):
+        """Test corporate action apply with record date validation"""
+        if not self.test_corporate_action_id:
+            print("❌ No test corporate action available")
+            return False
+            
+        # Test applying action (should work only on record date)
+        success, response = self.run_test(
+            "Apply Corporate Action (Record Date Validation)",
+            "PUT",
+            f"corporate-actions/{self.test_corporate_action_id}/apply",
+            200,  # Should work since we set today as record date
+            token=self.pe_desk_token
+        )
+        
+        if success:
+            print(f"   ✓ Action applied: {response.get('message', 'Success')}")
+            adjustment_factor = response.get('adjustment_factor')
+            if adjustment_factor:
+                print(f"   ✓ Adjustment factor: {adjustment_factor}")
+            return True
+        return False
+
+    def test_stock_model_new_fields(self):
+        """Test that stock model has all new fields"""
+        success, response = self.run_test(
+            "Get Stock with New Fields",
+            "GET",
+            f"stocks/{self.test_stock_id}",
+            200,
+            token=self.pe_desk_token
+        )
+        
+        if success:
+            new_fields = ['isin_number', 'sector', 'product', 'face_value']
+            all_present = True
+            for field in new_fields:
+                if field in response:
+                    print(f"   ✓ {field}: {response[field]}")
+                else:
+                    print(f"   ❌ Missing field: {field}")
+                    all_present = False
+            return all_present
+        return False
+
+    def test_price_adjustment_calculation(self):
+        """Test price adjustment factor calculation for splits and bonuses"""
+        # Create test data for price adjustment
+        if not self.test_stock_id:
+            return False
+            
+        # Create vendor and purchase for inventory
+        vendor_data = {
+            "name": "Price Test Vendor",
+            "pan_number": "PRICE1234V",
+            "dp_id": "PRICE123",
+            "is_vendor": True
+        }
+        
+        success, vendor_response = self.run_test(
+            "Create Vendor for Price Test",
+            "POST",
+            "clients",
+            200,
+            data=vendor_data,
+            token=self.pe_desk_token
+        )
+        
+        if not success:
+            return False
+            
+        vendor_id = vendor_response['id']
+        
+        # Create purchase
+        purchase_data = {
+            "vendor_id": vendor_id,
+            "stock_id": self.test_stock_id,
+            "quantity": 50,
+            "price_per_unit": 100.0,
+            "purchase_date": "2024-01-15"
+        }
+        
+        success, purchase_response = self.run_test(
+            "Create Purchase for Price Test",
+            "POST",
+            "purchases",
+            200,
+            data=purchase_data,
+            token=self.pe_desk_token
+        )
+        
+        if not success:
+            return False
+        
+        # Get initial inventory
+        success, inventory_before = self.run_test(
+            "Get Inventory Before Corporate Action",
+            "GET",
+            f"inventory/{self.test_stock_id}",
+            200,
+            token=self.pe_desk_token
+        )
+        
+        if success:
+            initial_price = inventory_before.get('weighted_avg_price', 0)
+            print(f"   Initial weighted avg price: ₹{initial_price}")
+            
+            # Create and apply a 1:2 stock split
+            split_data = {
+                "stock_id": self.test_stock_id,
+                "action_type": "stock_split",
+                "ratio_from": 1,
+                "ratio_to": 2,
+                "new_face_value": 2.5,
+                "record_date": date.today().strftime("%Y-%m-%d"),
+                "notes": "Price adjustment test split"
+            }
+            
+            success, split_response = self.run_test(
+                "Create Split for Price Test",
+                "POST",
+                "corporate-actions",
+                200,
+                data=split_data,
+                token=self.pe_desk_token
+            )
+            
+            if success:
+                split_id = split_response['id']
+                
+                # Apply the split
+                success, apply_response = self.run_test(
+                    "Apply Split for Price Test",
+                    "PUT",
+                    f"corporate-actions/{split_id}/apply",
+                    200,
+                    token=self.pe_desk_token
+                )
+                
+                if success:
+                    adjustment_factor = apply_response.get('adjustment_factor')
+                    expected_factor = 1/2  # 1:2 split should halve the price
+                    
+                    print(f"   Adjustment factor: {adjustment_factor}")
+                    print(f"   Expected factor: {expected_factor}")
+                    
+                    # Check if adjustment factor is correct (within tolerance)
+                    return abs(adjustment_factor - expected_factor) < 0.001
+        
         return False
 
 def main():
