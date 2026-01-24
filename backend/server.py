@@ -383,9 +383,16 @@ If any field is not visible, use null."""
 2. Client ID
 3. Client Name
 4. PAN Number
-5. Bank Account Details
+5. Email Address
+6. Mobile Number
+7. Address (full address)
+8. Pin Code
+9. Bank Name
+10. Bank Account Number
+11. IFSC Code
+12. Branch Name
 
-Return ONLY a JSON object with keys: dp_id, client_id, client_name, pan_number, bank_details
+Return ONLY a JSON object with keys: dp_id, client_id, client_name, pan_number, email, mobile, address, pin_code, bank_name, account_number, ifsc_code, branch_name
 If any field is not visible, use null."""
         else:
             prompt = "Extract all text and relevant information from this document. Return as JSON."
