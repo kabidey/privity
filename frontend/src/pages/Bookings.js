@@ -14,12 +14,13 @@ import { toast } from 'sonner';
 import api from '../utils/api';
 import { 
   Plus, Pencil, Trash2, Clock, CheckCircle, XCircle, AlertCircle, 
-  CreditCard, IndianRupee, Calendar, Receipt, Building2 
+  CreditCard, IndianRupee, Calendar, Receipt, Building2, TrendingDown
 } from 'lucide-react';
 
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
   const [pendingBookings, setPendingBookings] = useState([]);
+  const [pendingLossBookings, setPendingLossBookings] = useState([]);
   const [clients, setClients] = useState([]);
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
