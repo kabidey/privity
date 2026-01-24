@@ -182,10 +182,10 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ All resolved - no critical issues
 
 ### P1 (High Priority)
-- [ ] Real-time notifications with WebSocket
-- [ ] Password reset functionality
+- ✅ Real-time notifications with WebSocket - DONE
+- ✅ Password reset functionality - DONE
 - [ ] Two-factor authentication
-- [ ] Backend refactoring (split server.py into modules)
+- ✅ Backend modular structure prepared (full migration pending)
 
 ### P2 (Medium Priority)
 - [ ] Bulk booking close functionality
@@ -194,7 +194,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 - [ ] Mobile app (React Native)
 
 ## Next Tasks
-1. Real-time notifications with WebSocket
-2. Password reset flow
-3. Refactor backend into modular structure (models/, routers/, services/)
-4. Create advanced analytics with more chart types
+1. Two-factor authentication (TOTP)
+2. Complete backend refactoring (migrate all code from server.py to modules)
+3. Advanced analytics with more chart types
+4. Bulk booking close functionality
