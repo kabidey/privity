@@ -2206,6 +2206,22 @@ async def process_client_confirmation(booking_id: str, token: str, action: str, 
     if booking.get("client_confirmation_token") != token:
         raise HTTPException(status_code=403, detail="Invalid confirmation token")
     
+    # Check if booking is approved by PE Desk first
+    if booking.get("approval_status") != "approved":
+        return {
+            "message": "This booking is still pending PE Desk approval. You cannot confirm it yet.",
+            "status": "pending_approval",
+            "booking_number": booking.get("booking_number", booking_id[:8].upper())
+        }
+    
+    # Check if loss booking is approved (if applicable)
+    if booking.get("is_loss_booking") and booking.get("loss_approval_status") == "pending":
+        return {
+            "message": "This is a loss booking that requires additional approval. You cannot confirm it yet.",
+            "status": "pending_loss_approval",
+            "booking_number": booking.get("booking_number", booking_id[:8].upper())
+        }
+    
     # Check if already confirmed
     if booking.get("client_confirmation_status") != "pending":
         return {
