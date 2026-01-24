@@ -18,7 +18,9 @@ class ShareBookingAPITester:
         
         # Test data storage
         self.test_client_id = None
+        self.test_vendor_id = None
         self.test_stock_id = None
+        self.test_purchase_id = None
         self.test_booking_id = None
 
     def log_test(self, name, success, details=""):
