@@ -216,6 +216,26 @@ class TokenResponse(BaseModel):
     token: str
     user: User
 
+# Password Reset Models
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetVerify(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
+
+# Notification Model
+class Notification(BaseModel):
+    id: str
+    user_id: str
+    type: str
+    title: str
+    message: str
+    data: Optional[Dict[str, Any]] = None
+    read: bool = False
+    created_at: str
+
 class BankAccount(BaseModel):
     bank_name: str
     account_number: str
