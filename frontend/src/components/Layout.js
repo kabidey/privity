@@ -36,13 +36,17 @@ const Layout = ({ children }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Clients', path: '/clients' },
-    { icon: Building2, label: 'Vendors', path: '/vendors' },
     { icon: Package, label: 'Stocks', path: '/stocks' },
     { icon: ShoppingCart, label: 'Purchases', path: '/purchases' },
     { icon: Boxes, label: 'Inventory', path: '/inventory' },
     { icon: FileText, label: 'Bookings', path: '/bookings' },
     { icon: BarChart3, label: 'Reports', path: '/reports' },
   ];
+
+  // Add Vendors for PE Desk only (role 1)
+  if (user.role === 1) {
+    menuItems.splice(2, 0, { icon: Building2, label: 'Vendors', path: '/vendors' });
+  }
 
   // Add user management for admin roles (1 and 2)
   if (user.role <= 2) {
