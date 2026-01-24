@@ -846,6 +846,16 @@ const Clients = () => {
                         )}
                         {isPEDesk && (
                           <>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleCloneToVendor(client)} 
+                              title="Clone as Vendor"
+                              disabled={cloning}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
                             <Button variant="ghost" size="sm" onClick={() => handleEdit(client)} title="Edit Client"><Pencil className="h-4 w-4" /></Button>
                             <Button variant="ghost" size="sm" onClick={() => handleDelete(client.id)} title="Delete Client"><Trash2 className="h-4 w-4" /></Button>
                           </>
