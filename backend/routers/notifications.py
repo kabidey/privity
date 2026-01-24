@@ -1,37 +1,28 @@
 """
 Notification routes and WebSocket endpoint
 """
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
-from typing import Optional
 import logging
+import jwt
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query, HTTPException
 
 from database import db
-from utils.auth import get_current_user, decode_token
-from utils.notifications import manager
+from config import JWT_SECRET, JWT_ALGORITHM
+from utils.auth import get_current_user
+from services.notification_service import ws_manager
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str = Query(...)):
-    """WebSocket endpoint for real-time notifications"""
+
+def decode_ws_token(token: str) -> dict:
+    """Decode JWT token for WebSocket authentication"""
     try:
-        # Verify token
-        payload = decode_token(token)
-        user_id = payload["user_id"]
-        
-        await manager.connect(websocket, user_id)
-        
-        try:
-            while True:
-                # Keep connection alive, handle ping/pong
-                data = await websocket.receive_text()
-                if data == "ping":
-                    await websocket.send_text("pong")
-        except WebSocketDisconnect:
-            manager.disconnect(websocket, user_id)
-    except Exception as e:
-        logging.error(f"WebSocket error: {e}")
-        await websocket.close(code=1008)
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 
 @router.get("")
 async def get_notifications(
@@ -50,6 +41,7 @@ async def get_notifications(
     
     return notifications
 
+
 @router.get("/unread-count")
 async def get_unread_count(current_user: dict = Depends(get_current_user)):
     """Get count of unread notifications"""
@@ -58,6 +50,7 @@ async def get_unread_count(current_user: dict = Depends(get_current_user)):
         "read": False
     })
     return {"count": count}
+
 
 @router.put("/{notification_id}/read")
 async def mark_as_read(notification_id: str, current_user: dict = Depends(get_current_user)):
@@ -72,6 +65,7 @@ async def mark_as_read(notification_id: str, current_user: dict = Depends(get_cu
     
     return {"message": "Notification marked as read"}
 
+
 @router.put("/read-all")
 async def mark_all_as_read(current_user: dict = Depends(get_current_user)):
     """Mark all notifications as read"""
@@ -81,6 +75,7 @@ async def mark_all_as_read(current_user: dict = Depends(get_current_user)):
     )
     
     return {"message": f"Marked {result.modified_count} notifications as read"}
+
 
 @router.delete("/{notification_id}")
 async def delete_notification(notification_id: str, current_user: dict = Depends(get_current_user)):
