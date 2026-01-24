@@ -933,6 +933,28 @@ const Clients = () => {
                         )}
                         {isPEDesk && (
                           <>
+                            {/* Suspend/Unsuspend button */}
+                            {client.is_suspended ? (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleUnsuspendClient(client)} 
+                                title="Unsuspend Client"
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <ShieldOff className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => openSuspendDialog(client)} 
+                                title="Suspend Client"
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button 
                               variant="ghost" 
                               size="sm" 
