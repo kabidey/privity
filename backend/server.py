@@ -410,6 +410,11 @@ class Booking(BaseModel):
     notes: Optional[str] = None
     created_at: str
     created_by: str
+    # Client confirmation (client can accept/deny booking via email)
+    client_confirmation_status: str = "pending"  # pending, accepted, denied
+    client_confirmation_token: Optional[str] = None
+    client_confirmed_at: Optional[str] = None
+    client_denial_reason: Optional[str] = None
     # Loss booking approval (selling price < buying price)
     is_loss_booking: bool = False
     loss_approval_status: str = "not_required"  # not_required, pending, approved, rejected
