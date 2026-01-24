@@ -614,13 +614,15 @@ const Bookings = () => {
                             {canRecordPayments && booking.approval_status === 'approved' && 
                              booking.selling_price && !booking.dp_transfer_ready && (
                               <Button 
-                                variant="ghost" 
+                                variant="outline" 
                                 size="sm" 
                                 onClick={() => handleOpenPaymentDialog(booking)}
-                                className="text-blue-600"
+                                className="text-blue-600 border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950"
                                 title="Record Payment"
+                                data-testid="record-payment-button"
                               >
-                                <CreditCard className="h-4 w-4" />
+                                <CreditCard className="h-4 w-4 mr-1" />
+                                Pay
                               </Button>
                             )}
                             {booking.dp_transfer_ready && (
