@@ -1667,45 +1667,18 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         }
     )
     
-    # Send detailed email notification to client with CC to user
+    # Send detailed email notification to client with CC to user using template
     if client.get("email"):
-        # Note: Client confirmation email will be sent AFTER PE Desk approval
-        # We just send a notification to the creator that booking was created
-        email_body = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #064E3B;">Booking Order Created</h2>
-            <p>Dear {client['name']},</p>
-            <p>A new booking order has been created and is pending internal approval. You will receive another email to confirm your acceptance once approved.</p>
-            
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Order ID</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol']} - {stock['name']}</td>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_data.quantity}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Status</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><span style="color: #f59e0b;">Pending Internal Approval</span></td>
-                </tr>
-            </table>
-            
-            <p style="color: #6b7280; font-size: 14px;">This is an automated notification. You will receive a confirmation request email once the booking is approved internally.</p>
-            
-            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
-        </div>
-        """
-        
-        await send_email(
+        await send_templated_email(
+            "booking_created",
             client["email"],
-            f"Booking Created - Pending Approval | {booking_number}",
-            email_body,
+            {
+                "client_name": client["name"],
+                "booking_number": booking_number,
+                "stock_symbol": stock["symbol"],
+                "stock_name": stock["name"],
+                "quantity": booking_data.quantity
+            },
             cc_email=current_user.get("email")
         )
     
