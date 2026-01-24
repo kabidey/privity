@@ -1916,9 +1916,9 @@ async def get_purchases(
 ):
     user_role = current_user.get("role", 5)
     
-    # Employees cannot view purchase history
-    if user_role == 4:
-        raise HTTPException(status_code=403, detail="Employees cannot access vendor purchase history")
+    # Only PE Desk can view purchase history
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can access vendor purchase history")
     
     check_permission(current_user, "manage_purchases")
     
