@@ -84,7 +84,7 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
     if client_data.email and is_active:
         await send_email(
             client_data.email,
-            "Welcome to Share Booking System",
+            "Welcome to Private Equity System",
             f"<p>Dear {client_data.name},</p><p>Your account has been created successfully.</p>"
         )
     
@@ -219,7 +219,7 @@ async def approve_client(client_id: str, approve: bool = True, current_user: dic
     if approve and client.get("email"):
         await send_email(
             client["email"],
-            "Account Approved - Share Booking System",
+            "Account Approved - Private Equity System",
             f"<p>Dear {client['name']},</p><p>Your account has been approved and is now active.</p>"
         )
     

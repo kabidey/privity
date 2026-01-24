@@ -212,7 +212,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             
             <p style="color: #6b7280; font-size: 14px;">This is an automated notification. You will receive a confirmation request email once the booking is approved internally.</p>
             
-            <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """
         
@@ -604,7 +604,7 @@ async def approve_booking(
                         </tr>
                     </table>
                     
-                    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+                    <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
                 </div>
                 """
                 await send_email(
@@ -666,7 +666,7 @@ async def approve_booking(
                     
                     <p style="color: #6b7280; font-size: 14px;">Please review and confirm this booking. If you accept, payment can be initiated. If you deny, the booking will be cancelled.</p>
                     
-                    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+                    <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
                 </div>
                 """
                 await send_email(
@@ -999,7 +999,7 @@ async def approve_loss_booking(
                 
                 <p style="color: #6b7280; font-size: 14px;">This is a loss transaction booking. Please review carefully before confirming.</p>
                 
-                <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+                <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
             </div>
             """
             await send_email(

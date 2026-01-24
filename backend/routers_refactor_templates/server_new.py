@@ -1,5 +1,5 @@
 """
-Privity Share Booking System - Main Application Entry Point
+Privity Private Equity System - Main Application Entry Point
 This server.py imports all routes from modular router files.
 """
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
@@ -36,7 +36,7 @@ from routers import (
 )
 
 # Create the main app
-app = FastAPI(title="Privity Share Booking System", version="2.0.0")
+app = FastAPI(title="Privity Private Equity System", version="2.0.0")
 
 # Include all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
