@@ -720,6 +720,16 @@ const Clients = () => {
               
               <TabsContent value="documents">
                 <div className="space-y-4">
+                  {!editingClient && (
+                    <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">All documents are mandatory</p>
+                        <p className="text-xs text-amber-700 dark:text-amber-300">Please upload PAN Card, CML Copy, and Cancelled Cheque to create a client.</p>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                     <Sparkles className="h-5 w-5 text-blue-600" />
                     <p className="text-sm text-blue-800 dark:text-blue-200">
@@ -728,9 +738,9 @@ const Clients = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    <DocumentUploadCard docType="pan_card" label="PAN Card" icon={CreditCard} color="text-blue-600" description="Extracts: Name, PAN Number" />
-                    <DocumentUploadCard docType="cml_copy" label="CML Copy" icon={FileCheck} color="text-purple-600" description="Extracts: DP ID, Name, PAN, Email, Mobile, Address, Bank Details" />
-                    <DocumentUploadCard docType="cancelled_cheque" label="Cancelled Cheque" icon={FileText} color="text-orange-600" description="Extracts: Bank Name, Account Number, IFSC Code (adds as separate bank account)" />
+                    <DocumentUploadCard docType="pan_card" label={`PAN Card${!editingClient ? ' *' : ''}`} icon={CreditCard} color="text-blue-600" description="Extracts: Name, PAN Number" />
+                    <DocumentUploadCard docType="cml_copy" label={`CML Copy${!editingClient ? ' *' : ''}`} icon={FileCheck} color="text-purple-600" description="Extracts: DP ID, Name, PAN, Email, Mobile, Address, Bank Details" />
+                    <DocumentUploadCard docType="cancelled_cheque" label={`Cancelled Cheque${!editingClient ? ' *' : ''}`} icon={FileText} color="text-orange-600" description="Extracts: Bank Name, Account Number, IFSC Code (adds as separate bank account)" />
                   </div>
                   
                   <div className="flex justify-end gap-2 pt-4">
