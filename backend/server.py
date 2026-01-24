@@ -1070,6 +1070,19 @@ async def approve_client(client_id: str, approve: bool = True, current_user: dic
             f"<p>Dear {client['name']},</p><p>Your account has been approved and is now active.</p>"
         )
     
+    # Real-time notification to creator
+    if client.get("created_by"):
+        notif_type = "client_approved" if approve else "client_rejected"
+        notif_title = f"Client {'Approved' if approve else 'Rejected'}"
+        notif_message = f"Client '{client['name']}' has been {'approved' if approve else 'rejected'} by {current_user['name']}"
+        await create_notification(
+            client["created_by"],
+            notif_type,
+            notif_title,
+            notif_message,
+            {"client_id": client_id, "client_name": client["name"]}
+        )
+    
     return {"message": f"Client {'approved' if approve else 'rejected'} successfully"}
 
 @api_router.post("/clients/{client_id}/bank-account")
