@@ -351,6 +351,16 @@ class BookingWithDetails(BaseModel):
     payment_status: str = "pending"
     payment_completed_at: Optional[str] = None
     dp_transfer_ready: bool = False
+    # Void tracking
+    is_voided: bool = False
+    voided_at: Optional[str] = None
+    voided_by: Optional[str] = None
+    voided_by_name: Optional[str] = None
+    void_reason: Optional[str] = None
+    # Stock transfer tracking
+    stock_transferred: bool = False
+    stock_transferred_at: Optional[str] = None
+    stock_transferred_by: Optional[str] = None
 
 
 # ============== DP Transfer Report Model ==============
