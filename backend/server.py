@@ -588,7 +588,15 @@ async def seed_admin_user():
 
 # Auth Routes
 @api_router.post("/auth/register", response_model=TokenResponse)
-async def register(user_data: UserCreate):
+async def register(user_data: UserCreate, request: Request = None):
+    # Check email domain restriction
+    email_domain = user_data.email.split('@')[-1].lower()
+    if email_domain not in ALLOWED_EMAIL_DOMAINS:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Registration is restricted to employees with @smifs.com email addresses"
+        )
+    
     existing_user = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -596,24 +604,39 @@ async def register(user_data: UserCreate):
     user_id = str(uuid.uuid4())
     hashed_pw = hash_password(user_data.password)
     
+    # Default role is Employee (4) for smifs.com domain
+    user_role = 4  # Employee
+    
     user_doc = {
         "id": user_id,
         "email": user_data.email,
         "password": hashed_pw,
         "name": user_data.name,
-        "role": user_data.role,
+        "role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.users.insert_one(user_doc)
+    
+    # Create audit log
+    await create_audit_log(
+        action="USER_REGISTER",
+        entity_type="user",
+        entity_id=user_id,
+        user_id=user_id,
+        user_name=user_data.name,
+        user_role=user_role,
+        entity_name=user_data.name,
+        details={"email": user_data.email, "role": user_role}
+    )
     
     token = create_token(user_id, user_data.email)
     user_response = User(
         id=user_id,
         email=user_data.email,
         name=user_data.name,
-        role=user_data.role,
-        role_name=ROLES.get(user_data.role, "Unknown"),
+        role=user_role,
+        role_name=ROLES.get(user_role, "Employee"),
         created_at=user_doc["created_at"]
     )
     
@@ -624,6 +647,17 @@ async def login(login_data: UserLogin):
     user = await db.users.find_one({"email": login_data.email}, {"_id": 0})
     if not user or not verify_password(login_data.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Create audit log for login
+    await create_audit_log(
+        action="USER_LOGIN",
+        entity_type="user",
+        entity_id=user["id"],
+        user_id=user["id"],
+        user_name=user["name"],
+        user_role=user.get("role", 5),
+        entity_name=user["name"]
+    )
     
     token = create_token(user["id"], user["email"])
     user_response = User(
