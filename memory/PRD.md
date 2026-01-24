@@ -395,15 +395,37 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Shows the name of user who created each booking
   - Helps PE Desk identify booking sources (Employee vs Admin)
 
+### Feature - Booking Type with Insider Trading Policy (Jan 24, 2026)
+- ✅ **Booking Type Selection**: New "Booking For" field with radio buttons (Client/Team/Own)
+  - Client (default): Regular booking for a client
+  - Team: Booking for team/company
+  - Own: Personal booking - triggers Insider Trading Policy warning
+- ✅ **Insider Trading Policy Warning Dialog**: When "Own" is selected:
+  - Shows compliance warning about regulatory requirements
+  - Provides email link to pe@smifs.com for requesting requisite forms
+  - Explains upload facility for completed forms
+  - "Cancel" resets to Client type
+  - "I Acknowledge & Continue" allows booking with acknowledgment indicator
+- ✅ **Acknowledgment Indicator**: Green indicator shows after user acknowledges policy
+- ✅ **Insider Form Upload**: 
+  - POST `/api/bookings/{id}/insider-form` - Upload completed compliance form
+  - GET `/api/bookings/{id}/insider-form` - Download uploaded form (PE Desk only)
+  - Only allowed for "Own" bookings
+- ✅ **Model Updates**: 
+  - `booking_type`: "client", "team", or "own"
+  - `insider_form_uploaded`: Boolean flag
+  - `insider_form_path`: Path to uploaded form
+
 ## Next Tasks
-1. **(P0) Complete Backend Modularization** - Router templates created in `/routers_refactor_templates/`:
+1. **(P1) Refactor Email Templates Usage** - Replace hardcoded email bodies in server.py with the new template system
+2. **(P1) Two-factor authentication (TOTP)**
+3. **(P2) Bulk booking close functionality**
+4. **(P2) Backend Modularization** - Router templates created in `/routers_refactor_templates/`:
    - Template files created for: clients.py, stocks.py, bookings.py, reports.py, purchases.py, email_templates.py, utils.py
    - Existing working routers: auth.py, users.py, notifications.py
    - Migration requires careful testing to avoid breaking changes
-   - server.py remains monolithic (3,749 lines) until full migration
-2. **(P1) Two-factor authentication (TOTP)**
-3. **(P2) Bulk booking close functionality**
-4. **(P2) Mobile responsive improvements**
+   - server.py remains monolithic until full migration
+5. **(P2) Mobile responsive improvements**
 
 ## Completed Features (Jan 25, 2026)
 
