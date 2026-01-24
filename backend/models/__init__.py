@@ -247,6 +247,8 @@ class BookingCreate(BaseModel):
     booking_date: str
     status: str = "open"
     notes: Optional[str] = None
+    booking_type: str = "client"  # "client", "team", or "own"
+    insider_form_uploaded: bool = False
 
 
 class Booking(BaseModel):
