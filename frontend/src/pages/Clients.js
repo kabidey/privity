@@ -717,10 +717,10 @@ const Clients = () => {
         <div className="mb-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
-              <TabsTrigger value="all">All Clients ({clients.length})</TabsTrigger>
+              <TabsTrigger value="all">All Clients ({filteredClients.length})</TabsTrigger>
               <TabsTrigger value="pending" className="text-orange-600">
                 <Clock className="h-4 w-4 mr-1" />
-                Pending Approval ({pendingClients.length})
+                Pending Approval ({filteredPendingClients.length})
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -728,12 +728,25 @@ const Clients = () => {
       )}
 
       <Card className="border shadow-sm">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>{activeTab === 'pending' ? 'Pending Approval' : 'All Clients'}</CardTitle>
+          <div className="w-72">
+            <Input 
+              placeholder="Search by Name or PAN..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              data-testid="client-search-input"
+              className="h-9"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? <div>Loading...</div> : displayedClients.length === 0 ? (
-            <div className="text-center py-12"><p className="text-muted-foreground">No clients found.</p></div>
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                {searchQuery ? `No clients found matching "${searchQuery}"` : 'No clients found.'}
+              </p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -742,6 +755,7 @@ const Clients = () => {
                     <TableHead className="text-xs uppercase">OTC UCC</TableHead>
                     <TableHead className="text-xs uppercase">Name</TableHead>
                     <TableHead className="text-xs uppercase">PAN</TableHead>
+                    <TableHead className="text-xs uppercase">DP Type</TableHead>
                     <TableHead className="text-xs uppercase">Mobile</TableHead>
                     <TableHead className="text-xs uppercase">Status</TableHead>
                     {!isEmployee && <TableHead className="text-xs uppercase">Mapped To</TableHead>}
@@ -756,6 +770,14 @@ const Clients = () => {
                       <TableCell className="font-mono text-sm font-bold text-primary">{client.otc_ucc || 'N/A'}</TableCell>
                       <TableCell className="font-medium">{client.name}</TableCell>
                       <TableCell className="mono text-sm">{client.pan_number}</TableCell>
+                      <TableCell>
+                        <Badge variant={client.dp_type === 'smifs' ? 'default' : 'outline'} className="text-xs">
+                          {client.dp_type === 'smifs' ? 'SMIFS' : 'Outside'}
+                        </Badge>
+                        {client.dp_type === 'smifs' && client.trading_ucc && (
+                          <span className="text-xs text-muted-foreground ml-1">({client.trading_ucc})</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm">{client.mobile || client.phone || '-'}</TableCell>
                       <TableCell>{getStatusBadge(client)}</TableCell>
                       {!isEmployee && (
