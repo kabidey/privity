@@ -4,17 +4,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Download, FileSpreadsheet, CheckCircle, CreditCard, Building2, Calendar } from 'lucide-react';
+import { Download, FileSpreadsheet, CheckCircle, CreditCard, Building2, Calendar, Send, Check } from 'lucide-react';
 
 const DPTransferReport = () => {
   const navigate = useNavigate();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [transferDialog, setTransferDialog] = useState({ open: false, record: null });
+  const [transferNotes, setTransferNotes] = useState('');
+  const [transferLoading, setTransferLoading] = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const canAccess = currentUser.role === 1 || currentUser.role === 2;
+  const isPEDesk = currentUser.role === 1;
 
   useEffect(() => {
     if (!canAccess) {
