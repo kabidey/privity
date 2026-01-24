@@ -64,6 +64,7 @@ const Clients = () => {
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isPEDesk = currentUser.role === 1;
   const isAdmin = currentUser.role <= 2;
   const isManager = currentUser.role <= 3;
   const isEmployee = currentUser.role === 4;
@@ -75,6 +76,25 @@ const Clients = () => {
       if (isManager) fetchPendingClients();
     }
   }, []);
+
+  // Filter clients based on search query
+  const filteredClients = clients.filter(client => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      client.name?.toLowerCase().includes(query) ||
+      client.pan_number?.toLowerCase().includes(query)
+    );
+  });
+
+  const filteredPendingClients = pendingClients.filter(client => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      client.name?.toLowerCase().includes(query) ||
+      client.pan_number?.toLowerCase().includes(query)
+    );
+  });
 
   const fetchClients = async () => {
     try {
