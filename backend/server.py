@@ -1442,12 +1442,20 @@ async def create_purchase(purchase_data: PurchaseCreate, current_user: dict = De
     # Update inventory
     await update_inventory(purchase_data.stock_id)
     
-    # Send email notification to vendor
+    # Send email notification to vendor using template
     if vendor.get("email"):
-        await send_email(
+        await send_templated_email(
+            "purchase_order_created",
             vendor["email"],
-            "Purchase Order Confirmation",
-            f"<p>Dear {vendor['name']},</p><p>A purchase order has been created for {purchase_data.quantity} units of {stock['symbol']}.</p>"
+            {
+                "vendor_name": vendor["name"],
+                "stock_symbol": stock["symbol"],
+                "stock_name": stock["name"],
+                "quantity": purchase_data.quantity,
+                "price_per_unit": purchase_data.price_per_unit,
+                "total_amount": total_amount,
+                "purchase_date": purchase_data.purchase_date
+            }
         )
     
     return Purchase(
