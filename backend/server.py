@@ -514,7 +514,7 @@ If any field is not visible, use null."""
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"ocr-{uuid.uuid4()}",
-            system_message="You are an OCR specialist. Extract information from documents accurately. Always respond with valid JSON only, no markdown."
+            system_message="You are an OCR specialist. Extract information from documents accurately. IMPORTANT: Always respond with ONLY valid JSON, no explanations, no markdown code blocks, just the raw JSON object."
         ).with_model("openai", "gpt-4o")
         
         # Create ImageContent for vision processing
@@ -528,14 +528,32 @@ If any field is not visible, use null."""
         try:
             # Clean response - remove markdown code blocks if present
             cleaned = response.strip()
+            # Remove markdown code blocks
             if cleaned.startswith('```'):
-                cleaned = cleaned.split('\n', 1)[1] if '\n' in cleaned else cleaned
-                cleaned = cleaned.rsplit('```', 1)[0] if '```' in cleaned else cleaned
+                lines = cleaned.split('\n')
+                # Remove first line (```json or ```)
+                lines = lines[1:]
+                # Remove last line if it's closing ```
+                if lines and lines[-1].strip() == '```':
+                    lines = lines[:-1]
+                cleaned = '\n'.join(lines).strip()
+            # Handle case where it starts with 'json' without backticks
             if cleaned.startswith('json'):
                 cleaned = cleaned[4:].strip()
+            
+            # Try to find JSON object in the response
+            if not cleaned.startswith('{'):
+                # Look for JSON object in the text
+                start_idx = cleaned.find('{')
+                end_idx = cleaned.rfind('}')
+                if start_idx != -1 and end_idx != -1:
+                    cleaned = cleaned[start_idx:end_idx+1]
+            
             extracted_data = json.loads(cleaned)
-        except json.JSONDecodeError:
-            extracted_data = {"raw_text": response}
+            logging.info(f"OCR extracted data: {extracted_data}")
+        except json.JSONDecodeError as e:
+            logging.warning(f"Failed to parse OCR JSON response: {e}. Raw: {response[:200]}")
+            extracted_data = {"raw_text": response, "parse_error": str(e)}
         
         return {
             "processed_at": datetime.now(timezone.utc).isoformat(),
