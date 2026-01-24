@@ -1524,6 +1524,13 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     if not client.get("is_active", True):
         raise HTTPException(status_code=400, detail="Client is inactive and cannot be used for bookings")
     
+    # Check if client is suspended
+    if client.get("is_suspended"):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Client is suspended and cannot be used for bookings. Reason: {client.get('suspension_reason', 'No reason provided')}"
+        )
+    
     # Employees can only create bookings for their own clients
     if user_role == 4:
         if client.get("mapped_employee_id") != current_user["id"] and client.get("created_by") != current_user["id"]:
