@@ -3054,61 +3054,21 @@ async def confirm_stock_transfer(
         }
     )
     
-    # Send email to client
+    # Send email to client using template
     if client and client.get("email"):
-        email_body = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #10b981;">✓ Stock Transfer Completed</h2>
-            <p>Dear {client['name']},</p>
-            <p>We are pleased to inform you that your stock has been successfully transferred to your Demat account.</p>
-            
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
-                <tr style="background-color: #064E3B; color: white;">
-                    <th colspan="2" style="padding: 12px; text-align: left;">Transfer Details</th>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Booking Reference</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock Symbol</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'}</td>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock Name</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock['name'] if stock else 'N/A'}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>ISIN Number</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock.get('isin_number', 'N/A') if stock else 'N/A'}</td>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity Transferred</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking.get('quantity', 0)}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Your DP ID</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong style="color: #064E3B;">{client.get('dp_id', 'N/A')}</strong></td>
-                </tr>
-                <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Transfer Date</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{datetime.now(timezone.utc).strftime('%d %b %Y, %H:%M')}</td>
-                </tr>
-            </table>
-            
-            <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;">
-                <p style="margin: 0; color: #065f46;"><strong>Note:</strong> Please verify the credit in your Demat account. The shares should reflect within 1-2 working days.</p>
-            </div>
-            
-            <p>If you have any questions, please contact us.</p>
-            
-            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
-        </div>
-        """
-        await send_email(
+        await send_templated_email(
+            "stock_transferred",
             client["email"],
-            f"Stock Transfer Completed - {stock['symbol'] if stock else 'N/A'} | {booking_number}",
-            email_body
+            {
+                "client_name": client["name"],
+                "booking_number": booking_number,
+                "stock_symbol": stock["symbol"] if stock else "N/A",
+                "stock_name": stock["name"] if stock else "N/A",
+                "isin_number": stock.get("isin_number", "N/A") if stock else "N/A",
+                "quantity": booking.get("quantity", 0),
+                "dp_id": client.get("dp_id", "N/A"),
+                "transfer_date": datetime.now(timezone.utc).strftime('%d %b %Y, %H:%M')
+            }
         )
     
     # Notify the booking creator
