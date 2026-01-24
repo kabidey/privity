@@ -1,9 +1,9 @@
 import requests
 import sys
 import json
-from datetime import datetime
+from datetime import datetime, date
 
-class SMIFSShareBookingTester:
+class SMIFSStockManagementTester:
     def __init__(self, base_url="https://last-project-10.preview.emergentagent.com"):
         self.base_url = base_url
         self.admin_token = None
@@ -17,6 +17,7 @@ class SMIFSShareBookingTester:
         self.test_client_id = None
         self.test_booking_id = None
         self.test_stock_id = None
+        self.test_corporate_action_id = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, token=None):
         """Run a single API test"""
