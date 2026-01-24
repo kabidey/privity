@@ -165,6 +165,8 @@ Build a Share Booking System for managing client share bookings, inventory track
 | /bookings | Bookings | Booking management |
 | /reports | Reports | P&L with filters and exports |
 | /users | UserManagement | Role management (admin only) |
+| /analytics | Analytics | Advanced analytics (PE Desk only) |
+| /email-templates | EmailTemplates | Email template editor (PE Desk only) |
 
 ## API Endpoints
 - `/api/auth/*` - Authentication (register, login, me, forgot-password, reset-password)
