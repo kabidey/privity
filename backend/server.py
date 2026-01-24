@@ -834,13 +834,14 @@ async def suspend_client(
     )
     
     # Log the action
-    await log_audit(
+    await create_audit_log(
         action="client_suspended",
-        action_description=f"Client {client.get('name')} suspended: {suspension_data.reason}",
         entity_type="client",
         entity_id=client_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
         entity_name=client.get("name"),
-        user=current_user,
         details={"reason": suspension_data.reason}
     )
     
