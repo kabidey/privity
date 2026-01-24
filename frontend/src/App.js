@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
+import BookingConfirm from './pages/BookingConfirm';
 import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
 import ClientPortfolio from './pages/ClientPortfolio';
@@ -33,6 +34,8 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            {/* Public route for client booking confirmation */}
+            <Route path="/booking-confirm/:bookingId/:token/:action" element={<BookingConfirm />} />
             <Route
               path="/*"
               element={
