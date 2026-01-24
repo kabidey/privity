@@ -164,13 +164,26 @@ const Clients = () => {
               fullDpId = extracted.dp_id || extracted.client_id;
             }
             
+            // Clean mobile number - remove ISD codes and keep only 10 digits
+            let cleanMobile = extracted.mobile || '';
+            if (cleanMobile) {
+              // Remove +91, 91, 0 prefix and any spaces/dashes
+              cleanMobile = cleanMobile.replace(/[\s\-\(\)]/g, '');
+              cleanMobile = cleanMobile.replace(/^\+?91/, '');
+              cleanMobile = cleanMobile.replace(/^0/, '');
+              // Keep only last 10 digits if longer
+              if (cleanMobile.length > 10) {
+                cleanMobile = cleanMobile.slice(-10);
+              }
+            }
+            
             setFormData(prev => ({
               ...prev,
               dp_id: fullDpId || prev.dp_id,
               name: extracted.client_name || prev.name,
               pan_number: extracted.pan_number || prev.pan_number,
               email: extracted.email || prev.email,
-              mobile: extracted.mobile || prev.mobile,
+              mobile: cleanMobile || prev.mobile,
               address: extracted.address || prev.address,
               pin_code: extracted.pin_code || prev.pin_code,
             }));
