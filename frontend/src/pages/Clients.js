@@ -219,7 +219,22 @@ const Clients = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.name || !formData.name.trim()) {
+      toast.error('Client name is required');
+      return;
+    }
+    if (!formData.pan_number || !formData.pan_number.trim()) {
+      toast.error('PAN number is required');
+      return;
+    }
+    if (!formData.dp_id || !formData.dp_id.trim()) {
+      toast.error('DP ID is required');
+      return;
+    }
+    
     try {
       let clientId;
       if (editingClient) {
