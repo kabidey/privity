@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, AlertCircle } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,8 +18,20 @@ const Login = () => {
     name: '',
   });
 
+  const validateEmail = (email) => {
+    const domain = email.split('@')[1]?.toLowerCase();
+    return domain === 'smifs.com';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check domain for registration
+    if (!isLogin && !validateEmail(formData.email)) {
+      toast.error('Registration is restricted to @smifs.com email addresses only');
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -33,7 +45,7 @@ const Login = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
-      toast.success(isLogin ? 'Logged in successfully' : 'Account created successfully');
+      toast.success(isLogin ? 'Logged in successfully' : 'Account created as Employee');
       navigate('/');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'An error occurred');
@@ -54,7 +66,7 @@ const Login = () => {
         <div className="absolute inset-0 bg-primary/80 flex items-center justify-center">
           <div className="text-center text-white px-8">
             <TrendingUp className="w-16 h-16 mx-auto mb-4" strokeWidth={1.5} />
-            <h1 className="text-4xl font-bold mb-4">Share Booking System</h1>
+            <h1 className="text-4xl font-bold mb-4">SMIFS Share Booking</h1>
             <p className="text-lg opacity-90">Manage your client bookings and track profit & loss efficiently</p>
           </div>
         </div>
