@@ -23,6 +23,7 @@ const Bookings = () => {
   const [pendingLossBookings, setPendingLossBookings] = useState([]);
   const [clients, setClients] = useState([]);
   const [stocks, setStocks] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -57,7 +58,7 @@ const Bookings = () => {
 
   const fetchData = async () => {
     try {
-      const [bookingsRes, clientsRes, stocksRes] = await Promise.all([
+      const [bookingsRes, clientsRes, stocksRes, inventoryRes] = await Promise.all([
         api.get('/bookings'),
         api.get('/clients'),
         api.get('/stocks'),
