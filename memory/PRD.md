@@ -407,6 +407,30 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## Completed Features (Jan 25, 2026)
 
+### Email Templates System (13 Templates)
+All system emails are now customizable via the Email Templates page. PE Desk can edit any template:
+
+1. **Welcome Email (Client)** - Sent when client account is created
+2. **Client Approved** - Sent when client is approved by PE Desk
+3. **Booking Created (Pending Approval)** - Sent when booking is created, awaiting approval
+4. **Booking Confirmation Request** - Sent after PE Desk approval, asking client to accept/deny
+5. **Booking Pending Loss Review** - Sent for loss bookings awaiting additional approval
+6. **Loss Booking Confirmation Request** - Sent after loss booking is fully approved
+7. **Booking Status Updated** - Sent when booking status changes
+8. **Client Payment Complete** - Sent when full payment is received
+9. **Stock Transfer Completed** - Sent when stock is transferred to client's Demat
+10. **Purchase Order Created (Vendor)** - Sent to vendor when purchase is created
+11. **Vendor Payment Received** - Sent to vendor when payment is recorded
+12. **Password Reset OTP** - Sent for password reset requests
+13. **User Account Created** - Sent when staff account is created
+
+Each template supports:
+- Variable substitution (e.g., `{{client_name}}`, `{{booking_number}}`)
+- Subject customization
+- HTML body customization
+- Enable/disable toggle
+- Reset to default option
+
 ### Vendor Payment Tracking with Email Notification
 - Added payment recording for vendor purchases on Purchases page
 - "Pay" button opens dialog to record payment with amount, date, and notes
