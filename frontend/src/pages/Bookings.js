@@ -640,8 +640,14 @@ const Bookings = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            {getApprovalBadge(booking.approval_status)}
+                            {getClientConfirmationBadge(booking)}
+                            {booking.client_confirmation_status === 'accepted' && getApprovalBadge(booking.approval_status)}
                             {getLossApprovalBadge(booking)}
+                            {booking.client_confirmation_status === 'denied' && booking.client_denial_reason && (
+                              <span className="text-xs text-red-600" title={booking.client_denial_reason}>
+                                Reason: {booking.client_denial_reason.substring(0, 20)}...
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
