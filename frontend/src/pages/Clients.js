@@ -292,6 +292,11 @@ const Clients = () => {
       toast.error('DP ID is required');
       return;
     }
+    // Validate Trading UCC if DP is with SMIFS
+    if (formData.dp_type === 'smifs' && !formData.trading_ucc?.trim()) {
+      toast.error('Trading UCC is required when DP is with SMIFS');
+      return;
+    }
     
     try {
       let clientId;
