@@ -470,7 +470,18 @@ const Bookings = () => {
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                     required
+                    className={isLowInventory ? 'border-red-500 focus:ring-red-500' : ''}
                   />
+                  {/* Low Inventory Warning */}
+                  {isLowInventory && (
+                    <div className="flex items-start gap-2 p-2 bg-red-100 dark:bg-red-900/50 rounded border border-red-300 dark:border-red-700">
+                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-red-700 dark:text-red-300">
+                        <strong>Low Inventory:</strong> Requested quantity ({formData.quantity}) exceeds available stock ({selectedInventory?.availableQty}). 
+                        <span className="block mt-1 font-semibold">Landing price might change based on new purchases.</span>
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Landing Price {isEmployee ? '(Auto)' : ''}</Label>
@@ -483,8 +494,10 @@ const Bookings = () => {
                     disabled={isEmployee}
                     placeholder={isEmployee ? 'Weighted avg' : 'Optional'}
                   />
-                  {isEmployee && (
-                    <p className="text-xs text-muted-foreground">Uses weighted average from inventory</p>
+                  {isEmployee && selectedInventory && (
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      Will use: {formatCurrency(selectedInventory.weightedAvgPrice)} (weighted average)
+                    </p>
                   )}
                 </div>
               </div>
