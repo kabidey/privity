@@ -1,0 +1,88 @@
+{
+  "summary": "Comprehensive testing of Booking Type (Client/Team/Own) and Insider Trading Form Upload features completed. Backend: 14/14 tests passed (100%). Frontend: All UI components working correctly - radio buttons, warning dialog, acknowledgment indicator, form upload dialog.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend: PE Desk Admin login - SUCCESS",
+    "Backend: GET /api/clients - Returns approved clients for booking",
+    "Backend: GET /api/stocks - Returns stocks list",
+    "Backend: GET /api/inventory - Returns inventory with available quantity",
+    "Backend: POST /api/bookings with booking_type='client' - Creates client booking",
+    "Backend: POST /api/bookings with booking_type='team' - Creates team booking",
+    "Backend: POST /api/bookings with booking_type='own' - Creates own booking",
+    "Backend: GET /api/bookings - Returns bookings with booking_type field",
+    "Backend: POST /api/bookings/{id}/insider-form - Uploads form for own booking",
+    "Backend: POST /api/bookings/{id}/insider-form to non-own booking - Returns 400",
+    "Backend: GET /api/bookings/{id}/insider-form - Downloads uploaded form",
+    "Backend: GET /api/bookings/{id}/insider-form (no form) - Returns 404",
+    "Backend: GET /api/bookings/{id}/insider-form (invalid id) - Returns 404",
+    "Backend: POST /api/bookings without booking_type - Defaults to 'client'",
+    "Frontend: Booking Type radio buttons (Client/Team/Own) display correctly",
+    "Frontend: 'Client' is selected by default",
+    "Frontend: Selecting 'Team' does NOT trigger warning dialog",
+    "Frontend: Selecting 'Client' does NOT trigger warning dialog",
+    "Frontend: Selecting 'Own' triggers Insider Trading Policy warning dialog",
+    "Frontend: Warning dialog shows compliance info and email link to pe@smifs.com",
+    "Frontend: Warning dialog shows Upload Facility information",
+    "Frontend: Cancel button resets booking_type to 'client'",
+    "Frontend: 'I Acknowledge & Continue' button shows acknowledgment indicator",
+    "Frontend: Acknowledgment indicator displays correctly"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_booking_type_insider_form.py",
+    "/app/test_reports/pytest/booking_type_insider_form_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fixed: BookingWithDetails model was missing booking_type, insider_form_uploaded, and insider_form_path fields - added them to ensure API responses include these fields"
+  ],
+  "updated_files": [
+    "/app/backend/models/__init__.py - Added booking_type, insider_form_uploaded, insider_form_path to BookingWithDetails model",
+    "/app/backend/tests/test_booking_type_insider_form.py - Created new test file for booking type feature"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 passed)",
+    "frontend": "100% (All UI tests passed)"
+  },
+  "seed_data_creation": "Created TEST_BookingType_Client (approved client), TEST_Vendor_BookingType (vendor), TESTSTOCK (stock), and purchase to add inventory for testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Booking Type feature is fully implemented and tested. The feature includes: 1) Radio buttons for Client/Team/Own in Create Booking form, 2) Insider Trading Policy warning dialog when 'Own' is selected, 3) Acknowledgment indicator after user acknowledges, 4) Insider form upload/download endpoints for 'own' bookings. Test data created: TEST_BookingType_Client, TEST_Vendor_BookingType, TESTSTOCK with 1000 units inventory at ₹100/unit.",
+  "features_verified": {
+    "booking_type_radio_buttons": {
+      "status": "Working",
+      "details": "Three radio buttons (Client/Team/Own) display correctly in Create Booking form. Client is selected by default."
+    },
+    "insider_warning_dialog": {
+      "status": "Working",
+      "details": "Selecting 'Own' triggers warning dialog with compliance info, email link to pe@smifs.com, and upload facility info."
+    },
+    "cancel_button": {
+      "status": "Working",
+      "details": "Clicking Cancel resets booking_type back to 'client' and closes dialog."
+    },
+    "acknowledge_button": {
+      "status": "Working",
+      "details": "Clicking 'I Acknowledge & Continue' shows green acknowledgment indicator and allows form submission."
+    },
+    "insider_form_upload_endpoint": {
+      "status": "Working",
+      "details": "POST /api/bookings/{id}/insider-form uploads form for 'own' bookings only. Returns 400 for non-own bookings."
+    },
+    "insider_form_download_endpoint": {
+      "status": "Working",
+      "details": "GET /api/bookings/{id}/insider-form downloads uploaded form. PE Desk only access."
+    },
+    "booking_type_persistence": {
+      "status": "Working",
+      "details": "booking_type field is correctly saved to database and returned in API responses."
+    }
+  }
+}
