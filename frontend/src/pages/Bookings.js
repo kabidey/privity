@@ -342,8 +342,11 @@ const Bookings = () => {
       booking_date: new Date().toISOString().split('T')[0],
       status: 'open',
       notes: '',
+      booking_type: 'client',
+      insider_form_acknowledged: false,
     });
     setEditingBooking(null);
+    setClientSearchQuery('');
   };
 
   const getApprovalBadge = (status) => {
