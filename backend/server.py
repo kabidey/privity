@@ -314,6 +314,42 @@ async def send_email(to_email: str, subject: str, body: str):
     except Exception as e:
         logging.error(f"Failed to send email: {str(e)}")
 
+async def process_document_ocr(file_path: str, doc_type: str) -> Optional[Dict[str, Any]]:
+    """Process document OCR - placeholder for future OCR integration"""
+    try:
+        # Placeholder OCR processing
+        # In a real implementation, this would use OCR libraries like pytesseract, AWS Textract, etc.
+        ocr_data = {
+            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "doc_type": doc_type,
+            "status": "processed",
+            "extracted_data": {}
+        }
+        
+        # Mock extraction based on document type
+        if doc_type == "pan_card":
+            ocr_data["extracted_data"] = {
+                "pan_number": "MOCK12345A",
+                "name": "Mock Name",
+                "father_name": "Mock Father Name"
+            }
+        elif doc_type == "cancelled_cheque":
+            ocr_data["extracted_data"] = {
+                "account_number": "1234567890",
+                "ifsc_code": "MOCK0001234",
+                "bank_name": "Mock Bank"
+            }
+        elif doc_type == "cml_copy":
+            ocr_data["extracted_data"] = {
+                "dp_id": "12345678",
+                "client_name": "Mock Client Name"
+            }
+        
+        return ocr_data
+    except Exception as e:
+        logging.error(f"OCR processing failed: {str(e)}")
+        return None
+
 async def update_inventory(stock_id: str):
     """Recalculate weighted average and available quantity for a stock"""
     # Get all purchases for this stock
