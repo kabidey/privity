@@ -491,41 +491,6 @@ const Clients = () => {
                   </div>
                 </div>
               </TabsContent>
-                        onChange={(e) => setDocFiles({ ...docFiles, cml_copy: e.target.files[0] })}
-                      />
-                      {docFiles.cml_copy && (
-                        <p className="text-xs text-green-600 mt-1">Selected: {docFiles.cml_copy.name}</p>
-                      )}
-                    </div>
-                    
-                    <div className="border rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileText className="h-5 w-5 text-orange-600" />
-                        <Label className="font-semibold">Cancelled Cheque</Label>
-                      </div>
-                      <Input
-                        type="file"
-                        accept=".jpg,.jpeg,.pdf,.png"
-                        data-testid="cheque-upload"
-                        onChange={(e) => setDocFiles({ ...docFiles, cancelled_cheque: e.target.files[0] })}
-                      />
-                      {docFiles.cancelled_cheque && (
-                        <p className="text-xs text-green-600 mt-1">Selected: {docFiles.cancelled_cheque.name}</p>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSubmit} className="rounded-sm" disabled={uploading}>
-                      {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      {editingClient ? 'Update & Upload' : 'Create & Upload'}
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
             </Tabs>
           </DialogContent>
         </Dialog>
