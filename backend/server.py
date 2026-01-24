@@ -54,7 +54,7 @@ security = HTTPBearer()
 from services.notification_service import ws_manager, create_notification, notify_roles
 from services.audit_service import create_audit_log
 from services.ocr_service import process_document_ocr
-from services.inventory_service import update_inventory
+# Note: update_inventory is kept local as the service version has slightly different logic
 
 # Models (importing from models package for new code, keeping local for backward compat)
 from models import (
