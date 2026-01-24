@@ -514,9 +514,16 @@ class ShareBookingAPITester:
         
         # Dashboard & Reports Tests
         self.test_dashboard_stats()
+        self.test_dashboard_analytics()
         self.test_pnl_report()
         self.test_export_excel()
         self.test_export_pdf()
+        
+        # User Management Tests (NEW)
+        self.test_get_users()
+        
+        # Client Portfolio Tests (NEW)
+        self.test_client_portfolio()
         
         # Cleanup
         self.cleanup_test_data()
