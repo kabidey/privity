@@ -30,6 +30,7 @@ const Bookings = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [editingBooking, setEditingBooking] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     client_id: '',
     stock_id: '',
