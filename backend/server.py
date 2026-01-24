@@ -3057,7 +3057,7 @@ async def confirm_stock_transfer(
     # Send email to client using template
     if client and client.get("email"):
         await send_templated_email(
-            "stock_transferred",
+            "stock_transfer_complete",
             client["email"],
             {
                 "client_name": client["name"],
