@@ -21,7 +21,8 @@ import {
   UserCog,
   PieChart,
   Mail,
-  Banknote
+  Banknote,
+  Server
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
