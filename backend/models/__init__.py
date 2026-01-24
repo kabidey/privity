@@ -315,6 +315,10 @@ class BookingWithDetails(BaseModel):
     created_at: str
     created_by: str
     created_by_name: str
+    # Booking type
+    booking_type: str = "client"  # "client", "team", or "own"
+    insider_form_uploaded: bool = False
+    insider_form_path: Optional[str] = None
     # Client confirmation
     client_confirmation_status: str = "pending"
     client_confirmed_at: Optional[str] = None
