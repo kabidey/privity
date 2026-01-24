@@ -97,6 +97,8 @@ class ClientCreate(BaseModel):
     mobile: Optional[str] = None
     pan_number: str
     dp_id: str
+    dp_type: str = "outside"  # "smifs" or "outside"
+    trading_ucc: Optional[str] = None  # Required if dp_type is "smifs"
     address: Optional[str] = None
     pin_code: Optional[str] = None
     bank_accounts: List[BankAccount] = []
@@ -113,6 +115,8 @@ class Client(BaseModel):
     mobile: Optional[str] = None
     pan_number: str
     dp_id: str
+    dp_type: str = "outside"  # "smifs" or "outside"
+    trading_ucc: Optional[str] = None  # Required if dp_type is "smifs"
     address: Optional[str] = None
     pin_code: Optional[str] = None
     bank_accounts: List[BankAccount] = []
