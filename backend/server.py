@@ -2868,14 +2868,20 @@ async def delete_payment_tranche(
 async def get_dp_transfer_report(
     current_user: dict = Depends(get_current_user)
 ):
-    """Get bookings ready for DP transfer (PE Desk & Zonal Manager only)"""
+    """Get bookings ready for DP transfer and already transferred (PE Desk & Zonal Manager only)"""
     user_role = current_user.get("role", 5)
     if user_role not in [1, 2]:
         raise HTTPException(status_code=403, detail="Only PE Desk and Zonal Manager can access DP transfer report")
     
-    # Get all bookings ready for DP transfer
+    # Get all bookings ready for DP transfer OR already transferred
     bookings = await db.bookings.find(
-        {"dp_transfer_ready": True, "approval_status": "approved"},
+        {
+            "approval_status": "approved",
+            "$or": [
+                {"dp_transfer_ready": True},
+                {"stock_transferred": True}
+            ]
+        },
         {"_id": 0}
     ).to_list(10000)
     
@@ -2912,11 +2918,13 @@ async def get_dp_transfer_report(
             "total_paid": booking.get("total_paid", 0),
             "payment_completed_at": booking.get("payment_completed_at", ""),
             "booking_date": booking.get("booking_date", ""),
-            "payments": booking.get("payments", [])
+            "payments": booking.get("payments", []),
+            "stock_transferred": booking.get("stock_transferred", False),
+            "stock_transferred_at": booking.get("stock_transferred_at", "")
         })
     
-    # Sort by payment completion date
-    result.sort(key=lambda x: x.get("payment_completed_at", ""), reverse=True)
+    # Sort by transfer status (not transferred first), then by payment completion date
+    result.sort(key=lambda x: (x.get("stock_transferred", False), x.get("payment_completed_at", "")), reverse=False)
     
     return result
 
