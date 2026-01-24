@@ -682,11 +682,13 @@ const Bookings = () => {
                                 DP Ready
                               </Badge>
                             )}
+                            {/* Edit button - not for employees */}
                             {!isEmployee && (
-                              <>
-                                <Button variant="ghost" size="sm" onClick={() => handleEdit(booking)}><Pencil className="h-4 w-4" /></Button>
-                                <Button variant="ghost" size="sm" onClick={() => handleDelete(booking.id)}><Trash2 className="h-4 w-4" /></Button>
-                              </>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(booking)}><Pencil className="h-4 w-4" /></Button>
+                            )}
+                            {/* Delete button - PE Desk only */}
+                            {isPEDesk && (
+                              <Button variant="ghost" size="sm" onClick={() => handleDelete(booking.id)} className="text-red-600"><Trash2 className="h-4 w-4" /></Button>
                             )}
                           </div>
                         </TableCell>
