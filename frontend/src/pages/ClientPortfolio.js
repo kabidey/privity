@@ -123,7 +123,7 @@ const ClientPortfolio = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <IndianRupee className="h-4 w-4" />
-              Total P&L
+              Total Revenue
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -205,7 +205,7 @@ const ClientPortfolio = () => {
                       <TableHead className="text-xs uppercase tracking-wider font-semibold">Buy</TableHead>
                       <TableHead className="text-xs uppercase tracking-wider font-semibold">Sell</TableHead>
                       <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
-                      <TableHead className="text-xs uppercase tracking-wider font-semibold">P&L</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider font-semibold">Revenue</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
