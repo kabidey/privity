@@ -2680,20 +2680,16 @@ async def add_payment_tranche(
         
         # Send email to client about completion
         if client and client.get("email"):
-            await send_email(
+            await send_templated_email(
+                "payment_complete",
                 client["email"],
-                f"Payment Complete - Booking {booking_number}",
-                f"""
-                <p>Dear {client['name']},</p>
-                <p>We are pleased to confirm that full payment has been received for your booking:</p>
-                <ul>
-                    <li><strong>Booking ID:</strong> {booking_number}</li>
-                    <li><strong>Stock:</strong> {stock['symbol'] if stock else 'Unknown'}</li>
-                    <li><strong>Quantity:</strong> {booking.get('quantity')}</li>
-                    <li><strong>Total Amount:</strong> ₹{total_amount:,.2f}</li>
-                </ul>
-                <p>Your booking is now ready for DP transfer.</p>
-                """
+                {
+                    "client_name": client["name"],
+                    "booking_number": booking_number,
+                    "stock_symbol": stock["symbol"] if stock else "Unknown",
+                    "quantity": booking.get("quantity"),
+                    "total_amount": f"{total_amount:,.2f}"
+                }
             )
     
     return {
