@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Pencil, Trash2, Building2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Building2, Copy } from 'lucide-react';
 
 const Vendors = () => {
   const navigate = useNavigate();
@@ -17,6 +17,7 @@ const Vendors = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingVendor, setEditingVendor] = useState(null);
+  const [cloning, setCloning] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
