@@ -321,6 +321,39 @@ const Clients = () => {
     }
   };
 
+  const handleViewDocuments = (client) => {
+    setSelectedClientDocs(client);
+    setDocumentsDialogOpen(true);
+  };
+
+  const handleDownloadDocument = async (clientId, filename) => {
+    try {
+      const response = await api.get(`/clients/${clientId}/documents/${filename}`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Document downloaded');
+    } catch (error) {
+      toast.error('Failed to download document');
+    }
+  };
+
+  const getDocTypeLabel = (docType) => {
+    const labels = {
+      'pan_card': 'PAN Card',
+      'cml_copy': 'CML Copy',
+      'cancelled_cheque': 'Cancelled Cheque'
+    };
+    return labels[docType] || docType;
+  };
+
   const handleApprove = async (clientId, approve) => {
     try {
       await api.put(`/clients/${clientId}/approve?approve=${approve}`);
