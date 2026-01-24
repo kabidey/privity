@@ -56,78 +56,19 @@ from services.audit_service import create_audit_log
 from services.ocr_service import process_document_ocr
 from services.inventory_service import update_inventory
 
-# Audit Log Model (keeping for backward compatibility with local code)
-class AuditLog(BaseModel):
-    id: str
-    action: str
-    action_description: str
-    entity_type: str  # user, client, vendor, stock, purchase, booking
-    entity_id: str
-    entity_name: Optional[str] = None
-    user_id: str
-    user_name: str
-    user_role: int
-    details: Optional[Dict[str, Any]] = None
-    ip_address: Optional[str] = None
-    timestamp: str
+# Models (importing from models package for new code, keeping local for backward compat)
+from models import (
+    AuditLog, UserCreate, UserLogin, User, TokenResponse,
+    PasswordResetRequest, PasswordResetVerify, Notification,
+    BankAccount, ClientDocument, ClientCreate, Client,
+    StockCreate, Stock, CorporateActionCreate, CorporateAction,
+    PurchaseCreate, Purchase, Inventory as InventoryModel,
+    PaymentTranche, PaymentTrancheCreate, BookingCreate, Booking,
+    BookingWithDetails, DPTransferRecord, DashboardStats, ClientPortfolio,
+    ClientConfirmationRequest, EmailTemplateUpdate, EmailTemplatePreview
+)
 
-async def create_audit_log(
-    action: str,
-    entity_type: str,
-    entity_id: str,
-    user_id: str,
-    user_name: str,
-    user_role: int,
-    entity_name: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None,
-    ip_address: Optional[str] = None
-):
-    """Create an audit log entry"""
-    try:
-        audit_doc = {
-            "id": str(uuid.uuid4()),
-            "action": action,
-            "action_description": AUDIT_ACTIONS.get(action, action),
-            "entity_type": entity_type,
-            "entity_id": entity_id,
-            "entity_name": entity_name,
-            "user_id": user_id,
-            "user_name": user_name,
-            "user_role": user_role,
-            "details": details,
-            "ip_address": ip_address,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-        await db.audit_logs.insert_one(audit_doc)
-        logging.info(f"Audit: {action} by {user_name} on {entity_type}/{entity_id}")
-    except Exception as e:
-        logging.error(f"Failed to create audit log: {e}")
-
-# Models
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-    name: str
-    role: int = 4  # Default to Employee for smifs.com domain
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-class User(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str
-    email: str
-    name: str
-    role: int
-    role_name: str
-    created_at: str
-
-class TokenResponse(BaseModel):
-    token: str
-    user: User
-
-# Password Reset Models
+# Helper Functions
 class PasswordResetRequest(BaseModel):
     email: EmailStr
 
