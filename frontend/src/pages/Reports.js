@@ -153,8 +153,8 @@ const Reports = () => {
     <div className="p-8 page-enter" data-testid="reports-page">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Profit & Loss Reports</h1>
-          <p className="text-muted-foreground text-base">Comprehensive P&L analysis of all bookings</p>
+          <h1 className="text-4xl font-bold mb-2">Revenue Reports</h1>
+          <p className="text-muted-foreground text-base">Comprehensive revenue analysis of all bookings</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -302,7 +302,7 @@ const Reports = () => {
         <Card className="border shadow-sm" data-testid="net-pnl-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              Net P&L
+              Net Revenue
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -316,7 +316,7 @@ const Reports = () => {
       {/* Report Table */}
       <Card className="border shadow-sm">
         <CardHeader>
-          <CardTitle>Detailed P&L Report</CardTitle>
+          <CardTitle>Detailed Revenue Report</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -337,7 +337,7 @@ const Reports = () => {
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Sell Price</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Date</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">P&L</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Revenue</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
