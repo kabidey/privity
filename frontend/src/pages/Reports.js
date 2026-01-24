@@ -1,28 +1,61 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { FileDown, FileSpreadsheet } from 'lucide-react';
+import { FileDown, FileSpreadsheet, Filter, X } from 'lucide-react';
 
 const Reports = () => {
   const [reportData, setReportData] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    start_date: '',
+    end_date: '',
+    client_id: '',
+    stock_id: '',
+  });
   const [stats, setStats] = useState({
     totalProfit: 0,
     totalLoss: 0,
     netPL: 0,
+    totalTransactions: 0,
   });
 
   useEffect(() => {
-    fetchReport();
+    fetchInitialData();
   }, []);
 
-  const fetchReport = async () => {
+  const fetchInitialData = async () => {
     try {
-      const response = await api.get('/reports/pnl');
+      const [clientsRes, stocksRes] = await Promise.all([
+        api.get('/clients'),
+        api.get('/stocks'),
+      ]);
+      setClients(clientsRes.data);
+      setStocks(stocksRes.data);
+      await fetchReport();
+    } catch (error) {
+      toast.error('Failed to load data');
+    }
+  };
+
+  const fetchReport = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filters.start_date) params.append('start_date', filters.start_date);
+      if (filters.end_date) params.append('end_date', filters.end_date);
+      if (filters.client_id) params.append('client_id', filters.client_id);
+      if (filters.stock_id) params.append('stock_id', filters.stock_id);
+
+      const response = await api.get(`/reports/pnl?${params.toString()}`);
       const data = response.data;
       setReportData(data);
 
@@ -43,6 +76,7 @@ const Reports = () => {
         totalProfit,
         totalLoss,
         netPL: totalProfit - totalLoss,
+        totalTransactions: data.length,
       });
     } catch (error) {
       toast.error('Failed to load report');
@@ -51,9 +85,31 @@ const Reports = () => {
     }
   };
 
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const applyFilters = () => {
+    fetchReport();
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      start_date: '',
+      end_date: '',
+      client_id: '',
+      stock_id: '',
+    });
+    setTimeout(() => fetchReport(), 0);
+  };
+
   const handleExportExcel = async () => {
     try {
-      const response = await api.get('/reports/export/excel', {
+      const params = new URLSearchParams();
+      if (filters.start_date) params.append('start_date', filters.start_date);
+      if (filters.end_date) params.append('end_date', filters.end_date);
+
+      const response = await api.get(`/reports/export/excel?${params.toString()}`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -71,7 +127,11 @@ const Reports = () => {
 
   const handleExportPDF = async () => {
     try {
-      const response = await api.get('/reports/export/pdf', {
+      const params = new URLSearchParams();
+      if (filters.start_date) params.append('start_date', filters.start_date);
+      if (filters.end_date) params.append('end_date', filters.end_date);
+
+      const response = await api.get(`/reports/export/pdf?${params.toString()}`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -86,6 +146,8 @@ const Reports = () => {
       toast.error('Failed to export PDF');
     }
   };
+
+  const hasActiveFilters = filters.start_date || filters.end_date || filters.client_id || filters.stock_id;
 
   return (
     <div className="p-8 page-enter" data-testid="reports-page">
@@ -116,7 +178,101 @@ const Reports = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      {/* Filters */}
+      <Card className="border shadow-sm mb-6">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            Filters
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+            <div className="space-y-2">
+              <Label htmlFor="start_date" className="text-xs">Start Date</Label>
+              <Input
+                id="start_date"
+                data-testid="filter-start-date"
+                type="date"
+                value={filters.start_date}
+                onChange={(e) => handleFilterChange('start_date', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="end_date" className="text-xs">End Date</Label>
+              <Input
+                id="end_date"
+                data-testid="filter-end-date"
+                type="date"
+                value={filters.end_date}
+                onChange={(e) => handleFilterChange('end_date', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Client</Label>
+              <Select
+                value={filters.client_id}
+                onValueChange={(value) => handleFilterChange('client_id', value === 'all' ? '' : value)}
+              >
+                <SelectTrigger data-testid="filter-client-select">
+                  <SelectValue placeholder="All Clients" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Stock</Label>
+              <Select
+                value={filters.stock_id}
+                onValueChange={(value) => handleFilterChange('stock_id', value === 'all' ? '' : value)}
+              >
+                <SelectTrigger data-testid="filter-stock-select">
+                  <SelectValue placeholder="All Stocks" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Stocks</SelectItem>
+                  {stocks.map((stock) => (
+                    <SelectItem key={stock.id} value={stock.id}>
+                      {stock.symbol}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={applyFilters} className="rounded-sm flex-1" data-testid="apply-filters-button">
+                Apply
+              </Button>
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters} className="rounded-sm" data-testid="clear-filters-button">
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card className="border shadow-sm" data-testid="transactions-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              Transactions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold mono">{stats.totalTransactions}</div>
+          </CardContent>
+        </Card>
+
         <Card className="border shadow-sm" data-testid="profit-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
@@ -157,16 +313,17 @@ const Reports = () => {
         </Card>
       </div>
 
+      {/* Report Table */}
       <Card className="border shadow-sm">
         <CardHeader>
           <CardTitle>Detailed P&L Report</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div>Loading...</div>
+            <div className="py-12 text-center text-muted-foreground">Loading...</div>
           ) : reportData.length === 0 ? (
             <div className="text-center py-12" data-testid="no-report-data-message">
-              <p className="text-muted-foreground">No booking data available for reporting.</p>
+              <p className="text-muted-foreground">No booking data available for the selected filters.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
