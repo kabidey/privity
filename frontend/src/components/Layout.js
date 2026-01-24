@@ -57,6 +57,11 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
   }
 
+  // Add DP Transfer Report for PE Desk and Zonal Manager (roles 1 and 2)
+  if (user.role === 1 || user.role === 2) {
+    menuItems.push({ icon: Banknote, label: 'DP Transfer', path: '/dp-transfer' });
+  }
+
   // Add Analytics and Email Templates for PE Desk only (role 1)
   if (user.role === 1) {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
