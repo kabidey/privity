@@ -393,6 +393,12 @@ class ShareBookingAPITester:
         """Clean up test data"""
         cleanup_success = True
         
+        # Delete purchase
+        if self.test_purchase_id:
+            success, _, _ = self.make_request("DELETE", f"purchases/{self.test_purchase_id}", expected_status=200)
+            if not success:
+                cleanup_success = False
+        
         # Delete booking
         if self.test_booking_id:
             success, _, _ = self.make_request("DELETE", f"bookings/{self.test_booking_id}", expected_status=200)
