@@ -63,6 +63,25 @@ const DPTransferReport = () => {
     }
   };
 
+  const handleTransferConfirm = async () => {
+    if (!transferDialog.record) return;
+    
+    setTransferLoading(true);
+    try {
+      await api.put(`/bookings/${transferDialog.record.booking_id}/confirm-transfer`, {
+        notes: transferNotes || null
+      });
+      toast.success('Stock transfer confirmed! Client has been notified via email.');
+      setTransferDialog({ open: false, record: null });
+      setTransferNotes('');
+      fetchReport(); // Refresh to remove the transferred record
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to confirm transfer');
+    } finally {
+      setTransferLoading(false);
+    }
+  };
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
