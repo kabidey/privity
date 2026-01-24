@@ -416,6 +416,23 @@ Build a Share Booking System for managing client share bookings, inventory track
   - `insider_form_uploaded`: Boolean flag
   - `insider_form_path`: Path to uploaded form
 
+### Feature - Inventory Blocking System (Jan 24, 2026)
+- ✅ **Inventory Blocking on Approval**: When PE Desk approves a booking AND client confirms, stock is BLOCKED (not immediately subtracted)
+- ✅ **Transfer Completes Sale**: When marked as "Stock Transferred" via DP Transfer, blocked quantity is permanently sold
+- ✅ **Void/Delete Releases Inventory**: When booking is voided or deleted, blocked stock returns to available
+- ✅ **Cannot Void/Delete Transferred**: Once stock is transferred, booking cannot be voided or deleted
+- ✅ **Weighted Average Unaffected**: Blocked stock doesn't affect weighted average price calculation
+- ✅ **Frontend Updates**:
+  - Inventory page shows "Blocked Qty" column (orange)
+  - Bookings page has "Void" button (Ban icon) for PE Desk
+  - Booking form shows blocked quantity in stock info
+- ✅ **Model Updates**: Added `is_voided`, `voided_at`, `voided_by`, `void_reason`, `stock_transferred`, `stock_transferred_at`, `stock_transferred_by` fields
+
+**Inventory Logic**:
+- `blocked_quantity` = Approved bookings with client confirmation, not voided, not transferred
+- `available_quantity` = Total purchased - Transferred - Blocked
+- `weighted_avg_price` = Total purchased value / Total purchased quantity
+
 ## Next Tasks
 1. **(P1) Refactor Email Templates Usage** - Replace hardcoded email bodies in server.py with the new template system
 2. **(P1) Two-factor authentication (TOTP)**
