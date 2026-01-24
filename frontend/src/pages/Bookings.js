@@ -62,10 +62,12 @@ const Bookings = () => {
         api.get('/bookings'),
         api.get('/clients'),
         api.get('/stocks'),
+        api.get('/inventory'),
       ]);
       setBookings(bookingsRes.data);
       setClients(clientsRes.data);
       setStocks(stocksRes.data);
+      setInventory(inventoryRes.data);
       
       // Fetch pending bookings and loss bookings if PE Desk
       if (isPEDesk) {
@@ -86,6 +88,35 @@ const Bookings = () => {
       setLoading(false);
     }
   };
+
+  // Get weighted avg price for selected stock
+  const getWeightedAvgPrice = (stockId) => {
+    const inv = inventory.find(i => i.stock_id === stockId);
+    return inv?.weighted_avg_price || 0;
+  };
+
+  // Calculate real-time P&L for form
+  const calculateFormPnL = () => {
+    if (!formData.stock_id || !formData.quantity || !formData.selling_price) {
+      return null;
+    }
+    
+    const qty = parseInt(formData.quantity) || 0;
+    const sellingPrice = parseFloat(formData.selling_price) || 0;
+    const buyingPrice = formData.buying_price 
+      ? parseFloat(formData.buying_price) 
+      : getWeightedAvgPrice(formData.stock_id);
+    
+    if (buyingPrice === 0 || qty === 0) return null;
+    
+    const pnl = (sellingPrice - buyingPrice) * qty;
+    const pnlPercentage = ((sellingPrice - buyingPrice) / buyingPrice) * 100;
+    const isLoss = sellingPrice < buyingPrice;
+    
+    return { pnl, pnlPercentage, isLoss, buyingPrice, sellingPrice, qty };
+  };
+
+  const formPnL = calculateFormPnL();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
