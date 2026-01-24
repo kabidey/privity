@@ -1178,6 +1178,12 @@ async def get_purchases(
     stock_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
+    user_role = current_user.get("role", 5)
+    
+    # Employees cannot view purchase history
+    if user_role == 4:
+        raise HTTPException(status_code=403, detail="Employees cannot access vendor purchase history")
+    
     check_permission(current_user, "manage_purchases")
     
     query = {}
