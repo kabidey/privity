@@ -2505,6 +2505,113 @@ async def get_bookings(
     
     return enriched_bookings
 
+@api_router.get("/bookings-export")
+async def export_bookings(
+    format: str = "xlsx",
+    current_user: dict = Depends(get_current_user)
+):
+    """Export all bookings to Excel/CSV with all fields"""
+    user_role = current_user.get("role", 5)
+    
+    # Build query based on role
+    query = {}
+    if user_role >= 3:
+        if "view_all" not in ROLE_PERMISSIONS.get(user_role, []):
+            query["created_by"] = current_user["id"]
+    
+    bookings = await db.bookings.find(query, {"_id": 0, "user_id": 0}).to_list(10000)
+    
+    if not bookings:
+        raise HTTPException(status_code=404, detail="No bookings found")
+    
+    # Batch fetch related data
+    client_ids = list(set(b["client_id"] for b in bookings))
+    stock_ids = list(set(b["stock_id"] for b in bookings))
+    user_ids = list(set(b.get("created_by", "") for b in bookings if b.get("created_by")))
+    approved_by_ids = list(set(b.get("approved_by", "") for b in bookings if b.get("approved_by")))
+    
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    users = await db.users.find({"id": {"$in": user_ids + approved_by_ids}}, {"_id": 0}).to_list(1000)
+    
+    client_map = {c["id"]: c for c in clients}
+    stock_map = {s["id"]: s for s in stocks}
+    user_map = {u["id"]: u for u in users}
+    
+    # Prepare export data
+    export_data = []
+    for b in bookings:
+        client = client_map.get(b["client_id"], {})
+        stock = stock_map.get(b["stock_id"], {})
+        created_by_user = user_map.get(b.get("created_by", ""), {})
+        approved_by_user = user_map.get(b.get("approved_by", ""), {})
+        
+        total_amount = (b.get("selling_price") or 0) * b.get("quantity", 0)
+        revenue = None
+        if b.get("selling_price"):
+            revenue = (b["selling_price"] - b["buying_price"]) * b["quantity"]
+        
+        export_data.append({
+            "Booking ID": b.get("booking_number", b["id"][:8].upper()),
+            "Client Name": client.get("name", "Unknown"),
+            "Client PAN": client.get("pan_number", ""),
+            "Client DP ID": client.get("dp_id", ""),
+            "Client Mobile": client.get("mobile_number", ""),
+            "Stock Symbol": stock.get("symbol", "Unknown"),
+            "Stock Name": stock.get("name", "Unknown"),
+            "ISIN": stock.get("isin_number", ""),
+            "Quantity": b.get("quantity", 0),
+            "Landing Price": b.get("buying_price", 0),
+            "Selling Price": b.get("selling_price", ""),
+            "Total Amount": total_amount,
+            "Revenue": revenue if revenue is not None else "",
+            "Booking Date": b.get("booking_date", ""),
+            "Status": b.get("status", "").upper(),
+            "Approval Status": b.get("approval_status", "").upper(),
+            "Approved By": approved_by_user.get("name", ""),
+            "Approved At": b.get("approved_at", ""),
+            "Is Loss Booking": "Yes" if b.get("is_loss_booking") else "No",
+            "Loss Approval": b.get("loss_approval_status", "").upper() if b.get("is_loss_booking") else "N/A",
+            "Payment Status": b.get("payment_status", "pending").upper(),
+            "Total Paid": b.get("total_paid", 0),
+            "Remaining Balance": total_amount - b.get("total_paid", 0) if total_amount else 0,
+            "DP Transfer Ready": "Yes" if b.get("dp_transfer_ready") else "No",
+            "Payment Completed At": b.get("payment_completed_at", ""),
+            "Created By": created_by_user.get("name", "Unknown"),
+            "Created At": b.get("created_at", ""),
+            "Notes": b.get("notes", "")
+        })
+    
+    df = pd.DataFrame(export_data)
+    
+    if format == "csv":
+        output = io.StringIO()
+        df.to_csv(output, index=False)
+        content = output.getvalue()
+        return Response(
+            content=content,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=bookings_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+        )
+    else:
+        # Excel format
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Bookings')
+            
+            # Auto-adjust column widths
+            worksheet = writer.sheets['Bookings']
+            for idx, col in enumerate(df.columns):
+                max_length = max(df[col].astype(str).map(len).max(), len(col)) + 2
+                worksheet.column_dimensions[chr(65 + idx) if idx < 26 else f"A{chr(65 + idx - 26)}"].width = min(max_length, 50)
+        
+        buffer.seek(0)
+        return Response(
+            content=buffer.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=bookings_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
+        )
+
 @api_router.get("/bookings/{booking_id}", response_model=BookingWithDetails)
 async def get_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "user_id": 0})
