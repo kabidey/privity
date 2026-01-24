@@ -16,9 +16,8 @@ import api from '../utils/api';
 import { 
   Plus, Pencil, Trash2, Clock, CheckCircle, XCircle, AlertCircle, 
   CreditCard, IndianRupee, Calendar, Receipt, Building2, TrendingDown, Download, FileSpreadsheet,
-  AlertTriangle, Upload, User, Users, UserCircle, Mail, FileText, Info
+  AlertTriangle, Upload, UserCircle, Mail, FileText, Info
 } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
