@@ -290,6 +290,9 @@ class Booking(BaseModel):
     selling_price: Optional[float] = None
     booking_date: str
     status: str
+    approval_status: str = "pending"  # pending, approved, rejected - for inventory adjustment
+    approved_by: Optional[str] = None
+    approved_at: Optional[str] = None
     notes: Optional[str] = None
     created_at: str
     created_by: str
@@ -307,6 +310,9 @@ class BookingWithDetails(BaseModel):
     selling_price: Optional[float] = None
     booking_date: str
     status: str
+    approval_status: str = "pending"
+    approved_by: Optional[str] = None
+    approved_at: Optional[str] = None
     notes: Optional[str] = None
     profit_loss: Optional[float] = None
     created_at: str
