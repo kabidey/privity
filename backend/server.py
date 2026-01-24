@@ -2397,10 +2397,14 @@ async def update_booking(booking_id: str, booking_data: BookingCreate, current_u
     # Send email if status changed
     if old_booking["status"] != booking_data.status:
         if client and client.get("email"):
-            await send_email(
+            await send_templated_email(
+                "booking_status_updated",
                 client["email"],
-                "Booking Status Updated",
-                f"<p>Dear {client['name']},</p><p>Your booking {booking_number} status has been updated to: <strong>{booking_data.status.upper()}</strong></p>"
+                {
+                    "client_name": client["name"],
+                    "booking_number": booking_number,
+                    "status": booking_data.status.upper()
+                }
             )
     
     updated_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "user_id": 0})
