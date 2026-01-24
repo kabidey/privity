@@ -16,6 +16,7 @@ import Reports from './pages/Reports';
 import UserManagement from './pages/UserManagement';
 import Analytics from './pages/Analytics';
 import EmailTemplates from './pages/EmailTemplates';
+import DPTransferReport from './pages/DPTransferReport';
 import Layout from './components/Layout';
 import './App.css';
 
@@ -51,6 +52,7 @@ function App() {
                         <Route path="/users" element={<UserManagement />} />
                         <Route path="/analytics" element={<Analytics />} />
                         <Route path="/email-templates" element={<EmailTemplates />} />
+                        <Route path="/dp-transfer" element={<DPTransferReport />} />
                       </Routes>
                     </Layout>
                   </NotificationProvider>
