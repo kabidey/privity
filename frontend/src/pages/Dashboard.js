@@ -132,10 +132,10 @@ const Dashboard = () => {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-        {/* P&L Trend Chart */}
+        {/* Revenue Trend Chart */}
         <Card className="border shadow-sm" data-testid="pnl-chart-card">
           <CardHeader>
-            <CardTitle className="text-xl font-bold">P&L Trend</CardTitle>
+            <CardTitle className="text-xl font-bold">Revenue Trend</CardTitle>
           </CardHeader>
           <CardContent>
             {chartData.length > 0 ? (
