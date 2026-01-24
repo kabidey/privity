@@ -1033,6 +1033,17 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
             f"<p>Dear {client_data.name},</p><p>Your account has been created successfully.</p>"
         )
     
+    # Real-time notification for pending approval
+    if approval_status == "pending":
+        # Notify managers (roles 1, 2, 3) about pending client
+        await notify_roles(
+            [1, 2, 3],
+            "client_pending",
+            "New Client Pending Approval",
+            f"Client '{client_data.name}' created by {current_user['name']} is pending approval",
+            {"client_id": client_id, "client_name": client_data.name}
+        )
+    
     return Client(**{k: v for k, v in client_doc.items() if k != "user_id"})
 
 @api_router.put("/clients/{client_id}/approve")
