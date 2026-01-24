@@ -700,6 +700,12 @@ async def approve_booking(
             await create_notification(
                 booking["created_by"],
                 "booking_rejected",
+                "Booking Rejected",
+                f"Your booking for '{stock['symbol'] if stock else 'N/A'}' has been rejected",
+                {"booking_id": booking_id, "stock_symbol": stock['symbol'] if stock else None}
+            )
+    
+    return {"message": f"Booking {'approved' if approve else 'rejected'} successfully"}
 
 
 # ============== Client Confirmation Endpoints (Public - no auth) ==============
