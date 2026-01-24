@@ -389,6 +389,10 @@ const Clients = () => {
   };
 
   const handleEdit = (client) => {
+    if (!isPEDesk) {
+      toast.error('Only PE Desk can modify clients');
+      return;
+    }
     setEditingClient(client);
     setFormData({
       name: client.name,
@@ -397,6 +401,8 @@ const Clients = () => {
       mobile: client.mobile || '',
       pan_number: client.pan_number,
       dp_id: client.dp_id,
+      dp_type: client.dp_type || 'outside',
+      trading_ucc: client.trading_ucc || '',
       address: client.address || '',
       pin_code: client.pin_code || '',
       bank_accounts: client.bank_accounts || [],
@@ -407,13 +413,17 @@ const Clients = () => {
   };
 
   const handleDelete = async (clientId) => {
+    if (!isPEDesk) {
+      toast.error('Only PE Desk can delete clients');
+      return;
+    }
     if (!window.confirm('Are you sure you want to delete this client?')) return;
     try {
       await api.delete(`/clients/${clientId}`);
       toast.success('Client deleted successfully');
       fetchClients();
     } catch (error) {
-      toast.error('Failed to delete client');
+      toast.error(error.response?.data?.detail || 'Failed to delete client');
     }
   };
 
@@ -443,6 +453,7 @@ const Clients = () => {
   const resetForm = () => {
     setFormData({
       name: '', email: '', phone: '', mobile: '', pan_number: '', dp_id: '',
+      dp_type: 'outside', trading_ucc: '',
       address: '', pin_code: '', bank_accounts: [],
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
