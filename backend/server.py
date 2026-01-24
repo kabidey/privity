@@ -2398,6 +2398,299 @@ async def delete_booking(booking_id: str, current_user: dict = Depends(get_curre
         raise HTTPException(status_code=404, detail="Booking not found")
     return {"message": "Booking deleted successfully"}
 
+# ============== Payment Tracking Endpoints (PE Desk & Zonal Manager Only) ==============
+@api_router.post("/bookings/{booking_id}/payments")
+async def add_payment_tranche(
+    booking_id: str,
+    payment: PaymentTrancheCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add payment tranche to approved booking (PE Desk & Zonal Manager only)"""
+    user_role = current_user.get("role", 5)
+    if user_role not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Only PE Desk and Zonal Manager can record payments")
+    
+    # Get booking
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("approval_status") != "approved":
+        raise HTTPException(status_code=400, detail="Can only add payments to approved bookings")
+    
+    # Get existing payments
+    payments = booking.get("payments", [])
+    
+    if len(payments) >= 4:
+        raise HTTPException(status_code=400, detail="Maximum 4 payment tranches allowed")
+    
+    # Calculate total amount required
+    total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    current_paid = sum(p.get("amount", 0) for p in payments)
+    remaining = total_amount - current_paid
+    
+    if payment.amount > remaining + 0.01:  # Small tolerance for rounding
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Payment amount ({payment.amount}) exceeds remaining balance ({remaining:.2f})"
+        )
+    
+    # Create new tranche
+    new_tranche = {
+        "tranche_number": len(payments) + 1,
+        "amount": payment.amount,
+        "payment_date": payment.payment_date,
+        "recorded_by": current_user["id"],
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+        "notes": payment.notes
+    }
+    
+    payments.append(new_tranche)
+    new_total_paid = current_paid + payment.amount
+    
+    # Determine payment status
+    is_complete = abs(new_total_paid - total_amount) < 0.01  # Within 1 paisa
+    payment_status = "completed" if is_complete else ("partial" if new_total_paid > 0 else "pending")
+    
+    # Update booking
+    update_data = {
+        "payments": payments,
+        "total_paid": new_total_paid,
+        "payment_status": payment_status,
+        "dp_transfer_ready": is_complete
+    }
+    
+    if is_complete:
+        update_data["payment_completed_at"] = payment.payment_date
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(
+        action="PAYMENT_RECORDED",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        details={
+            "tranche_number": new_tranche["tranche_number"],
+            "amount": payment.amount,
+            "total_paid": new_total_paid,
+            "payment_status": payment_status
+        }
+    )
+    
+    # Notify booking creator about payment
+    if booking.get("created_by"):
+        await create_notification(
+            booking["created_by"],
+            "payment_received",
+            "Payment Received",
+            f"Payment of ₹{payment.amount:,.2f} recorded for booking. Total paid: ₹{new_total_paid:,.2f}",
+            {"booking_id": booking_id, "amount": payment.amount}
+        )
+    
+    return {
+        "message": f"Payment tranche {new_tranche['tranche_number']} recorded",
+        "total_paid": new_total_paid,
+        "remaining": total_amount - new_total_paid,
+        "payment_status": payment_status,
+        "dp_transfer_ready": is_complete
+    }
+
+@api_router.get("/bookings/{booking_id}/payments")
+async def get_booking_payments(
+    booking_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get payment details for a booking"""
+    check_permission(current_user, "manage_bookings")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    total_paid = booking.get("total_paid", 0)
+    
+    return {
+        "booking_id": booking_id,
+        "total_amount": total_amount,
+        "total_paid": total_paid,
+        "remaining": total_amount - total_paid,
+        "payment_status": booking.get("payment_status", "pending"),
+        "payments": booking.get("payments", []),
+        "dp_transfer_ready": booking.get("dp_transfer_ready", False),
+        "payment_completed_at": booking.get("payment_completed_at")
+    }
+
+@api_router.delete("/bookings/{booking_id}/payments/{tranche_number}")
+async def delete_payment_tranche(
+    booking_id: str,
+    tranche_number: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a payment tranche (PE Desk only)"""
+    if current_user.get("role") != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete payment tranches")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    payments = booking.get("payments", [])
+    payments = [p for p in payments if p.get("tranche_number") != tranche_number]
+    
+    # Recalculate
+    total_paid = sum(p.get("amount", 0) for p in payments)
+    total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    is_complete = abs(total_paid - total_amount) < 0.01
+    payment_status = "completed" if is_complete else ("partial" if total_paid > 0 else "pending")
+    
+    # Renumber tranches
+    for i, p in enumerate(payments):
+        p["tranche_number"] = i + 1
+    
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {
+            "payments": payments,
+            "total_paid": total_paid,
+            "payment_status": payment_status,
+            "dp_transfer_ready": is_complete,
+            "payment_completed_at": None if not is_complete else booking.get("payment_completed_at")
+        }}
+    )
+    
+    return {"message": "Payment tranche deleted"}
+
+@api_router.get("/dp-transfer-report")
+async def get_dp_transfer_report(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get bookings ready for DP transfer (PE Desk & Zonal Manager only)"""
+    user_role = current_user.get("role", 5)
+    if user_role not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Only PE Desk and Zonal Manager can access DP transfer report")
+    
+    # Get all bookings ready for DP transfer
+    bookings = await db.bookings.find(
+        {"dp_transfer_ready": True, "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    if not bookings:
+        return []
+    
+    # Get client and stock details
+    client_ids = list(set(b.get("client_id") for b in bookings))
+    stock_ids = list(set(b.get("stock_id") for b in bookings))
+    
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    
+    client_map = {c["id"]: c for c in clients}
+    stock_map = {s["id"]: s for s in stocks}
+    
+    result = []
+    for booking in bookings:
+        client = client_map.get(booking.get("client_id"), {})
+        stock = stock_map.get(booking.get("stock_id"), {})
+        
+        total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+        
+        result.append({
+            "booking_id": booking["id"],
+            "client_name": client.get("name", "Unknown"),
+            "pan_number": client.get("pan_number", "N/A"),
+            "dp_id": client.get("dp_id", "N/A"),
+            "stock_symbol": stock.get("symbol", "Unknown"),
+            "stock_name": stock.get("name", "Unknown"),
+            "isin_number": stock.get("isin_number", "N/A"),
+            "quantity": booking.get("quantity", 0),
+            "total_amount": total_amount,
+            "total_paid": booking.get("total_paid", 0),
+            "payment_completed_at": booking.get("payment_completed_at", ""),
+            "booking_date": booking.get("booking_date", ""),
+            "payments": booking.get("payments", [])
+        })
+    
+    # Sort by payment completion date
+    result.sort(key=lambda x: x.get("payment_completed_at", ""), reverse=True)
+    
+    return result
+
+@api_router.get("/dp-transfer-report/export")
+async def export_dp_transfer_report(
+    format: str = "csv",
+    current_user: dict = Depends(get_current_user)
+):
+    """Export DP transfer report as CSV or Excel (PE Desk & Zonal Manager only)"""
+    user_role = current_user.get("role", 5)
+    if user_role not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Only PE Desk and Zonal Manager can export DP transfer report")
+    
+    # Get report data
+    bookings = await db.bookings.find(
+        {"dp_transfer_ready": True, "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    if not bookings:
+        raise HTTPException(status_code=404, detail="No records to export")
+    
+    # Get client and stock details
+    client_ids = list(set(b.get("client_id") for b in bookings))
+    stock_ids = list(set(b.get("stock_id") for b in bookings))
+    
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    
+    client_map = {c["id"]: c for c in clients}
+    stock_map = {s["id"]: s for s in stocks}
+    
+    # Build export data
+    rows = []
+    for booking in bookings:
+        client = client_map.get(booking.get("client_id"), {})
+        stock = stock_map.get(booking.get("stock_id"), {})
+        
+        rows.append({
+            "Client Name": client.get("name", "Unknown"),
+            "PAN Number": client.get("pan_number", "N/A"),
+            "DP ID": client.get("dp_id", "N/A"),
+            "Stock Symbol": stock.get("symbol", "Unknown"),
+            "Stock Name": stock.get("name", "Unknown"),
+            "ISIN": stock.get("isin_number", "N/A"),
+            "Quantity": booking.get("quantity", 0),
+            "Total Amount": (booking.get("selling_price") or 0) * booking.get("quantity", 0),
+            "Total Paid": booking.get("total_paid", 0),
+            "Payment Completed Date": booking.get("payment_completed_at", ""),
+            "Booking Date": booking.get("booking_date", "")
+        })
+    
+    df = pd.DataFrame(rows)
+    
+    if format == "excel":
+        buffer = io.BytesIO()
+        df.to_excel(buffer, index=False, engine='openpyxl')
+        buffer.seek(0)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=dp_transfer_report.xlsx"}
+        )
+    else:
+        buffer = io.StringIO()
+        df.to_csv(buffer, index=False)
+        buffer.seek(0)
+        return StreamingResponse(
+            io.BytesIO(buffer.getvalue().encode()),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=dp_transfer_report.csv"}
+        )
+
 @api_router.post("/bookings/bulk-upload")
 async def bulk_upload_bookings(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     check_permission(current_user, "manage_bookings")
