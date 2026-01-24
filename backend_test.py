@@ -442,6 +442,77 @@ class ShareBookingAPITester:
             self.log_test("Dashboard Analytics", False, f"Status: {status}, Response: {response}")
             return False
 
+    def test_get_employees(self):
+        """Test getting employees list for mapping"""
+        success, response, status = self.make_request("GET", "employees", expected_status=200)
+        
+        if success and isinstance(response, list):
+            self.log_test("Get Employees", True, f"Found {len(response)} employees")
+            return True
+        else:
+            self.log_test("Get Employees", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_employee_mapping(self):
+        """Test client employee mapping (admin only)"""
+        if not self.test_client_id:
+            self.log_test("Employee Mapping", False, "No client ID available")
+            return False
+            
+        # First get employees to map to
+        success, employees, status = self.make_request("GET", "employees", expected_status=200)
+        if not success or not employees:
+            self.log_test("Employee Mapping", False, "No employees available for mapping")
+            return False
+            
+        employee_id = employees[0]['id']  # Use first employee
+        
+        # Test mapping client to employee
+        success, response, status = self.make_request("PUT", f"clients/{self.test_client_id}/employee-mapping", 
+                                                    None, expected_status=200)
+        # Add employee_id as query parameter
+        url = f"{self.api_url}/clients/{self.test_client_id}/employee-mapping?employee_id={employee_id}"
+        headers = {'Authorization': f'Bearer {self.token}'}
+        
+        try:
+            response = requests.put(url, headers=headers)
+            success = response.status_code == 200
+            
+            if success:
+                self.log_test("Employee Mapping", True, f"Mapped client to employee {employee_id}")
+                return True
+            else:
+                self.log_test("Employee Mapping", False, f"Status: {response.status_code}, Response: {response.text}")
+                return False
+        except Exception as e:
+            self.log_test("Employee Mapping", False, str(e))
+            return False
+
+    def test_document_upload_simulation(self):
+        """Test document upload endpoint (simulated - no actual file)"""
+        if not self.test_client_id:
+            self.log_test("Document Upload Simulation", False, "No client ID available")
+            return False
+            
+        # We can't easily test file upload in this script, but we can test the endpoint exists
+        # and returns proper error for missing file
+        url = f"{self.api_url}/clients/{self.test_client_id}/documents"
+        headers = {'Authorization': f'Bearer {self.token}'}
+        
+        try:
+            # This should fail with 422 (missing file) but confirms endpoint exists
+            response = requests.post(url, headers=headers)
+            
+            if response.status_code in [422, 400]:  # Expected error for missing file
+                self.log_test("Document Upload Endpoint", True, "Endpoint exists and validates input")
+                return True
+            else:
+                self.log_test("Document Upload Endpoint", False, f"Unexpected status: {response.status_code}")
+                return False
+        except Exception as e:
+            self.log_test("Document Upload Endpoint", False, str(e))
+            return False
+
     def cleanup_test_data(self):
         """Clean up test data"""
         cleanup_success = True
