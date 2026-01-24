@@ -17,6 +17,7 @@ import Reports from './pages/Reports';
 import UserManagement from './pages/UserManagement';
 import Analytics from './pages/Analytics';
 import EmailTemplates from './pages/EmailTemplates';
+import EmailServerConfig from './pages/EmailServerConfig';
 import DPTransferReport from './pages/DPTransferReport';
 import Layout from './components/Layout';
 import './App.css';
