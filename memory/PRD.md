@@ -144,13 +144,13 @@ Build a Share Booking System for managing client share bookings, inventory track
 ## Prioritized Backlog
 
 ### P0 (Critical)
-- None - all core features implemented
+- ✅ All resolved - no critical issues
 
 ### P1 (High Priority)
-- [ ] Audit logging for all actions
 - [ ] Real-time notifications with WebSocket
 - [ ] Password reset functionality
 - [ ] Two-factor authentication
+- [ ] Backend refactoring (split server.py into modules)
 
 ### P2 (Medium Priority)
 - [ ] Bulk booking close functionality
@@ -159,7 +159,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 - [ ] Mobile app (React Native)
 
 ## Next Tasks
-1. Add audit logging for compliance
-2. Implement WebSocket notifications
-3. Add password reset flow
+1. Real-time notifications with WebSocket
+2. Password reset flow
+3. Refactor backend into modular structure (models/, routers/, services/)
 4. Create advanced analytics with more chart types
