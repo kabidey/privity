@@ -233,22 +233,41 @@ const DPTransferReport = () => {
                       </TableCell>
                       <TableCell>{formatDate(record.payment_completed_at)}</TableCell>
                       <TableCell>
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Ready
-                        </Badge>
+                        {record.stock_transferred ? (
+                          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Transferred
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Ready
+                          </Badge>
+                        )}
                       </TableCell>
                       {isPEDesk && (
                         <TableCell className="text-center">
-                          <Button
-                            size="sm"
-                            onClick={() => setTransferDialog({ open: true, record })}
-                            className="bg-emerald-600 hover:bg-emerald-700"
-                            data-testid={`transfer-btn-${record.booking_id}`}
-                          >
-                            <Send className="h-3 w-3 mr-1" />
-                            Transfer
-                          </Button>
+                          {record.stock_transferred ? (
+                            <Button
+                              size="sm"
+                              disabled
+                              className="bg-gray-400 cursor-not-allowed"
+                              data-testid={`transfer-btn-${record.booking_id}`}
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Done
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => setTransferDialog({ open: true, record })}
+                              className="bg-emerald-600 hover:bg-emerald-700"
+                              data-testid={`transfer-btn-${record.booking_id}`}
+                            >
+                              <Send className="h-3 w-3 mr-1" />
+                              Transfer
+                            </Button>
+                          )}
                         </TableCell>
                       )}
                     </TableRow>
