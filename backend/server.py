@@ -50,86 +50,13 @@ app = FastAPI(title="Privity Share Booking System", version="2.0.0")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
-# WebSocket Connection Manager for Real-time Notifications
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: Dict[str, List[WebSocket]] = {}
-    
-    async def connect(self, websocket: WebSocket, user_id: str):
-        await websocket.accept()
-        if user_id not in self.active_connections:
-            self.active_connections[user_id] = []
-        self.active_connections[user_id].append(websocket)
-        logging.info(f"WebSocket connected for user {user_id}")
-    
-    def disconnect(self, websocket: WebSocket, user_id: str):
-        if user_id in self.active_connections:
-            if websocket in self.active_connections[user_id]:
-                self.active_connections[user_id].remove(websocket)
-            if not self.active_connections[user_id]:
-                del self.active_connections[user_id]
-        logging.info(f"WebSocket disconnected for user {user_id}")
-    
-    async def send_to_user(self, user_id: str, message: dict):
-        if user_id in self.active_connections:
-            for connection in self.active_connections[user_id]:
-                try:
-                    await connection.send_json(message)
-                except Exception as e:
-                    logging.error(f"Failed to send to user {user_id}: {e}")
-    
-    async def send_to_roles(self, roles: List[int], message: dict):
-        users = await db.users.find({"role": {"$in": roles}}, {"id": 1}).to_list(1000)
-        for user in users:
-            await self.send_to_user(user["id"], message)
+# Import WebSocket manager from services (use local for now until full migration)
+from services.notification_service import ws_manager, create_notification, notify_roles
+from services.audit_service import create_audit_log
+from services.ocr_service import process_document_ocr
+from services.inventory_service import update_inventory
 
-ws_manager = ConnectionManager()
-
-# User Roles
-ROLES = {
-    1: "PE Desk",
-    2: "Zonal Manager",
-    3: "Manager",
-    4: "Employee",
-    5: "Viewer"
-}
-
-# Role Permissions
-ROLE_PERMISSIONS = {
-    1: ["all"],  # PE Desk - full access, can approve bookings, manage vendors
-    2: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],  # Zonal Manager - no vendor access
-    3: ["view_all", "manage_clients", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],  # Manager - no vendor access
-    4: ["view_own", "create_bookings", "view_clients", "create_clients"],  # Employee - no vendor access, can only see own clients
-    5: ["view_own"]  # Viewer - read only
-}
-
-# Allowed email domains for registration
-ALLOWED_EMAIL_DOMAINS = ["smifs.com"]
-
-# Audit Log Types
-AUDIT_ACTIONS = {
-    "USER_REGISTER": "User Registration",
-    "USER_LOGIN": "User Login",
-    "USER_PASSWORD_RESET": "Password Reset",
-    "CLIENT_CREATE": "Client Created",
-    "CLIENT_UPDATE": "Client Updated",
-    "CLIENT_DELETE": "Client Deleted",
-    "CLIENT_APPROVE": "Client Approved",
-    "CLIENT_REJECT": "Client Rejected",
-    "CLIENT_MAP": "Client Mapped to Employee",
-    "VENDOR_CREATE": "Vendor Created",
-    "STOCK_CREATE": "Stock Created",
-    "PURCHASE_CREATE": "Purchase Created",
-    "BOOKING_CREATE": "Booking Created",
-    "BOOKING_APPROVE": "Booking Approved",
-    "BOOKING_REJECT": "Booking Rejected",
-    "BOOKING_UPDATE": "Booking Updated",
-    "PAYMENT_RECORDED": "Payment Recorded",
-    "INVENTORY_ADJUST": "Inventory Adjusted",
-    "EMAIL_TEMPLATE_UPDATE": "Email Template Updated",
-}
-
-# Audit Log Model
+# Audit Log Model (keeping for backward compatibility with local code)
 class AuditLog(BaseModel):
     id: str
     action: str
