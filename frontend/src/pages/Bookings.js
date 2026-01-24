@@ -121,6 +121,16 @@ const Bookings = () => {
     }
   };
 
+  const handleLossApprove = async (bookingId, approve) => {
+    try {
+      await api.put(`/bookings/${bookingId}/approve-loss?approve=${approve}`);
+      toast.success(approve ? 'Loss booking approved' : 'Loss booking rejected');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to process loss approval');
+    }
+  };
+
   const handleEdit = (booking) => {
     setEditingBooking(booking);
     setFormData({
