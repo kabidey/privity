@@ -1,67 +1,25 @@
 """
-Email service with template support
+Email service for sending notifications
 """
-import smtplib
 import logging
+import smtplib
 import random
 import string
-import re
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import Dict, Optional
-from datetime import datetime, timezone
-import uuid
+from typing import Optional
 
-from config import EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_FROM, DEFAULT_EMAIL_TEMPLATES
-from database import db
+from config import (
+    EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_FROM,
+    OTP_EXPIRY_MINUTES
+)
 
-async def get_email_template(template_key: str) -> Optional[Dict]:
-    """Get email template from database or default"""
-    # Try database first
-    template = await db.email_templates.find_one({"key": template_key, "is_active": True}, {"_id": 0})
-    if template:
-        return template
-    
-    # Fall back to default
-    default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
-    if default:
-        return {
-            "id": template_key,
-            "key": template_key,
-            **default,
-            "is_active": True
-        }
-    return None
 
-def render_template(template_body: str, variables: Dict[str, str]) -> str:
-    """Render template with variables"""
-    result = template_body
-    for key, value in variables.items():
-        result = result.replace(f"{{{{{key}}}}}", str(value) if value else "")
-    return result
-
-async def send_templated_email(
-    template_key: str,
-    to_email: str,
-    variables: Dict[str, str],
-    cc_email: Optional[str] = None
-) -> bool:
-    """Send email using template"""
-    template = await get_email_template(template_key)
-    if not template:
-        logging.warning(f"Email template '{template_key}' not found")
-        return False
-    
-    subject = render_template(template["subject"], variables)
-    body = render_template(template["body"], variables)
-    
-    return await send_email(to_email, subject, body, cc_email)
-
-async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[str] = None) -> bool:
-    """Send email via SMTP"""
+async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[str] = None):
+    """Send email via MS Exchange with optional CC"""
     if not EMAIL_USERNAME or not EMAIL_PASSWORD:
-        logging.warning("Email credentials not configured, skipping email send")
-        return False
+        logging.warning("Email credentials not configured")
+        return
     
     try:
         msg = MIMEMultipart()
@@ -72,44 +30,255 @@ async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'html'))
         
-        recipients = [to_email]
-        if cc_email:
-            recipients.append(cc_email)
-        
         with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
             server.starttls()
             server.login(EMAIL_USERNAME, EMAIL_PASSWORD)
-            server.sendmail(EMAIL_FROM, recipients, msg.as_string())
+            server.send_message(msg)
         
         logging.info(f"Email sent to {to_email}")
-        return True
     except Exception as e:
         logging.error(f"Failed to send email: {str(e)}")
-        return False
+
 
 def generate_otp(length: int = 6) -> str:
     """Generate numeric OTP"""
     return ''.join(random.choices(string.digits, k=length))
 
-async def send_otp_email(to_email: str, otp: str, user_name: str = "User") -> bool:
-    """Send OTP email for password reset"""
-    return await send_templated_email(
-        "password_reset_otp",
-        to_email,
-        {"user_name": user_name, "otp": otp}
-    )
 
-async def init_email_templates():
-    """Initialize default email templates in database"""
-    for key, template_data in DEFAULT_EMAIL_TEMPLATES.items():
-        existing = await db.email_templates.find_one({"key": key})
-        if not existing:
-            await db.email_templates.insert_one({
-                "id": str(uuid.uuid4()),
-                "key": key,
-                **template_data,
-                "is_active": True,
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-                "updated_by": None
-            })
-            logging.info(f"Created default email template: {key}")
+async def send_otp_email(to_email: str, otp: str, user_name: str = "User"):
+    """Send OTP email for password reset"""
+    subject = "Password Reset OTP - Share Booking System"
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">Password Reset Request</h2>
+        <p>Dear {user_name},</p>
+        <p>You have requested to reset your password. Use the following OTP to proceed:</p>
+        <div style="background: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
+            <h1 style="color: #007bff; letter-spacing: 5px; margin: 0;">{otp}</h1>
+        </div>
+        <p><strong>This OTP is valid for {OTP_EXPIRY_MINUTES} minutes.</strong></p>
+        <p>If you did not request this password reset, please ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="color: #666; font-size: 12px;">This is an automated message from Share Booking System.</p>
+    </div>
+    """
+    await send_email(to_email, subject, body)
+
+
+async def send_booking_notification_email(
+    client_email: str,
+    client_name: str,
+    stock_symbol: str,
+    stock_name: str,
+    quantity: int,
+    buying_price: float,
+    booking_number: str,
+    cc_email: Optional[str] = None
+):
+    """Send booking creation notification email"""
+    subject = f"New Booking Order - {stock_symbol} | {booking_number}"
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #333;">Booking Order Notification</h2>
+        <p>Dear {client_name},</p>
+        <p>A new booking order has been created and is pending internal approval. You will receive another email to confirm your acceptance once approved.</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking ID</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock_symbol} - {stock_name}</td>
+            </tr>
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{quantity}</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Landing Price</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{buying_price:,.2f}</td>
+            </tr>
+        </table>
+        
+        <p style="color: #6b7280; font-size: 14px;">This is an automated notification. You will receive a confirmation request email once the booking is approved internally.</p>
+        
+        <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+    </div>
+    """
+    await send_email(client_email, subject, body, cc_email)
+
+
+async def send_booking_approval_email(
+    client_email: str,
+    client_name: str,
+    stock_symbol: str,
+    stock_name: str,
+    quantity: int,
+    buying_price: float,
+    booking_id: str,
+    booking_number: str,
+    confirmation_token: str,
+    approved_by: str,
+    frontend_url: str,
+    client_otc_ucc: str = "N/A",
+    cc_email: Optional[str] = None
+):
+    """Send booking approval email with confirmation buttons"""
+    subject = f"Action Required: Confirm Booking - {stock_symbol} | {booking_number}"
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #10b981;">Booking Approved - Please Confirm ✓</h2>
+        <p>Dear {client_name},</p>
+        <p>Your booking order has been <strong style="color: #10b981;">APPROVED</strong> by PE Desk. Please confirm your acceptance to proceed.</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking ID</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Client OTC UCC</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{client_otc_ucc}</td>
+            </tr>
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock_symbol} - {stock_name}</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{quantity}</td>
+            </tr>
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Landing Price</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{buying_price:,.2f}</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Value</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{(buying_price * quantity):,.2f}</td>
+            </tr>
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Approved By</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{approved_by} (PE Desk)</td>
+            </tr>
+        </table>
+        
+        <div style="margin: 30px 0; text-align: center;">
+            <p style="margin-bottom: 20px; font-weight: bold;">Please confirm your booking:</p>
+            <a href="{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/accept" 
+               style="display: inline-block; background-color: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin-right: 10px; font-weight: bold;">
+                ✓ ACCEPT BOOKING
+            </a>
+            <a href="{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/deny" 
+               style="display: inline-block; background-color: #ef4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                ✗ DENY BOOKING
+            </a>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px;">Please review and confirm this booking. If you accept, payment can be initiated. If you deny, the booking will be cancelled.</p>
+        
+        <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+    </div>
+    """
+    await send_email(client_email, subject, body, cc_email)
+
+
+async def send_loss_booking_pending_email(
+    client_email: str,
+    client_name: str,
+    stock_symbol: str,
+    booking_number: str,
+    cc_email: Optional[str] = None
+):
+    """Send email for loss booking pending loss approval"""
+    subject = f"Booking Approved - Pending Loss Review | {booking_number}"
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #f59e0b;">Booking Approved - Pending Loss Review</h2>
+        <p>Dear {client_name},</p>
+        <p>Your booking order has been approved. However, since this is a loss transaction, it requires additional review. You will receive a confirmation request once fully approved.</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking ID</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock_symbol}</td>
+            </tr>
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Status</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><span style="color: #f59e0b;">Pending Loss Review</span></td>
+            </tr>
+        </table>
+        
+        <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+    </div>
+    """
+    await send_email(client_email, subject, body, cc_email)
+
+
+async def send_loss_approval_email(
+    client_email: str,
+    client_name: str,
+    stock_symbol: str,
+    quantity: int,
+    buying_price: float,
+    selling_price: float,
+    booking_id: str,
+    booking_number: str,
+    confirmation_token: str,
+    frontend_url: str,
+    cc_email: Optional[str] = None
+):
+    """Send email for fully approved loss booking with confirmation buttons"""
+    subject = f"Action Required: Confirm Loss Booking - {stock_symbol} | {booking_number}"
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #10b981;">Booking Fully Approved - Please Confirm ✓</h2>
+        <p>Dear {client_name},</p>
+        <p>Your loss booking order has been <strong style="color: #10b981;">FULLY APPROVED</strong>. Please confirm your acceptance to proceed.</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking ID</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{booking_number}</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{stock_symbol}</td>
+            </tr>
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">{quantity}</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Landing Price</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{buying_price:,.2f}</td>
+            </tr>
+            <tr style="background-color: #fef3c7;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Selling Price</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{selling_price:,.2f} <span style="color: #dc2626;">(Loss Transaction)</span></td>
+            </tr>
+        </table>
+        
+        <div style="margin: 30px 0; text-align: center;">
+            <p style="margin-bottom: 20px; font-weight: bold;">Please confirm your booking:</p>
+            <a href="{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/accept" 
+               style="display: inline-block; background-color: #22c55e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin-right: 10px; font-weight: bold;">
+                ✓ ACCEPT BOOKING
+            </a>
+            <a href="{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/deny" 
+               style="display: inline-block; background-color: #ef4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                ✗ DENY BOOKING
+            </a>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px;">This is a loss transaction booking. Please review carefully before confirming.</p>
+        
+        <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+    </div>
+    """
+    await send_email(client_email, subject, body, cc_email)
