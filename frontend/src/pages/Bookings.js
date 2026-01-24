@@ -294,6 +294,20 @@ const Bookings = () => {
     }
   };
 
+  const getClientConfirmationBadge = (booking) => {
+    const status = booking.client_confirmation_status || 'pending';
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="text-purple-600 border-purple-600"><Clock className="h-3 w-3 mr-1" />Client Pending</Badge>;
+      case 'accepted':
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"><CheckCircle className="h-3 w-3 mr-1" />Client Accepted</Badge>;
+      case 'denied':
+        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"><XCircle className="h-3 w-3 mr-1" />Client Denied</Badge>;
+      default:
+        return null;
+    }
+  };
+
   const getPaymentBadge = (booking) => {
     const status = booking.payment_status || 'pending';
     switch (status) {
