@@ -250,15 +250,17 @@ Build a Share Booking System for managing client share bookings, inventory track
 - ✅ Backend modular structure - DONE
 - ✅ Advanced Analytics Dashboard (PE Desk) - DONE
 - ✅ Email Template Customization - DONE
+- ✅ Payment Tracking & DP Transfer Report - DONE
 - [ ] Two-factor authentication (TOTP)
 
 ### P2 (Medium Priority)
 - [ ] Bulk booking close functionality
 - [ ] Mobile app (React Native)
 - [ ] Complete migration of server.py routes to separate router files
+- [ ] Mobile responsive improvements
 
 ## Next Tasks
-1. Two-factor authentication (TOTP)
-2. Bulk booking close functionality
-3. Complete backend route migration to separate router modules
+1. Backend route migration (refactor server.py into modular routers)
+2. Two-factor authentication (TOTP)
+3. Bulk booking close functionality
 4. Mobile responsive improvements
