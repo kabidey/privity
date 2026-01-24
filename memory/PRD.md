@@ -405,6 +405,33 @@ Build a Share Booking System for managing client share bookings, inventory track
 3. **(P2) Bulk booking close functionality**
 4. **(P2) Mobile responsive improvements**
 
+## Completed Features (Jan 25, 2026)
+
+### Vendor Payment Tracking with Email Notification
+- Added payment recording for vendor purchases on Purchases page
+- "Pay" button opens dialog to record payment with amount, date, and notes
+- Payment status displayed as badges: Pending (outline), Partial (yellow), Paid (green)
+- When payment is recorded, vendor receives email notification with:
+  - Stock details (symbol, name)
+  - Purchase information (quantity, purchase date, total amount)
+  - Payment details (this payment amount, total paid, remaining balance, status)
+
+### DP Transfer Confirmation with Client Email
+- Added "Transfer" button on DP Transfer Report page
+- Confirmation dialog shows booking details (Client, DP ID, Stock, ISIN, Quantity, Amount)
+- Optional notes field for transfer remarks
+- When transfer is confirmed, client receives email notification with:
+  - Booking reference number
+  - Stock details (symbol, name, ISIN)
+  - Quantity transferred
+  - Client's DP ID
+  - Transfer date
+
+### API Endpoints Added
+- `POST /api/purchases/{purchase_id}/payments` - Record vendor payment
+- `GET /api/purchases/{purchase_id}/payments` - Get payment history
+- `PUT /api/bookings/{booking_id}/confirm-transfer` - Confirm stock transfer
+
 ## Backend Refactoring Status (Jan 25, 2026)
 **Progress Made:**
 - Created modular architecture files under `/app/backend/`:
