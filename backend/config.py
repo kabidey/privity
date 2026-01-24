@@ -69,20 +69,111 @@ AUDIT_ACTIONS = {
     "CLIENT_MAP": "Client Mapped to Employee",
     "VENDOR_CREATE": "Vendor Created",
     "STOCK_CREATE": "Stock Created",
+    "STOCK_UPDATE": "Stock Updated",
+    "STOCK_DELETE": "Stock Deleted",
     "PURCHASE_CREATE": "Purchase Created",
     "BOOKING_CREATE": "Booking Created",
     "BOOKING_APPROVE": "Booking Approved",
     "BOOKING_REJECT": "Booking Rejected",
     "BOOKING_UPDATE": "Booking Updated",
     "INVENTORY_ADJUST": "Inventory Adjusted",
+    "CORPORATE_ACTION": "Corporate Action Applied",
+    "EMAIL_TEMPLATE_UPDATE": "Email Template Updated",
 }
 
-# Notification Types
-NOTIFICATION_TYPES = {
-    "CLIENT_PENDING": "client_pending_approval",
-    "CLIENT_APPROVED": "client_approved",
-    "CLIENT_REJECTED": "client_rejected",
-    "BOOKING_PENDING": "booking_pending_approval",
-    "BOOKING_APPROVED": "booking_approved",
-    "BOOKING_REJECTED": "booking_rejected",
+# Default Email Templates
+DEFAULT_EMAIL_TEMPLATES = {
+    "client_welcome": {
+        "name": "Client Welcome",
+        "subject": "Welcome to Share Booking System",
+        "body": """<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #064E3B;">Welcome to Share Booking System</h2>
+    <p>Dear {{client_name}},</p>
+    <p>Your account has been created successfully.</p>
+    <p>Your OTC UCC Code: <strong>{{otc_ucc}}</strong></p>
+    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+</div>""",
+        "variables": ["client_name", "otc_ucc"]
+    },
+    "client_approved": {
+        "name": "Client Approved",
+        "subject": "Account Approved - Share Booking System",
+        "body": """<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #10b981;">Account Approved</h2>
+    <p>Dear {{client_name}},</p>
+    <p>Your account has been approved and is now active.</p>
+    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+</div>""",
+        "variables": ["client_name"]
+    },
+    "booking_created": {
+        "name": "Booking Created",
+        "subject": "Booking Order Created - {{stock_symbol}} | {{booking_id}}",
+        "body": """<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #064E3B;">Booking Order Created</h2>
+    <p>Dear {{client_name}},</p>
+    <p>A new booking order has been created:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr style="background-color: #f3f4f6;">
+            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Order ID</strong></td>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;">{{booking_id}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;">{{stock_symbol}} - {{stock_name}}</td>
+        </tr>
+        <tr style="background-color: #f3f4f6;">
+            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;">{{quantity}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Price</strong></td>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{{price}}</td>
+        </tr>
+    </table>
+    <p style="color: #6b7280;">This order is pending approval.</p>
+    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+</div>""",
+        "variables": ["client_name", "booking_id", "stock_symbol", "stock_name", "quantity", "price"]
+    },
+    "booking_approved": {
+        "name": "Booking Approved",
+        "subject": "Booking Approved - {{stock_symbol}} | {{booking_id}}",
+        "body": """<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #10b981;">Booking Order Approved ✓</h2>
+    <p>Dear {{client_name}},</p>
+    <p>Your booking order has been <strong style="color: #10b981;">APPROVED</strong>.</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+        <tr style="background-color: #f3f4f6;">
+            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;">{{stock_symbol}}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;">{{quantity}}</td>
+        </tr>
+        <tr style="background-color: #f3f4f6;">
+            <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Approved By</strong></td>
+            <td style="padding: 10px; border: 1px solid #e5e7eb;">{{approved_by}}</td>
+        </tr>
+    </table>
+    <p>Best regards,<br><strong>SMIFS Share Booking System</strong></p>
+</div>""",
+        "variables": ["client_name", "booking_id", "stock_symbol", "quantity", "approved_by"]
+    },
+    "password_reset_otp": {
+        "name": "Password Reset OTP",
+        "subject": "Password Reset OTP - Share Booking System",
+        "body": """<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #333;">Password Reset Request</h2>
+    <p>Dear {{user_name}},</p>
+    <p>You have requested to reset your password. Use the following OTP:</p>
+    <div style="background: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
+        <h1 style="color: #007bff; letter-spacing: 5px; margin: 0;">{{otp}}</h1>
+    </div>
+    <p><strong>This OTP is valid for 10 minutes.</strong></p>
+    <p>If you did not request this, please ignore this email.</p>
+</div>""",
+        "variables": ["user_name", "otp"]
+    }
 }
