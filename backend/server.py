@@ -74,6 +74,9 @@ from utils.auth import hash_password, verify_password, create_token, get_current
 # Import email functions from services  
 from services.email_service import send_email, generate_otp, send_otp_email
 
+# Import audit service
+from services.audit_service import create_audit_log
+
 # Keep local Inventory alias for backward compatibility
 Inventory = InventoryModel
 
