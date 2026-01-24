@@ -556,13 +556,16 @@ async def upload_client_document(
         content = await file.read()
         await f.write(content)
     
+    # Process OCR
+    ocr_data = await process_document_ocr(str(file_path), doc_type)
+    
     # Update client document record
     doc_record = {
         "doc_type": doc_type,
         "filename": filename,
         "file_path": str(file_path),
         "upload_date": datetime.now(timezone.utc).isoformat(),
-        "ocr_data": None
+        "ocr_data": ocr_data
     }
     
     await db.clients.update_one(
