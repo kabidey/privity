@@ -798,6 +798,94 @@ async def delete_client(client_id: str, current_user: dict = Depends(get_current
         raise HTTPException(status_code=404, detail="Client not found")
     return {"message": "Client deleted successfully"}
 
+
+# Suspend/Unsuspend Client (PE Desk Only)
+@api_router.put("/clients/{client_id}/suspend")
+async def suspend_client(
+    client_id: str,
+    suspension_data: ClientSuspensionRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Suspend a client with a reason (PE Desk only)"""
+    # Only PE Desk (role 1) can suspend clients
+    if current_user.get("role", 5) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can suspend clients")
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    if client.get("is_suspended"):
+        raise HTTPException(status_code=400, detail="Client is already suspended")
+    
+    # Update client suspension status
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$set": {
+            "is_suspended": True,
+            "suspension_reason": suspension_data.reason,
+            "suspended_by": current_user["id"],
+            "suspended_by_name": current_user["name"],
+            "suspended_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Log the action
+    await log_audit(
+        action="client_suspended",
+        action_description=f"Client {client.get('name')} suspended: {suspension_data.reason}",
+        entity_type="client",
+        entity_id=client_id,
+        entity_name=client.get("name"),
+        user=current_user,
+        details={"reason": suspension_data.reason}
+    )
+    
+    return {"message": f"Client {client.get('name')} has been suspended", "reason": suspension_data.reason}
+
+
+@api_router.put("/clients/{client_id}/unsuspend")
+async def unsuspend_client(
+    client_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Unsuspend a client (PE Desk only)"""
+    # Only PE Desk (role 1) can unsuspend clients
+    if current_user.get("role", 5) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can unsuspend clients")
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    if not client.get("is_suspended"):
+        raise HTTPException(status_code=400, detail="Client is not suspended")
+    
+    # Update client suspension status
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$set": {
+            "is_suspended": False,
+            "suspension_reason": None,
+            "suspended_by": None,
+            "suspended_by_name": None,
+            "suspended_at": None
+        }}
+    )
+    
+    # Log the action
+    await log_audit(
+        action="client_unsuspended",
+        action_description=f"Client {client.get('name')} unsuspended",
+        entity_type="client",
+        entity_id=client_id,
+        entity_name=client.get("name"),
+        user=current_user
+    )
+    
+    return {"message": f"Client {client.get('name')} has been unsuspended"}
+
+
 # Bulk Upload Routes
 @api_router.post("/clients/bulk-upload")
 async def bulk_upload_clients(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
