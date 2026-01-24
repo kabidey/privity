@@ -2618,6 +2618,106 @@ async def get_booking_payments(
     total_paid = booking.get("total_paid", 0)
     
     return {
+
+
+# ============== Insider Trading Form Upload ==============
+
+@api_router.post("/bookings/{booking_id}/insider-form")
+async def upload_insider_form(
+    booking_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload insider trading compliance form for Own bookings"""
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Verify user owns this booking or is PE Desk
+    if booking.get("created_by") != current_user["id"] and current_user.get("role") != 1:
+        raise HTTPException(status_code=403, detail="You can only upload forms for your own bookings")
+    
+    if booking.get("booking_type") != "own":
+        raise HTTPException(status_code=400, detail="Insider forms are only required for 'Own' bookings")
+    
+    # Create directory for insider forms
+    forms_dir = UPLOAD_DIR / "insider_forms" / booking_id
+    forms_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save file
+    file_ext = Path(file.filename).suffix
+    filename = f"insider_form_{datetime.now().strftime('%Y%m%d%H%M%S')}{file_ext}"
+    file_path = forms_dir / filename
+    
+    async with aiofiles.open(file_path, 'wb') as f:
+        content = await file.read()
+        await f.write(content)
+    
+    # Update booking
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {
+            "insider_form_uploaded": True,
+            "insider_form_path": str(file_path),
+            "insider_form_filename": filename,
+            "insider_form_uploaded_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="INSIDER_FORM_UPLOAD",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
+        entity_name=f"Insider Form - {booking.get('booking_number', booking_id[:8])}",
+        details={
+            "filename": filename,
+            "booking_type": "own"
+        }
+    )
+    
+    # Notify PE Desk
+    await notify_roles(
+        [1],
+        "insider_form_uploaded",
+        "Insider Trading Form Uploaded",
+        f"{current_user['name']} uploaded insider trading form for booking {booking.get('booking_number', booking_id[:8])}",
+        {"booking_id": booking_id, "booking_number": booking.get("booking_number")}
+    )
+    
+    return {
+        "message": "Insider trading form uploaded successfully",
+        "filename": filename
+    }
+
+
+@api_router.get("/bookings/{booking_id}/insider-form")
+async def download_insider_form(
+    booking_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Download insider trading form for a booking (PE Desk only)"""
+    if current_user.get("role") != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can download insider forms")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("insider_form_path"):
+        raise HTTPException(status_code=404, detail="No insider form uploaded for this booking")
+    
+    file_path = Path(booking["insider_form_path"])
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Form file not found")
+    
+    return FileResponse(
+        file_path, 
+        filename=booking.get("insider_form_filename", "insider_form.pdf")
+    )
         "booking_id": booking_id,
         "total_amount": total_amount,
         "total_paid": total_paid,
