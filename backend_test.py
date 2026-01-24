@@ -599,6 +599,11 @@ class ShareBookingAPITester:
         # User Management Tests (NEW)
         self.test_get_users()
         
+        # NEW FEATURES TESTING
+        self.test_get_employees()
+        self.test_employee_mapping()
+        self.test_document_upload_simulation()
+        
         # Client Portfolio Tests (NEW)
         self.test_client_portfolio()
         
