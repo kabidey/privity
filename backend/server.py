@@ -595,28 +595,52 @@ async def update_user_role(user_id: str, role: int, current_user: dict = Depends
 # Client Routes with Document Upload
 @api_router.post("/clients", response_model=Client)
 async def create_client(client_data: ClientCreate, current_user: dict = Depends(get_current_user)):
-    check_permission(current_user, "manage_clients")
+    user_role = current_user.get("role", 5)
+    
+    # Employees can only create clients (not vendors)
+    if user_role == 4 and client_data.is_vendor:
+        raise HTTPException(status_code=403, detail="Employees cannot create vendors")
+    
+    # Check permission based on whether it's a client or vendor
+    if client_data.is_vendor:
+        check_permission(current_user, "manage_vendors")
+    else:
+        if user_role == 4:
+            check_permission(current_user, "create_clients")
+        else:
+            check_permission(current_user, "manage_clients")
     
     client_id = str(uuid.uuid4())
     # Generate unique OTC UCC code
     otc_ucc = f"OTC{datetime.now().strftime('%Y%m%d')}{client_id[:8].upper()}"
     
+    # Determine approval status - employees need approval
+    is_active = True
+    approval_status = "approved"
+    if user_role == 4 and not client_data.is_vendor:
+        is_active = False
+        approval_status = "pending"
+    
     client_doc = {
         "id": client_id,
         "otc_ucc": otc_ucc,
         **client_data.model_dump(),
+        "bank_accounts": [acc.model_dump() if hasattr(acc, 'model_dump') else acc for acc in client_data.bank_accounts] if client_data.bank_accounts else [],
+        "is_active": is_active,
+        "approval_status": approval_status,
         "documents": [],
-        "mapped_employee_id": None,
-        "mapped_employee_name": None,
+        "mapped_employee_id": current_user["id"] if user_role == 4 else None,
+        "mapped_employee_name": current_user["name"] if user_role == 4 else None,
         "user_id": current_user["id"],
         "created_by": current_user["id"],
+        "created_by_role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.clients.insert_one(client_doc)
     
     # Send email notification
-    if client_data.email:
+    if client_data.email and is_active:
         await send_email(
             client_data.email,
             "Welcome to Share Booking System",
@@ -624,6 +648,48 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
         )
     
     return Client(**{k: v for k, v in client_doc.items() if k != "user_id"})
+
+@api_router.put("/clients/{client_id}/approve")
+async def approve_client(client_id: str, approve: bool = True, current_user: dict = Depends(get_current_user)):
+    """Approve or reject a client created by employee"""
+    check_permission(current_user, "approve_clients")
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    update_data = {
+        "is_active": approve,
+        "approval_status": "approved" if approve else "rejected"
+    }
+    
+    await db.clients.update_one({"id": client_id}, {"$set": update_data})
+    
+    # Send notification email if approved
+    if approve and client.get("email"):
+        await send_email(
+            client["email"],
+            "Account Approved - Share Booking System",
+            f"<p>Dear {client['name']},</p><p>Your account has been approved and is now active.</p>"
+        )
+    
+    return {"message": f"Client {'approved' if approve else 'rejected'} successfully"}
+
+@api_router.post("/clients/{client_id}/bank-account")
+async def add_bank_account(client_id: str, bank_account: BankAccount, current_user: dict = Depends(get_current_user)):
+    """Add another bank account to client"""
+    check_permission(current_user, "manage_clients")
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$push": {"bank_accounts": bank_account.model_dump()}}
+    )
+    
+    return {"message": "Bank account added successfully"}
 
 @api_router.post("/clients/{client_id}/documents")
 async def upload_client_document(
