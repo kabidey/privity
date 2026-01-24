@@ -57,6 +57,10 @@ Build a Share Booking System for managing client share bookings, inventory track
 ### Phase 4 - Client Management Enhancement (Jan 24, 2026)
 - ✅ **Document Upload** - Upload PAN Card, CML Copy, Cancelled Cheque (JPG/PDF)
 - ✅ **AI-Powered OCR** - GPT-4o vision extracts info from documents automatically
+- ✅ **OCR Auto-Fill** - Uploaded documents automatically populate form fields:
+  - PAN Card → Name, PAN Number
+  - Cancelled Cheque → Bank Name, Account Number, IFSC Code
+  - CML Copy → DP ID, Client Name, PAN
 - ✅ **OTC UCC Code** - Unique client identifier (format: OTC{YYYYMMDD}{UUID8})
 - ✅ **Employee Mapping** - Clients mapped to employees who created them
 - ✅ **Admin Mapping Controls** - Admins can re-map/unmap clients to different employees
