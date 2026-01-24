@@ -792,6 +792,74 @@ const Clients = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Documents View Dialog */}
+      <Dialog open={documentsDialogOpen} onOpenChange={setDocumentsDialogOpen}>
+        <DialogContent className="max-w-2xl" aria-describedby="docs-desc">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5" />
+              Client Documents
+            </DialogTitle>
+          </DialogHeader>
+          <p id="docs-desc" className="sr-only">View and download client documents</p>
+          {selectedClientDocs && (
+            <div className="space-y-4">
+              <div className="border-b pb-3">
+                <p className="font-semibold">{selectedClientDocs.name}</p>
+                <p className="text-sm text-muted-foreground">OTC UCC: {selectedClientDocs.otc_ucc}</p>
+              </div>
+              
+              {selectedClientDocs.documents && selectedClientDocs.documents.length > 0 ? (
+                <div className="space-y-3">
+                  {selectedClientDocs.documents.map((doc, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        {doc.doc_type === 'pan_card' && <CreditCard className="h-5 w-5 text-blue-600" />}
+                        {doc.doc_type === 'cml_copy' && <FileCheck className="h-5 w-5 text-green-600" />}
+                        {doc.doc_type === 'cancelled_cheque' && <FileText className="h-5 w-5 text-orange-600" />}
+                        <div>
+                          <p className="font-medium">{getDocTypeLabel(doc.doc_type)}</p>
+                          <p className="text-xs text-muted-foreground">{doc.filename}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Uploaded: {new Date(doc.upload_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {doc.ocr_data?.status === 'processed' && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedOcrData({ doc });
+                              setOcrDialogOpen(true);
+                            }}
+                            title="View OCR Data"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDownloadDocument(selectedClientDocs.id, doc.filename)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No documents uploaded for this client.</p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
