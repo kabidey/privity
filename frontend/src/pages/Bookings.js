@@ -375,7 +375,7 @@ const Bookings = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Buying Price {isEmployee ? '(Auto)' : ''}</Label>
+                  <Label>Landing Price {isEmployee ? '(Auto)' : ''}</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -431,7 +431,7 @@ const Bookings = () => {
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                     <div>
-                      <span className="block">Buy Price</span>
+                      <span className="block">Landing Price</span>
                       <span className="font-medium text-foreground">{formatCurrency(formPnL.buyingPrice)}</span>
                     </div>
                     <div>
@@ -517,7 +517,7 @@ const Bookings = () => {
           <CardTitle>{activeTab === 'pending' ? 'Pending Approval' : (activeTab === 'loss' ? 'Loss Bookings - Pending Approval' : 'All Bookings')}</CardTitle>
           <CardDescription>
             {activeTab === 'loss' 
-              ? 'These bookings have selling price lower than buying price - requires PE Desk approval'
+              ? 'These bookings have selling price lower than landing price - requires PE Desk approval'
               : (canRecordPayments && 'Record payments for approved bookings to enable DP transfer')}
           </CardDescription>
         </CardHeader>
@@ -532,7 +532,7 @@ const Bookings = () => {
                     <TableHead className="text-xs uppercase">Client</TableHead>
                     <TableHead className="text-xs uppercase">Stock</TableHead>
                     <TableHead className="text-xs uppercase">Qty</TableHead>
-                    <TableHead className="text-xs uppercase">Buy Price</TableHead>
+                    <TableHead className="text-xs uppercase">Landing Price</TableHead>
                     <TableHead className="text-xs uppercase">Sell Price</TableHead>
                     <TableHead className="text-xs uppercase">P&L</TableHead>
                     <TableHead className="text-xs uppercase">Approval</TableHead>

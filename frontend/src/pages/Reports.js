@@ -333,7 +333,7 @@ const Reports = () => {
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Client</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Stock</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Quantity</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Buy Price</TableHead>
+                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Landing Price</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Sell Price</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Date</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
