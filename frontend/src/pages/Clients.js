@@ -152,13 +152,21 @@ const Clients = () => {
           }
         } else if (docType === 'cml_copy') {
           // Check if we got actual extracted data (not just raw_text)
-          const hasValidData = extracted.dp_id || extracted.client_id || extracted.client_name || 
-                               extracted.pan_number || extracted.email || extracted.mobile;
+          const hasValidData = extracted.dp_id || extracted.client_id || extracted.full_dp_client_id ||
+                               extracted.client_name || extracted.pan_number || extracted.email || extracted.mobile;
           
           if (hasValidData) {
+            // Construct full DP ID: prefer full_dp_client_id, else combine dp_id + client_id
+            let fullDpId = extracted.full_dp_client_id;
+            if (!fullDpId && extracted.dp_id && extracted.client_id) {
+              fullDpId = `${extracted.dp_id}${extracted.client_id}`;
+            } else if (!fullDpId) {
+              fullDpId = extracted.dp_id || extracted.client_id;
+            }
+            
             setFormData(prev => ({
               ...prev,
-              dp_id: extracted.dp_id || extracted.client_id || prev.dp_id,
+              dp_id: fullDpId || prev.dp_id,
               name: extracted.client_name || prev.name,
               pan_number: extracted.pan_number || prev.pan_number,
               email: extracted.email || prev.email,
