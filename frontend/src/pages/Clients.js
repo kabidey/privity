@@ -679,6 +679,7 @@ const Clients = () => {
                     <TableHead className="text-xs uppercase">Status</TableHead>
                     {!isEmployee && <TableHead className="text-xs uppercase">Mapped To</TableHead>}
                     <TableHead className="text-xs uppercase">Banks</TableHead>
+                    <TableHead className="text-xs uppercase">Docs</TableHead>
                     <TableHead className="text-xs uppercase text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -697,6 +698,22 @@ const Clients = () => {
                       )}
                       <TableCell>
                         <Badge variant="outline">{client.bank_accounts?.length || 0}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {client.documents && client.documents.length > 0 ? (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewDocuments(client)}
+                            className="text-blue-600 hover:text-blue-700"
+                            title="View Documents"
+                          >
+                            <FolderOpen className="h-4 w-4 mr-1" />
+                            <span className="text-xs">{client.documents.length}</span>
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         {activeTab === 'pending' && isManager && (
