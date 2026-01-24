@@ -880,9 +880,27 @@ const Bookings = () => {
                             {!isEmployee && (
                               <Button variant="ghost" size="sm" onClick={() => handleEdit(booking)}><Pencil className="h-4 w-4" /></Button>
                             )}
-                            {/* Delete button - PE Desk only */}
-                            {isPEDesk && (
-                              <Button variant="ghost" size="sm" onClick={() => handleDelete(booking.id)} className="text-red-600"><Trash2 className="h-4 w-4" /></Button>
+                            {/* Void button - PE Desk only, not for transferred bookings */}
+                            {isPEDesk && !booking.stock_transferred && !booking.is_voided && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleVoidBooking(booking.id, booking.booking_number)} 
+                                className="text-orange-600"
+                                title="Void Booking (keeps record, releases inventory)"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {/* Delete button - PE Desk only, not for transferred bookings */}
+                            {isPEDesk && !booking.stock_transferred && (
+                              <Button variant="ghost" size="sm" onClick={() => handleDelete(booking.id)} className="text-red-600" title="Delete Booking"><Trash2 className="h-4 w-4" /></Button>
+                            )}
+                            {/* Show voided badge */}
+                            {booking.is_voided && (
+                              <Badge variant="outline" className="text-gray-500 border-gray-400">
+                                <Ban className="h-3 w-3 mr-1" />Voided
+                              </Badge>
                             )}
                           </div>
                         </TableCell>
