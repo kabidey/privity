@@ -658,6 +658,7 @@ const Bookings = () => {
                     <TableHead className="text-xs uppercase">Revenue</TableHead>
                     <TableHead className="text-xs uppercase">Status</TableHead>
                     <TableHead className="text-xs uppercase">Payment</TableHead>
+                    <TableHead className="text-xs uppercase">Created By</TableHead>
                     <TableHead className="text-xs uppercase text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
