@@ -136,6 +136,17 @@ const Login = () => {
               >
                 {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
               </Button>
+              {isLogin && (
+                <div className="text-center">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    data-testid="forgot-password-link"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+              )}
             </form>
             <div className="mt-4 text-center text-sm">
               <button
