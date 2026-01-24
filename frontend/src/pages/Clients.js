@@ -393,6 +393,20 @@ const Clients = () => {
     return null;
   };
 
+  const hasValidOcrData = (docType) => {
+    const data = ocrResults[docType]?.extracted_data;
+    if (!data || data.raw_text) return false;
+    
+    if (docType === 'pan_card') {
+      return data.name || data.pan_number;
+    } else if (docType === 'cml_copy') {
+      return data.dp_id || data.client_id || data.client_name || data.pan_number || data.email || data.mobile;
+    } else if (docType === 'cancelled_cheque') {
+      return data.account_number || data.ifsc_code;
+    }
+    return false;
+  };
+
   const DocumentUploadCard = ({ docType, label, icon: Icon, color, description }) => (
     <div className="border rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
@@ -406,10 +420,16 @@ const Clients = () => {
             Processing OCR...
           </div>
         )}
-        {ocrResults[docType]?.extracted_data && !processingOcr[docType] && (
+        {hasValidOcrData(docType) && !processingOcr[docType] && (
           <div className="flex items-center gap-1 text-xs text-green-600">
             <Check className="h-3 w-3" />
             Auto-filled
+          </div>
+        )}
+        {ocrResults[docType]?.extracted_data?.raw_text && !processingOcr[docType] && (
+          <div className="flex items-center gap-1 text-xs text-orange-600">
+            <Clock className="h-3 w-3" />
+            Manual entry needed
           </div>
         )}
       </div>
