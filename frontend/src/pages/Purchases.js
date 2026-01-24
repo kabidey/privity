@@ -18,6 +18,13 @@ const Purchases = () => {
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [paymentDialog, setPaymentDialog] = useState({ open: false, purchase: null });
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    payment_date: new Date().toISOString().split('T')[0],
+    notes: ''
+  });
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [formData, setFormData] = useState({
     vendor_id: '',
     stock_id: '',
@@ -31,6 +38,9 @@ const Purchases = () => {
     totalValue: 0,
     totalQuantity: 0,
   });
+
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isPEDesk = currentUser.role === 1;
 
   useEffect(() => {
     fetchData();
