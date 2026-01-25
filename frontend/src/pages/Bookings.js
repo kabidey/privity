@@ -66,6 +66,15 @@ const Bookings = () => {
     fetchData();
   }, []);
 
+  // Check for openForm query parameter to auto-open booking dialog
+  useEffect(() => {
+    if (searchParams.get('openForm') === 'true') {
+      setDialogOpen(true);
+      // Clear the query parameter
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
+
   const fetchData = async () => {
     try {
       const [bookingsRes, clientsRes, stocksRes, inventoryRes] = await Promise.all([
