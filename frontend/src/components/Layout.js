@@ -243,7 +243,7 @@ const Layout = ({ children }) => {
           <span className="text-sm font-medium">Inventory</span>
         </button>
         <button
-          onClick={() => navigate('/bookings')}
+          onClick={() => navigate('/bookings?openForm=true')}
           className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg transition-all duration-200 ${
             location.pathname === '/bookings'
               ? 'bg-primary text-primary-foreground'
