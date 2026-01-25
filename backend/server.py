@@ -81,7 +81,8 @@ from services.audit_service import create_audit_log
 from routers import (
     email_templates_router,
     smtp_config_router,
-    stocks_router
+    stocks_router,
+    database_backup_router
 )
 
 # Keep local Inventory alias for backward compatibility
