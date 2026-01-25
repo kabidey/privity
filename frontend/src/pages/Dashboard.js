@@ -62,14 +62,14 @@ const Dashboard = () => {
   const COLORS = ['#064E3B', '#10B981', '#34D399', '#6EE7B7', '#A7F3D0'];
 
   return (
-    <div className="p-8 page-enter" data-testid="dashboard">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground text-base">Overview of your private equity system</p>
+    <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="dashboard">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Dashboard</h1>
+        <p className="text-muted-foreground text-sm md:text-base">Overview of your private equity system</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-6 md:mb-8">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
