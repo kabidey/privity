@@ -1616,6 +1616,13 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     if not stock:
         raise HTTPException(status_code=404, detail="Stock not found")
     
+    # Check if stock is blocked for booking
+    if stock.get("exchange") == "Blocked IPO/RTA":
+        raise HTTPException(
+            status_code=400, 
+            detail="This stock is blocked (IPO/RTA) and not available for booking"
+        )
+    
     # Get inventory to check availability and weighted average
     inventory = await db.inventory.find_one({"stock_id": booking_data.stock_id}, {"_id": 0})
     
