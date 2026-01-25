@@ -352,11 +352,13 @@ const Stocks = () => {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Exchange</Label>
+                      <Label>Exchange / Status</Label>
                       <Select value={formData.exchange} onValueChange={(v) => setFormData({ ...formData, exchange: v })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="UNLISTED/CCPS">UNLISTED/CCPS</SelectItem>
+                          <SelectItem value="DRHP Filed">DRHP Filed</SelectItem>
+                          <SelectItem value="Blocked IPO/RTA">Blocked IPO/RTA</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
