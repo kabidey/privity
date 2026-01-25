@@ -511,9 +511,12 @@ const Bookings = () => {
                     <SelectValue placeholder="Select stock" />
                   </SelectTrigger>
                   <SelectContent>
-                    {stocks.map((stock) => (
+                    {stocks
+                      .filter((stock) => stock.exchange !== 'Blocked IPO/RTA')
+                      .map((stock) => (
                       <SelectItem key={stock.id} value={stock.id}>
                         {stock.symbol} - {stock.name}
+                        {stock.exchange === 'DRHP Filed' && ' (DRHP Filed)'}
                       </SelectItem>
                     ))}
                   </SelectContent>
