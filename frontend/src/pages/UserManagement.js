@@ -115,15 +115,15 @@ const UserManagement = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6" data-testid="user-management-page">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Users className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+            <Users className="h-6 w-6 md:h-8 md:w-8 text-primary" />
             User Management
           </h1>
-          <p className="text-muted-foreground">Manage system users and their roles</p>
+          <p className="text-muted-foreground text-sm md:text-base">Manage system users and their roles</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} data-testid="add-user-btn">
+        <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto" data-testid="add-user-btn">
           <Plus className="h-4 w-4 mr-2" />
           Add User
         </Button>
