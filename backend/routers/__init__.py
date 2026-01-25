@@ -7,6 +7,7 @@ from .notifications import router as notifications_router
 from .email_templates import router as email_templates_router
 from .smtp_config import router as smtp_config_router
 from .stocks import router as stocks_router
+from .database_backup import router as database_backup_router
 
 __all__ = [
     'auth_router',
@@ -15,4 +16,5 @@ __all__ = [
     'email_templates_router',
     'smtp_config_router',
     'stocks_router',
+    'database_backup_router',
 ]
