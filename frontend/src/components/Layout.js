@@ -229,7 +229,7 @@ const Layout = ({ children }) => {
       )}
 
       {/* Mobile Floating Action Buttons */}
-      <div className="lg:hidden fixed bottom-6 right-4 flex flex-col gap-3 z-40">
+      <div className="lg:hidden fixed bottom-20 right-4 flex flex-col gap-3 z-50">
         <button
           onClick={() => navigate('/inventory')}
           className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg transition-all duration-200 ${
