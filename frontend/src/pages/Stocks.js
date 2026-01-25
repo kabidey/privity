@@ -184,24 +184,24 @@ const Stocks = () => {
   };
 
   return (
-    <div className="p-8 page-enter" data-testid="stocks-page">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="stocks-page">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Stocks</h1>
-          <p className="text-muted-foreground text-base">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Stocks</h1>
+          <p className="text-muted-foreground text-sm md:text-base">
             {isPEDesk ? 'Manage stocks and corporate actions' : 'View available stocks'}
           </p>
         </div>
         {isPEDesk && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Dialog open={actionDialogOpen} onOpenChange={(open) => { setActionDialogOpen(open); if (!open) resetActionForm(); }}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="rounded-sm" data-testid="add-corporate-action-button">
+                <Button variant="outline" className="rounded-sm flex-1 sm:flex-none" data-testid="add-corporate-action-button">
                   <Split className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                  Corporate Action
+                  <span className="hidden sm:inline">Corporate </span>Action
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-lg" aria-describedby="action-dialog-desc">
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="action-dialog-desc">
                 <DialogHeader>
                   <DialogTitle>Create Corporate Action</DialogTitle>
                 </DialogHeader>
