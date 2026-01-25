@@ -121,7 +121,7 @@ const EmailTemplates = () => {
   }
 
   return (
-    <div className="space-y-6" data-testid="email-templates-page">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6" data-testid="email-templates-page">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
