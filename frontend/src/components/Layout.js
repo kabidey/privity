@@ -22,7 +22,8 @@ import {
   PieChart,
   Mail,
   Banknote,
-  Server
+  Server,
+  Database
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
