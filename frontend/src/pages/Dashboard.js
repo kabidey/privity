@@ -89,16 +89,16 @@ const Dashboard = () => {
       </div>
 
       {/* Revenue Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
         <Card className="border shadow-sm" data-testid="inventory-value-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Boxes className="h-4 w-4" />
               Inventory Value
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mono text-primary">
+            <div className="text-xl md:text-2xl lg:text-3xl font-bold mono text-primary">
               ₹{(stats?.total_inventory_value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </CardContent>
@@ -106,24 +106,24 @@ const Dashboard = () => {
 
         <Card className="border shadow-sm" data-testid="closed-bookings-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               Closed Bookings
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold mono">{stats?.closed_bookings || 0}</div>
+            <div className="text-xl md:text-2xl lg:text-3xl font-bold mono">{stats?.closed_bookings || 0}</div>
           </CardContent>
         </Card>
 
         <Card className="border shadow-sm" data-testid="pnl-summary-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <IndianRupee className="h-4 w-4" />
               Total Revenue
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-3xl font-bold mono ${(stats?.total_profit_loss || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-xl md:text-2xl lg:text-3xl font-bold mono ${(stats?.total_profit_loss || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               ₹{(stats?.total_profit_loss || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </CardContent>
@@ -131,7 +131,7 @@ const Dashboard = () => {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
         {/* Revenue Trend Chart */}
         <Card className="border shadow-sm" data-testid="pnl-chart-card">
           <CardHeader>
