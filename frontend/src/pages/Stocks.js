@@ -32,7 +32,7 @@ const Stocks = () => {
   const [formData, setFormData] = useState({
     symbol: '',
     name: '',
-    exchange: 'NSE',
+    exchange: 'UNLISTED/CCPS',
     isin_number: '',
     sector: '',
     product: 'Equity',
@@ -150,7 +150,7 @@ const Stocks = () => {
     setFormData({
       symbol: stock.symbol,
       name: stock.name,
-      exchange: stock.exchange || 'NSE',
+      exchange: stock.exchange || 'UNLISTED/CCPS',
       isin_number: stock.isin_number || '',
       sector: stock.sector || '',
       product: stock.product || 'Equity',
@@ -172,7 +172,7 @@ const Stocks = () => {
 
   const resetForm = () => {
     setFormData({
-      symbol: '', name: '', exchange: 'NSE', isin_number: '', sector: '', product: 'Equity', face_value: '',
+      symbol: '', name: '', exchange: 'UNLISTED/CCPS', isin_number: '', sector: '', product: 'Equity', face_value: '',
     });
     setEditingStock(null);
   };
@@ -356,9 +356,7 @@ const Stocks = () => {
                       <Select value={formData.exchange} onValueChange={(v) => setFormData({ ...formData, exchange: v })}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="NSE">NSE</SelectItem>
-                          <SelectItem value="BSE">BSE</SelectItem>
-                          <SelectItem value="NSE/BSE">NSE/BSE</SelectItem>
+                          <SelectItem value="UNLISTED/CCPS">UNLISTED/CCPS</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -455,7 +453,7 @@ const Stocks = () => {
                         <TableCell>{stock.sector ? <Badge variant="outline">{stock.sector}</Badge> : '-'}</TableCell>
                         <TableCell>{stock.product || 'Equity'}</TableCell>
                         <TableCell className="mono">{stock.face_value ? `₹${stock.face_value}` : '-'}</TableCell>
-                        <TableCell><Badge variant="secondary">{stock.exchange || 'NSE'}</Badge></TableCell>
+                        <TableCell><Badge variant="secondary">{stock.exchange || 'UNLISTED/CCPS'}</Badge></TableCell>
                         {isPEDesk && (
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm" onClick={() => handleEdit(stock)}><Pencil className="h-4 w-4" /></Button>
