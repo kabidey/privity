@@ -36,3 +36,37 @@ button:active {
     opacity: 1;
   }
 }
+
+/* Mobile Responsive Table Wrapper */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .table-responsive table {
+    min-width: 800px;
+  }
+  
+  /* Hide less important columns on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Mobile page padding */
+.page-container {
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .page-container {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding: 2rem;
+  }
+}
