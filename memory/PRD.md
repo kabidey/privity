@@ -437,17 +437,43 @@ Build a Share Booking System for managing client share bookings, inventory track
 1. **(P1) Refactor Email Templates Usage** - ✅ COMPLETED - All hardcoded emails now use template system
 2. 🟡 **(P1) Two-factor authentication (TOTP)**
 3. **(P2) Bulk booking close functionality**
-4. ✅ **(P2) Backend Modularization** - COMPLETED - Created modular routers
+4. ✅ **(P2) Backend Modularization** - IN PROGRESS - Created modular routers, more to migrate
+5. **(P2) Mobile responsive improvements**
+
+### User Management & Database Backup (Jan 25, 2026) - ✅ COMPLETED
+**User Management Features (PE Desk Only):**
+- Create new users with email, password, name, and role
+- Delete users (except super admin pedesk@smifs.com)
+- Reset user passwords
+- Update user roles via dropdown
+- View all system users with status
+
+**Database Backup & Restore Features (PE Desk Only):**
+- View database statistics (total records, collections, backup count)
+- View collection-level record counts
+- Create named backups with optional description
+- View backup history with size, record counts, creator
+- Delete old backups (auto-retains last 10)
+- Restore database from backup (preserves super admin)
+
+**PE Desk Delete Permissions Verified:**
+- DELETE /api/clients/{id} - Delete clients
+- DELETE /api/stocks/{id} - Delete stocks
+- DELETE /api/bookings/{id} - Delete bookings (if not transferred)
+- DELETE /api/purchases/{id} - Delete purchases
+- DELETE /api/users/{id} - Delete users (except super admin)
+- DELETE /api/database/backups/{id} - Delete backups
 
 ### Backend Modularization (Jan 24, 2026)
 **Completed Modular Routers:**
 - `/app/backend/routers/email_templates.py` - Email template CRUD operations
 - `/app/backend/routers/smtp_config.py` - SMTP server configuration
 - `/app/backend/routers/stocks.py` - Stocks, inventory, and corporate actions
+- `/app/backend/routers/users.py` - User management (create, delete, reset password, update role)
+- `/app/backend/routers/database_backup.py` - Database backup and restore operations
 
 **Existing Routers:**
 - `/app/backend/routers/auth.py` - Authentication
-- `/app/backend/routers/users.py` - User management
 - `/app/backend/routers/notifications.py` - Real-time notifications
 
 **Remaining in server.py (for future modularization):**
@@ -457,7 +483,6 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Bookings endpoints
 - Reports endpoints
 - DP Transfer endpoints
-5. **(P2) Mobile responsive improvements**
 
 ## Completed Features (Jan 25, 2026)
 
