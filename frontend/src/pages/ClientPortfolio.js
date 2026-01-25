@@ -57,7 +57,7 @@ const ClientPortfolio = () => {
   const COLORS = ['#064E3B', '#10B981', '#34D399', '#6EE7B7', '#A7F3D0', '#D97706', '#F59E0B'];
 
   return (
-    <div className="p-8 page-enter" data-testid="client-portfolio-page">
+    <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="client-portfolio-page">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <Button

@@ -53,7 +53,7 @@ const Inventory = () => {
   };
 
   return (
-    <div className="p-8 page-enter" data-testid="inventory-page">
+    <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="inventory-page">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Inventory</h1>
         <p className="text-muted-foreground text-base">Track stock levels and weighted average pricing</p>
