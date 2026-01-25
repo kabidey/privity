@@ -228,7 +228,7 @@ const Layout = ({ children }) => {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 mt-16 lg:mt-0">
+      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
         <div className="min-h-screen bg-background">{children}</div>
       </main>
     </div>
