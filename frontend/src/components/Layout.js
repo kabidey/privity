@@ -23,7 +23,8 @@ import {
   Mail,
   Banknote,
   Server,
-  Database
+  Database,
+  Plus
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
