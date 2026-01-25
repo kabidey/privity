@@ -455,7 +455,20 @@ const Stocks = () => {
                         <TableCell>{stock.sector ? <Badge variant="outline">{stock.sector}</Badge> : '-'}</TableCell>
                         <TableCell>{stock.product || 'Equity'}</TableCell>
                         <TableCell className="mono">{stock.face_value ? `₹${stock.face_value}` : '-'}</TableCell>
-                        <TableCell><Badge variant="secondary">{stock.exchange || 'UNLISTED/CCPS'}</Badge></TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="secondary" 
+                            className={
+                              stock.exchange === 'Blocked IPO/RTA' 
+                                ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
+                                : stock.exchange === 'DRHP Filed'
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                : ''
+                            }
+                          >
+                            {stock.exchange || 'UNLISTED/CCPS'}
+                          </Badge>
+                        </TableCell>
                         {isPEDesk && (
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm" onClick={() => handleEdit(stock)}><Pencil className="h-4 w-4" /></Button>
