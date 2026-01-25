@@ -1,26 +1,38 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Users, Shield, Crown, Briefcase, Eye } from 'lucide-react';
+import { Plus, Trash2, Pencil, Shield, Key, UserX, UserCheck, Users } from 'lucide-react';
 
 const ROLES = {
-  1: { name: 'PE Desk', icon: Crown, color: 'bg-amber-500', description: 'Full system access' },
-  2: { name: 'Zonal Manager', icon: Shield, color: 'bg-purple-500', description: 'Manage users, clients, stocks, bookings' },
-  3: { name: 'Manager', icon: Briefcase, color: 'bg-blue-500', description: 'Manage own clients and bookings' },
-  4: { name: 'Employee', icon: Users, color: 'bg-green-500', description: 'Create bookings, view clients' },
-  5: { name: 'Viewer', icon: Eye, color: 'bg-gray-500', description: 'Read-only access' },
+  1: { name: 'PE Desk', color: 'bg-purple-100 text-purple-800' },
+  2: { name: 'Zonal Manager', color: 'bg-blue-100 text-blue-800' },
+  3: { name: 'Branch Manager', color: 'bg-green-100 text-green-800' },
+  4: { name: 'Team Lead', color: 'bg-yellow-100 text-yellow-800' },
+  5: { name: 'Employee', color: 'bg-gray-100 text-gray-800' }
 };
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [updatingUserId, setUpdatingUserId] = useState(null);
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    role: 5
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -31,157 +43,292 @@ const UserManagement = () => {
       const response = await api.get('/users');
       setUsers(response.data);
     } catch (error) {
-      if (error.response?.status === 403) {
-        toast.error('You do not have permission to manage users');
-      } else {
-        toast.error('Failed to load users');
-      }
+      toast.error('Failed to fetch users');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRoleChange = async (userId, newRole) => {
-    if (userId === currentUser.id) {
-      toast.error('You cannot change your own role');
-      return;
+  const handleCreateUser = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/users', formData);
+      toast.success('User created successfully');
+      setDialogOpen(false);
+      resetForm();
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create user');
     }
+  };
 
-    setUpdatingUserId(userId);
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    try {
+      await api.delete(`/users/${selectedUser.id}`);
+      toast.success('User deleted successfully');
+      setDeleteDialogOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete user');
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser || !newPassword) return;
+    try {
+      await api.post(`/users/${selectedUser.id}/reset-password?new_password=${encodeURIComponent(newPassword)}`);
+      toast.success('Password reset successfully');
+      setResetPasswordDialogOpen(false);
+      setSelectedUser(null);
+      setNewPassword('');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to reset password');
+    }
+  };
+
+  const handleRoleChange = async (userId, newRole) => {
     try {
       await api.put(`/users/${userId}/role?role=${newRole}`);
-      toast.success('User role updated successfully');
+      toast.success('Role updated successfully');
       fetchUsers();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update role');
-    } finally {
-      setUpdatingUserId(null);
     }
   };
 
-  const getRoleBadge = (role) => {
-    const roleInfo = ROLES[role] || ROLES[5];
-    const Icon = roleInfo.icon;
-    return (
-      <Badge className={`${roleInfo.color} text-white flex items-center gap-1 w-fit`}>
-        <Icon className="h-3 w-3" />
-        {roleInfo.name}
-      </Badge>
-    );
+  const resetForm = () => {
+    setFormData({ email: '', password: '', name: '', role: 5 });
+  };
+
+  const openDeleteDialog = (user) => {
+    setSelectedUser(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const openResetPasswordDialog = (user) => {
+    setSelectedUser(user);
+    setNewPassword('');
+    setResetPasswordDialogOpen(true);
   };
 
   return (
-    <div className="p-8 page-enter" data-testid="user-management-page">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">User Management</h1>
-        <p className="text-muted-foreground text-base">Manage user roles and permissions</p>
+    <div className="space-y-6" data-testid="user-management-page">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Users className="h-8 w-8 text-primary" />
+            User Management
+          </h1>
+          <p className="text-muted-foreground">Manage system users and their roles</p>
+        </div>
+        <Button onClick={() => setDialogOpen(true)} data-testid="add-user-btn">
+          <Plus className="h-4 w-4 mr-2" />
+          Add User
+        </Button>
       </div>
 
-      {/* Role Legend */}
-      <Card className="border shadow-sm mb-6">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base font-semibold">Role Permissions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {Object.entries(ROLES).map(([roleId, roleInfo]) => {
-              const Icon = roleInfo.icon;
-              return (
-                <div key={roleId} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <div className={`p-2 rounded-md ${roleInfo.color}`}>
-                    <Icon className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm">{roleInfo.name}</div>
-                    <div className="text-xs text-muted-foreground">{roleInfo.description}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Users Table */}
-      <Card className="border shadow-sm">
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" strokeWidth={1.5} />
-            All Users ({users.length})
-          </CardTitle>
+          <CardTitle>System Users</CardTitle>
+          <CardDescription>Total: {users.length} users</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="py-12 text-center text-muted-foreground">Loading users...</div>
-          ) : users.length === 0 ? (
-            <div className="text-center py-12" data-testid="no-users-message">
-              <p className="text-muted-foreground">No users found or you don't have permission to view users.</p>
-            </div>
+            <p className="text-center py-8 text-muted-foreground">Loading...</p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">User</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Email</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Current Role</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Joined</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider font-semibold">Change Role</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id} className="table-row" data-testid="user-row">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-sm font-semibold text-primary">
-                              {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                            </span>
-                          </div>
-                          <div>
-                            <div className="font-medium">{user.name}</div>
-                            {user.id === currentUser.id && (
-                              <span className="text-xs text-muted-foreground">(You)</span>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-sm">{user.email}</TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(user.created_at).toLocaleDateString('en-IN')}
-                      </TableCell>
-                      <TableCell>
-                        {user.id === currentUser.id ? (
-                          <span className="text-xs text-muted-foreground">Cannot modify</span>
-                        ) : (
-                          <Select
-                            value={user.role.toString()}
-                            onValueChange={(value) => handleRoleChange(user.id, parseInt(value))}
-                            disabled={updatingUserId === user.id}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={String(user.role)}
+                        onValueChange={(value) => handleRoleChange(user.id, parseInt(value))}
+                        disabled={user.email === 'pedesk@smifs.com'}
+                      >
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(ROLES).map(([key, { name }]) => (
+                            <SelectItem key={key} value={key}>{name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {user.is_active !== false ? (
+                        <Badge className="bg-green-100 text-green-800">
+                          <UserCheck className="h-3 w-3 mr-1" />Active
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-red-100 text-red-800">
+                          <UserX className="h-3 w-3 mr-1" />Inactive
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openResetPasswordDialog(user)}
+                          title="Reset Password"
+                        >
+                          <Key className="h-4 w-4" />
+                        </Button>
+                        {user.email !== 'pedesk@smifs.com' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openDeleteDialog(user)}
+                            className="text-red-600"
+                            title="Delete User"
                           >
-                            <SelectTrigger className="w-[160px]" data-testid={`role-select-${user.id}`}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(ROLES).map(([roleId, roleInfo]) => (
-                                <SelectItem key={roleId} value={roleId}>
-                                  {roleInfo.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                        {user.email === 'pedesk@smifs.com' && (
+                          <Badge variant="outline" className="ml-2">
+                            <Shield className="h-3 w-3 mr-1" />Super Admin
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
+
+      {/* Create User Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent data-testid="create-user-dialog">
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>Add a new user to the system</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateUser} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Name *</Label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Full name"
+                required
+                data-testid="user-name-input"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="user@smifs.com"
+                required
+                data-testid="user-email-input"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Password *</Label>
+              <Input
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="Minimum 6 characters"
+                required
+                minLength={6}
+                data-testid="user-password-input"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Role *</Label>
+              <Select
+                value={String(formData.role)}
+                onValueChange={(value) => setFormData({ ...formData, role: parseInt(value) })}
+              >
+                <SelectTrigger data-testid="user-role-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(ROLES).map(([key, { name }]) => (
+                    <SelectItem key={key} value={key}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" data-testid="create-user-submit">Create User</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Delete User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <strong>{selectedUser?.name}</strong>? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteUser} data-testid="confirm-delete-user">
+              <Trash2 className="h-4 w-4 mr-2" />Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Set a new password for <strong>{selectedUser?.name}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>New Password *</Label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Minimum 6 characters"
+                minLength={6}
+                data-testid="new-password-input"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetPasswordDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleResetPassword} disabled={newPassword.length < 6} data-testid="confirm-reset-password">
+              <Key className="h-4 w-4 mr-2" />Reset Password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
