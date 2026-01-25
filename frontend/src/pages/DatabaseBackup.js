@@ -122,29 +122,29 @@ const DatabaseBackup = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6" data-testid="database-backup-page">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Database className="h-8 w-8 text-primary" />
-            Database Backup & Restore
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold flex items-center gap-2">
+            <Database className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            <span className="hidden sm:inline">Database </span>Backup & Restore
           </h1>
-          <p className="text-muted-foreground">Manage database backups for disaster recovery</p>
+          <p className="text-muted-foreground text-sm md:text-base">Manage database backups for disaster recovery</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchData}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={fetchData} className="flex-1 sm:flex-none">
+            <RefreshCw className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Button onClick={() => setCreateDialogOpen(true)} data-testid="create-backup-btn">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Backup
+          <Button onClick={() => setCreateDialogOpen(true)} className="flex-1 sm:flex-none" data-testid="create-backup-btn">
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Create </span>Backup
           </Button>
         </div>
       </div>
 
       {/* Database Stats */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
