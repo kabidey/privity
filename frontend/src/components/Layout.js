@@ -228,9 +228,37 @@ const Layout = ({ children }) => {
         </div>
       )}
 
+      {/* Mobile Floating Action Buttons */}
+      <div className="lg:hidden fixed bottom-6 right-4 flex flex-col gap-3 z-40">
+        <button
+          onClick={() => navigate('/inventory')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg transition-all duration-200 ${
+            location.pathname === '/inventory'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card border border-border text-foreground hover:bg-muted'
+          }`}
+          data-testid="fab-inventory"
+        >
+          <Boxes className="h-5 w-5" />
+          <span className="text-sm font-medium">Inventory</span>
+        </button>
+        <button
+          onClick={() => navigate('/bookings')}
+          className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg transition-all duration-200 ${
+            location.pathname === '/bookings'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-green-600 text-white hover:bg-green-700'
+          }`}
+          data-testid="fab-bookings"
+        >
+          <Plus className="h-5 w-5" />
+          <span className="text-sm font-medium">Book</span>
+        </button>
+      </div>
+
       {/* Main Content */}
       <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
-        <div className="min-h-screen bg-background">{children}</div>
+        <div className="min-h-screen bg-background pb-24 lg:pb-0">{children}</div>
       </main>
     </div>
   );
