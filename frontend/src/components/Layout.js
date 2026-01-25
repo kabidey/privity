@@ -72,6 +72,7 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
+    menuItems.push({ icon: Database, label: 'DB Backup', path: '/database-backup' });
   }
 
   return (
