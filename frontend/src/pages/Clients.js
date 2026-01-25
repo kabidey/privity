@@ -856,29 +856,29 @@ const Clients = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <Table className="min-w-[900px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs uppercase">OTC UCC</TableHead>
                     <TableHead className="text-xs uppercase">Name</TableHead>
                     <TableHead className="text-xs uppercase">PAN</TableHead>
-                    <TableHead className="text-xs uppercase">DP Type</TableHead>
-                    <TableHead className="text-xs uppercase">Mobile</TableHead>
+                    <TableHead className="text-xs uppercase hidden md:table-cell">DP Type</TableHead>
+                    <TableHead className="text-xs uppercase hidden lg:table-cell">Mobile</TableHead>
                     <TableHead className="text-xs uppercase">Status</TableHead>
-                    {!isEmployee && <TableHead className="text-xs uppercase">Mapped To</TableHead>}
-                    <TableHead className="text-xs uppercase">Banks</TableHead>
-                    <TableHead className="text-xs uppercase">Docs</TableHead>
+                    {!isEmployee && <TableHead className="text-xs uppercase hidden lg:table-cell">Mapped To</TableHead>}
+                    <TableHead className="text-xs uppercase hidden md:table-cell">Banks</TableHead>
+                    <TableHead className="text-xs uppercase hidden md:table-cell">Docs</TableHead>
                     <TableHead className="text-xs uppercase text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayedClients.map((client) => (
                     <TableRow key={client.id} data-testid="client-row">
-                      <TableCell className="font-mono text-sm font-bold text-primary">{client.otc_ucc || 'N/A'}</TableCell>
-                      <TableCell className="font-medium">{client.name}</TableCell>
-                      <TableCell className="mono text-sm">{client.pan_number}</TableCell>
-                      <TableCell>
+                      <TableCell className="font-mono text-xs md:text-sm font-bold text-primary">{client.otc_ucc || 'N/A'}</TableCell>
+                      <TableCell className="font-medium text-sm">{client.name}</TableCell>
+                      <TableCell className="mono text-xs md:text-sm">{client.pan_number}</TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <Badge variant={client.dp_type === 'smifs' ? 'default' : 'outline'} className="text-xs">
                           {client.dp_type === 'smifs' ? 'SMIFS' : 'Outside'}
                         </Badge>
@@ -886,7 +886,7 @@ const Clients = () => {
                           <span className="text-xs text-muted-foreground ml-1">({client.trading_ucc})</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm">{client.mobile || client.phone || '-'}</TableCell>
+                      <TableCell className="text-sm hidden lg:table-cell">{client.mobile || client.phone || '-'}</TableCell>
                       <TableCell>{getStatusBadge(client)}</TableCell>
                       {!isEmployee && (
                         <TableCell>
