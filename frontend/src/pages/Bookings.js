@@ -433,41 +433,45 @@ const Bookings = () => {
   };
 
   return (
-    <div className="p-8 page-enter" data-testid="bookings-page">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="bookings-page">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
         <div>
-          <h1 className="text-4xl font-bold mb-2">Bookings</h1>
-          <p className="text-muted-foreground text-base">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Bookings</h1>
+          <p className="text-muted-foreground text-sm md:text-base">
             {isEmployee ? 'Create bookings for your clients' : 'Manage private equity bookings and payments'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {/* Export Buttons */}
           <Button 
             variant="outline" 
+            size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleExportBookings('xlsx')}
             data-testid="export-excel-button"
           >
             <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Export Excel
+            <span className="hidden sm:inline">Export </span>Excel
           </Button>
           <Button 
             variant="outline" 
+            size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleExportBookings('csv')}
             data-testid="export-csv-button"
           >
             <Download className="mr-2 h-4 w-4" />
-            Export CSV
+            <span className="hidden sm:inline">Export </span>CSV
           </Button>
           
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="rounded-sm" data-testid="add-booking-button">
+              <Button className="rounded-sm flex-1 sm:flex-none" data-testid="add-booking-button">
                 <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
                 Create Booking
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-lg" aria-describedby="booking-dialog-desc">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="booking-dialog-desc">
             <DialogHeader>
               <DialogTitle>{editingBooking ? 'Edit Booking' : 'Create New Booking'}</DialogTitle>
             </DialogHeader>
