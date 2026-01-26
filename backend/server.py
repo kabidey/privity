@@ -502,12 +502,16 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
     
     await db.clients.insert_one(client_doc)
     
-    # Send email notification using template
-    if client_data.email and is_active:
+    # Send email notification using template to all client emails
+    client_emails = get_client_emails(client_doc)
+    if client_emails and is_active:
+        primary_email = client_emails[0]
+        additional_emails = client_emails[1:] if len(client_emails) > 1 else None
         await send_templated_email(
             "welcome",
-            client_data.email,
-            {"client_name": client_data.name}
+            primary_email,
+            {"client_name": client_data.name},
+            additional_emails=additional_emails
         )
     
     # Real-time notification for pending approval
