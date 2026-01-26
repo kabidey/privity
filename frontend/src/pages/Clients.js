@@ -1055,9 +1055,9 @@ const Clients = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    <DocumentUploadCard docType="pan_card" label={`PAN Card${!editingClient ? ' *' : ''}`} icon={CreditCard} color="text-blue-600" description="Extracts: Name, PAN Number" />
-                    <DocumentUploadCard docType="cml_copy" label={`CML Copy${!editingClient ? ' *' : ''}`} icon={FileCheck} color="text-purple-600" description="Extracts: DP ID, Name, PAN, Email, Mobile, Address, Bank Details" />
-                    <DocumentUploadCard docType="cancelled_cheque" label={`Cancelled Cheque${!editingClient ? ' *' : ''}`} icon={FileText} color="text-orange-600" description="Extracts: Bank Name, Account Number, IFSC Code (adds as separate bank account)" />
+                    {renderDocumentUploadCard('pan_card', `PAN Card${!editingClient ? ' *' : ''}`, CreditCard, 'text-blue-600', 'Extracts: Name, PAN Number')}
+                    {renderDocumentUploadCard('cml_copy', `CML Copy${!editingClient ? ' *' : ''}`, FileCheck, 'text-purple-600', 'Extracts: DP ID, Name, PAN, Email, Mobile, Address, Bank Details')}
+                    {renderDocumentUploadCard('cancelled_cheque', `Cancelled Cheque${!editingClient ? ' *' : ''}`, FileText, 'text-orange-600', 'Extracts: Bank Name, Account Number, IFSC Code (adds as separate bank account)')}
                   </div>
                   
                   <div className="flex justify-end gap-2 pt-4">
