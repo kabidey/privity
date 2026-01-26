@@ -632,11 +632,11 @@ const Clients = () => {
     return false;
   };
 
-  const DocumentUploadCard = ({ docType, label, icon: Icon, color, description }) => (
+  const renderDocumentUploadCard = (docType, label, IconComponent, color, description) => (
     <div className="border rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Icon className={`h-5 w-5 ${color}`} />
+          <IconComponent className={`h-5 w-5 ${color}`} />
           <Label className="font-semibold">{label}</Label>
         </div>
         {processingOcr[docType] && (
