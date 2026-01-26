@@ -1067,6 +1067,7 @@ const Clients = () => {
                 </div>
               </TabsContent>
             </Tabs>
+            )}
           </DialogContent>
         </Dialog>
       </div>
