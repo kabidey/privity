@@ -85,9 +85,18 @@ async def send_templated_email(
     template_key: str,
     to_email: str,
     variables: Dict[str, Any],
-    cc_email: Optional[str] = None
+    cc_email: Optional[str] = None,
+    additional_emails: Optional[list] = None
 ):
-    """Send email using a template with variable substitution"""
+    """Send email using a template with variable substitution
+    
+    Args:
+        template_key: The template identifier
+        to_email: Primary recipient email
+        variables: Template variable substitutions
+        cc_email: Optional CC email
+        additional_emails: List of additional emails to send to (e.g., secondary and tertiary)
+    """
     template = await get_email_template(template_key)
     
     if not template:
@@ -99,7 +108,24 @@ async def send_templated_email(
         return False
     
     subject, body = render_template(template, variables)
-    await send_email(to_email, subject, body, cc_email)
+    
+    # Collect all recipients
+    all_recipients = [to_email] if to_email else []
+    if additional_emails:
+        for email in additional_emails:
+            if email and email not in all_recipients:
+                all_recipients.append(email)
+    
+    # Send to primary recipient with CC
+    if to_email:
+        await send_email(to_email, subject, body, cc_email)
+    
+    # Send to additional emails (without CC to avoid duplicates)
+    if additional_emails:
+        for email in additional_emails:
+            if email and email != to_email:
+                await send_email(email, subject, body, None)
+    
     return True
 
 
