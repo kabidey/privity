@@ -128,6 +128,8 @@ async def update_inventory(stock_id: str):
     - blocked_quantity: Stock reserved for approved bookings pending transfer
     - weighted_avg_price: Calculated from total purchased value / total purchased quantity
     - Blocked stock is NOT used in weighted average calculation for new bookings
+    
+    Stock is blocked as soon as PE Desk approves the booking (not waiting for client confirmation)
     """
     # Get all purchases for this stock
     purchases = await db.purchases.find({"stock_id": stock_id}, {"_id": 0}).to_list(10000)
@@ -140,11 +142,11 @@ async def update_inventory(stock_id: str):
     total_purchased_value = sum(p["quantity"] * p["price_per_unit"] for p in purchases)
     
     # Calculate blocked quantity (approved bookings not yet transferred)
-    # Booking must be: approval_status=approved, client_confirmed=true, NOT voided, NOT transferred
+    # Stock is blocked as soon as PE Desk approves - NOT waiting for client confirmation
+    # Booking must be: approval_status=approved, NOT voided, NOT transferred
     blocked_qty = sum(
         b["quantity"] for b in bookings 
         if b.get("approval_status") == "approved" 
-        and b.get("client_confirmed") == True
         and not b.get("is_voided", False)
         and not b.get("stock_transferred", False)
     )
