@@ -42,7 +42,9 @@ const Clients = () => {
   
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    email: '',  // Primary email (from CML)
+    email_secondary: '',  // Secondary email (PE Desk can add)
+    email_tertiary: '',  // Third email (PE Desk can add)
     phone: '',
     mobile: '',
     pan_number: '',
@@ -53,6 +55,11 @@ const Clients = () => {
     pin_code: '',
     bank_accounts: [],
   });
+  
+  // Wizard step state
+  const [wizardStep, setWizardStep] = useState(1); // 1: Documents, 2: Review/Edit, 3: Bank & Submit
+  const [ocrCompleted, setOcrCompleted] = useState({ pan_card: false, cml_copy: false, cancelled_cheque: false });
+  const [fieldsFromOcr, setFieldsFromOcr] = useState({}); // Track which fields came from OCR
   
   const [newBankAccount, setNewBankAccount] = useState({
     bank_name: '',
