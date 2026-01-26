@@ -445,6 +445,8 @@ const Clients = () => {
     setFormData({
       name: client.name,
       email: client.email || '',
+      email_secondary: client.email_secondary || '',
+      email_tertiary: client.email_tertiary || '',
       phone: client.phone || '',
       mobile: client.mobile || '',
       pan_number: client.pan_number,
@@ -457,6 +459,7 @@ const Clients = () => {
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
     setOcrResults({});
+    setWizardStep(2); // Skip document upload step when editing
     setDialogOpen(true);
   };
 
