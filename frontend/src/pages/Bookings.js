@@ -598,19 +598,21 @@ const Bookings = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Landing Price {isEmployee ? '(Auto)' : ''}</Label>
+                  <Label>Landing Price {isEmployee ? '(Current Avg)' : ''}</Label>
                   <Input
                     type="number"
                     step="0.01"
                     data-testid="booking-buying-price-input"
                     value={formData.buying_price}
                     onChange={(e) => setFormData({ ...formData, buying_price: e.target.value })}
+                    readOnly={isEmployee}
                     disabled={isEmployee}
-                    placeholder={isEmployee ? 'Weighted avg' : 'Optional'}
+                    className={isEmployee ? 'bg-muted cursor-not-allowed' : ''}
+                    placeholder={isEmployee ? 'Select stock first' : 'Optional'}
                   />
-                  {isEmployee && selectedInventory && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                      Will use: {formatCurrency(selectedInventory.weightedAvgPrice)} (weighted average)
+                  {isEmployee && formData.buying_price && (
+                    <p className="text-xs text-muted-foreground">
+                      Based on current weighted average price
                     </p>
                   )}
                 </div>
