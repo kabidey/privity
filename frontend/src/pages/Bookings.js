@@ -521,7 +521,18 @@ const Bookings = () => {
               
               <div className="space-y-2">
                 <Label>Stock *</Label>
-                <Select value={formData.stock_id} onValueChange={(value) => setFormData({ ...formData, stock_id: value })} required>
+                <Select 
+                  value={formData.stock_id} 
+                  onValueChange={(value) => {
+                    const avgPrice = getWeightedAvgPrice(value);
+                    setFormData({ 
+                      ...formData, 
+                      stock_id: value,
+                      buying_price: avgPrice > 0 ? avgPrice.toString() : ''
+                    });
+                  }} 
+                  required
+                >
                   <SelectTrigger data-testid="booking-stock-select">
                     <SelectValue placeholder="Select stock" />
                   </SelectTrigger>
