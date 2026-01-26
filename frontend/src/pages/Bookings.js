@@ -530,7 +530,7 @@ const Bookings = () => {
                     setFormData({ 
                       ...formData, 
                       stock_id: value,
-                      buying_price: avgPrice > 0 ? avgPrice.toString() : ''
+                      buying_price: avgPrice > 0 ? avgPrice.toFixed(2) : ''
                     });
                   }} 
                   required
