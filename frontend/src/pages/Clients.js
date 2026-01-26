@@ -158,11 +158,17 @@ const Clients = () => {
         const extracted = ocrData.extracted_data;
         
         if (docType === 'pan_card') {
+          const newOcrFields = {};
+          if (extracted.name) newOcrFields.name = true;
+          if (extracted.pan_number) newOcrFields.pan_number = true;
+          
+          setFieldsFromOcr(prev => ({ ...prev, ...newOcrFields }));
           setFormData(prev => ({
             ...prev,
             name: extracted.name || prev.name,
             pan_number: extracted.pan_number || prev.pan_number,
           }));
+          setOcrCompleted(prev => ({ ...prev, pan_card: true }));
           if (extracted.name || extracted.pan_number) {
             toast.success('PAN card data auto-filled!');
           }
@@ -187,6 +193,7 @@ const Clients = () => {
               return prev;
             });
           }
+          setOcrCompleted(prev => ({ ...prev, cancelled_cheque: true }));
         } else if (docType === 'cml_copy') {
           // Check if we got actual extracted data (not just raw_text)
           const hasValidData = extracted.dp_id || extracted.client_id || extracted.full_dp_client_id ||
@@ -204,16 +211,25 @@ const Clients = () => {
             // Clean mobile number - remove ISD codes and keep only 10 digits
             let cleanMobile = extracted.mobile || '';
             if (cleanMobile) {
-              // Remove +91, 91, 0 prefix and any spaces/dashes
               cleanMobile = cleanMobile.replace(/[\s\-\(\)]/g, '');
               cleanMobile = cleanMobile.replace(/^\+?91/, '');
               cleanMobile = cleanMobile.replace(/^0/, '');
-              // Keep only last 10 digits if longer
               if (cleanMobile.length > 10) {
                 cleanMobile = cleanMobile.slice(-10);
               }
             }
             
+            // Track which fields came from OCR
+            const newOcrFields = {};
+            if (fullDpId) newOcrFields.dp_id = true;
+            if (extracted.client_name) newOcrFields.name = true;
+            if (extracted.pan_number) newOcrFields.pan_number = true;
+            if (extracted.email) newOcrFields.email = true;
+            if (cleanMobile) newOcrFields.mobile = true;
+            if (extracted.address) newOcrFields.address = true;
+            if (extracted.pin_code) newOcrFields.pin_code = true;
+            
+            setFieldsFromOcr(prev => ({ ...prev, ...newOcrFields }));
             setFormData(prev => ({
               ...prev,
               dp_id: fullDpId || prev.dp_id,
@@ -244,8 +260,10 @@ const Clients = () => {
               });
             }
             
+            setOcrCompleted(prev => ({ ...prev, cml_copy: true }));
             toast.success('CML data auto-filled!');
           } else if (extracted.raw_text) {
+            setOcrCompleted(prev => ({ ...prev, cml_copy: true }));
             toast.warning('Could not extract structured data from CML. Please fill fields manually.');
           } else {
             toast.warning('No data could be extracted from CML.');
