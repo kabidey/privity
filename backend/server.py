@@ -120,6 +120,18 @@ async def generate_booking_number() -> str:
     
     return f"BK-{year}-{new_seq:05d}"
 
+
+def get_client_emails(client: dict) -> list:
+    """Get all email addresses for a client (primary, secondary, tertiary)"""
+    emails = []
+    if client.get("email"):
+        emails.append(client["email"])
+    if client.get("email_secondary"):
+        emails.append(client["email_secondary"])
+    if client.get("email_tertiary"):
+        emails.append(client["email_tertiary"])
+    return emails
+
 async def update_inventory(stock_id: str):
     """Recalculate weighted average and available quantity for a stock.
     
