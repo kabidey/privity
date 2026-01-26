@@ -92,7 +92,9 @@ class ClientDocument(BaseModel):
 
 class ClientCreate(BaseModel):
     name: str
-    email: Optional[str] = None
+    email: Optional[str] = None  # Primary email (from CML)
+    email_secondary: Optional[str] = None  # Secondary email (PE Desk can add)
+    email_tertiary: Optional[str] = None  # Third email (PE Desk can add)
     phone: Optional[str] = None
     mobile: Optional[str] = None
     pan_number: str
@@ -110,7 +112,9 @@ class Client(BaseModel):
     id: str
     otc_ucc: str  # Unique OTC UCC code
     name: str
-    email: Optional[str] = None
+    email: Optional[str] = None  # Primary email (from CML)
+    email_secondary: Optional[str] = None  # Secondary email
+    email_tertiary: Optional[str] = None  # Third email
     phone: Optional[str] = None
     mobile: Optional[str] = None
     pan_number: str
