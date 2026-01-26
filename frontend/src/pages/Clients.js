@@ -855,30 +855,101 @@ const Clients = () => {
               
               <TabsContent value="details">
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* OCR Fields Notice for Employees */}
+                  {isEmployee && Object.keys(fieldsFromOcr).length > 0 && (
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <p className="text-sm text-amber-800 dark:text-amber-200">
+                        <strong>Note:</strong> Fields marked with 🔒 were extracted from documents and cannot be edited by employees.
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Name *</Label>
-                      <Input data-testid="client-name-input" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                      <Label>Name * {isEmployee && fieldsFromOcr.name && '🔒'}</Label>
+                      <Input 
+                        data-testid="client-name-input" 
+                        value={formData.name} 
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                        required 
+                        disabled={isEmployee && fieldsFromOcr.name}
+                        className={isEmployee && fieldsFromOcr.name ? 'bg-muted' : ''}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label>Email</Label>
-                      <Input type="email" data-testid="client-email-input" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                      <Label>Primary Email (from CML) {isEmployee && fieldsFromOcr.email && '🔒'}</Label>
+                      <Input 
+                        type="email" 
+                        data-testid="client-email-input" 
+                        value={formData.email} 
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                        disabled={isEmployee && fieldsFromOcr.email}
+                        className={isEmployee && fieldsFromOcr.email ? 'bg-muted' : ''}
+                        placeholder="Primary email from CML"
+                      />
                     </div>
+                    
+                    {/* Secondary and Tertiary emails - PE Desk only */}
+                    {!isEmployee && (
+                      <>
+                        <div className="space-y-2">
+                          <Label>Secondary Email</Label>
+                          <Input 
+                            type="email" 
+                            data-testid="client-email-secondary-input" 
+                            value={formData.email_secondary} 
+                            onChange={(e) => setFormData({ ...formData, email_secondary: e.target.value })} 
+                            placeholder="Additional email (PE Desk only)"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Tertiary Email</Label>
+                          <Input 
+                            type="email" 
+                            data-testid="client-email-tertiary-input" 
+                            value={formData.email_tertiary} 
+                            onChange={(e) => setFormData({ ...formData, email_tertiary: e.target.value })} 
+                            placeholder="Third email (PE Desk only)"
+                          />
+                        </div>
+                      </>
+                    )}
+                    
                     <div className="space-y-2">
                       <Label>Phone</Label>
                       <Input data-testid="client-phone-input" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Mobile</Label>
-                      <Input data-testid="client-mobile-input" value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} />
+                      <Label>Mobile {isEmployee && fieldsFromOcr.mobile && '🔒'}</Label>
+                      <Input 
+                        data-testid="client-mobile-input" 
+                        value={formData.mobile} 
+                        onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} 
+                        disabled={isEmployee && fieldsFromOcr.mobile}
+                        className={isEmployee && fieldsFromOcr.mobile ? 'bg-muted' : ''}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label>PAN Number *</Label>
-                      <Input data-testid="client-pan-input" value={formData.pan_number} onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })} required />
+                      <Label>PAN Number * {isEmployee && fieldsFromOcr.pan_number && '🔒'}</Label>
+                      <Input 
+                        data-testid="client-pan-input" 
+                        value={formData.pan_number} 
+                        onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })} 
+                        required 
+                        disabled={isEmployee && fieldsFromOcr.pan_number}
+                        className={isEmployee && fieldsFromOcr.pan_number ? 'bg-muted' : ''}
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label>DP ID *</Label>
-                      <Input data-testid="client-dpid-input" value={formData.dp_id} onChange={(e) => setFormData({ ...formData, dp_id: e.target.value })} required />
+                      <Label>DP ID * {isEmployee && fieldsFromOcr.dp_id && '🔒'}</Label>
+                      <Input 
+                        data-testid="client-dpid-input" 
+                        value={formData.dp_id} 
+                        onChange={(e) => setFormData({ ...formData, dp_id: e.target.value })} 
+                        required 
+                        disabled={isEmployee && fieldsFromOcr.dp_id}
+                        className={isEmployee && fieldsFromOcr.dp_id ? 'bg-muted' : ''}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>DP Type *</Label>
