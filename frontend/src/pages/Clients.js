@@ -541,12 +541,16 @@ const Clients = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '', email: '', phone: '', mobile: '', pan_number: '', dp_id: '',
+      name: '', email: '', email_secondary: '', email_tertiary: '',
+      phone: '', mobile: '', pan_number: '', dp_id: '',
       dp_type: 'outside', trading_ucc: '',
       address: '', pin_code: '', bank_accounts: [],
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
     setOcrResults({});
+    setOcrCompleted({ pan_card: false, cml_copy: false, cancelled_cheque: false });
+    setFieldsFromOcr({});
+    setWizardStep(1);
     setEditingClient(null);
   };
 
