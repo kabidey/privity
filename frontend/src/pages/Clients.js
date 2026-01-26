@@ -693,6 +693,22 @@ const Clients = () => {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="client-dialog-desc">
             <DialogHeader>
               <DialogTitle>{editingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
+              {!editingClient && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${wizardStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>1</div>
+                  <div className={`flex-1 h-1 ${wizardStep >= 2 ? 'bg-primary' : 'bg-muted'}`}></div>
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${wizardStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>2</div>
+                  <div className={`flex-1 h-1 ${wizardStep >= 3 ? 'bg-primary' : 'bg-muted'}`}></div>
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${wizardStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>3</div>
+                </div>
+              )}
+              {!editingClient && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {wizardStep === 1 && 'Step 1: Upload Documents for OCR'}
+                  {wizardStep === 2 && 'Step 2: Review & Edit Details'}
+                  {wizardStep === 3 && 'Step 3: Bank Accounts & Submit'}
+                </p>
+              )}
             </DialogHeader>
             <p id="client-dialog-desc" className="sr-only">Form to add or edit client details</p>
             
