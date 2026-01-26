@@ -712,11 +712,145 @@ const Clients = () => {
             </DialogHeader>
             <p id="client-dialog-desc" className="sr-only">Form to add or edit client details</p>
             
+            {/* Wizard Step 1: Document Upload - Only for new clients */}
+            {!editingClient && wizardStep === 1 && (
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    <strong>Upload documents to auto-fill client details via OCR.</strong> CML is required to extract email. You can skip and fill manually.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* CML Copy Upload */}
+                  <Card className={`border-2 ${ocrCompleted.cml_copy ? 'border-green-500' : docFiles.cml_copy ? 'border-blue-500' : 'border-dashed'}`}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FileCheck className="h-4 w-4" />
+                        CML Copy *
+                        {ocrCompleted.cml_copy && <Check className="h-4 w-4 text-green-500" />}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <Input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) => handleFileChange('cml_copy', e.target.files?.[0])}
+                          disabled={processingOcr.cml_copy}
+                          className="text-xs"
+                        />
+                        {processingOcr.cml_copy && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Processing OCR...
+                          </div>
+                        )}
+                        {ocrResults.cml_copy && (
+                          <p className="text-xs text-green-600">
+                            ✓ Extracted: {ocrResults.cml_copy.extracted_data?.client_name ? 'Name, ' : ''}{ocrResults.cml_copy.extracted_data?.email ? 'Email, ' : ''}{ocrResults.cml_copy.extracted_data?.dp_id ? 'DP ID' : ''}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* PAN Card Upload */}
+                  <Card className={`border-2 ${ocrCompleted.pan_card ? 'border-green-500' : docFiles.pan_card ? 'border-blue-500' : 'border-dashed'}`}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        PAN Card
+                        {ocrCompleted.pan_card && <Check className="h-4 w-4 text-green-500" />}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <Input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) => handleFileChange('pan_card', e.target.files?.[0])}
+                          disabled={processingOcr.pan_card}
+                          className="text-xs"
+                        />
+                        {processingOcr.pan_card && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Processing OCR...
+                          </div>
+                        )}
+                        {ocrResults.pan_card && (
+                          <p className="text-xs text-green-600">
+                            ✓ Extracted: {ocrResults.pan_card.extracted_data?.name ? 'Name, ' : ''}{ocrResults.pan_card.extracted_data?.pan_number ? 'PAN' : ''}
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Cancelled Cheque Upload */}
+                  <Card className={`border-2 ${ocrCompleted.cancelled_cheque ? 'border-green-500' : docFiles.cancelled_cheque ? 'border-blue-500' : 'border-dashed'}`}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Cancelled Cheque
+                        {ocrCompleted.cancelled_cheque && <Check className="h-4 w-4 text-green-500" />}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <Input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) => handleFileChange('cancelled_cheque', e.target.files?.[0])}
+                          disabled={processingOcr.cancelled_cheque}
+                          className="text-xs"
+                        />
+                        {processingOcr.cancelled_cheque && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Processing OCR...
+                          </div>
+                        )}
+                        {ocrResults.cancelled_cheque && (
+                          <p className="text-xs text-green-600">
+                            ✓ Bank account extracted
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="flex justify-between pt-4">
+                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button" 
+                      variant="ghost"
+                      onClick={() => setWizardStep(2)}
+                    >
+                      Skip Documents
+                    </Button>
+                    <Button 
+                      type="button"
+                      onClick={() => setWizardStep(2)}
+                      disabled={Object.values(processingOcr).some(p => p)}
+                    >
+                      Next: Review Details
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Wizard Step 2 & 3 or Edit Mode - Use Tabs */}
+            {(editingClient || wizardStep >= 2) && (
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Client Details</TabsTrigger>
                 <TabsTrigger value="bank">Bank Accounts</TabsTrigger>
-                <TabsTrigger value="documents">Documents & OCR</TabsTrigger>
+                <TabsTrigger value="documents" disabled={!editingClient}>Documents</TabsTrigger>
               </TabsList>
               
               <TabsContent value="details">
