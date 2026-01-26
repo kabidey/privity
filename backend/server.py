@@ -1938,25 +1938,31 @@ async def approve_booking(
         # Check if this is a loss booking that still needs loss approval
         is_loss_pending = booking.get("is_loss_booking") and booking.get("loss_approval_status") == "pending"
         
-        if client and client.get("email"):
+        # Get all client emails (primary, secondary, tertiary)
+        client_emails = get_client_emails(client) if client else []
+        primary_email = client_emails[0] if client_emails else None
+        additional_emails = client_emails[1:] if len(client_emails) > 1 else None
+        
+        if client and primary_email:
             if is_loss_pending:
                 # For loss bookings, wait for loss approval before sending client confirmation
                 await send_templated_email(
                     "booking_pending_loss_review",
-                    client["email"],
+                    primary_email,
                     {
                         "client_name": client["name"],
                         "booking_number": booking_number,
                         "stock_symbol": stock["symbol"] if stock else "N/A"
                     },
-                    cc_email=creator.get("email") if creator else None
+                    cc_email=creator.get("email") if creator else None,
+                    additional_emails=additional_emails
                 )
             else:
                 # Send client confirmation email with Accept/Deny buttons using template
                 frontend_url = os.environ.get('FRONTEND_URL', 'https://booking-system-116.preview.emergentagent.com')
                 await send_templated_email(
                     "booking_confirmation_request",
-                    client["email"],
+                    primary_email,
                     {
                         "client_name": client["name"],
                         "booking_number": booking_number,
@@ -1970,7 +1976,8 @@ async def approve_booking(
                         "accept_url": f"{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/accept",
                         "deny_url": f"{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/deny"
                     },
-                    cc_email=creator.get("email") if creator else None
+                    cc_email=creator.get("email") if creator else None,
+                    additional_emails=additional_emails
                 )
         
         # Real-time notification to booking creator
