@@ -284,6 +284,8 @@ const Vendors = () => {
     setFormData({
       name: '',
       email: '',
+      email_secondary: '',
+      email_tertiary: '',
       phone: '',
       pan_number: '',
       dp_id: '',
