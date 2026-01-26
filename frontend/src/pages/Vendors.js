@@ -28,7 +28,9 @@ const Vendors = () => {
   
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    email: '',  // Primary email
+    email_secondary: '',  // Secondary email
+    email_tertiary: '',  // Third email
     phone: '',
     pan_number: '',
     dp_id: '',
