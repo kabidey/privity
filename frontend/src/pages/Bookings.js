@@ -60,7 +60,8 @@ const Bookings = () => {
   const isPEDesk = currentUser.role === 1;
   const isZonalManager = currentUser.role === 2;
   const canRecordPayments = isPEDesk || isZonalManager;
-  const isEmployee = currentUser.role === 4;
+  const isEmployee = currentUser.role === 4 || currentUser.role === 5; // Employee or Viewer
+  const canEditLandingPrice = isPEDesk || isZonalManager; // Only PE Desk and Zonal Manager can edit landing price
 
   useEffect(() => {
     fetchData();
