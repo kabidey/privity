@@ -3930,12 +3930,12 @@ async def mark_all_notifications_read(current_user: dict = Depends(get_current_u
     )
     return {"message": f"Marked {result.modified_count} notifications as read"}
 
-# ============== Email Templates Routes (PE Desk Only) ==============
+# ============== Email Templates Routes (PE Level) ==============
 @api_router.get("/email-templates")
 async def get_email_templates(current_user: dict = Depends(get_current_user)):
-    """Get all email templates (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can manage email templates")
+    """Get all email templates (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
     
     templates = await db.email_templates.find({}, {"_id": 0}).to_list(100)
     
@@ -3959,8 +3959,8 @@ async def get_email_templates(current_user: dict = Depends(get_current_user)):
 @api_router.get("/email-templates/{template_key}")
 async def get_email_template(template_key: str, current_user: dict = Depends(get_current_user)):
     """Get specific email template"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can manage email templates")
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
     
     template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
     
