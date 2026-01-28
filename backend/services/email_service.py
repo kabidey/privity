@@ -1,18 +1,54 @@
 """
-Email service for sending notifications
+Email service for sending notifications with audit logging
 """
 import logging
 import smtplib
 import random
 import string
+import uuid
+from datetime import datetime, timezone
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from config import (
     EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_FROM,
     OTP_EXPIRY_MINUTES, DEFAULT_EMAIL_TEMPLATES
 )
+
+
+async def log_email(
+    to_email: str,
+    subject: str,
+    template_key: Optional[str],
+    status: str,
+    error_message: Optional[str] = None,
+    cc_email: Optional[str] = None,
+    variables: Optional[Dict[str, Any]] = None,
+    related_entity_type: Optional[str] = None,
+    related_entity_id: Optional[str] = None
+):
+    """Log email sending attempt to database for audit purposes"""
+    from database import db
+    
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "to_email": to_email,
+        "cc_email": cc_email,
+        "subject": subject,
+        "template_key": template_key,
+        "status": status,  # "sent", "failed", "skipped"
+        "error_message": error_message,
+        "variables": variables or {},
+        "related_entity_type": related_entity_type,  # "booking", "client", "rp", "user", etc.
+        "related_entity_id": related_entity_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    try:
+        await db.email_logs.insert_one(log_entry)
+    except Exception as e:
+        logging.error(f"Failed to log email: {e}")
 
 
 async def get_smtp_config():
