@@ -201,6 +201,15 @@ async def update_inventory(stock_id: str):
 
 # Startup event to seed admin user
 @app.on_event("startup")
+async def startup_tasks():
+    """Startup tasks: create indexes and seed admin user"""
+    # Create database indexes for better performance
+    from database import create_indexes
+    await create_indexes()
+    
+    # Seed admin user
+    await seed_admin_user()
+
 async def seed_admin_user():
     """Create default PE Desk super admin - ALWAYS ensures admin exists"""
     try:
