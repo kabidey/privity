@@ -1722,7 +1722,7 @@ async def approve_loss_booking(
     # If loss approved and booking is already PE Desk approved, send client confirmation email
     if approve and booking.get("approval_status") == "approved":
         if client and client.get("email"):
-            frontend_url = os.environ.get('FRONTEND_URL', 'https://share-booking-sys.preview.emergentagent.com')
+            frontend_url = os.environ.get('FRONTEND_URL', 'https://booking-manager-52.preview.emergentagent.com')
             await send_templated_email(
                 "loss_booking_confirmation_request",
                 client["email"],
