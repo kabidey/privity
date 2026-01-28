@@ -34,6 +34,22 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 28, 2026)
 
+#### ✅ RP Approval/Rejection Email Notifications - COMPLETED
+**Implementation Details:**
+- Added two new email templates in `config.py`:
+  - `rp_approval_notification`: Sent when RP application is approved
+  - `rp_rejection_notification`: Sent when RP application is rejected (includes rejection reason)
+- Modified `/app/backend/routers/referral_partners.py` to send emails on approval/rejection
+- Email includes RP code, name, PAN number, and approval/rejection details
+
+**API Flow:**
+- `PUT /api/referral-partners/{rp_id}/approve` with `{"approve": true}` → Sends approval email
+- `PUT /api/referral-partners/{rp_id}/approve` with `{"approve": false, "rejection_reason": "..."}` → Sends rejection email
+
+**Backend Regression Testing:**
+- Verified all 32 backend API endpoints working after major server.py refactoring
+- Test report: `/app/test_reports/iteration_29.json`
+
 #### ✅ Referral Partner (RP) Finance Integration - COMPLETED
 **RP Payment Tracking in Finance Module**
 - RP Payments automatically created when stock transfer is confirmed for bookings with RPs
