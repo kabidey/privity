@@ -211,14 +211,22 @@ const DatabaseBackup = () => {
           </h1>
           <p className="text-muted-foreground text-sm md:text-base">Manage database backups for disaster recovery</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button variant="outline" onClick={fetchData} className="flex-1 sm:flex-none">
             <RefreshCw className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
+          <Button variant="outline" onClick={() => setUploadDialogOpen(true)} className="flex-1 sm:flex-none" data-testid="upload-restore-btn">
+            <Upload className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Upload </span>Restore
+          </Button>
           <Button onClick={() => setCreateDialogOpen(true)} className="flex-1 sm:flex-none" data-testid="create-backup-btn">
             <Plus className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Create </span>Backup
+          </Button>
+          <Button variant="destructive" onClick={() => setClearDialogOpen(true)} className="flex-1 sm:flex-none" data-testid="clear-database-btn">
+            <XCircle className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Clear </span>DB
           </Button>
         </div>
       </div>
