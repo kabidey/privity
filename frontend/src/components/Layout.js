@@ -46,8 +46,8 @@ const Layout = ({ children }) => {
     { icon: Users, label: 'Clients', path: '/clients' },
   ];
 
-  // PE Desk only modules (role 1): Vendors, Stocks, Purchases
-  if (user.role === 1) {
+  // PE Level (role 1 & 2): Vendors, Stocks, Purchases
+  if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
     menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
     menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
@@ -58,18 +58,18 @@ const Layout = ({ children }) => {
   menuItems.push({ icon: FileText, label: 'Bookings', path: '/bookings' });
   menuItems.push({ icon: BarChart3, label: 'Reports', path: '/reports' });
 
-  // Add user management for admin roles (1 and 2)
-  if (user.role <= 2) {
+  // Add user management for PE Level (1 and 2)
+  if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
   }
 
-  // Add DP Transfer Report for PE Desk and Zonal Manager (roles 1 and 2)
+  // Add DP Transfer Report for PE Level (roles 1 and 2)
   if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: Banknote, label: 'DP Transfer', path: '/dp-transfer' });
   }
 
-  // Add Analytics and Email Templates for PE Desk only (role 1)
-  if (user.role === 1) {
+  // Add Analytics and Email Templates for PE Level (roles 1 and 2)
+  if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
