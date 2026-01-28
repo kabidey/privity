@@ -202,6 +202,11 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "rp_code": rp_code,
         "rp_name": rp_name,
         "rp_revenue_share_percent": booking_data.rp_revenue_share_percent,
+        # Employee Revenue Share - calculated based on RP allocation
+        "base_employee_share_percent": 100.0,  # Full share before RP deduction
+        "employee_revenue_share_percent": 100.0 - (booking_data.rp_revenue_share_percent or 0),  # Reduced by RP share
+        "employee_commission_amount": None,  # Calculated when stock transfer confirmed
+        "employee_commission_status": "pending",
         # Client confirmation
         "client_confirmation_status": "pending",
         "client_confirmation_token": confirmation_token,
@@ -238,7 +243,9 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             "stock_symbol": stock["symbol"],
             "quantity": booking_data.quantity,
             "buying_price": buying_price,
-            "selling_price": booking_data.selling_price
+            "selling_price": booking_data.selling_price,
+            "rp_share": booking_data.rp_revenue_share_percent,
+            "employee_share": 100.0 - (booking_data.rp_revenue_share_percent or 0)
         }
     )
     
