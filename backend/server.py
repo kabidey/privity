@@ -4584,8 +4584,8 @@ async def test_email_config(
 @api_router.get("/email-config/presets")
 async def get_email_presets(current_user: dict = Depends(get_current_user)):
     """Get SMTP preset configurations for common providers"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access email presets")
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access email presets")
     
     return {
         "presets": [
