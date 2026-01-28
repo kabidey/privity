@@ -11,7 +11,7 @@ import time
 from typing import List, Tuple
 import sys
 
-API_URL = "https://booking-share-system.preview.emergentagent.com"
+API_URL = "https://privity-booking.preview.emergentagent.com"
 
 async def login(session: aiohttp.ClientSession) -> str:
     """Get authentication token."""
