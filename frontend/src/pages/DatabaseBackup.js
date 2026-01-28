@@ -358,6 +358,15 @@ const DatabaseBackup = () => {
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
                         <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadBackup(backup)}
+                          title="Download backup as ZIP"
+                          data-testid={`download-backup-${backup.id}`}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => openRestoreDialog(backup)}
