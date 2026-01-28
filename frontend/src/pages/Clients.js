@@ -238,6 +238,11 @@ const Clients = () => {
           if (extracted.name) newOcrFields.name = true;
           if (extracted.pan_number) newOcrFields.pan_number = true;
           
+          // Store extracted name for comparison
+          if (extracted.name) {
+            setExtractedNames(prev => ({ ...prev, pan_card: extracted.name }));
+          }
+          
           setFieldsFromOcr(prev => ({ ...prev, ...newOcrFields }));
           setFormData(prev => ({
             ...prev,
@@ -249,6 +254,11 @@ const Clients = () => {
             toast.success('PAN card data auto-filled!');
           }
         } else if (docType === 'cancelled_cheque') {
+          // Store account holder name for comparison
+          if (extracted.account_holder_name) {
+            setExtractedNames(prev => ({ ...prev, cancelled_cheque: extracted.account_holder_name }));
+          }
+          
           // Add as new bank account if different from existing
           if (extracted.account_number && extracted.ifsc_code) {
             const newBank = {
