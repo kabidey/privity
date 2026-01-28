@@ -459,6 +459,33 @@ Build a Share Booking System for managing client share bookings, inventory track
 - `.hide-mobile` utility class
 - Responsive typography scaling
 
+### Client/Vendor Wizard with Multiple Emails (Jan 28, 2026) - ✅ COMPLETED
+**Client Creation Wizard (3-Step Process):**
+- Step 1: Document Upload (CML, PAN Card, Cancelled Cheque) with OCR processing
+- Step 2: Review & Edit Details (auto-populated from OCR)
+- Step 3: Bank Accounts & Submit
+- Progress indicator shows current step
+
+**Multiple Email Support:**
+- Primary Email (from CML) - extracted via OCR
+- Secondary Email - PE Desk can add
+- Tertiary Email - PE Desk can add
+- All three emails receive notifications
+
+**OCR Field Locking for Employees:**
+- Fields extracted from documents show 🔒 icon
+- Employees cannot edit OCR-populated fields (name, PAN, DP ID, email, mobile)
+- PE Desk can edit all fields
+
+**Email Service Enhancement:**
+- `send_templated_email()` now accepts `additional_emails` parameter
+- All client emails receive booking notifications
+- `get_client_emails()` helper returns [primary, secondary, tertiary]
+
+**Vendor Form Updated:**
+- Same three email fields (Primary, Secondary, Tertiary)
+- Consistent with client email structure
+
 ### User Management & Database Backup (Jan 25, 2026) - ✅ COMPLETED
 **User Management Features (PE Desk Only):**
 - Create new users with email, password, name, and role
