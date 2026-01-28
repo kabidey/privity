@@ -676,6 +676,57 @@ const ReferralPartners = () => {
                 data-testid="rp-address-input"
               />
             </div>
+            
+            {/* Bank Details Section */}
+            <div className="border-t pt-4 mt-4">
+              <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Bank Details (For Payouts)
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Bank Name <span className="text-red-500">*</span></Label>
+                  <Input
+                    value={formData.bank_name}
+                    onChange={(e) => setFormData({...formData, bank_name: e.target.value})}
+                    placeholder="e.g., HDFC Bank"
+                    data-testid="rp-bank-name-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>IFSC Code <span className="text-red-500">*</span></Label>
+                  <Input
+                    value={formData.bank_ifsc_code}
+                    onChange={(e) => setFormData({...formData, bank_ifsc_code: e.target.value.toUpperCase()})}
+                    placeholder="e.g., HDFC0001234"
+                    maxLength={11}
+                    data-testid="rp-ifsc-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Account Number <span className="text-red-500">*</span></Label>
+                  <Input
+                    value={formData.bank_account_number}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '');
+                      setFormData({...formData, bank_account_number: digits});
+                    }}
+                    placeholder="Account number"
+                    data-testid="rp-account-number-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Branch Name</Label>
+                  <Input
+                    value={formData.bank_branch}
+                    onChange={(e) => setFormData({...formData, bank_branch: e.target.value})}
+                    placeholder="e.g., Mumbai Main"
+                    data-testid="rp-bank-branch-input"
+                  />
+                </div>
+              </div>
+            </div>
+            
             <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
               <p className="text-sm text-yellow-800">
                 <strong>Important:</strong> After creating the RP, you must upload the following mandatory documents:
