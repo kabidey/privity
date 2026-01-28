@@ -3293,7 +3293,22 @@ async def get_email_template(template_key: str, current_user: dict = Depends(get
     template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
     
     if not template:
-                    "booking_date": booking.get("booking_date"),
+        from config import DEFAULT_EMAIL_TEMPLATES
+        default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
+        if default:
+            return {
+                "id": template_key,
+                "key": template_key,
+                **default,
+                "is_active": True,
+                "updated_at": None,
+                "updated_by": None
+            }
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return template
+
+@api_router.put("/email-templates/{template_key}")
                     "total_amount": (booking.get("selling_price") or 0) * booking.get("quantity", 0),
                     "total_paid": booking.get("total_paid", 0),
                     "payment_status": booking.get("payment_status", "pending")
