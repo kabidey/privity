@@ -121,6 +121,12 @@ async def create_referral_partner(
         "pan_number": rp_data.pan_number.upper(),
         "aadhar_number": aadhar_digits,  # Store only digits
         "address": rp_data.address.strip(),
+        # Bank Details
+        "bank_name": rp_data.bank_name.strip(),
+        "bank_account_number": rp_data.bank_account_number.strip(),
+        "bank_ifsc_code": rp_data.bank_ifsc_code.upper().strip(),
+        "bank_branch": rp_data.bank_branch.strip() if rp_data.bank_branch else None,
+        # Documents
         "pan_card_url": None,
         "aadhar_card_url": None,
         "cancelled_cheque_url": None,
