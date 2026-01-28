@@ -1,0 +1,133 @@
+{
+  "summary": "Backend refactoring testing completed. CRITICAL BUG FOUND: Duplicate booking numbers due to duplicate route registration. 16/18 tests passed, 1 skipped, 1 failed (due to race condition in test). The modular routers are registered but the OLD endpoints in server.py are still active and taking precedence.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/bookings",
+        "issue": "DUPLICATE ROUTE REGISTRATION: Both server.py (line 1650) and routers/bookings.py (line 63) define POST /api/bookings. The old route in server.py takes precedence because api_router is registered before bookings_router. This causes: 1) Duplicate booking numbers (27 bookings but only 12 unique numbers), 2) New atomic inventory operations in routers/bookings.py are NOT being used",
+        "priority": "CRITICAL"
+      },
+      {
+        "endpoint": "Booking Number Generation",
+        "issue": "Both server.py and routers/bookings.py have their own generate_booking_number() function with separate asyncio locks. Even though they use the same MongoDB counter, the separate locks don't prevent race conditions when both routes could potentially be called",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "=== MODULAR ROUTERS TESTS ===",
+    "test_01_clients_router_get_clients - GET /api/clients returns list (200)",
+    "test_02_clients_router_get_single_client - GET /api/clients/{id} returns client (200)",
+    "test_03_clients_router_pending_approval - GET /api/clients/pending-approval returns list (200)",
+    "test_04_bookings_router_get_bookings - GET /api/bookings returns list (200)",
+    "test_05_bookings_router_get_single_booking - GET /api/bookings/{id} returns booking (200)",
+    "test_07_finance_router_get_payments - GET /api/finance/payments returns list (200)",
+    "test_08_finance_router_get_summary - GET /api/finance/summary returns summary with all expected fields (200)",
+    "test_09_finance_router_get_refund_requests - GET /api/finance/refund-requests returns list (200)",
+    
+    "=== BOOKING NUMBER UNIQUENESS TESTS ===",
+    "test_10_concurrent_booking_creation_unique_numbers - 5 concurrent bookings created with unique numbers (within single test run)",
+    
+    "=== ATOMIC INVENTORY OPERATIONS TESTS ===",
+    "test_11_inventory_check_on_booking_creation - Correctly rejects booking when quantity exceeds available (400)",
+    "test_13_inventory_released_on_void - Inventory correctly released when booking voided",
+    
+    "=== CONCURRENT APPROVAL TESTS ===",
+    "test_14_concurrent_approvals_no_overselling - No overselling detected during concurrent approvals",
+    
+    "=== EXISTING FUNCTIONALITY TESTS ===",
+    "test_15_login_still_works - Login endpoint works correctly (200)",
+    "test_16_auth_me_still_works - /auth/me returns correct user (200)",
+    "test_17_inventory_endpoint_works - /inventory returns list (200)",
+    "test_18_stocks_endpoint_works - /stocks returns list (200)"
+  ],
+  "failed_tests": [
+    "test_06_bookings_router_filter_by_status - Filter returned pending booking mixed with approved (race condition during test)"
+  ],
+  "skipped_tests": [
+    "test_12_inventory_blocked_on_approval - No pending bookings available at test time"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_modular_routers_concurrency.py",
+    "/app/test_reports/pytest/modular_routers_concurrency_results.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Remove duplicate POST /api/bookings endpoint from server.py (line 1650) - the new modular router in routers/bookings.py should be the only one",
+    "CRITICAL: Remove duplicate PUT /api/bookings/{id}/approve endpoint from server.py if it exists - use the one in routers/bookings.py",
+    "CRITICAL: Remove duplicate PUT /api/bookings/{id}/void endpoint from server.py if it exists - use the one in routers/bookings.py",
+    "HIGH: Consolidate generate_booking_number() to a single location (either in a shared service or only in routers/bookings.py)",
+    "HIGH: Clean up existing duplicate booking numbers in database (27 bookings with only 12 unique numbers)",
+    "MEDIUM: Consider moving api_router registration AFTER modular routers to ensure new code takes precedence during migration"
+  ],
+  "critical_code_review_comments": [
+    "DUPLICATE ROUTES: server.py line 1650 and routers/bookings.py line 63 both define POST /api/bookings",
+    "DUPLICATE FUNCTIONS: generate_booking_number() exists in both server.py (line 107) and routers/bookings.py (line 34)",
+    "ROUTE PRECEDENCE: api_router is registered before bookings_router (server.py lines 5162 vs 5170), so old code takes precedence",
+    "ATOMIC OPS NOT USED: The new atomic inventory operations (check_and_reserve_inventory, release_inventory_reservation) in routers/bookings.py are NOT being called because the old endpoint is used",
+    "DATA INTEGRITY: 27 bookings exist but only 12 unique booking numbers - this is a data integrity issue"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_modular_routers_concurrency.py"
+  ],
+  "success_rate": {
+    "backend": "88.9% (16/18 passed, 1 skipped, 1 failed)"
+  },
+  "test_credentials": {
+    "PE Desk (Super Admin)": "pedesk@smifs.com / Kutta@123"
+  },
+  "seed_data_creation": "5 test bookings created during concurrent booking test",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "CRITICAL: Backend refactoring is incomplete. The old booking endpoints in server.py are still active and taking precedence over the new modular routers. This causes duplicate booking numbers and prevents the new atomic inventory operations from being used. Main agent needs to remove the duplicate routes from server.py before the refactoring can be considered complete.",
+  "rca_of_the_issue": {
+    "root_cause": "Incomplete refactoring - new modular routers were added but old endpoints in server.py were not removed",
+    "reproduction_steps": [
+      "1. Create multiple bookings concurrently",
+      "2. Check booking numbers - duplicates will be found",
+      "3. Verify by checking: curl /api/bookings | jq '[.[] | .booking_number] | group_by(.) | map(select(length > 1))'"
+    ],
+    "mitigation": [
+      "1. Remove POST /api/bookings from server.py (line 1650)",
+      "2. Remove PUT /api/bookings/{id}/approve from server.py if exists",
+      "3. Remove PUT /api/bookings/{id}/void from server.py if exists",
+      "4. Remove generate_booking_number() from server.py (line 107)",
+      "5. Clean up duplicate booking numbers in database"
+    ]
+  },
+  "features_verified": {
+    "modular_clients_router": {
+      "status": "WORKING",
+      "details": "GET /api/clients, GET /api/clients/{id}, GET /api/clients/pending-approval all working"
+    },
+    "modular_bookings_router": {
+      "status": "PARTIALLY WORKING - OLD ROUTE TAKES PRECEDENCE",
+      "details": "GET endpoints work but POST/PUT endpoints are shadowed by old server.py routes"
+    },
+    "modular_finance_router": {
+      "status": "WORKING",
+      "details": "GET /api/finance/payments, GET /api/finance/summary, GET /api/finance/refund-requests all working"
+    },
+    "atomic_inventory_operations": {
+      "status": "NOT BEING USED",
+      "details": "New atomic operations in inventory_service.py are not called because old booking endpoint is used"
+    },
+    "unique_booking_numbers": {
+      "status": "BROKEN",
+      "details": "27 bookings but only 12 unique booking numbers due to duplicate route registration"
+    },
+    "concurrent_booking_approval": {
+      "status": "WORKING",
+      "details": "No overselling detected during concurrent approvals"
+    },
+    "existing_functionality": {
+      "status": "WORKING",
+      "details": "Login, auth/me, inventory, stocks endpoints all working correctly"
+    }
+  }
+}
