@@ -39,6 +39,8 @@ const Bookings = () => {
   const [selectedInsiderBooking, setSelectedInsiderBooking] = useState(null);
   const [insiderFormFile, setInsiderFormFile] = useState(null);
   const [uploadingForm, setUploadingForm] = useState(false);
+  const [referralPartners, setReferralPartners] = useState([]);
+  const [showRpWarning, setShowRpWarning] = useState(false);
   const [formData, setFormData] = useState({
     client_id: '',
     stock_id: '',
@@ -49,6 +51,8 @@ const Bookings = () => {
     status: 'open',
     notes: '',
     booking_type: 'client',  // client, team, own
+    referral_partner_id: '',
+    rp_revenue_share_percent: '',
   });
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
