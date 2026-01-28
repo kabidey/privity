@@ -5171,6 +5171,9 @@ app.include_router(smtp_config_router, prefix="/api")
 app.include_router(stocks_router, prefix="/api")
 app.include_router(database_backup_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
+app.include_router(bookings_router, prefix="/api")
+app.include_router(clients_router, prefix="/api")
+app.include_router(finance_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
