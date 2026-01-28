@@ -707,6 +707,111 @@ const Finance = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* RP Payment Update Dialog */}
+      <Dialog open={rpPaymentDialogOpen} onOpenChange={setRpPaymentDialogOpen}>
+        <DialogContent className="max-w-lg" data-testid="rp-payment-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Update RP Payment
+            </DialogTitle>
+            <DialogDescription>
+              {selectedRpPayment?.booking_number} - {selectedRpPayment?.rp_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRpPayment && (
+            <div className="space-y-4">
+              {/* Payment Details */}
+              <Card>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment Amount:</span>
+                    <span className="font-bold text-pink-600">{formatCurrency(selectedRpPayment.payment_amount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Stock:</span>
+                    <span className="font-mono">{selectedRpPayment.stock_symbol}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Revenue Share:</span>
+                    <span>{selectedRpPayment.revenue_share_percent}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Booking Total:</span>
+                    <span>{formatCurrency(selectedRpPayment.booking_total_amount)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* RP Details */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    Referral Partner Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-1">
+                  <p><strong>Name:</strong> {selectedRpPayment.rp_name}</p>
+                  <p><strong>Code:</strong> <span className="font-mono">{selectedRpPayment.rp_code}</span></p>
+                </CardContent>
+              </Card>
+
+              {/* Update Form */}
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label>Status</Label>
+                  <Select value={rpPaymentForm.status} onValueChange={(v) => setRpPaymentForm({ ...rpPaymentForm, status: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Payment Date</Label>
+                  <Input
+                    type="date"
+                    value={rpPaymentForm.payment_date}
+                    onChange={(e) => setRpPaymentForm({ ...rpPaymentForm, payment_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Payment Reference Number</Label>
+                  <Input
+                    value={rpPaymentForm.payment_reference}
+                    onChange={(e) => setRpPaymentForm({ ...rpPaymentForm, payment_reference: e.target.value })}
+                    placeholder="e.g., UTR123456789"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={rpPaymentForm.notes}
+                    onChange={(e) => setRpPaymentForm({ ...rpPaymentForm, notes: e.target.value })}
+                    placeholder="Add any notes about this payment..."
+                    rows={2}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRpPaymentDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateRpPayment} data-testid="save-rp-payment-btn">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Update Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
