@@ -337,6 +337,37 @@ const Finance = () => {
         </div>
       )}
 
+      {/* RP Payments Summary */}
+      {summary && (summary.pending_rp_payments_count > 0 || summary.paid_rp_payments_count > 0) && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <Card className="border-l-4 border-l-pink-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending RP Payments</p>
+                  <p className="text-lg md:text-xl font-bold text-pink-600">{formatCurrency(summary.pending_rp_payments_amount)}</p>
+                </div>
+                <Clock className="h-6 w-6 text-pink-500 opacity-50" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{summary.pending_rp_payments_count} to pay</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-emerald-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">RP Payments Done</p>
+                  <p className="text-lg md:text-xl font-bold text-emerald-600">{formatCurrency(summary.paid_rp_payments_amount)}</p>
+                </div>
+                <CheckCircle className="h-6 w-6 text-emerald-500 opacity-50" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{summary.paid_rp_payments_count} paid</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Filters */}
       <Card>
         <CardContent className="pt-4">
