@@ -1701,11 +1701,26 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             detail=f"Insufficient inventory. Available: {inventory['available_quantity'] if inventory else 0}"
         )
     
+    # Validate selling_price is provided
+    if booking_data.selling_price is None or booking_data.selling_price <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Selling price is required and must be greater than 0"
+        )
+    
     # Employees MUST use weighted average as buying price (cannot edit)
     if user_role == 4:
         buying_price = inventory["weighted_avg_price"]
     else:
+        # For PE Desk, buying_price can be provided or default to weighted average
         buying_price = booking_data.buying_price if booking_data.buying_price else inventory["weighted_avg_price"]
+    
+    # Validate buying_price is valid
+    if buying_price is None or buying_price <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Landing price is required and must be greater than 0"
+        )
     
     booking_id = str(uuid.uuid4())
     booking_number = await generate_booking_number()
