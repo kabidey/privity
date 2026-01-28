@@ -33,6 +33,7 @@ import {
   UserCog,
   PieChart,
   Mail,
+  MailCheck,
   Banknote,
   Server,
   Database,
