@@ -4185,8 +4185,8 @@ async def get_refund_requests(
 @api_router.get("/finance/refund-requests/{request_id}")
 async def get_refund_request(request_id: str, current_user: dict = Depends(get_current_user)):
     """Get a specific refund request"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access refund requests")
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access refund requests")
     
     refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
     if not refund:
@@ -4207,9 +4207,9 @@ async def update_refund_request(
     update_data: RefundStatusUpdate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Update refund request status (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update refund requests")
+    """Update refund request status (PE Level or Finance role)"""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update refund requests")
     
     if update_data.status not in ["processing", "completed", "failed"]:
         raise HTTPException(status_code=400, detail="Invalid status. Use: processing, completed, or failed")
