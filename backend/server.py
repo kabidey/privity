@@ -2736,7 +2736,8 @@ async def add_payment_tranche(
         "payment_date": payment.payment_date,
         "recorded_by": current_user["id"],
         "recorded_at": datetime.now(timezone.utc).isoformat(),
-        "notes": payment.notes
+        "notes": payment.notes,
+        "proof_url": payment.proof_url
     }
     
     payments.append(new_tranche)
