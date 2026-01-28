@@ -432,7 +432,8 @@ const Purchases = () => {
           setPaymentForm({
             amount: '',
             payment_date: new Date().toISOString().split('T')[0],
-            notes: ''
+            notes: '',
+            proof_url: ''
           });
         }
       }}>
