@@ -63,7 +63,7 @@ styles.add(ParagraphStyle(
     alignment=TA_JUSTIFY
 ))
 styles.add(ParagraphStyle(
-    name='Code',
+    name='CodeCustom',
     parent=styles['Normal'],
     fontName='Courier',
     fontSize=8,
