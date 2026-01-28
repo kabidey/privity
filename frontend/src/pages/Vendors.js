@@ -208,6 +208,8 @@ const Vendors = () => {
     setFormData({
       name: vendor.name,
       email: vendor.email || '',
+      email_secondary: vendor.email_secondary || '',
+      email_tertiary: vendor.email_tertiary || '',
       phone: vendor.phone || '',
       pan_number: vendor.pan_number,
       dp_id: vendor.dp_id,
