@@ -666,5 +666,92 @@ DEFAULT_EMAIL_TEMPLATES = {
         """,
         "variables": ["rp_name", "rp_code", "booking_number", "client_name", "stock_symbol", "stock_name", "quantity", "transfer_date", "profit", "revenue_share_percent", "payment_amount"],
         "is_active": True
+    },
+    "rp_approval_notification": {
+        "key": "rp_approval_notification",
+        "name": "RP Approval Notification",
+        "subject": "Welcome! Your Referral Partner Application is Approved | SMIFS PE",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #10b981;">✓ Application Approved</h2>
+            <p>Dear {{rp_name}},</p>
+            <p>We are pleased to inform you that your Referral Partner application has been <strong style="color: #10b981;">APPROVED</strong>.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
+                <tr style="background-color: #064E3B; color: white;">
+                    <th colspan="2" style="padding: 12px; text-align: left;">Your RP Details</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Your RP Code</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; font-family: monospace; font-size: 16px; color: #059669;"><strong>{{rp_code}}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Name</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{rp_name}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>PAN Number</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{pan_number}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Approved By</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{approved_by}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Approval Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{approval_date}}</td>
+                </tr>
+            </table>
+            
+            <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #065f46;"><strong>What's Next?</strong> You can now refer clients and earn commissions on successful bookings. Share your RP code <strong>{{rp_code}}</strong> with potential clients.</p>
+            </div>
+            
+            <p>Thank you for partnering with us!</p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """,
+        "variables": ["rp_name", "rp_code", "pan_number", "approved_by", "approval_date"],
+        "is_active": True
+    },
+    "rp_rejection_notification": {
+        "key": "rp_rejection_notification",
+        "name": "RP Rejection Notification",
+        "subject": "Referral Partner Application Update | SMIFS PE",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #dc2626;">Application Not Approved</h2>
+            <p>Dear {{rp_name}},</p>
+            <p>We regret to inform you that your Referral Partner application has not been approved at this time.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
+                <tr style="background-color: #7f1d1d; color: white;">
+                    <th colspan="2" style="padding: 12px; text-align: left;">Application Details</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Application Code</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; font-family: monospace;">{{rp_code}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Name</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{rp_name}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>PAN Number</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{pan_number}}</td>
+                </tr>
+            </table>
+            
+            <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #991b1b;"><strong>Reason for Rejection:</strong></p>
+                <p style="margin: 8px 0 0 0; color: #7f1d1d;">{{rejection_reason}}</p>
+            </div>
+            
+            <p>If you believe this decision was made in error or would like to re-apply with corrected information, please contact our PE Desk.</p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """,
+        "variables": ["rp_name", "rp_code", "pan_number", "rejection_reason"],
+        "is_active": True
     }
 }
