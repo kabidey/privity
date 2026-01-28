@@ -824,16 +824,21 @@ const Bookings = () => {
                   </div>
                   {formData.referral_partner_id && (
                     <div className="space-y-2">
-                      <Label>Revenue Share %</Label>
+                      <Label>Revenue Share % (Max 30%)</Label>
                       <Input
                         type="number"
                         min="0"
-                        max="100"
+                        max="30"
                         step="0.1"
                         data-testid="rp-revenue-share-input"
                         value={formData.rp_revenue_share_percent}
-                        onChange={(e) => setFormData({ ...formData, rp_revenue_share_percent: e.target.value })}
-                        placeholder="e.g., 10"
+                        onChange={(e) => {
+                          let val = parseFloat(e.target.value);
+                          if (val > 30) val = 30;
+                          if (val < 0) val = 0;
+                          setFormData({ ...formData, rp_revenue_share_percent: isNaN(val) ? '' : val.toString() });
+                        }}
+                        placeholder="e.g., 10 (max 30)"
                       />
                     </div>
                   )}
