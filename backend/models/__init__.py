@@ -454,6 +454,11 @@ class ReferralPartnerCreate(BaseModel):
     pan_number: str
     aadhar_number: str
     address: str  # Required
+    # Bank Details (Required for payouts)
+    bank_name: str
+    bank_account_number: str
+    bank_ifsc_code: str
+    bank_branch: Optional[str] = None
 
 
 class ReferralPartner(BaseModel):
@@ -466,6 +471,11 @@ class ReferralPartner(BaseModel):
     pan_number: str
     aadhar_number: str
     address: Optional[str] = None  # Required for new RPs, but allow None for legacy data
+    # Bank Details
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    bank_ifsc_code: Optional[str] = None
+    bank_branch: Optional[str] = None
     # Documents (all mandatory for RP creation flow)
     pan_card_url: Optional[str] = None
     aadhar_card_url: Optional[str] = None
