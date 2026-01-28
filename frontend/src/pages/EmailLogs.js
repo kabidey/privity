@@ -271,12 +271,12 @@ const EmailLogs = () => {
                 </div>
                 <div>
                   <Label>Entity Type</Label>
-                  <Select value={filters.related_entity_type} onValueChange={(v) => setFilters({ ...filters, related_entity_type: v })}>
+                  <Select value={filters.related_entity_type || "all"} onValueChange={(v) => setFilters({ ...filters, related_entity_type: v === "all" ? "" : v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="booking">Booking</SelectItem>
                       <SelectItem value="client">Client</SelectItem>
                       <SelectItem value="rp">Referral Partner</SelectItem>
