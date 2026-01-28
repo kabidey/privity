@@ -258,3 +258,209 @@ async def get_database_stats(current_user: dict = Depends(get_current_user)):
         "total_records": sum(stats.values()),
         "backup_count": await db.database_backups.count_documents({})
     }
+
+
+# ============== Clear Database Endpoint ==============
+@router.delete("/clear")
+async def clear_database(current_user: dict = Depends(get_current_user)):
+    """Clear all database collections except users (PE Desk only)
+    
+    WARNING: This permanently deletes all data except user accounts!
+    """
+    if current_user.get("role", 5) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can clear the database")
+    
+    cleared_counts = {}
+    errors = []
+    
+    # Collections to clear (everything except users and database_backups)
+    collections_to_clear = [c for c in BACKUP_COLLECTIONS if c != "users"]
+    
+    for collection_name in collections_to_clear:
+        try:
+            collection = db[collection_name]
+            count_before = await collection.count_documents({})
+            await collection.delete_many({})
+            cleared_counts[collection_name] = count_before
+        except Exception as e:
+            errors.append(f"Error clearing {collection_name}: {str(e)}")
+    
+    # Log the clear action
+    await db.audit_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "action": "DATABASE_CLEAR",
+        "entity_type": "database",
+        "entity_id": "all",
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "user_role": current_user.get("role", 5),
+        "details": {
+            "collections_cleared": list(cleared_counts.keys()),
+            "record_counts_deleted": cleared_counts,
+            "errors": errors
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "message": "Database cleared successfully" if not errors else "Database cleared with some errors",
+        "cleared_counts": cleared_counts,
+        "total_deleted": sum(cleared_counts.values()),
+        "errors": errors
+    }
+
+
+# ============== Download Backup as ZIP ==============
+@router.get("/backups/{backup_id}/download")
+async def download_backup(backup_id: str, current_user: dict = Depends(get_current_user)):
+    """Download a backup as a ZIP file (PE Desk only)"""
+    if current_user.get("role", 5) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can download backups")
+    
+    # Get backup with data
+    backup = await db.database_backups.find_one({"id": backup_id}, {"_id": 0})
+    
+    if not backup:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    
+    backup_data = backup.get("data", {})
+    
+    # Create ZIP file in memory
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        # Add metadata file
+        metadata = {
+            "id": backup["id"],
+            "name": backup["name"],
+            "description": backup.get("description"),
+            "created_at": backup["created_at"],
+            "created_by": backup["created_by"],
+            "created_by_name": backup["created_by_name"],
+            "collections": backup["collections"],
+            "record_counts": backup["record_counts"],
+            "size_bytes": backup["size_bytes"]
+        }
+        zip_file.writestr("metadata.json", json.dumps(metadata, indent=2))
+        
+        # Add each collection as a separate JSON file
+        for collection_name, documents in backup_data.items():
+            json_content = json.dumps(documents, indent=2, default=str)
+            zip_file.writestr(f"collections/{collection_name}.json", json_content)
+    
+    zip_buffer.seek(0)
+    
+    # Generate filename
+    safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in backup["name"])
+    filename = f"backup_{safe_name}_{backup['created_at'][:10]}.zip"
+    
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+# ============== Upload and Restore from ZIP ==============
+@router.post("/restore-from-file")
+async def restore_from_file(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Restore database from an uploaded ZIP backup file (PE Desk only)
+    
+    WARNING: This will replace existing data in the selected collections!
+    """
+    if current_user.get("role", 5) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can restore database")
+    
+    # Validate file type
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Please upload a ZIP file")
+    
+    try:
+        # Read the uploaded file
+        content = await file.read()
+        zip_buffer = io.BytesIO(content)
+        
+        # Extract and validate ZIP contents
+        backup_data = {}
+        metadata = None
+        
+        with zipfile.ZipFile(zip_buffer, 'r') as zip_file:
+            # Read metadata
+            if "metadata.json" not in zip_file.namelist():
+                raise HTTPException(status_code=400, detail="Invalid backup file: missing metadata.json")
+            
+            metadata_content = zip_file.read("metadata.json")
+            metadata = json.loads(metadata_content)
+            
+            # Read each collection
+            for filename in zip_file.namelist():
+                if filename.startswith("collections/") and filename.endswith(".json"):
+                    collection_name = filename.replace("collections/", "").replace(".json", "")
+                    if collection_name in BACKUP_COLLECTIONS:
+                        collection_content = zip_file.read(filename)
+                        backup_data[collection_name] = json.loads(collection_content)
+        
+        if not backup_data:
+            raise HTTPException(status_code=400, detail="Invalid backup file: no valid collection data found")
+        
+        # Restore the data
+        restored_counts = {}
+        errors = []
+        
+        for collection_name, documents in backup_data.items():
+            if collection_name == "users":
+                # Special handling for users - preserve super admin
+                await db.users.delete_many({"email": {"$ne": "pedesk@smifs.com"}})
+                users_to_insert = [d for d in documents if d.get("email") != "pedesk@smifs.com"]
+                if users_to_insert:
+                    await db.users.insert_many(users_to_insert)
+                restored_counts[collection_name] = len(users_to_insert)
+            else:
+                try:
+                    collection = db[collection_name]
+                    await collection.delete_many({})
+                    if documents:
+                        await collection.insert_many(documents)
+                    restored_counts[collection_name] = len(documents)
+                except Exception as e:
+                    errors.append(f"Error restoring {collection_name}: {str(e)}")
+        
+        # Log the restore action
+        await db.audit_logs.insert_one({
+            "id": str(uuid.uuid4()),
+            "action": "DATABASE_RESTORE_FROM_FILE",
+            "entity_type": "database",
+            "entity_id": metadata.get("id", "uploaded_file"),
+            "user_id": current_user["id"],
+            "user_name": current_user["name"],
+            "user_role": current_user.get("role", 5),
+            "details": {
+                "backup_name": metadata.get("name", file.filename),
+                "original_backup_date": metadata.get("created_at"),
+                "collections_restored": list(restored_counts.keys()),
+                "record_counts": restored_counts,
+                "errors": errors
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "message": "Database restored from file successfully" if not errors else "Database restored with some errors",
+            "backup_info": {
+                "name": metadata.get("name"),
+                "original_date": metadata.get("created_at"),
+                "original_creator": metadata.get("created_by_name")
+            },
+            "restored_counts": restored_counts,
+            "errors": errors
+        }
+        
+    except zipfile.BadZipFile:
+        raise HTTPException(status_code=400, detail="Invalid ZIP file")
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON in backup file: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing backup file: {str(e)}")
