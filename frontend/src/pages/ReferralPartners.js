@@ -593,15 +593,15 @@ const ReferralPartners = () => {
           <DialogHeader>
             <DialogTitle>Upload Documents</DialogTitle>
             <DialogDescription>
-              Upload KYC documents for {selectedRp?.name} ({selectedRp?.rp_code})
+              Upload KYC documents for {selectedRp?.name} ({selectedRp?.rp_code}). All documents are mandatory.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                PAN Card
-                {selectedRp?.pan_card_url && <Badge variant="outline" className="ml-2">Uploaded</Badge>}
+                PAN Card <span className="text-red-500">*</span>
+                {selectedRp?.pan_card_url && <Badge variant="outline" className="ml-2 bg-green-50 text-green-700">Uploaded</Badge>}
               </Label>
               <Input
                 type="file"
@@ -616,8 +616,8 @@ const ReferralPartners = () => {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                Aadhar Card
-                {selectedRp?.aadhar_card_url && <Badge variant="outline" className="ml-2">Uploaded</Badge>}
+                Aadhar Card <span className="text-red-500">*</span>
+                {selectedRp?.aadhar_card_url && <Badge variant="outline" className="ml-2 bg-green-50 text-green-700">Uploaded</Badge>}
               </Label>
               <Input
                 type="file"
@@ -632,8 +632,8 @@ const ReferralPartners = () => {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Wallet className="h-4 w-4" />
-                Cancelled Cheque
-                {selectedRp?.cancelled_cheque_url && <Badge variant="outline" className="ml-2">Uploaded</Badge>}
+                Cancelled Cheque <span className="text-red-500">*</span>
+                {selectedRp?.cancelled_cheque_url && <Badge variant="outline" className="ml-2 bg-green-50 text-green-700">Uploaded</Badge>}
               </Label>
               <Input
                 type="file"
@@ -645,6 +645,13 @@ const ReferralPartners = () => {
                 }}
               />
             </div>
+            {selectedRp && (!selectedRp.pan_card_url || !selectedRp.aadhar_card_url || !selectedRp.cancelled_cheque_url) && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-sm text-red-700">
+                  <strong>Warning:</strong> All documents are mandatory. Please upload all pending documents.
+                </p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
