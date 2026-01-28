@@ -221,14 +221,15 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "booking_type": booking_data.booking_type,
         "insider_form_uploaded": booking_data.insider_form_uploaded,
         "insider_form_path": None,
-        # Referral Partner fields
-        "referral_partner_id": booking_data.referral_partner_id,
-        "rp_code": rp_code,
-        "rp_name": rp_name,
-        "rp_revenue_share_percent": booking_data.rp_revenue_share_percent,
+        # Referral Partner fields (may be zeroed if client=RP)
+        "referral_partner_id": booking_data.referral_partner_id if not rp_share_auto_zeroed else None,
+        "rp_code": rp_code if not rp_share_auto_zeroed else None,
+        "rp_name": rp_name if not rp_share_auto_zeroed else None,
+        "rp_revenue_share_percent": booking_data.rp_revenue_share_percent if not rp_share_auto_zeroed else 0,
+        "rp_share_auto_zeroed": rp_share_auto_zeroed,  # Flag for audit trail
         # Employee Revenue Share - calculated based on RP allocation
         "base_employee_share_percent": 100.0,  # Full share before RP deduction
-        "employee_revenue_share_percent": 100.0 - (booking_data.rp_revenue_share_percent or 0),  # Reduced by RP share
+        "employee_revenue_share_percent": 100.0 if rp_share_auto_zeroed else 100.0 - (booking_data.rp_revenue_share_percent or 0),
         "employee_commission_amount": None,  # Calculated when stock transfer confirmed
         "employee_commission_status": "pending",
         # Client confirmation
@@ -240,7 +241,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "loss_approval_status": loss_approval_status,
         "loss_approved_by": None,
         "loss_approved_at": None,
-        "notes": booking_data.notes,
+        "notes": f"[AUTO: RP share zeroed - Client is also an RP] {booking_data.notes or ''}" if rp_share_auto_zeroed else booking_data.notes,
         "user_id": current_user["id"],
         "created_by": current_user["id"],
         "created_by_name": current_user["name"],
