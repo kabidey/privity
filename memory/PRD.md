@@ -711,3 +711,42 @@ Each template supports:
 - Added link icon for quick manager assignment
 - Shows unassigned managers and employees with assign buttons
 
+### Finance Dashboard (Jan 28, 2026) - ✅ COMPLETED
+**New Finance Page:** Centralized view of all payments
+
+**Features:**
+1. **Summary Cards**:
+   - Total Received (from clients)
+   - Total Sent (to vendors)
+   - Net Flow (Received - Sent)
+   - Total Transactions count
+
+2. **Payment Filters**:
+   - Payment Type (All/Client/Vendor)
+   - Date Range (Start/End)
+
+3. **Payment Tabs**:
+   - All - Combined view
+   - Received - Client payments
+   - Sent - Vendor payments
+
+4. **Excel Export**: Download complete payment report
+
+5. **Payment Proof Upload**:
+   - Added to Booking payment dialog
+   - Added to Purchase payment dialog
+   - Supports: PDF, JPG, PNG, DOC, DOCX
+   - Proof link shown in Finance dashboard
+
+**Backend Endpoints Added (`/app/backend/server.py`):**
+- `GET /api/finance/payments` - All payments with details
+- `GET /api/finance/summary` - Payment statistics
+- `GET /api/finance/export/excel` - Excel download
+- `POST /api/payments/upload-proof` - Upload payment proof
+
+**Frontend Files:**
+- Created `/app/frontend/src/pages/Finance.js`
+- Updated `/app/frontend/src/pages/Bookings.js` - Added proof upload
+- Updated `/app/frontend/src/pages/Purchases.js` - Added proof upload
+- Updated `/app/frontend/src/components/Layout.js` - Added Finance menu item
+
