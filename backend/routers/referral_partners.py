@@ -106,6 +106,9 @@ async def create_referral_partner(
     rp_id = str(uuid.uuid4())
     rp_code = await generate_rp_code()
     
+    # PE Level users can auto-approve RPs they create
+    is_pe_level_user = is_pe_level(user_role)
+    
     rp_doc = {
         "id": rp_id,
         "rp_code": rp_code,
@@ -118,6 +121,12 @@ async def create_referral_partner(
         "pan_card_url": None,
         "aadhar_card_url": None,
         "cancelled_cheque_url": None,
+        # Approval status - PE Level auto-approves, others need approval
+        "approval_status": "approved" if is_pe_level_user else "pending",
+        "approved_by": current_user["id"] if is_pe_level_user else None,
+        "approved_by_name": current_user["name"] if is_pe_level_user else None,
+        "approved_at": datetime.now(timezone.utc).isoformat() if is_pe_level_user else None,
+        "rejection_reason": None,
         "is_active": True,
         "created_by": current_user["id"],
         "created_by_name": current_user["name"],
