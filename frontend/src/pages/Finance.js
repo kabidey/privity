@@ -470,6 +470,10 @@ const Finance = () => {
             <CreditCard className="h-3 w-3 mr-1" />
             RP Payments ({rpPayments.length})
           </TabsTrigger>
+          <TabsTrigger value="commissions" data-testid="commissions-tab">
+            <Users className="h-3 w-3 mr-1" />
+            Commissions ({employeeCommissions.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
