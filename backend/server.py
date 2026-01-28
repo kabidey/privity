@@ -4170,9 +4170,9 @@ async def get_refund_requests(
     status: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all refund requests (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access refund requests")
+    """Get all refund requests (PE Level or Finance role)"""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access refund requests")
     
     query = {}
     if status:
