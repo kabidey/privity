@@ -55,9 +55,9 @@ class RestoreRequest(BaseModel):
 # ============== Backup Endpoints ==============
 @router.get("/backups")
 async def list_backups(current_user: dict = Depends(get_current_user)):
-    """List all database backups (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access database backups")
+    """List all database backups (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access database backups")
     
     backups = await db.database_backups.find(
         {},
@@ -73,9 +73,9 @@ async def create_backup(
     description: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create a new database backup (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can create database backups")
+    """Create a new database backup (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can create database backups")
     
     backup_id = str(uuid.uuid4())
     backup_data = {}
