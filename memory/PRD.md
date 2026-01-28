@@ -34,6 +34,24 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 28, 2026)
 
+#### ✅ Email Audit Logging - COMPLETED (Jan 28, 2026)
+**Implementation Details:**
+- Updated `/app/backend/services/email_service.py` with `log_email()` function
+- All emails (sent, failed, skipped) are now logged to `email_logs` collection
+- Created `/app/backend/routers/email_logs.py` with endpoints:
+  - `GET /email-logs` - List logs with filters (status, template, email, entity, date range)
+  - `GET /email-logs/stats` - Statistics (sent/failed/skipped counts, by template, by entity)
+  - `GET /email-logs/{log_id}` - Single log detail
+  - `GET /email-logs/by-entity/{type}/{id}` - Logs by related entity
+  - `DELETE /email-logs/cleanup` - Delete old logs (PE Desk only)
+- Created `/app/frontend/src/pages/EmailLogs.js` with:
+  - Stats cards (Sent, Failed, Skipped, Success Rate)
+  - Filters (Status, Template, Email, Entity Type, Date Range)
+  - Logs table with pagination
+  - Analytics tab with templates/entity breakdowns
+- Added `email_logs` database indexes for performance
+- **Testing**: 13/13 backend tests passed (iteration_31)
+
 #### ✅ Backend Refactoring - MODULAR ROUTERS MIGRATION - COMPLETED (Jan 28, 2026)
 **Implementation Details:**
 - Migrated remaining endpoints from monolithic `server.py` to modular router files
