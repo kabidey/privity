@@ -3417,9 +3417,7 @@ async def preview_email_template(
     }
 
 # ============== Advanced Analytics Routes (PE Desk Only) ==============
-    
-    # Get vendor payments from purchases
-    if payment_type in [None, 'vendor']:
+@api_router.get("/analytics/summary")
         purchase_query = {"payments": {"$exists": True, "$ne": []}}
         if start_date:
             purchase_query["purchase_date"] = {"$gte": start_date}
