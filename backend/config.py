@@ -45,7 +45,8 @@ ROLES = {
     3: "Zonal Manager",
     4: "Manager",
     5: "Employee",
-    6: "Viewer"
+    6: "Viewer",
+    7: "Finance"
 }
 
 # Role Permissions
@@ -54,11 +55,12 @@ ROLE_PERMISSIONS = {
     2: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", 
         "view_reports", "approve_clients", "approve_bookings", "manage_vendors", "manage_email_templates",
         "view_analytics", "manage_inventory", "view_dp_transfer", "manage_corporate_actions",
-        "view_audit_logs", "manage_payments", "view_database_stats"],  # PE Manager - PE Desk without delete/restore
+        "view_audit_logs", "manage_payments", "view_database_stats", "view_finance"],  # PE Manager - PE Desk without delete/restore
     3: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
     4: ["view_all", "manage_clients", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
     5: ["view_own", "create_bookings", "view_clients", "create_clients"],
-    6: ["view_own"]
+    6: ["view_own"],
+    7: ["view_own", "create_bookings", "view_clients", "create_clients", "view_finance", "manage_finance"]  # Finance - Employee + full Finance access
 }
 
 
