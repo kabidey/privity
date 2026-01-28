@@ -4098,6 +4098,776 @@ async def export_finance_excel(
     )
 
 
+@api_router.post("/payments/upload-proof")
+async def upload_payment_proof(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload payment proof document"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can upload payment proofs")
+    
+    # Validate file type
+    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"File type not allowed. Allowed: {', '.join(allowed_extensions)}")
+    
+    # Create upload directory
+    proof_dir = os.path.join(UPLOAD_DIR, "payment_proofs")
+    os.makedirs(proof_dir, exist_ok=True)
+    
+    # Generate unique filename
+    unique_filename = f"payment_proof_{uuid.uuid4().hex}{file_ext}"
+    file_path = os.path.join(proof_dir, unique_filename)
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    return {
+        "filename": unique_filename,
+        "original_name": file.filename,
+        "url": f"/uploads/payment_proofs/{unique_filename}"
+    }
+
+# ============== Email Templates Routes (PE Level) ==============
+@api_router.get("/email-templates")
+async def get_email_templates(current_user: dict = Depends(get_current_user)):
+    """Get all email templates (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    templates = await db.email_templates.find({}, {"_id": 0}).to_list(100)
+    
+    # Add default templates if not in database
+    from config import DEFAULT_EMAIL_TEMPLATES
+    existing_keys = {t["key"] for t in templates}
+    
+    for key, default_data in DEFAULT_EMAIL_TEMPLATES.items():
+        if key not in existing_keys:
+            templates.append({
+                "id": key,
+                "key": key,
+                **default_data,
+                "is_active": True,
+                "updated_at": None,
+                "updated_by": None
+            })
+    
+    return templates
+
+@api_router.get("/email-templates/{template_key}")
+async def get_email_template(template_key: str, current_user: dict = Depends(get_current_user)):
+    """Get specific email template"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
+    
+    if not template:
+        from config import DEFAULT_EMAIL_TEMPLATES
+        default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
+        if default:
+            return {
+                "id": template_key,
+                "key": template_key,
+                **default,
+                "is_active": True,
+                "updated_at": None,
+                "updated_by": None
+            }
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return template
+
+@api_router.put("/email-templates/{template_key}")
+async def update_email_template(
+    template_key: str,
+    subject: Optional[str] = None,
+    body: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update email template (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    # Check if template exists in database
+    existing = await db.email_templates.find_one({"key": template_key})
+    
+    update_data = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user["id"]
+    }
+    
+    if subject is not None:
+        update_data["subject"] = subject
+    if body is not None:
+        update_data["body"] = body
+    if is_active is not None:
+        update_data["is_active"] = is_active
+    
+    if existing:
+        await db.email_templates.update_one(
+            {"key": template_key},
+            {"$set": update_data}
+        )
+    else:
+        # Create from default
+        from config import DEFAULT_EMAIL_TEMPLATES
+        default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
+        if not default:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        new_template = {
+            "id": str(uuid.uuid4()),
+            "key": template_key,
+            **default,
+            **update_data
+        }
+        await db.email_templates.insert_one(new_template)
+    
+    # Create audit log
+    await create_audit_log(
+        action="EMAIL_TEMPLATE_UPDATE",
+        entity_type="email_template",
+        entity_id=template_key,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
+        details={"template_key": template_key, "updates": list(update_data.keys())}
+    )
+    
+    return {"message": "Template updated successfully"}
+
+@api_router.post("/email-templates/{template_key}/reset")
+async def reset_email_template(template_key: str, current_user: dict = Depends(get_current_user)):
+    """Reset email template to default (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    from config import DEFAULT_EMAIL_TEMPLATES
+    default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
+    if not default:
+        raise HTTPException(status_code=404, detail="Default template not found")
+    
+    await db.email_templates.delete_one({"key": template_key})
+    
+    return {"message": "Template reset to default"}
+
+@api_router.post("/email-templates/{template_key}/preview")
+async def preview_email_template(
+    template_key: str,
+    variables: Dict[str, str] = {},
+    current_user: dict = Depends(get_current_user)
+):
+    """Preview email template with sample variables"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
+    
+    if not template:
+        from config import DEFAULT_EMAIL_TEMPLATES
+        default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
+        if not default:
+            raise HTTPException(status_code=404, detail="Template not found")
+        template = default
+    
+    # Replace variables
+    subject = template["subject"]
+    body = template["body"]
+    
+    for key, value in variables.items():
+        subject = subject.replace(f"{{{{{key}}}}}", str(value))
+        body = body.replace(f"{{{{{key}}}}}", str(value))
+    
+    return {
+        "subject": subject,
+        "body": body,
+        "variables": template.get("variables", [])
+    }
+
+# ============== Advanced Analytics Routes (PE Desk Only) ==============
+@api_router.get("/analytics/summary")
+async def get_analytics_summary(
+    days: int = 30,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get comprehensive analytics summary (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    
+    # Get all closed bookings
+    bookings = await db.bookings.find(
+        {"status": "closed", "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Calculate totals
+    total_revenue = sum(b.get("selling_price", 0) * b.get("quantity", 0) for b in bookings)
+    total_cost = sum(b.get("buying_price", 0) * b.get("quantity", 0) for b in bookings)
+    total_profit = total_revenue - total_cost
+    
+    # Get clients count
+    clients_count = await db.clients.count_documents({"is_vendor": False, "is_active": True})
+    
+    avg_booking_value = total_revenue / len(bookings) if bookings else 0
+    profit_margin = (total_profit / total_revenue * 100) if total_revenue > 0 else 0
+    
+    return {
+        "total_revenue": round(total_revenue, 2),
+        "total_profit": round(total_profit, 2),
+        "total_bookings": len(bookings),
+        "total_clients": clients_count,
+        "avg_booking_value": round(avg_booking_value, 2),
+        "profit_margin": round(profit_margin, 2)
+    }
+
+@api_router.get("/analytics/stock-performance")
+async def get_stock_performance(
+    days: int = 30,
+    limit: int = 10,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get stock performance analytics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    
+    bookings = await db.bookings.find(
+        {"status": "closed", "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    stock_stats = {}
+    for booking in bookings:
+        stock_id = booking.get("stock_id")
+        if not stock_id:
+            continue
+        
+        if stock_id not in stock_stats:
+            stock_stats[stock_id] = {"total_qty": 0, "total_revenue": 0, "total_cost": 0}
+        
+        qty = booking.get("quantity", 0)
+        stock_stats[stock_id]["total_qty"] += qty
+        stock_stats[stock_id]["total_revenue"] += booking.get("selling_price", 0) * qty
+        stock_stats[stock_id]["total_cost"] += booking.get("buying_price", 0) * qty
+    
+    # Get stock details
+    stock_ids = list(stock_stats.keys())
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    stock_map = {s["id"]: s for s in stocks}
+    
+    result = []
+    for stock_id, stats in stock_stats.items():
+        stock = stock_map.get(stock_id, {})
+        profit = stats["total_revenue"] - stats["total_cost"]
+        margin = (profit / stats["total_revenue"] * 100) if stats["total_revenue"] > 0 else 0
+        
+        result.append({
+            "stock_id": stock_id,
+            "stock_symbol": stock.get("symbol", "Unknown"),
+            "stock_name": stock.get("name", "Unknown"),
+            "sector": stock.get("sector", "Unknown"),
+            "total_quantity_sold": stats["total_qty"],
+            "total_revenue": round(stats["total_revenue"], 2),
+            "total_cost": round(stats["total_cost"], 2),
+            "profit_loss": round(profit, 2),
+            "profit_margin": round(margin, 2)
+        })
+    
+    result.sort(key=lambda x: x["profit_loss"], reverse=True)
+    return result[:limit]
+
+@api_router.get("/analytics/employee-performance")
+async def get_employee_performance(
+    days: int = 30,
+    limit: int = 10,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get employee performance analytics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    bookings = await db.bookings.find(
+        {"status": "closed", "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    emp_stats = {}
+    for booking in bookings:
+        user_id = booking.get("created_by")
+        if not user_id:
+            continue
+        
+        if user_id not in emp_stats:
+            emp_stats[user_id] = {
+                "total_bookings": 0,
+                "total_value": 0,
+                "total_profit": 0,
+                "client_ids": set()
+            }
+        
+        qty = booking.get("quantity", 0)
+        revenue = booking.get("selling_price", 0) * qty
+        cost = booking.get("buying_price", 0) * qty
+        
+        emp_stats[user_id]["total_bookings"] += 1
+        emp_stats[user_id]["total_value"] += revenue
+        emp_stats[user_id]["total_profit"] += revenue - cost
+        emp_stats[user_id]["client_ids"].add(booking.get("client_id"))
+    
+    # Get user details
+    user_ids = list(emp_stats.keys())
+    users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "hashed_password": 0}).to_list(1000)
+    user_map = {u["id"]: u for u in users}
+    
+    result = []
+    for user_id, stats in emp_stats.items():
+        user = user_map.get(user_id, {})
+        result.append({
+            "user_id": user_id,
+            "user_name": user.get("name", "Unknown"),
+            "role": user.get("role", 5),
+            "role_name": ROLES.get(user.get("role", 5), "Unknown"),
+            "total_bookings": stats["total_bookings"],
+            "total_value": round(stats["total_value"], 2),
+            "total_profit": round(stats["total_profit"], 2),
+            "clients_count": len(stats["client_ids"])
+        })
+    
+    result.sort(key=lambda x: x["total_profit"], reverse=True)
+    return result[:limit]
+
+@api_router.get("/analytics/daily-trend")
+async def get_daily_trend(
+    days: int = 30,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get daily booking trend (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    result = []
+    
+    for i in range(days, -1, -1):
+        date = (datetime.now(timezone.utc) - timedelta(days=i)).strftime("%Y-%m-%d")
+        date_start = f"{date}T00:00:00"
+        date_end = f"{date}T23:59:59"
+        
+        # Get bookings for this day
+        bookings = await db.bookings.find({
+            "created_at": {"$gte": date_start, "$lte": date_end},
+            "approval_status": "approved"
+        }, {"_id": 0}).to_list(1000)
+        
+        # Get new clients for this day
+        new_clients = await db.clients.count_documents({
+            "created_at": {"$gte": date_start, "$lte": date_end},
+            "is_vendor": False
+        })
+        
+        bookings_value = sum(b.get("selling_price", 0) * b.get("quantity", 0) for b in bookings)
+        profit_loss = sum(
+            (b.get("selling_price", 0) - b.get("buying_price", 0)) * b.get("quantity", 0)
+            for b in bookings if b.get("status") == "closed"
+        )
+        
+        result.append({
+            "date": date,
+            "bookings_count": len(bookings),
+            "bookings_value": round(bookings_value, 2),
+            "profit_loss": round(profit_loss, 2),
+            "new_clients": new_clients
+        })
+    
+    return result
+
+@api_router.get("/analytics/sector-distribution")
+async def get_sector_distribution(current_user: dict = Depends(get_current_user)):
+    """Get booking distribution by sector (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    bookings = await db.bookings.find(
+        {"status": "closed", "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Get all stocks with sectors
+    stock_ids = list(set(b.get("stock_id") for b in bookings if b.get("stock_id")))
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    stock_map = {s["id"]: s for s in stocks}
+    
+    sector_stats = {}
+    for booking in bookings:
+        stock = stock_map.get(booking.get("stock_id"), {})
+        sector = stock.get("sector") or "Unknown"
+        
+        if sector not in sector_stats:
+            sector_stats[sector] = {"bookings_count": 0, "total_value": 0, "total_profit": 0}
+        
+        qty = booking.get("quantity", 0)
+        revenue = booking.get("selling_price", 0) * qty
+        cost = booking.get("buying_price", 0) * qty
+        
+        sector_stats[sector]["bookings_count"] += 1
+        sector_stats[sector]["total_value"] += revenue
+        sector_stats[sector]["total_profit"] += revenue - cost
+    
+    result = [
+        {
+            "sector": sector,
+            **stats,
+            "total_value": round(stats["total_value"], 2),
+            "total_profit": round(stats["total_profit"], 2)
+        }
+        for sector, stats in sector_stats.items()
+    ]
+    
+    result.sort(key=lambda x: x["total_value"], reverse=True)
+    return result
+
+
+# ============== Email Server Configuration (Microsoft 365 Compatible) ==============
+
+class SMTPConfigUpdate(BaseModel):
+    smtp_host: str
+    smtp_port: int
+    smtp_username: str
+    smtp_password: Optional[str] = None  # Don't require password on every update
+    smtp_from_email: str
+    smtp_from_name: Optional[str] = "SMIFS Private Equity System"
+    use_tls: bool = True
+    use_ssl: bool = False
+    timeout: int = 30
+    is_enabled: bool = True
+
+class SMTPTestRequest(BaseModel):
+    test_email: str
+
+@api_router.get("/email-config")
+async def get_email_config(current_user: dict = Depends(get_current_user)):
+    """Get current SMTP configuration (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access email configuration")
+    
+    config = await db.email_config.find_one({"_id": "smtp_config"})
+    
+    if not config:
+        # Return default configuration from environment
+        default_config = {
+            "_id": "smtp_config",
+            "smtp_host": os.environ.get('EMAIL_HOST', 'smtp.office365.com'),
+            "smtp_port": int(os.environ.get('EMAIL_PORT', '587')),
+            "smtp_username": os.environ.get('EMAIL_USERNAME', ''),
+            "smtp_password": "",  # Don't expose password
+            "smtp_from_email": os.environ.get('EMAIL_FROM', os.environ.get('EMAIL_USERNAME', '')),
+            "smtp_from_name": "SMIFS Private Equity System",
+            "use_tls": True,
+            "use_ssl": False,
+            "timeout": 30,
+            "is_enabled": bool(os.environ.get('EMAIL_USERNAME')),
+            "last_updated": None,
+            "updated_by": None,
+            "connection_status": "not_configured" if not os.environ.get('EMAIL_USERNAME') else "configured"
+        }
+        return {k: v for k, v in default_config.items() if k != "_id"}
+    
+    # Don't expose password
+    config_dict = {k: v for k, v in config.items() if k not in ["_id", "smtp_password"]}
+    config_dict["smtp_password"] = "********" if config.get("smtp_password") else ""
+    return config_dict
+
+
+@api_router.put("/email-config")
+async def update_email_config(
+    config: SMTPConfigUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update SMTP configuration (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update email configuration")
+    
+    # Get existing config to preserve password if not provided
+    existing = await db.email_config.find_one({"_id": "smtp_config"})
+    
+    update_data = {
+        "_id": "smtp_config",
+        "smtp_host": config.smtp_host,
+        "smtp_port": config.smtp_port,
+        "smtp_username": config.smtp_username,
+        "smtp_from_email": config.smtp_from_email,
+        "smtp_from_name": config.smtp_from_name or "SMIFS Private Equity System",
+        "use_tls": config.use_tls,
+        "use_ssl": config.use_ssl,
+        "timeout": config.timeout,
+        "is_enabled": config.is_enabled,
+        "last_updated": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user["id"],
+        "updated_by_name": current_user["name"]
+    }
+    
+    # Only update password if provided and not placeholder
+    if config.smtp_password and config.smtp_password != "********":
+        update_data["smtp_password"] = config.smtp_password
+    elif existing and existing.get("smtp_password"):
+        update_data["smtp_password"] = existing["smtp_password"]
+    else:
+        update_data["smtp_password"] = ""
+    
+    await db.email_config.replace_one(
+        {"_id": "smtp_config"},
+        update_data,
+        upsert=True
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="EMAIL_CONFIG_UPDATE",
+        entity_type="system_config",
+        entity_id="smtp_config",
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user["role"],
+        entity_name="SMTP Configuration",
+        details={
+            "smtp_host": config.smtp_host,
+            "smtp_port": config.smtp_port,
+            "smtp_username": config.smtp_username,
+            "use_tls": config.use_tls,
+            "is_enabled": config.is_enabled
+        }
+    )
+    
+    return {"message": "Email configuration updated successfully"}
+
+
+@api_router.post("/email-config/test")
+async def test_email_config(
+    test_request: SMTPTestRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Test SMTP configuration by sending a test email (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can test email configuration")
+    
+    config = await db.email_config.find_one({"_id": "smtp_config"})
+    
+    if not config:
+        raise HTTPException(status_code=400, detail="Email configuration not found. Please save configuration first.")
+    
+    if not config.get("smtp_password"):
+        raise HTTPException(status_code=400, detail="SMTP password not configured")
+    
+    try:
+        # Create test email
+        msg = MIMEMultipart()
+        from_name = config.get("smtp_from_name", "SMIFS Private Equity System")
+        msg['From'] = f"{from_name} <{config['smtp_from_email']}>"
+        msg['To'] = test_request.test_email
+        msg['Subject'] = "Test Email - SMIFS Private Equity System"
+        
+        body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #064E3B;">✓ Email Configuration Test Successful</h2>
+            <p>This is a test email from SMIFS Private Equity System.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>SMTP Host</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{config['smtp_host']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>SMTP Port</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{config['smtp_port']}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>From Email</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{config['smtp_from_email']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>TLS Enabled</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{'Yes' if config.get('use_tls') else 'No'}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Tested By</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{current_user['name']}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Test Time</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</td>
+                </tr>
+            </table>
+            
+            <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #065f46;"><strong>Your email server is configured correctly!</strong></p>
+            </div>
+            
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """
+        
+        msg.attach(MIMEText(body, 'html'))
+        
+        # Connect and send
+        if config.get('use_ssl'):
+            server = smtplib.SMTP_SSL(config['smtp_host'], config['smtp_port'], timeout=config.get('timeout', 30))
+        else:
+            server = smtplib.SMTP(config['smtp_host'], config['smtp_port'], timeout=config.get('timeout', 30))
+            if config.get('use_tls'):
+                server.starttls()
+        
+        server.login(config['smtp_username'], config['smtp_password'])
+        server.sendmail(config['smtp_from_email'], test_request.test_email, msg.as_string())
+        server.quit()
+        
+        # Update connection status
+        await db.email_config.update_one(
+            {"_id": "smtp_config"},
+            {"$set": {
+                "connection_status": "connected",
+                "last_test": datetime.now(timezone.utc).isoformat(),
+                "last_test_result": "success",
+                "last_test_email": test_request.test_email
+            }}
+        )
+        
+        return {
+            "message": f"Test email sent successfully to {test_request.test_email}",
+            "status": "success"
+        }
+        
+    except smtplib.SMTPAuthenticationError as e:
+        await db.email_config.update_one(
+            {"_id": "smtp_config"},
+            {"$set": {
+                "connection_status": "auth_failed",
+                "last_test": datetime.now(timezone.utc).isoformat(),
+                "last_test_result": "auth_failed",
+                "last_test_error": str(e)
+            }}
+        )
+        raise HTTPException(
+            status_code=400, 
+            detail="Authentication failed. Please check your username and password. For Microsoft 365, ensure you're using an App Password if MFA is enabled."
+        )
+    except smtplib.SMTPConnectError as e:
+        await db.email_config.update_one(
+            {"_id": "smtp_config"},
+            {"$set": {
+                "connection_status": "connection_failed",
+                "last_test": datetime.now(timezone.utc).isoformat(),
+                "last_test_result": "connection_failed",
+                "last_test_error": str(e)
+            }}
+        )
+        raise HTTPException(status_code=400, detail=f"Connection failed: {str(e)}")
+    except Exception as e:
+        await db.email_config.update_one(
+            {"_id": "smtp_config"},
+            {"$set": {
+                "connection_status": "error",
+                "last_test": datetime.now(timezone.utc).isoformat(),
+                "last_test_result": "error",
+                "last_test_error": str(e)
+            }}
+        )
+        raise HTTPException(status_code=400, detail=f"Failed to send test email: {str(e)}")
+
+
+# Microsoft 365 preset configuration
+@api_router.get("/email-config/presets")
+async def get_email_presets(current_user: dict = Depends(get_current_user)):
+    """Get SMTP preset configurations for common providers"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access email presets")
+    
+    return {
+        "presets": [
+            {
+                "name": "Microsoft 365 / Office 365",
+                "smtp_host": "smtp.office365.com",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Use your Microsoft 365 email as username. If MFA is enabled, create an App Password in your Microsoft account security settings."
+            },
+            {
+                "name": "Microsoft Exchange (On-Premises)",
+                "smtp_host": "mail.yourdomain.com",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Replace mail.yourdomain.com with your Exchange server address."
+            },
+            {
+                "name": "Gmail / Google Workspace",
+                "smtp_host": "smtp.gmail.com",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Enable 'Less secure app access' or use an App Password if 2FA is enabled."
+            },
+            {
+                "name": "Amazon SES",
+                "smtp_host": "email-smtp.us-east-1.amazonaws.com",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Use SMTP credentials from AWS SES console (not IAM credentials). Replace region as needed."
+            },
+            {
+                "name": "SendGrid",
+                "smtp_host": "smtp.sendgrid.net",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Use 'apikey' as username and your SendGrid API key as password."
+            },
+            {
+                "name": "Mailgun",
+                "smtp_host": "smtp.mailgun.org",
+                "smtp_port": 587,
+                "use_tls": True,
+                "use_ssl": False,
+                "notes": "Use your Mailgun SMTP credentials from the domain settings."
+            }
+        ]
+    }
+
+
+# WebSocket endpoint for real-time notifications
+@app.websocket("/api/ws/notifications")
+async def websocket_notifications(websocket: WebSocket, token: str = Query(...)):
+    """WebSocket endpoint for real-time notifications"""
+    try:
+        # Verify token
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload["user_id"]
+        
+        await ws_manager.connect(websocket, user_id)
+        
+        try:
+            while True:
+                data = await websocket.receive_text()
+                if data == "ping":
+                    await websocket.send_text("pong")
+        except WebSocketDisconnect:
+            ws_manager.disconnect(websocket, user_id)
+    except jwt.ExpiredSignatureError:
+        await websocket.close(code=4001, reason="Token expired")
+    except jwt.InvalidTokenError:
+        await websocket.close(code=4002, reason="Invalid token")
+    except Exception as e:
+        logging.error(f"WebSocket error: {e}")
+        await websocket.close(code=1011)
 
 # Include modular routers FIRST (with /api prefix) - these take precedence
 app.include_router(bookings_router, prefix="/api")
