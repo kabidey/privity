@@ -3601,7 +3601,21 @@ async def get_daily_trend(
         
         bookings_value = sum(b.get("selling_price", 0) * b.get("quantity", 0) for b in bookings)
         profit_loss = sum(
-                purchase_query["purchase_date"] = {"$lte": end_date}
+            (b.get("selling_price", 0) - b.get("buying_price", 0)) * b.get("quantity", 0)
+            for b in bookings if b.get("status") == "closed"
+        )
+        
+        result.append({
+            "date": date,
+            "bookings_count": len(bookings),
+            "bookings_value": round(bookings_value, 2),
+            "profit_loss": round(profit_loss, 2),
+            "new_clients": new_clients
+        })
+    
+    return result
+
+@api_router.get("/analytics/sector-distribution")
         
         purchases = await db.purchases.find(purchase_query, {"_id": 0}).to_list(5000)
         
