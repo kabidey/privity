@@ -368,11 +368,11 @@ async def restore_from_file(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Restore database from an uploaded ZIP backup file (PE Desk only)
+    """Restore database from an uploaded ZIP backup file (PE Desk only - restore restricted)
     
     WARNING: This will replace existing data in the selected collections!
     """
-    if current_user.get("role", 5) != 1:
+    if not is_pe_desk_only(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can restore database")
     
     # Validate file type
