@@ -146,7 +146,8 @@ class TestRefundFeature:
             "stock_id": self.test_stock_id,
             "quantity": quantity,
             "selling_price": selling_price,
-            "booking_type": "normal",
+            "booking_type": "client",
+            "booking_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "notes": "Test booking for refund testing"
         }
         response = self.session.post(f"{BASE_URL}/api/bookings", json=booking_data)
@@ -426,7 +427,8 @@ class TestRefundFeature:
             "stock_id": self.test_stock_id,
             "quantity": 10,
             "selling_price": 90.0,  # Less than buying price of 100
-            "booking_type": "normal",
+            "booking_type": "client",
+            "booking_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
             "notes": "Test loss booking for rejection"
         }
         booking_resp = self.session.post(f"{BASE_URL}/api/bookings", json=booking_data)
