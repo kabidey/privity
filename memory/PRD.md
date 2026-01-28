@@ -84,6 +84,12 @@ rp_payments: {
 - **All fields mandatory**: Name, Email, Phone (10 digits without +91), PAN (10 chars), Aadhar (12 digits), Address
 - **All documents mandatory**: PAN Card, Aadhar Card, Cancelled Cheque (uploaded separately after creation)
 - Validation: Duplicate PAN, Email, and Aadhar detection
+- **RP Approval Workflow**:
+  - Employee creates RP → status is "pending" (requires PE approval)
+  - PE Desk/PE Manager creates RP → auto-approved
+  - "Pending Approvals" tab for PE Level users to review and approve/reject RPs
+  - Rejection requires a reason
+  - Only approved RPs appear in the booking form dropdown
 - Integration into booking form with warning about post-creation restrictions
 - **Email notification to RP** when stock transfer is confirmed (rp_deal_notification template with deal details and revenue share)
 
