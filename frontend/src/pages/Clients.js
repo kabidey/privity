@@ -702,6 +702,7 @@ const Clients = () => {
     setOcrResults({});
     setOcrCompleted({ pan_card: false, cml_copy: false, cancelled_cheque: false });
     setFieldsFromOcr({});
+    setExtractedNames({ pan_card: '', cml_copy: '', cancelled_cheque: '' });
     setWizardStep(1);
     setEditingClient(null);
     setIsSubmitting(false);
