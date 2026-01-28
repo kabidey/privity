@@ -2181,11 +2181,11 @@ async def approve_loss_booking(
 
 @api_router.get("/bookings/pending-loss-approval", response_model=List[BookingWithDetails])
 async def get_pending_loss_bookings(current_user: dict = Depends(get_current_user)):
-    """Get loss bookings pending approval (PE Desk only)"""
-    user_role = current_user.get("role", 5)
+    """Get loss bookings pending approval (PE Level)"""
+    user_role = current_user.get("role", 6)
     
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can view pending loss bookings")
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view pending loss bookings")
     
     bookings = await db.bookings.find(
         {"is_loss_booking": True, "loss_approval_status": "pending"},
