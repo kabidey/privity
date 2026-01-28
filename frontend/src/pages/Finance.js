@@ -38,13 +38,14 @@ const Finance = () => {
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  // PE Level (1, 2) or Finance role (7) can access Finance page
+  const hasFinanceAccess = currentUser.role === 1 || currentUser.role === 2 || currentUser.role === 7;
 
   useEffect(() => {
-    if (isPELevel) {
+    if (hasFinanceAccess) {
       fetchData();
     }
-  }, [filters, isPELevel]);
+  }, [filters, hasFinanceAccess]);
 
   const fetchData = async () => {
     setLoading(true);
