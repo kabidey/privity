@@ -58,6 +58,9 @@ const Layout = ({ children }) => {
   menuItems.push({ icon: Boxes, label: 'Inventory', path: '/inventory' });
   menuItems.push({ icon: FileText, label: 'Bookings', path: '/bookings' });
   menuItems.push({ icon: BarChart3, label: 'Reports', path: '/reports' });
+  
+  // Referral Partners - visible to all (employees can create, PE Level can edit)
+  menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
 
   // Add user management for PE Level (1 and 2)
   if (user.role === 1 || user.role === 2) {
