@@ -846,6 +846,20 @@ const Bookings = () => {
                   <Users className="h-4 w-4 text-purple-600" />
                   <Label className="text-purple-700 dark:text-purple-400 font-medium">Referral Partner (Optional)</Label>
                 </div>
+                
+                {/* Client is RP - RP Selection Disabled */}
+                {clientIsRpWarning ? (
+                  <div className="p-4 rounded-lg bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600">
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Users className="h-5 w-5" />
+                      <span className="font-medium">RP Selection Disabled</span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      This client ({clientIsRpWarning.client_name}) is registered as RP {clientIsRpWarning.rp_code}. 
+                      A client cannot earn RP commission on their own booking.
+                    </p>
+                  </div>
+                ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Select RP</Label>
