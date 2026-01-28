@@ -1488,11 +1488,11 @@ async def delete_corporate_action(action_id: str, current_user: dict = Depends(g
 # Purchase Routes (from Vendors)
 @api_router.post("/purchases", response_model=Purchase)
 async def create_purchase(purchase_data: PurchaseCreate, current_user: dict = Depends(get_current_user)):
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 6)
     
-    # Only PE Desk can create purchases
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can create vendor purchases")
+    # PE Level can create purchases
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can create vendor purchases")
     
     check_permission(current_user, "manage_purchases")
     
