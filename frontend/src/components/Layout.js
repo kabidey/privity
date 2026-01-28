@@ -25,7 +25,8 @@ import {
   Server,
   Database,
   Plus,
-  Wallet
+  Wallet,
+  UserPlus
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
