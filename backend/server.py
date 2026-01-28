@@ -4062,8 +4062,8 @@ async def preview_email_template(
     current_user: dict = Depends(get_current_user)
 ):
     """Preview email template with sample variables"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can manage email templates")
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
     
     template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
     
