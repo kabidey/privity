@@ -50,7 +50,11 @@ const ReferralPartners = () => {
     phone: '',
     pan_number: '',
     aadhar_number: '',
-    address: ''
+    address: '',
+    bank_name: '',
+    bank_account_number: '',
+    bank_ifsc_code: '',
+    bank_branch: ''
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
