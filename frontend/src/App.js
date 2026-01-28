@@ -61,6 +61,7 @@ function App() {
                         <Route path="/email-server" element={<EmailServerConfig />} />
                         <Route path="/dp-transfer" element={<DPTransferReport />} />
                         <Route path="/database-backup" element={<DatabaseBackup />} />
+                        <Route path="/finance" element={<Finance />} />
                       </Routes>
                     </Layout>
                   </NotificationProvider>
