@@ -26,23 +26,26 @@ from services.inventory_service import (
 
 router = APIRouter(tags=["Bookings"])
 
+# Lock for booking number generation
+import asyncio
+_booking_number_lock = asyncio.Lock()
+
 
 async def generate_booking_number() -> str:
-    """Generate a unique booking number in format BK-YYYY-NNNNN"""
+    """Generate a unique booking number in format BK-YYYY-NNNNN using atomic counter."""
     year = datetime.now().year
     
-    # Get the last booking number for this year
-    last_booking = await db.bookings.find_one(
-        {"booking_number": {"$regex": f"^BK-{year}-"}},
-        sort=[("booking_number", -1)]
-    )
-    
-    if last_booking and last_booking.get("booking_number"):
-        try:
-            last_num = int(last_booking["booking_number"].split("-")[-1])
-            new_num = last_num + 1
-        except (ValueError, IndexError):
-            new_num = 1
+    async with _booking_number_lock:
+        # Use atomic findAndModify to get next sequence
+        counter = await db.counters.find_one_and_update(
+            {"_id": f"booking_{year}"},
+            {"$inc": {"seq": 1}},
+            upsert=True,
+            return_document=True
+        )
+        
+        seq_num = counter.get("seq", 1)
+        return f"BK-{year}-{seq_num:05d}"
     else:
         new_num = 1
     
