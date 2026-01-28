@@ -807,13 +807,13 @@ const Bookings = () => {
                     <Label>Select RP</Label>
                     <Select 
                       value={formData.referral_partner_id} 
-                      onValueChange={(value) => setFormData({ ...formData, referral_partner_id: value })}
+                      onValueChange={(value) => setFormData({ ...formData, referral_partner_id: value === 'none' ? '' : value })}
                     >
                       <SelectTrigger data-testid="rp-select">
                         <SelectValue placeholder="Select Referral Partner" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No RP</SelectItem>
+                        <SelectItem value="none">No RP</SelectItem>
                         {referralPartners.filter(rp => rp.is_active).map((rp) => (
                           <SelectItem key={rp.id} value={rp.id}>
                             {rp.rp_code} - {rp.name}
