@@ -144,6 +144,7 @@ rp_payments: {
 - `/app/test_reports/iteration_23.json` - Backend refactoring and concurrency
 - `/app/test_reports/iteration_22.json` - Finance role and PE Manager vendor access
 - `/app/test_reports/iteration_21.json` - Refund feature
+- `/app/test_reports/iteration_29.json` - Backend regression after refactoring + RP email notifications
 
 ## Prioritized Backlog
 
@@ -153,9 +154,11 @@ rp_payments: {
 ### P1 (High Priority)
 - ✅ RP Finance Integration - Complete
 - ✅ 30% Revenue Share Cap - Complete
-- [ ] Remove duplicate endpoints from server.py (cleanup task)
-- [ ] Implement employee revenue share reduction by RP allocation
+- ✅ Remove duplicate endpoints from server.py - Complete (verified via regression testing)
+- ✅ Implement employee revenue share reduction by RP allocation - Complete
+- ✅ RP Approval/Rejection Email Notifications - Complete (Jan 28, 2026)
 - [ ] Two-factor authentication (TOTP)
+- [ ] Capture RP bank details (IFSC, Account Number, Bank Name) for payouts
 
 ### P2 (Medium Priority)
 - [ ] Create dashboard view for Referral Partners to see their generated revenue
@@ -163,6 +166,7 @@ rp_payments: {
 - [ ] Bulk booking closure feature
 - [ ] Configurable thresholds for loss-booking auto-approval
 - [ ] Role-specific dashboards
+- [ ] Backend API documentation (Swagger/OpenAPI)
 
 ## Credentials for Testing
 - **PE Desk (Super Admin)**: `pedesk@smifs.com` / `Kutta@123`
