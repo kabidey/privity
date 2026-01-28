@@ -34,13 +34,24 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 28, 2026)
 
-#### ✅ RP Approval/Rejection Email Notifications - COMPLETED
+#### ✅ RP Approval/Rejection Email Notifications - COMPLETED (Jan 28, 2026)
 **Implementation Details:**
 - Added two new email templates in `config.py`:
   - `rp_approval_notification`: Sent when RP application is approved
   - `rp_rejection_notification`: Sent when RP application is rejected (includes rejection reason)
 - Modified `/app/backend/routers/referral_partners.py` to send emails on approval/rejection
 - Email includes RP code, name, PAN number, and approval/rejection details
+
+#### ✅ RP Bank Details Capture - COMPLETED (Jan 28, 2026)
+**Implementation Details:**
+- Added bank detail fields to `ReferralPartnerCreate` and `ReferralPartner` models
+- Fields: `bank_name`, `bank_account_number`, `bank_ifsc_code`, `bank_branch`
+- Updated backend router to store bank details during RP creation
+- Updated frontend `ReferralPartners.js`:
+  - Add dialog: Bank Details section with all fields
+  - Edit dialog: Bank Details section with all fields
+  - View dialog: Displays bank details (account number masked for security)
+- Validation: Bank name required, IFSC format (11 chars), account number (9-18 digits)
 
 **API Flow:**
 - `PUT /api/referral-partners/{rp_id}/approve` with `{"approve": true}` → Sends approval email
