@@ -91,6 +91,9 @@ from routers import (
     referral_partners_router
 )
 
+# Import get_all_payments from finance router for export endpoint
+from routers.finance import get_all_payments
+
 # Keep local Inventory alias for backward compatibility
 Inventory = InventoryModel
 
