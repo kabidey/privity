@@ -149,6 +149,17 @@ async def get_finance_summary(
         {"_id": 0}
     ).to_list(1000)
     
+    # Get RP payment stats
+    pending_rp_payments = await db.rp_payments.find(
+        {"status": {"$in": ["pending", "processing"]}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    paid_rp_payments = await db.rp_payments.find(
+        {"status": "paid"},
+        {"_id": 0}
+    ).to_list(1000)
+    
     return {
         "total_received": total_received,
         "total_sent": total_sent,
@@ -158,7 +169,11 @@ async def get_finance_summary(
         "pending_refunds_count": len(pending_refunds),
         "pending_refunds_amount": sum(r.get("refund_amount", 0) for r in pending_refunds),
         "completed_refunds_count": len(completed_refunds),
-        "completed_refunds_amount": sum(r.get("refund_amount", 0) for r in completed_refunds)
+        "completed_refunds_amount": sum(r.get("refund_amount", 0) for r in completed_refunds),
+        "pending_rp_payments_count": len(pending_rp_payments),
+        "pending_rp_payments_amount": sum(p.get("payment_amount", 0) for p in pending_rp_payments),
+        "paid_rp_payments_count": len(paid_rp_payments),
+        "paid_rp_payments_amount": sum(p.get("payment_amount", 0) for p in paid_rp_payments)
     }
 
 
