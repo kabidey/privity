@@ -132,6 +132,28 @@ async def create_referral_partner(
             detail=f"Cannot create RP: This email ({rp_data.email}) belongs to an existing Client ({existing_client_email.get('name', 'Unknown')} - {existing_client_email.get('otc_ucc', '')}). A Client cannot be an RP."
         )
     
+    # STRICT RULE: RP cannot be an Employee - Check by PAN
+    existing_employee_pan = await db.users.find_one(
+        {"pan_number": rp_data.pan_number.upper()},
+        {"_id": 0, "name": 1, "email": 1}
+    )
+    if existing_employee_pan:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot create RP: This PAN ({rp_data.pan_number.upper()}) belongs to an existing Employee ({existing_employee_pan.get('name', 'Unknown')}). An Employee cannot be an RP."
+        )
+    
+    # STRICT RULE: RP cannot be an Employee - Check by Email
+    existing_employee_email = await db.users.find_one(
+        {"email": rp_data.email.lower()},
+        {"_id": 0, "name": 1, "email": 1}
+    )
+    if existing_employee_email:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot create RP: This email ({rp_data.email}) belongs to an existing Employee ({existing_employee_email.get('name', 'Unknown')}). An Employee cannot be an RP."
+        )
+    
     rp_id = str(uuid.uuid4())
     rp_code = await generate_rp_code()
     
