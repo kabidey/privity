@@ -37,7 +37,7 @@ async def register(user_data: UserCreate, request: Request = None):
     if email_domain not in ALLOWED_EMAIL_DOMAINS:
         raise HTTPException(
             status_code=400, 
-            detail=f"Registration is restricted to employees with @smifs.com email addresses"
+            detail="Registration is restricted to employees with @smifs.com email addresses"
         )
     
     existing_user = await db.users.find_one({"email": user_data.email}, {"_id": 0})
@@ -62,7 +62,7 @@ async def register(user_data: UserCreate, request: Request = None):
         if existing_pan_user:
             raise HTTPException(
                 status_code=400, 
-                detail=f"PAN number already registered with another employee account"
+                detail="PAN number already registered with another employee account"
             )
         
         # STRICT RULE: Employee cannot be an RP - Check by PAN
