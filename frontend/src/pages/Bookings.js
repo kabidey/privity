@@ -838,12 +838,68 @@ const Bookings = () => {
                         value={formData.rp_revenue_share_percent}
                         onChange={(e) => {
                           let val = parseFloat(e.target.value);
-                          if (val > 30) val = 30;
+                          // Show warning if trying to enter more than 30%
+                          if (val > 30) {
+                            setShowHighRpShareWarning(true);
+                            val = 30;
+                          } else {
+                            setShowHighRpShareWarning(false);
+                          }
                           if (val < 0) val = 0;
                           setFormData({ ...formData, rp_revenue_share_percent: isNaN(val) ? '' : val.toString() });
                         }}
                         placeholder="e.g., 10 (max 30)"
                       />
+                      
+                      {/* High RP Share Warning */}
+                      {showHighRpShareWarning && (
+                        <div 
+                          className="p-4 rounded-lg border-4 animate-pulse"
+                          style={{
+                            background: 'linear-gradient(135deg, #fef08a 0%, #fca5a5 50%, #fef08a 100%)',
+                            borderColor: '#dc2626',
+                            boxShadow: '0 0 20px rgba(220, 38, 38, 0.5), inset 0 0 20px rgba(234, 179, 8, 0.3)'
+                          }}
+                          data-testid="high-rp-share-warning"
+                        >
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="h-6 w-6 text-red-700 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-bold text-red-800 text-lg mb-2">⚠️ WARNING: High Revenue Share Detected</p>
+                              <p className="text-sm text-red-900 leading-relaxed">
+                                You have chosen an RP to share <strong className="text-red-700">{formData.rp_revenue_share_percent || 30}%</strong> of the booking revenue. 
+                                It will be verified by PE Desk if the client was sourced by the RP. 
+                                <strong className="block mt-2 text-red-800">If this booking is found to be dubious, disciplinary action will be initiated against you.</strong>
+                              </p>
+                              <p className="text-sm text-red-900 mt-3 leading-relaxed">
+                                If you still want to share more than 30% of the revenue, please connect with{' '}
+                                <a 
+                                  href="mailto:partnersdesk@smifs.com" 
+                                  className="font-bold underline text-red-700 hover:text-red-900"
+                                >
+                                  partnersdesk@smifs.com
+                                </a>{' '}
+                                to initiate and convert RP to BP.
+                              </p>
+                              <p className="text-sm font-semibold text-red-800 mt-3">
+                                If you have chosen by mistake, please immediately remove the selection.
+                              </p>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                className="mt-3"
+                                onClick={() => {
+                                  setFormData({ ...formData, referral_partner_id: '', rp_revenue_share_percent: '' });
+                                  setShowHighRpShareWarning(false);
+                                }}
+                              >
+                                Remove RP Selection
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
