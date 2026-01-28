@@ -3244,6 +3244,7 @@ class PurchasePaymentCreate(BaseModel):
     amount: float
     payment_date: str
     notes: Optional[str] = None
+    proof_url: Optional[str] = None
 
 @api_router.post("/purchases/{purchase_id}/payments")
 async def add_purchase_payment(
