@@ -2553,10 +2553,10 @@ async def update_booking(booking_id: str, booking_data: BookingCreate, current_u
 
 @api_router.delete("/bookings/{booking_id}")
 async def delete_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 6)
     
-    # Only PE Desk can delete bookings
-    if user_role != 1:
+    # Only PE Desk can delete bookings (PE Manager cannot delete)
+    if not is_pe_desk_only(user_role):
         raise HTTPException(status_code=403, detail="Only PE Desk can delete bookings")
     
     # Get booking details for alert
