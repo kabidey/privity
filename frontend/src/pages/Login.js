@@ -294,6 +294,43 @@ const Login = () => {
                   </Link>
                 </div>
               )}
+              
+              {/* Microsoft SSO Login */}
+              {isLogin && ssoConfig?.enabled && (
+                <>
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Or continue with
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleMicrosoftLogin}
+                    disabled={ssoLoading}
+                    data-testid="microsoft-sso-button"
+                  >
+                    {ssoLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <svg className="mr-2 h-4 w-4" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+                        <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+                        <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+                        <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+                      </svg>
+                    )}
+                    {ssoLoading ? 'Signing in...' : 'Sign in with Microsoft'}
+                  </Button>
+                </>
+              )}
             </form>
             )}
             {!registrationSuccess && (
