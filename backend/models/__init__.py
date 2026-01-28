@@ -218,6 +218,9 @@ class Purchase(BaseModel):
     notes: Optional[str] = None
     created_at: str
     created_by: str
+    payments: Optional[List[dict]] = []
+    total_paid: float = 0
+    payment_status: str = "pending"
 
 
 # ============== Inventory Model ==============
