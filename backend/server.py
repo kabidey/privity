@@ -2118,6 +2118,22 @@ async def approve_loss_booking(
         "loss_approved_at": datetime.now(timezone.utc).isoformat()
     }
     
+    # If loss is rejected, also reject the entire booking and release inventory
+    if not approve:
+        update_data["status"] = "rejected"
+        update_data["rejection_reason"] = "Loss booking rejected by PE"
+        
+        # Release blocked inventory if any was blocked
+        if booking.get("approval_status") == "approved":
+            inventory = await db.inventory.find_one({"stock_id": booking["stock_id"]}, {"_id": 0})
+            if inventory:
+                current_blocked = inventory.get("blocked_quantity", 0)
+                new_blocked = max(0, current_blocked - booking["quantity"])
+                await db.inventory.update_one(
+                    {"stock_id": booking["stock_id"]},
+                    {"$set": {"blocked_quantity": new_blocked}}
+                )
+    
     await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
     
     # Audit logging
