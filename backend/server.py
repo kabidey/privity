@@ -1966,12 +1966,12 @@ async def approve_booking(
     approve: bool = True,
     current_user: dict = Depends(get_current_user)
 ):
-    """Approve or reject a booking for inventory adjustment (PE Desk only)"""
-    user_role = current_user.get("role", 5)
+    """Approve or reject a booking for inventory adjustment (PE Level)"""
+    user_role = current_user.get("role", 6)
     
-    # Only PE Desk (role 1) can approve bookings
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can approve bookings for inventory adjustment")
+    # PE Level can approve bookings
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can approve bookings for inventory adjustment")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
