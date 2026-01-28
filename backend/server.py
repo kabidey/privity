@@ -4248,9 +4248,9 @@ async def get_daily_trend(
     days: int = 30,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get daily booking trend (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access advanced analytics")
+    """Get daily booking trend (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
     
     result = []
     
