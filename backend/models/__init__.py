@@ -457,6 +457,12 @@ class ReferralPartner(BaseModel):
     pan_card_url: Optional[str] = None
     aadhar_card_url: Optional[str] = None
     cancelled_cheque_url: Optional[str] = None
+    # Approval Status - Must be approved by PE Desk/PE Manager before use
+    approval_status: str = "pending"  # pending, approved, rejected
+    approved_by: Optional[str] = None
+    approved_by_name: Optional[str] = None
+    approved_at: Optional[str] = None
+    rejection_reason: Optional[str] = None
     # Status
     is_active: bool = True
     # Audit
