@@ -404,6 +404,56 @@ const Finance = () => {
         </div>
       )}
 
+      {/* Employee Commissions Summary */}
+      {commissionSummary.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <Card className="border-l-4 border-l-indigo-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Employee Commissions</p>
+                  <p className="text-lg md:text-xl font-bold text-indigo-600">
+                    {formatCurrency(commissionSummary.reduce((sum, e) => sum + e.total_commission, 0))}
+                  </p>
+                </div>
+                <Users className="h-6 w-6 text-indigo-500 opacity-50" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {commissionSummary.reduce((sum, e) => sum + e.total_bookings, 0)} bookings
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-yellow-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending Commissions</p>
+                  <p className="text-lg md:text-xl font-bold text-yellow-600">
+                    {formatCurrency(commissionSummary.reduce((sum, e) => sum + e.pending_commission + e.calculated_commission, 0))}
+                  </p>
+                </div>
+                <Clock className="h-6 w-6 text-yellow-500 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-teal-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Paid Commissions</p>
+                  <p className="text-lg md:text-xl font-bold text-teal-600">
+                    {formatCurrency(commissionSummary.reduce((sum, e) => sum + e.paid_commission, 0))}
+                  </p>
+                </div>
+                <CheckCircle className="h-6 w-6 text-teal-500 opacity-50" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Filters */}
       <Card>
         <CardContent className="pt-4">
