@@ -318,7 +318,11 @@ class TestAuditLogsEndpoints:
         assert response.status_code == 200, f"Get audit logs failed: {response.text}"
         
         data = response.json()
-        assert isinstance(data, list)
+        # Audit logs returns a dict with 'logs' key
+        assert isinstance(data, dict)
+        assert "logs" in data
+        assert isinstance(data["logs"], list)
+        assert "total" in data
     
     def test_02_get_audit_logs_stats(self):
         """Test get audit logs stats"""
