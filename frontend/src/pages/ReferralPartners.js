@@ -402,12 +402,12 @@ const ReferralPartners = () => {
           <DialogHeader>
             <DialogTitle>Add Referral Partner</DialogTitle>
             <DialogDescription>
-              Create a new referral partner. A unique RP code will be generated.
+              Create a new referral partner. All fields are mandatory. Documents must be uploaded after creation.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Name *</Label>
+              <Label>Name <span className="text-red-500">*</span></Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -417,7 +417,34 @@ const ReferralPartners = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>PAN Number *</Label>
+                <Label>Email <span className="text-red-500">*</span></Label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  placeholder="email@example.com"
+                  data-testid="rp-email-input"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Mobile (10 digits) <span className="text-red-500">*</span></Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => {
+                    // Allow only digits, max 10
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setFormData({...formData, phone: digits});
+                  }}
+                  placeholder="9876543210"
+                  maxLength={10}
+                  data-testid="rp-phone-input"
+                />
+                <p className="text-xs text-muted-foreground">Enter 10 digit number without +91</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>PAN Number <span className="text-red-500">*</span></Label>
                 <Input
                   value={formData.pan_number}
                   onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
@@ -427,43 +454,38 @@ const ReferralPartners = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Aadhar Number *</Label>
+                <Label>Aadhar Number <span className="text-red-500">*</span></Label>
                 <Input
                   value={formData.aadhar_number}
-                  onChange={(e) => setFormData({...formData, aadhar_number: e.target.value.replace(/\D/g, '')})}
-                  placeholder="1234 5678 9012"
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
+                    setFormData({...formData, aadhar_number: digits});
+                  }}
+                  placeholder="123456789012"
                   maxLength={12}
                   data-testid="rp-aadhar-input"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  placeholder="email@example.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  placeholder="+91 98765 43210"
-                />
-              </div>
-            </div>
             <div className="space-y-2">
-              <Label>Address</Label>
+              <Label>Address <span className="text-red-500">*</span></Label>
               <Textarea
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
                 placeholder="Full address"
                 rows={2}
+                data-testid="rp-address-input"
               />
+            </div>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+              <p className="text-sm text-yellow-800">
+                <strong>Important:</strong> After creating the RP, you must upload the following mandatory documents:
+              </p>
+              <ul className="text-sm text-yellow-700 mt-1 list-disc list-inside">
+                <li>PAN Card</li>
+                <li>Aadhar Card</li>
+                <li>Cancelled Cheque</li>
+              </ul>
             </div>
           </div>
           <DialogFooter>
