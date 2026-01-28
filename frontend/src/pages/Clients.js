@@ -569,8 +569,8 @@ const Clients = () => {
   };
 
   const handleEdit = (client) => {
-    if (!isPEDesk) {
-      toast.error('Only PE Desk can modify clients');
+    if (!isPELevel) {
+      toast.error('Only PE Desk or PE Manager can modify clients');
       return;
     }
     setEditingClient(client);
