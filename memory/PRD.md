@@ -136,6 +136,7 @@ rp_payments: {
 | /referral-partners | ReferralPartners | Referral Partner management |
 
 ## Test Reports
+- `/app/test_reports/iteration_27.json` - RP Approval Workflow (100% pass)
 - `/app/test_reports/iteration_26.json` - RP Mandatory Fields & Email Notification (100% pass)
 - `/app/test_reports/iteration_25.json` - RP Finance Integration (100% pass)
 - `/app/test_reports/iteration_24.json` - Referral Partners feature
