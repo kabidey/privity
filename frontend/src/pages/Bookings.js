@@ -89,11 +89,13 @@ const Bookings = () => {
         api.get('/clients'),
         api.get('/stocks'),
         api.get('/inventory'),
+        api.get('/referral-partners'),
       ]);
       setBookings(bookingsRes.data);
       setClients(clientsRes.data);
       setStocks(stocksRes.data);
       setInventory(inventoryRes.data);
+      setReferralPartners(rpRes.data || []);
       
       // Fetch pending bookings and loss bookings if PE Desk
       if (isPEDesk) {
