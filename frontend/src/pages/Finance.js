@@ -7,16 +7,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { 
-  Wallet, ArrowDownLeft, ArrowUpRight, FileSpreadsheet, Download, 
-  RefreshCw, Calendar, TrendingUp, TrendingDown, DollarSign, FileText,
-  ExternalLink
+  Wallet, ArrowDownLeft, ArrowUpRight, FileSpreadsheet, 
+  RefreshCw, TrendingUp, TrendingDown, DollarSign, FileText,
+  ExternalLink, RotateCcw, CheckCircle, Clock, AlertCircle, XCircle,
+  Building, CreditCard, Edit
 } from 'lucide-react';
 
 const Finance = () => {
   const [payments, setPayments] = useState([]);
+  const [refundRequests, setRefundRequests] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -24,6 +28,13 @@ const Finance = () => {
     type: 'all',
     startDate: '',
     endDate: ''
+  });
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+  const [selectedRefund, setSelectedRefund] = useState(null);
+  const [refundForm, setRefundForm] = useState({
+    status: '',
+    notes: '',
+    reference_number: ''
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -43,13 +54,15 @@ const Finance = () => {
       if (filters.startDate) params.append('start_date', filters.startDate);
       if (filters.endDate) params.append('end_date', filters.endDate);
 
-      const [paymentsRes, summaryRes] = await Promise.all([
+      const [paymentsRes, summaryRes, refundsRes] = await Promise.all([
         api.get(`/finance/payments?${params.toString()}`),
-        api.get(`/finance/summary?${params.toString()}`)
+        api.get(`/finance/summary?${params.toString()}`),
+        api.get('/finance/refund-requests')
       ]);
 
       setPayments(paymentsRes.data);
       setSummary(summaryRes.data);
+      setRefundRequests(refundsRes.data);
     } catch (error) {
       toast.error('Failed to fetch finance data');
     } finally {
@@ -85,6 +98,32 @@ const Finance = () => {
     }
   };
 
+  const openRefundDialog = (refund) => {
+    setSelectedRefund(refund);
+    setRefundForm({
+      status: refund.status,
+      notes: refund.notes || '',
+      reference_number: refund.reference_number || ''
+    });
+    setRefundDialogOpen(true);
+  };
+
+  const handleUpdateRefund = async () => {
+    if (!selectedRefund) return;
+    try {
+      await api.put(`/finance/refund-requests/${selectedRefund.id}`, {
+        status: refundForm.status,
+        notes: refundForm.notes || null,
+        reference_number: refundForm.reference_number || null
+      });
+      toast.success('Refund request updated');
+      setRefundDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update refund');
+    }
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -102,8 +141,30 @@ const Finance = () => {
     });
   };
 
+  const getRefundStatusBadge = (status) => {
+    const styles = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      processing: 'bg-blue-100 text-blue-800',
+      completed: 'bg-green-100 text-green-800',
+      failed: 'bg-red-100 text-red-800'
+    };
+    const icons = {
+      pending: <Clock className="h-3 w-3 mr-1" />,
+      processing: <RefreshCw className="h-3 w-3 mr-1 animate-spin" />,
+      completed: <CheckCircle className="h-3 w-3 mr-1" />,
+      failed: <XCircle className="h-3 w-3 mr-1" />
+    };
+    return (
+      <Badge className={styles[status] || 'bg-gray-100'}>
+        {icons[status]}
+        {status?.toUpperCase()}
+      </Badge>
+    );
+  };
+
   const clientPayments = payments.filter(p => p.type === 'client');
   const vendorPayments = payments.filter(p => p.type === 'vendor');
+  const pendingRefunds = refundRequests.filter(r => r.status === 'pending' || r.status === 'processing');
 
   if (!isPELevel) {
     return (
@@ -123,7 +184,7 @@ const Finance = () => {
             <Wallet className="h-6 w-6 md:h-8 md:w-8 text-primary" />
             Finance Dashboard
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base">Track all payments sent and received</p>
+          <p className="text-muted-foreground text-sm md:text-base">Track payments, refunds, and cash flow</p>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <Button variant="outline" onClick={fetchData} className="flex-1 sm:flex-none">
@@ -143,15 +204,15 @@ const Finance = () => {
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card className="border-l-4 border-l-green-500">
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Received</p>
-                  <p className="text-xl md:text-2xl font-bold text-green-600">{formatCurrency(summary.total_received)}</p>
+                  <p className="text-lg md:text-xl font-bold text-green-600">{formatCurrency(summary.total_received)}</p>
                 </div>
-                <ArrowDownLeft className="h-8 w-8 text-green-500 opacity-50" />
+                <ArrowDownLeft className="h-6 w-6 text-green-500 opacity-50" />
               </div>
               <p className="text-xs text-muted-foreground mt-1">{summary.client_payments_count} payments</p>
             </CardContent>
@@ -162,9 +223,9 @@ const Finance = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Sent</p>
-                  <p className="text-xl md:text-2xl font-bold text-red-600">{formatCurrency(summary.total_sent)}</p>
+                  <p className="text-lg md:text-xl font-bold text-red-600">{formatCurrency(summary.total_sent)}</p>
                 </div>
-                <ArrowUpRight className="h-8 w-8 text-red-500 opacity-50" />
+                <ArrowUpRight className="h-6 w-6 text-red-500 opacity-50" />
               </div>
               <p className="text-xs text-muted-foreground mt-1">{summary.vendor_payments_count} payments</p>
             </CardContent>
@@ -175,17 +236,29 @@ const Finance = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Net Flow</p>
-                  <p className={`text-xl md:text-2xl font-bold ${summary.net_flow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-lg md:text-xl font-bold ${summary.net_flow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {formatCurrency(summary.net_flow)}
                   </p>
                 </div>
                 {summary.net_flow >= 0 ? (
-                  <TrendingUp className="h-8 w-8 text-green-500 opacity-50" />
+                  <TrendingUp className="h-6 w-6 text-green-500 opacity-50" />
                 ) : (
-                  <TrendingDown className="h-8 w-8 text-red-500 opacity-50" />
+                  <TrendingDown className="h-6 w-6 text-red-500 opacity-50" />
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Received - Sent</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-orange-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending Refunds</p>
+                  <p className="text-lg md:text-xl font-bold text-orange-600">{formatCurrency(summary.pending_refunds_amount)}</p>
+                </div>
+                <RotateCcw className="h-6 w-6 text-orange-500 opacity-50" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{summary.pending_refunds_count} requests</p>
             </CardContent>
           </Card>
 
@@ -193,12 +266,12 @@ const Finance = () => {
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Transactions</p>
-                  <p className="text-xl md:text-2xl font-bold">{payments.length}</p>
+                  <p className="text-sm text-muted-foreground">Refunds Done</p>
+                  <p className="text-lg md:text-xl font-bold text-purple-600">{formatCurrency(summary.completed_refunds_amount)}</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-purple-500 opacity-50" />
+                <CheckCircle className="h-6 w-6 text-purple-500 opacity-50" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">All payment tranches</p>
+              <p className="text-xs text-muted-foreground mt-1">{summary.completed_refunds_count} completed</p>
             </CardContent>
           </Card>
         </div>
@@ -228,7 +301,6 @@ const Finance = () => {
                 value={filters.startDate}
                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
                 className="w-40"
-                data-testid="filter-start-date"
               />
             </div>
             <div className="space-y-1">
@@ -238,7 +310,6 @@ const Finance = () => {
                 value={filters.endDate}
                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
                 className="w-40"
-                data-testid="filter-end-date"
               />
             </div>
             <Button 
@@ -246,23 +317,27 @@ const Finance = () => {
               onClick={() => setFilters({ type: 'all', startDate: '', endDate: '' })}
               className="text-sm"
             >
-              Clear Filters
+              Clear
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Payments Tabs */}
+      {/* Main Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="all" data-testid="tab-all">All ({payments.length})</TabsTrigger>
-          <TabsTrigger value="client" data-testid="tab-client">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+          <TabsTrigger value="all">All ({payments.length})</TabsTrigger>
+          <TabsTrigger value="client">
             <ArrowDownLeft className="h-3 w-3 mr-1" />
-            Received ({clientPayments.length})
+            Received
           </TabsTrigger>
-          <TabsTrigger value="vendor" data-testid="tab-vendor">
+          <TabsTrigger value="vendor">
             <ArrowUpRight className="h-3 w-3 mr-1" />
-            Sent ({vendorPayments.length})
+            Sent
+          </TabsTrigger>
+          <TabsTrigger value="refunds" data-testid="refunds-tab">
+            <RotateCcw className="h-3 w-3 mr-1" />
+            Refunds ({refundRequests.length})
           </TabsTrigger>
         </TabsList>
 
@@ -277,7 +352,192 @@ const Finance = () => {
         <TabsContent value="vendor">
           <PaymentTable payments={vendorPayments} formatCurrency={formatCurrency} formatDate={formatDate} title="Vendor Payments (Sent)" />
         </TabsContent>
+
+        <TabsContent value="refunds">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <RotateCcw className="h-5 w-5" />
+                Refund Requests
+              </CardTitle>
+              <CardDescription>
+                Manage refunds for voided bookings with payments
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 md:p-6">
+              {refundRequests.length === 0 ? (
+                <p className="text-center py-8 text-muted-foreground">No refund requests found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Booking #</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Stock</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Bank Details</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {refundRequests.map((refund) => (
+                        <TableRow key={refund.id} data-testid={`refund-row-${refund.id}`}>
+                          <TableCell className="whitespace-nowrap">{formatDate(refund.created_at)}</TableCell>
+                          <TableCell className="font-mono text-sm">{refund.booking_number}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{refund.client_name}</p>
+                              <p className="text-xs text-muted-foreground">{refund.client_email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono">{refund.stock_symbol}</TableCell>
+                          <TableCell className="text-right font-bold text-orange-600">
+                            {formatCurrency(refund.refund_amount)}
+                          </TableCell>
+                          <TableCell>
+                            {refund.bank_details?.account_number ? (
+                              <div className="text-xs">
+                                <p className="font-medium">{refund.bank_details.bank_name}</p>
+                                <p>A/C: {refund.bank_details.account_number}</p>
+                                <p>IFSC: {refund.bank_details.ifsc_code}</p>
+                              </div>
+                            ) : (
+                              <Badge variant="outline" className="text-orange-600">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                No Bank Info
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>{getRefundStatusBadge(refund.status)}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openRefundDialog(refund)}
+                              data-testid={`update-refund-${refund.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Refund Update Dialog */}
+      <Dialog open={refundDialogOpen} onOpenChange={setRefundDialogOpen}>
+        <DialogContent className="max-w-lg" data-testid="refund-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5" />
+              Update Refund Request
+            </DialogTitle>
+            <DialogDescription>
+              {selectedRefund?.booking_number} - {selectedRefund?.client_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRefund && (
+            <div className="space-y-4">
+              {/* Refund Details */}
+              <Card>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Refund Amount:</span>
+                    <span className="font-bold text-orange-600">{formatCurrency(selectedRefund.refund_amount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Stock:</span>
+                    <span>{selectedRefund.stock_symbol}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Void Reason:</span>
+                    <span className="text-sm">{selectedRefund.void_reason}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Bank Details */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    Client Bank Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-1">
+                  {selectedRefund.bank_details?.account_number ? (
+                    <>
+                      <p><strong>Bank:</strong> {selectedRefund.bank_details.bank_name}</p>
+                      <p><strong>Account:</strong> {selectedRefund.bank_details.account_number}</p>
+                      <p><strong>IFSC:</strong> {selectedRefund.bank_details.ifsc_code}</p>
+                      <p><strong>Holder:</strong> {selectedRefund.bank_details.account_holder_name}</p>
+                      {selectedRefund.bank_details.branch && <p><strong>Branch:</strong> {selectedRefund.bank_details.branch}</p>}
+                    </>
+                  ) : (
+                    <p className="text-orange-600 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      No bank details available. Update client profile first.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Update Form */}
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label>Status</Label>
+                  <Select value={refundForm.status} onValueChange={(v) => setRefundForm({ ...refundForm, status: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Transaction Reference Number</Label>
+                  <Input
+                    value={refundForm.reference_number}
+                    onChange={(e) => setRefundForm({ ...refundForm, reference_number: e.target.value })}
+                    placeholder="e.g., UTR123456789"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={refundForm.notes}
+                    onChange={(e) => setRefundForm({ ...refundForm, notes: e.target.value })}
+                    placeholder="Add any notes about this refund..."
+                    rows={2}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRefundDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateRefund} data-testid="save-refund-btn">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Update Refund
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
