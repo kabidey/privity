@@ -465,6 +465,7 @@ async def approve_referral_partner(
     """
     Approve or reject a referral partner.
     Only PE Desk and PE Manager can approve/reject RPs.
+    Sends email notification to the RP upon approval/rejection.
     """
     user_role = current_user.get("role", 6)
     
@@ -483,17 +484,32 @@ async def approve_referral_partner(
     
     if approval_data.approve:
         # Approve the RP
+        approval_timestamp = datetime.now(timezone.utc)
         update_data = {
             "approval_status": "approved",
             "approved_by": current_user["id"],
             "approved_by_name": current_user["name"],
-            "approved_at": datetime.now(timezone.utc).isoformat(),
+            "approved_at": approval_timestamp.isoformat(),
             "rejection_reason": None,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": approval_timestamp.isoformat(),
             "updated_by": current_user["id"]
         }
         
         await db.referral_partners.update_one({"id": rp_id}, {"$set": update_data})
+        
+        # Send approval email notification to RP
+        if rp.get("email"):
+            await send_templated_email(
+                "rp_approval_notification",
+                rp["email"],
+                {
+                    "rp_name": rp["name"],
+                    "rp_code": rp["rp_code"],
+                    "pan_number": rp.get("pan_number", "N/A"),
+                    "approved_by": current_user["name"],
+                    "approval_date": approval_timestamp.strftime("%d %B %Y, %I:%M %p")
+                }
+            )
         
         # Create audit log
         await create_audit_log(
@@ -504,7 +520,7 @@ async def approve_referral_partner(
             user_name=current_user["name"],
             user_role=user_role,
             entity_name=f"{rp['name']} ({rp['rp_code']})",
-            details={"action": "approved"}
+            details={"action": "approved", "email_sent": bool(rp.get("email"))}
         )
         
         return {"message": f"Referral Partner {rp['rp_code']} approved successfully"}
@@ -522,6 +538,19 @@ async def approve_referral_partner(
         
         await db.referral_partners.update_one({"id": rp_id}, {"$set": update_data})
         
+        # Send rejection email notification to RP
+        if rp.get("email"):
+            await send_templated_email(
+                "rp_rejection_notification",
+                rp["email"],
+                {
+                    "rp_name": rp["name"],
+                    "rp_code": rp["rp_code"],
+                    "pan_number": rp.get("pan_number", "N/A"),
+                    "rejection_reason": approval_data.rejection_reason
+                }
+            )
+        
         # Create audit log
         await create_audit_log(
             action="RP_REJECT",
@@ -531,7 +560,7 @@ async def approve_referral_partner(
             user_name=current_user["name"],
             user_role=user_role,
             entity_name=f"{rp['name']} ({rp['rp_code']})",
-            details={"action": "rejected", "reason": approval_data.rejection_reason}
+            details={"action": "rejected", "reason": approval_data.rejection_reason, "email_sent": bool(rp.get("email"))}
         )
         
         return {"message": f"Referral Partner {rp['rp_code']} rejected"}
