@@ -36,6 +36,20 @@ See CHANGELOG.md for detailed history of phases 1-11.
 
 ### Latest Updates (Jan 28, 2026)
 
+#### ✅ Backend Refactoring - COMPLETED
+- Created modular routers for `/app/backend/routers/`:
+  - `bookings.py` - Booking CRUD with atomic inventory operations
+  - `clients.py` - Client/Vendor management
+  - `finance.py` - Finance dashboard and refund management
+- Updated router registration order for proper precedence
+- Cleaned up duplicate booking numbers in database
+
+#### ✅ High-Concurrency Booking Support - COMPLETED
+- Implemented atomic booking number generation using MongoDB counters with asyncio locks
+- Added atomic inventory reservation using `check_and_reserve_inventory()` with locking
+- Implemented `release_inventory_reservation()` for voided bookings
+- All concurrent booking tests passing (10 concurrent creates, 5 concurrent approvals)
+
 #### ✅ Finance Role (Role 7) - COMPLETED
 - New "Finance" role with employee-like permissions + full Finance page access
 - Can view/manage refund requests, view payments, export finance data
