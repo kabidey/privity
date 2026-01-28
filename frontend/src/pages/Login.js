@@ -1,17 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { PublicClientApplication } from '@azure/msal-browser';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { TrendingUp, AlertCircle } from 'lucide-react';
+import { TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
+import { getMsalConfig, getLoginRequest } from '../config/msalConfig';
 
 const Login = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [ssoLoading, setSsoLoading] = useState(false);
+  const [ssoConfig, setSsoConfig] = useState(null);
+  const [msalInstance, setMsalInstance] = useState(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [formData, setFormData] = useState({
@@ -20,6 +25,67 @@ const Login = () => {
     name: '',
     pan_number: '',
   });
+
+  // Fetch SSO config on mount
+  useEffect(() => {
+    const fetchSsoConfig = async () => {
+      try {
+        const response = await api.get('/auth/sso/config');
+        setSsoConfig(response.data);
+        
+        // Initialize MSAL if SSO is enabled
+        if (response.data?.enabled) {
+          const msalConfig = getMsalConfig(response.data);
+          if (msalConfig) {
+            const instance = new PublicClientApplication(msalConfig);
+            await instance.initialize();
+            setMsalInstance(instance);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch SSO config:', error);
+        setSsoConfig({ enabled: false });
+      }
+    };
+    
+    fetchSsoConfig();
+  }, []);
+
+  const handleMicrosoftLogin = async () => {
+    if (!msalInstance || !ssoConfig?.enabled) {
+      toast.error('Microsoft SSO is not configured');
+      return;
+    }
+
+    setSsoLoading(true);
+    try {
+      // Trigger Microsoft login popup
+      const loginRequest = getLoginRequest(ssoConfig);
+      const response = await msalInstance.loginPopup(loginRequest);
+      
+      if (response?.accessToken) {
+        // Send token to backend for validation
+        const backendResponse = await api.post('/auth/sso/login', {
+          token: response.accessToken
+        });
+        
+        localStorage.setItem('token', backendResponse.data.token);
+        localStorage.setItem('user', JSON.stringify(backendResponse.data.user));
+        
+        toast.success(`Welcome, ${backendResponse.data.user.name}!`);
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Microsoft SSO error:', error);
+      if (error.errorCode === 'user_cancelled') {
+        toast.info('Login cancelled');
+      } else {
+        toast.error(error.response?.data?.detail || 'SSO login failed. Please try again.');
+      }
+    } finally {
+      setSsoLoading(false);
+    }
+  };
 
   const validateEmail = (email) => {
     const domain = email.split('@')[1]?.toLowerCase();
