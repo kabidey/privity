@@ -348,9 +348,30 @@ const Bookings = () => {
     setPaymentForm({
       amount: '',
       payment_date: new Date().toISOString().split('T')[0],
-      notes: ''
+      notes: '',
+      proof_url: ''
     });
     setPaymentDialogOpen(true);
+  };
+
+  const handleUploadPaymentProof = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingProof(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post('/payments/upload-proof', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setPaymentForm({ ...paymentForm, proof_url: response.data.url });
+      toast.success('Payment proof uploaded');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload proof');
+    } finally {
+      setUploadingProof(false);
+    }
   };
 
   const handleAddPayment = async (e) => {
@@ -361,7 +382,8 @@ const Bookings = () => {
       const response = await api.post(`/bookings/${selectedBooking.id}/payments`, {
         amount: parseFloat(paymentForm.amount),
         payment_date: paymentForm.payment_date,
-        notes: paymentForm.notes || null
+        notes: paymentForm.notes || null,
+        proof_url: paymentForm.proof_url || null
       });
       
       toast.success(response.data.message);
