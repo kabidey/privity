@@ -4,6 +4,48 @@ import api from '../utils/api';
 
 const NotificationContext = createContext();
 
+// Create audio context for notification sound
+const playNotificationSound = () => {
+  try {
+    // Create AudioContext
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Create a pleasant chime sound with multiple oscillators
+    const playChime = (frequency, startTime, duration) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      
+      // Attack and decay envelope
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    
+    const now = audioContext.currentTime;
+    
+    // Play a pleasant two-tone chime (like a doorbell)
+    playChime(880, now, 0.3);        // A5
+    playChime(1108.73, now + 0.1, 0.4);  // C#6
+    playChime(1318.51, now + 0.2, 0.5);  // E6
+    
+    // Close audio context after sound plays
+    setTimeout(() => {
+      audioContext.close();
+    }, 1000);
+  } catch (error) {
+    console.error('Failed to play notification sound:', error);
+  }
+};
+
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {
@@ -16,6 +58,7 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const [hasNewNotification, setHasNewNotification] = useState(false);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
 
