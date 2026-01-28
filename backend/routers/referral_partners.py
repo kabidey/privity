@@ -20,6 +20,7 @@ from config import is_pe_level, UPLOAD_DIR
 from models import ReferralPartnerCreate, ReferralPartner
 from utils.auth import get_current_user
 from services.audit_service import create_audit_log
+from services.email_service import send_templated_email
 
 router = APIRouter(tags=["Referral Partners"])
 
