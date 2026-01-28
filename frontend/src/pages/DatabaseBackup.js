@@ -18,11 +18,18 @@ const DatabaseBackup = () => {
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState(null);
   const [creating, setCreating] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [backupName, setBackupName] = useState('');
   const [backupDescription, setBackupDescription] = useState('');
+  const [clearConfirmText, setClearConfirmText] = useState('');
+  const [uploadFile, setUploadFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchData();
