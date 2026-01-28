@@ -266,6 +266,7 @@ rp_payments: {
 - `/app/test_reports/iteration_22.json` - Finance role and PE Manager vendor access
 - `/app/test_reports/iteration_21.json` - Refund feature
 - `/app/test_reports/iteration_29.json` - Backend regression after refactoring + RP email notifications
+- `/app/test_reports/iteration_30.json` - Modular router migration verification (24/24 tests passed)
 
 ## Prioritized Backlog
 
