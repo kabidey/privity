@@ -406,3 +406,129 @@ async def get_rp_bookings(
         "total_share": round(total_share, 2),
         "bookings": bookings
     }
+
+
+@router.get("/referral-partners-pending", response_model=List[ReferralPartner])
+async def get_pending_referral_partners(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get all pending referral partners awaiting approval.
+    Only PE Desk and PE Manager can view pending RPs.
+    """
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(
+            status_code=403,
+            detail="Only PE Desk or PE Manager can view pending Referral Partners"
+        )
+    
+    rps = await db.referral_partners.find(
+        {"approval_status": "pending"},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(10000)
+    
+    return [ReferralPartner(**rp) for rp in rps]
+
+
+@router.get("/referral-partners-approved", response_model=List[ReferralPartner])
+async def get_approved_referral_partners(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get all approved and active referral partners for booking form.
+    Returns only RPs that can be used in bookings.
+    """
+    rps = await db.referral_partners.find(
+        {"approval_status": "approved", "is_active": True},
+        {"_id": 0}
+    ).sort("name", 1).to_list(10000)
+    
+    return [ReferralPartner(**rp) for rp in rps]
+
+
+class RPApprovalRequest(BaseModel):
+    approve: bool
+    rejection_reason: Optional[str] = None
+
+
+@router.put("/referral-partners/{rp_id}/approve")
+async def approve_referral_partner(
+    rp_id: str,
+    approval_data: RPApprovalRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Approve or reject a referral partner.
+    Only PE Desk and PE Manager can approve/reject RPs.
+    """
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(
+            status_code=403,
+            detail="Only PE Desk or PE Manager can approve Referral Partners"
+        )
+    
+    rp = await db.referral_partners.find_one({"id": rp_id}, {"_id": 0})
+    if not rp:
+        raise HTTPException(status_code=404, detail="Referral Partner not found")
+    
+    if rp.get("approval_status") == "approved":
+        raise HTTPException(status_code=400, detail="Referral Partner is already approved")
+    
+    if approval_data.approve:
+        # Approve the RP
+        update_data = {
+            "approval_status": "approved",
+            "approved_by": current_user["id"],
+            "approved_by_name": current_user["name"],
+            "approved_at": datetime.now(timezone.utc).isoformat(),
+            "rejection_reason": None,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user["id"]
+        }
+        
+        await db.referral_partners.update_one({"id": rp_id}, {"$set": update_data})
+        
+        # Create audit log
+        await create_audit_log(
+            action="RP_APPROVE",
+            entity_type="referral_partner",
+            entity_id=rp_id,
+            user_id=current_user["id"],
+            user_name=current_user["name"],
+            user_role=user_role,
+            entity_name=f"{rp['name']} ({rp['rp_code']})",
+            details={"action": "approved"}
+        )
+        
+        return {"message": f"Referral Partner {rp['rp_code']} approved successfully"}
+    else:
+        # Reject the RP
+        if not approval_data.rejection_reason:
+            raise HTTPException(status_code=400, detail="Rejection reason is required")
+        
+        update_data = {
+            "approval_status": "rejected",
+            "rejection_reason": approval_data.rejection_reason,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user["id"]
+        }
+        
+        await db.referral_partners.update_one({"id": rp_id}, {"$set": update_data})
+        
+        # Create audit log
+        await create_audit_log(
+            action="RP_REJECT",
+            entity_type="referral_partner",
+            entity_id=rp_id,
+            user_id=current_user["id"],
+            user_name=current_user["name"],
+            user_role=user_role,
+            entity_name=f"{rp['name']} ({rp['rp_code']})",
+            details={"action": "rejected", "reason": approval_data.rejection_reason}
+        )
+        
+        return {"message": f"Referral Partner {rp['rp_code']} rejected"}
