@@ -919,7 +919,7 @@ const Bookings = () => {
                     <div>
                       <p className="font-medium text-yellow-800 dark:text-yellow-200">No Referral Partner Selected</p>
                       <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                        You haven't selected a Referral Partner. Once the booking is created, you <strong>cannot add an RP later</strong>.
+                        You have not selected a Referral Partner. Once the booking is created, you <strong>cannot add an RP later</strong>.
                       </p>
                       <div className="flex gap-2 mt-3">
                         <Button
