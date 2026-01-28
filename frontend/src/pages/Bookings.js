@@ -165,6 +165,28 @@ const Bookings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.client_id) {
+      toast.error('Please select a client');
+      return;
+    }
+    if (!formData.stock_id) {
+      toast.error('Please select a stock');
+      return;
+    }
+    if (!formData.quantity || parseInt(formData.quantity) <= 0) {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
+    if (!formData.buying_price || parseFloat(formData.buying_price) <= 0) {
+      toast.error('Landing price is required');
+      return;
+    }
+    if (!formData.selling_price || parseFloat(formData.selling_price) <= 0) {
+      toast.error('Selling price is required');
+      return;
+    }
+    
     // For "own" bookings, require form upload acknowledgement
     if (formData.booking_type === 'own' && !formData.insider_form_acknowledged) {
       toast.error('Please acknowledge the Insider Trading Policy first');
@@ -176,8 +198,8 @@ const Bookings = () => {
       const payload = {
         ...formData,
         quantity: parseInt(formData.quantity),
-        buying_price: formData.buying_price ? parseFloat(formData.buying_price) : null,
-        selling_price: formData.selling_price ? parseFloat(formData.selling_price) : null,
+        buying_price: parseFloat(formData.buying_price),
+        selling_price: parseFloat(formData.selling_price),
         insider_form_uploaded: false,
       };
       
