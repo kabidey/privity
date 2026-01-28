@@ -9,7 +9,7 @@ import uuid
 import bcrypt
 
 from database import db
-from config import ROLES
+from config import ROLES, is_pe_level, is_pe_desk_only
 from models import User
 from utils.auth import get_current_user, check_permission
 
@@ -37,17 +37,22 @@ def hash_password(password: str) -> str:
 # ============== User Endpoints ==============
 @router.get("", response_model=List[User])
 async def get_users(current_user: dict = Depends(get_current_user)):
-    """Get all users (requires manage_users permission)"""
-    check_permission(current_user, "manage_users")
+    """Get all users (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view users")
     users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
-    return [User(**{**u, "role_name": ROLES.get(u.get("role", 5), "Viewer")}) for u in users]
+    return [User(**{**u, "role_name": ROLES.get(u.get("role", 6), "Viewer")}) for u in users]
 
 
 @router.post("")
 async def create_user(user_data: UserCreate, current_user: dict = Depends(get_current_user)):
-    """Create a new user (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can create users")
+    """Create a new user (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can create users")
+    
+    # PE Manager cannot create PE Desk or PE Manager users
+    if current_user.get("role") == 2 and user_data.role in [1, 2]:
+        raise HTTPException(status_code=403, detail="PE Manager cannot create PE Desk or PE Manager users")
     
     # Check if email already exists
     existing = await db.users.find_one({"email": user_data.email.lower()})
@@ -87,9 +92,9 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(get_cu
 
 @router.put("/{user_id}")
 async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = Depends(get_current_user)):
-    """Update a user (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can update users")
+    """Update a user (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update users")
     
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
@@ -99,12 +104,19 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
     if user.get("email") == "pedesk@smifs.com" and current_user.get("email") != "pedesk@smifs.com":
         raise HTTPException(status_code=403, detail="Cannot modify the super admin account")
     
+    # PE Manager cannot modify PE Desk or PE Manager users
+    if current_user.get("role") == 2 and user.get("role") in [1, 2]:
+        raise HTTPException(status_code=403, detail="PE Manager cannot modify PE Desk or PE Manager users")
+    
     update_data = {}
     if user_data.name is not None:
         update_data["name"] = user_data.name
     if user_data.role is not None:
         if user_data.role not in ROLES:
             raise HTTPException(status_code=400, detail="Invalid role")
+        # PE Manager cannot promote to PE Desk or PE Manager
+        if current_user.get("role") == 2 and user_data.role in [1, 2]:
+            raise HTTPException(status_code=403, detail="PE Manager cannot assign PE Desk or PE Manager roles")
         update_data["role"] = user_data.role
     if user_data.is_active is not None:
         update_data["is_active"] = user_data.is_active
@@ -119,8 +131,9 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
 
 @router.put("/{user_id}/role")
 async def update_user_role(user_id: str, role: int, current_user: dict = Depends(get_current_user)):
-    """Update user role (requires manage_users permission)"""
-    check_permission(current_user, "manage_users")
+    """Update user role (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update user roles")
     
     if role not in ROLES:
         raise HTTPException(status_code=400, detail="Invalid role")
@@ -133,6 +146,13 @@ async def update_user_role(user_id: str, role: int, current_user: dict = Depends
     if user.get("email") == "pedesk@smifs.com":
         raise HTTPException(status_code=403, detail="Cannot modify the super admin role")
     
+    # PE Manager restrictions
+    if current_user.get("role") == 2:
+        if user.get("role") in [1, 2]:
+            raise HTTPException(status_code=403, detail="PE Manager cannot modify PE Desk or PE Manager users")
+        if role in [1, 2]:
+            raise HTTPException(status_code=403, detail="PE Manager cannot assign PE Desk or PE Manager roles")
+    
     result = await db.users.update_one({"id": user_id}, {"$set": {"role": role}})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
@@ -142,8 +162,8 @@ async def update_user_role(user_id: str, role: int, current_user: dict = Depends
 
 @router.delete("/{user_id}")
 async def delete_user(user_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a user (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
+    """Delete a user (PE Desk only - deletion restricted)"""
+    if not is_pe_desk_only(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can delete users")
     
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
@@ -165,13 +185,17 @@ async def delete_user(user_id: str, current_user: dict = Depends(get_current_use
 
 @router.post("/{user_id}/reset-password")
 async def reset_user_password(user_id: str, new_password: str, current_user: dict = Depends(get_current_user)):
-    """Reset a user's password (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can reset passwords")
+    """Reset a user's password (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can reset passwords")
     
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # PE Manager cannot reset passwords for PE Desk or PE Manager
+    if current_user.get("role") == 2 and user.get("role") in [1, 2]:
+        raise HTTPException(status_code=403, detail="PE Manager cannot reset passwords for PE Desk or PE Manager users")
     
     if len(new_password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
