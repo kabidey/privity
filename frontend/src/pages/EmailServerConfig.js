@@ -40,10 +40,10 @@ const EmailServerConfig = () => {
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
+  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
 
   useEffect(() => {
-    if (!isPEDesk) {
+    if (!isPELevel) {
       navigate('/');
       return;
     }
