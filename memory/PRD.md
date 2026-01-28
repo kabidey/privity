@@ -12,11 +12,12 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## User Personas
 1. **PE Desk (Role 1)**: Full system access + User Management + Deletion rights
-2. **PE Manager (Role 2)**: PE Desk without delete/DB restore rights
+2. **PE Manager (Role 2)**: PE Desk without delete/DB restore rights + Vendor access (no delete)
 3. **Zonal Manager (Role 3)**: Manage users, clients, stocks, bookings, reports
 4. **Manager (Role 4)**: Manage own clients, bookings, view reports
 5. **Employee (Role 5)**: Create bookings, view clients
 6. **Viewer (Role 6)**: Read-only access
+7. **Finance (Role 7)**: Employee rights + Full Finance page access (payments, refunds)
 
 ## Core Requirements (Static)
 - User authentication (register/login)
