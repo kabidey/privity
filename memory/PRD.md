@@ -301,26 +301,36 @@ rp_payments: {
 ```
 /app/
 ├── backend/
-│   ├── server.py              # Main app (contains legacy endpoints - cleanup needed)
+│   ├── server.py              # Main app entry point (core setup + unique endpoints)
 │   ├── config.py              # Configuration, roles, permissions
 │   ├── database.py            # MongoDB connection
 │   ├── models/__init__.py     # All Pydantic models
 │   ├── routers/
-│   │   ├── bookings.py        # Booking CRUD with RP fields (priority)
-│   │   ├── clients.py         # Client/Vendor management (priority)
-│   │   ├── finance.py         # Finance + RP payments (priority)
-│   │   ├── referral_partners.py # RP CRUD
-│   │   ├── email_templates.py
-│   │   ├── smtp_config.py
-│   │   ├── stocks.py
-│   │   ├── database_backup.py
-│   │   └── users.py
+│   │   ├── __init__.py        # Exports all 17 routers
+│   │   ├── auth.py            # Authentication (SSO, passwordless, change-password)
+│   │   ├── analytics.py       # Analytics endpoints
+│   │   ├── audit_logs.py      # Audit log retrieval
+│   │   ├── bookings.py        # Booking CRUD with RP fields
+│   │   ├── clients.py         # Client/Vendor management
+│   │   ├── dashboard.py       # Dashboard stats/analytics
+│   │   ├── database_backup.py # DB backup/restore
+│   │   ├── email_templates.py # Email template management
+│   │   ├── finance.py         # Finance + RP payments + refunds
+│   │   ├── inventory.py       # Inventory management
+│   │   ├── notifications.py   # Real-time notifications
+│   │   ├── purchases.py       # Purchase order management
+│   │   ├── referral_partners.py # RP CRUD with approval workflow
+│   │   ├── reports.py         # P&L reports and exports
+│   │   ├── smtp_config.py     # SMTP configuration
+│   │   ├── stocks.py          # Stock management
+│   │   └── users.py           # User management
 │   └── services/
 │       ├── email_service.py
 │       ├── notification_service.py
 │       ├── ocr_service.py
 │       ├── audit_service.py
-│       └── inventory_service.py
+│       ├── inventory_service.py
+│       └── azure_sso_service.py
 ├── frontend/
 │   └── src/
 │       ├── pages/
