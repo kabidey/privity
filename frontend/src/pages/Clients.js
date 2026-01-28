@@ -138,6 +138,81 @@ const Clients = () => {
     }
   };
 
+  // Calculate similarity between two strings (Levenshtein-based percentage)
+  const calculateNameSimilarity = (name1, name2) => {
+    if (!name1 || !name2) return 0;
+    
+    // Normalize names: lowercase, remove extra spaces, remove special chars
+    const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+    const s1 = normalize(name1);
+    const s2 = normalize(name2);
+    
+    if (s1 === s2) return 100;
+    if (!s1 || !s2) return 0;
+    
+    // Levenshtein distance calculation
+    const len1 = s1.length;
+    const len2 = s2.length;
+    const matrix = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
+    
+    for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+    for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+    
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,      // deletion
+          matrix[i][j - 1] + 1,      // insertion
+          matrix[i - 1][j - 1] + cost // substitution
+        );
+      }
+    }
+    
+    const distance = matrix[len1][len2];
+    const maxLen = Math.max(len1, len2);
+    return Math.round(((maxLen - distance) / maxLen) * 100);
+  };
+
+  // Validate name matching across documents
+  const validateNameMatching = () => {
+    const names = Object.entries(extractedNames).filter(([_, name]) => name && name.trim());
+    
+    if (names.length < 2) {
+      // Less than 2 documents have names - can't compare
+      return { valid: true, message: '' };
+    }
+    
+    const comparisons = [];
+    for (let i = 0; i < names.length; i++) {
+      for (let j = i + 1; j < names.length; j++) {
+        const [doc1, name1] = names[i];
+        const [doc2, name2] = names[j];
+        const similarity = calculateNameSimilarity(name1, name2);
+        comparisons.push({
+          doc1: doc1.replace('_', ' ').toUpperCase(),
+          doc2: doc2.replace('_', ' ').toUpperCase(),
+          name1,
+          name2,
+          similarity
+        });
+      }
+    }
+    
+    // Check if any comparison is below 50%
+    const failedComparisons = comparisons.filter(c => c.similarity < 50);
+    
+    if (failedComparisons.length > 0) {
+      const failed = failedComparisons[0];
+      return {
+        valid: false,
+        message: `Name mismatch detected! "${failed.name1}" (${failed.doc1}) vs "${failed.name2}" (${failed.doc2}) - Only ${failed.similarity}% match. Names must match at least 50%.`
+      };
+    }
+    
+    return { valid: true, message: '' };
+  };
+
   const processOcrAndAutofill = async (docType, file) => {
     if (!file) return;
     
