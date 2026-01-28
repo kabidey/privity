@@ -1055,6 +1055,35 @@ const ReferralPartners = () => {
                   <p>{selectedRp.address}</p>
                 </div>
               )}
+              
+              {/* Bank Details Section */}
+              {(selectedRp.bank_name || selectedRp.bank_account_number) && (
+                <div className="border-t pt-4">
+                  <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Bank Details
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 bg-muted/30 p-3 rounded-md">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Bank Name</p>
+                      <p className="font-medium text-sm">{selectedRp.bank_name || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">IFSC Code</p>
+                      <p className="font-mono text-sm">{selectedRp.bank_ifsc_code || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Account Number</p>
+                      <p className="font-mono text-sm">{selectedRp.bank_account_number ? `****${selectedRp.bank_account_number.slice(-4)}` : '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Branch</p>
+                      <p className="text-sm">{selectedRp.bank_branch || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Documents</p>
                 <div className="flex gap-2">
