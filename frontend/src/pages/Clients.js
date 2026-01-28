@@ -78,9 +78,10 @@ const Clients = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
+  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
   const isAdmin = currentUser.role <= 2;
   const isManager = currentUser.role <= 3;
-  const isEmployee = currentUser.role === 4;
+  const isEmployee = currentUser.role === 5;
 
   useEffect(() => {
     fetchClients();
