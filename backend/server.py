@@ -3381,6 +3381,27 @@ async def confirm_stock_transfer(
                         "rp_payment_status": "pending"
                     }}
                 )
+                
+                # Send email to Referral Partner about the deal
+                if rp.get("email"):
+                    await send_templated_email(
+                        "rp_deal_notification",
+                        rp["email"],
+                        {
+                            "rp_name": rp.get("name", "Referral Partner"),
+                            "rp_code": rp.get("rp_code", ""),
+                            "booking_number": booking_number,
+                            "client_name": client["name"] if client else "Client",
+                            "stock_symbol": stock["symbol"] if stock else "N/A",
+                            "stock_name": stock["name"] if stock else "N/A",
+                            "quantity": quantity,
+                            "total_amount": selling_price * quantity,
+                            "profit": profit,
+                            "revenue_share_percent": rp_share_percent,
+                            "payment_amount": rp_payment_amount,
+                            "transfer_date": datetime.now(timezone.utc).strftime('%d %b %Y')
+                        }
+                    )
     
     return {
         "message": "Stock transfer confirmed and client notified",
