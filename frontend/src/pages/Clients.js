@@ -306,26 +306,53 @@ const Clients = () => {
     }));
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
+    
+    // Prevent double submission
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     
     // Validate required fields
     if (!formData.name || !formData.name.trim()) {
       toast.error('Client name is required');
+      setIsSubmitting(false);
       return;
     }
     if (!formData.pan_number || !formData.pan_number.trim()) {
       toast.error('PAN number is required');
+      setIsSubmitting(false);
       return;
     }
     if (!formData.dp_id || !formData.dp_id.trim()) {
       toast.error('DP ID is required');
+      setIsSubmitting(false);
       return;
     }
     // Validate Trading UCC if DP is with SMIFS
     if (formData.dp_type === 'smifs' && !formData.trading_ucc?.trim()) {
       toast.error('Trading UCC is required when DP is with SMIFS');
+      setIsSubmitting(false);
       return;
+    }
+    
+    // Check for duplicate client (by PAN number or DP ID) - only for new clients
+    if (!editingClient) {
+      const duplicateClient = clients.find(c => 
+        c.pan_number?.toUpperCase() === formData.pan_number?.toUpperCase() ||
+        c.dp_id === formData.dp_id
+      );
+      
+      if (duplicateClient) {
+        const duplicateField = duplicateClient.pan_number?.toUpperCase() === formData.pan_number?.toUpperCase() 
+          ? 'PAN number' 
+          : 'DP ID';
+        toast.error(`Client with this ${duplicateField} already exists: ${duplicateClient.name} (${duplicateClient.otc_ucc})`);
+        setIsSubmitting(false);
+        return;
+      }
     }
     
     // Validate mandatory documents for new clients
@@ -337,6 +364,7 @@ const Clients = () => {
       
       if (missingDocs.length > 0) {
         toast.error(`Please upload: ${missingDocs.join(', ')}`);
+        setIsSubmitting(false);
         return;
       }
     }
@@ -368,6 +396,8 @@ const Clients = () => {
       if (isManager) fetchPendingClients();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'An error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
