@@ -63,6 +63,7 @@ function App() {
                         <Route path="/dp-transfer" element={<DPTransferReport />} />
                         <Route path="/database-backup" element={<DatabaseBackup />} />
                         <Route path="/finance" element={<Finance />} />
+                        <Route path="/referral-partners" element={<ReferralPartners />} />
                       </Routes>
                     </Layout>
                   </NotificationProvider>
