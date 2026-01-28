@@ -60,6 +60,38 @@ def get_client_emails(client: dict) -> list:
     return emails
 
 
+@router.get("/bookings/check-client-rp-conflict/{client_id}")
+async def check_client_rp_conflict(client_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Check if a client is also registered as a Referral Partner.
+    Returns conflict info if found, null otherwise.
+    STRICT RULE: A Client cannot be an RP and vice versa.
+    """
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0, "pan_number": 1, "name": 1, "otc_ucc": 1})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Check if client's PAN matches any RP
+    client_pan = client.get("pan_number", "").upper()
+    matching_rp = await db.referral_partners.find_one(
+        {"pan_number": client_pan},
+        {"_id": 0, "rp_code": 1, "name": 1, "id": 1}
+    )
+    
+    if matching_rp:
+        return {
+            "has_conflict": True,
+            "client_name": client.get("name"),
+            "client_ucc": client.get("otc_ucc"),
+            "rp_code": matching_rp.get("rp_code"),
+            "rp_name": matching_rp.get("name"),
+            "rp_id": matching_rp.get("id"),
+            "message": f"This client ({client.get('name')}) is also registered as RP {matching_rp.get('rp_code')}. RP revenue share will be automatically set to 0%."
+        }
+    
+    return {"has_conflict": False}
+
+
 @router.post("/bookings", response_model=Booking)
 async def create_booking(booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
     """
