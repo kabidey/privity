@@ -4289,9 +4289,9 @@ async def get_daily_trend(
 
 @api_router.get("/analytics/sector-distribution")
 async def get_sector_distribution(current_user: dict = Depends(get_current_user)):
-    """Get booking distribution by sector (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access advanced analytics")
+    """Get booking distribution by sector (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
     
     bookings = await db.bookings.find(
         {"status": "closed", "approval_status": "approved"},
