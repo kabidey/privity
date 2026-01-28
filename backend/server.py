@@ -442,8 +442,6 @@ async def change_password(data: ChangePassword, current_user: dict = Depends(get
     Change password for logged-in user.
     Requires current password verification.
     """
-    from models import ChangePassword
-    
     # Verify current password
     if not verify_password(data.current_password, current_user["password"]):
         raise HTTPException(status_code=400, detail="Current password is incorrect")
