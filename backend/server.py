@@ -3512,7 +3512,33 @@ async def get_stock_performance(
     return result[:limit]
 
 @api_router.get("/analytics/employee-performance")
-            if "purchase_date" in purchase_query:
+async def get_employee_performance(
+    days: int = 30,
+    limit: int = 10,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get employee performance analytics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    bookings = await db.bookings.find(
+        {"status": "closed", "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    emp_stats = {}
+    for booking in bookings:
+        user_id = booking.get("created_by")
+        if not user_id:
+            continue
+        
+        if user_id not in emp_stats:
+            emp_stats[user_id] = {
+                "total_bookings": 0,
+                "total_value": 0,
+                "total_profit": 0,
+                "client_ids": set()
+            }
                 purchase_query["purchase_date"]["$lte"] = end_date
             else:
                 purchase_query["purchase_date"] = {"$lte": end_date}
