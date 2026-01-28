@@ -446,6 +446,16 @@ const Clients = () => {
       }
     }
     
+    // Validate name matching across documents (only for new clients with OCR)
+    if (!editingClient) {
+      const nameValidation = validateNameMatching();
+      if (!nameValidation.valid) {
+        toast.error(nameValidation.message);
+        setIsSubmitting(false);
+        return;
+      }
+    }
+    
     // Validate mandatory documents for new clients
     if (!editingClient) {
       const missingDocs = [];
