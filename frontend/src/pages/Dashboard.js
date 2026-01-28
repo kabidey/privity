@@ -255,22 +255,26 @@ const Dashboard = () => {
               <Users className="h-5 w-5 mb-2 text-blue-600" strokeWidth={1.5} />
               <div className="font-semibold text-sm">Add Client</div>
             </button>
-            <button
-              data-testid="quick-add-vendor"
-              onClick={() => (window.location.href = '/vendors')}
-              className="p-4 text-left border rounded-md hover:bg-muted/20 transition-colors duration-200"
-            >
-              <Building2 className="h-5 w-5 mb-2 text-purple-600" strokeWidth={1.5} />
-              <div className="font-semibold text-sm">Add Vendor</div>
-            </button>
-            <button
-              data-testid="quick-add-purchase"
-              onClick={() => (window.location.href = '/purchases')}
-              className="p-4 text-left border rounded-md hover:bg-muted/20 transition-colors duration-200"
-            >
-              <ShoppingCart className="h-5 w-5 mb-2 text-cyan-600" strokeWidth={1.5} />
-              <div className="font-semibold text-sm">Record Purchase</div>
-            </button>
+            {isPELevel && (
+              <button
+                data-testid="quick-add-vendor"
+                onClick={() => (window.location.href = '/vendors')}
+                className="p-4 text-left border rounded-md hover:bg-muted/20 transition-colors duration-200"
+              >
+                <Building2 className="h-5 w-5 mb-2 text-purple-600" strokeWidth={1.5} />
+                <div className="font-semibold text-sm">Add Vendor</div>
+              </button>
+            )}
+            {isPELevel && (
+              <button
+                data-testid="quick-add-purchase"
+                onClick={() => (window.location.href = '/purchases')}
+                className="p-4 text-left border rounded-md hover:bg-muted/20 transition-colors duration-200"
+              >
+                <ShoppingCart className="h-5 w-5 mb-2 text-cyan-600" strokeWidth={1.5} />
+                <div className="font-semibold text-sm">Record Purchase</div>
+              </button>
+            )}
             <button
               data-testid="quick-add-booking"
               onClick={() => (window.location.href = '/bookings')}
