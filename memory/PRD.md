@@ -77,6 +77,21 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Added PAN Number field to registration form (`/app/frontend/src/pages/Login.js`)
   - Auto-uppercase, 10-character limit, required validation
 
+#### ✅ Auto-Generated Password & Change Password - COMPLETED (Jan 28, 2026)
+**Implementation Details:**
+- Registration no longer requires password - system auto-generates a 12-char random password
+- Password is sent to user's email with welcome message
+- User must change password after first login (flag: `must_change_password`)
+- `pedesk@smifs.com` is superadmin and doesn't need PAN for registration
+- Added `POST /api/auth/change-password` endpoint
+- Added Change Password dialog in sidebar (`/app/frontend/src/components/Layout.js`)
+
+**Registration Flow:**
+1. User enters: Name, PAN (not required for superadmin), Email (@smifs.com only)
+2. System generates random password and sends email
+3. User logs in with temporary password
+4. User changes password via sidebar option
+
 **Conflict Matrix:**
 | Entity | Cannot be |
 |--------|-----------|
