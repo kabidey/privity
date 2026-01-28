@@ -1,0 +1,76 @@
+{
+  "summary": "Bug fix verification complete: Backend validation for selling_price in booking creation is working correctly. All 7 backend tests passed (100%). Frontend shows proper validation error toast when selling price is empty or zero.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend: POST /api/bookings without selling_price returns 400 with error 'Selling price is required and must be greater than 0'",
+    "Backend: POST /api/bookings with selling_price=0 returns 400 with error 'Selling price is required and must be greater than 0'",
+    "Backend: POST /api/bookings with selling_price=-100 returns 400 (negative price rejected)",
+    "Backend: POST /api/bookings with selling_price=null returns 400 (explicit null rejected)",
+    "Backend: POST /api/bookings with selling_price=150 returns 200 (valid booking created)",
+    "Backend: POST /api/bookings with selling_price=0.01 returns 200 (small positive price accepted)",
+    "Backend: POST /api/bookings with selling_price=999999.99 returns 200 (large price accepted)",
+    "Frontend: Booking form shows 'Selling price is required' toast when submitting without selling price",
+    "Frontend: Revenue calculation section appears when valid selling price is entered",
+    "Frontend: Booking form displays Current Average Price and Available Stock info"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_booking_selling_price_validation.py",
+    "/app/test_reports/pytest/booking_selling_price_validation_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_booking_selling_price_validation.py - Created comprehensive test file for selling_price validation"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 passed)",
+    "frontend": "100% (All validation tests passed)"
+  },
+  "seed_data_creation": "Test bookings created and cleaned up during testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Selling price validation bug fix verified. Backend validation at server.py lines 1704-1709 correctly rejects bookings without selling_price or with selling_price <= 0. Frontend shows toast notification 'Selling price is required' when validation fails. The validation was added after the inventory check in create_booking function.",
+  "features_verified": {
+    "selling_price_required_validation": {
+      "status": "Working",
+      "details": "Backend returns 400 with message 'Selling price is required and must be greater than 0' when selling_price is missing, null, zero, or negative"
+    },
+    "selling_price_positive_validation": {
+      "status": "Working", 
+      "details": "Backend accepts any positive selling_price value (0.01 to 999999.99 tested)"
+    },
+    "frontend_validation_feedback": {
+      "status": "Working",
+      "details": "Frontend shows toast notification 'Selling price is required' when form submission fails due to missing selling price"
+    },
+    "revenue_calculation": {
+      "status": "Working",
+      "details": "Frontend displays Estimated Revenue section with profit/loss calculation when valid selling price is entered"
+    }
+  },
+  "api_endpoints_tested": {
+    "booking_creation": [
+      "POST /api/bookings - Without selling_price (400)",
+      "POST /api/bookings - With selling_price=0 (400)",
+      "POST /api/bookings - With selling_price=-100 (400)",
+      "POST /api/bookings - With selling_price=null (400)",
+      "POST /api/bookings - With selling_price=150 (200)",
+      "POST /api/bookings - With selling_price=0.01 (200)",
+      "POST /api/bookings - With selling_price=999999.99 (200)"
+    ]
+  },
+  "bug_fix_verification": {
+    "issue": "Booking creation allowed without selling_price",
+    "fix_location": "/app/backend/server.py lines 1704-1709",
+    "fix_code": "if booking_data.selling_price is None or booking_data.selling_price <= 0: raise HTTPException(status_code=400, detail='Selling price is required and must be greater than 0')",
+    "verification_status": "CONFIRMED WORKING"
+  }
+}
