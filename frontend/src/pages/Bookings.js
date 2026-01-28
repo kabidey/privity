@@ -84,7 +84,7 @@ const Bookings = () => {
 
   const fetchData = async () => {
     try {
-      const [bookingsRes, clientsRes, stocksRes, inventoryRes] = await Promise.all([
+      const [bookingsRes, clientsRes, stocksRes, inventoryRes, rpRes] = await Promise.all([
         api.get('/bookings'),
         api.get('/clients'),
         api.get('/stocks'),
