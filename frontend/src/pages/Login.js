@@ -229,16 +229,22 @@ const Login = () => {
                 </div>
               )}
             </form>
+            )}
+            {!registrationSuccess && (
             <div className="mt-4 text-center text-sm">
               <button
                 type="button"
                 data-testid="toggle-auth-mode"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setFormData({ email: '', password: '', name: '', pan_number: '' });
+                }}
                 className="text-primary hover:underline"
               >
                 {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
               </button>
             </div>
+            )}
           </CardContent>
         </Card>
       </div>
