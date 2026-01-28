@@ -113,6 +113,19 @@ const Login = () => {
                       required={!isLogin}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pan_number">PAN Number <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="pan_number"
+                      data-testid="pan-input"
+                      placeholder="ABCDE1234F"
+                      maxLength={10}
+                      value={formData.pan_number}
+                      onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })}
+                      required={!isLogin}
+                    />
+                    <p className="text-xs text-muted-foreground">Required for identity verification</p>
+                  </div>
                 </>
               )}
               <div className="space-y-2">
