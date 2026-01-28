@@ -1261,11 +1261,11 @@ async def create_corporate_action(
     action_data: CorporateActionCreate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create a corporate action (Stock Split or Bonus) - PE Desk only"""
-    user_role = current_user.get("role", 5)
+    """Create a corporate action (Stock Split or Bonus) - PE Level only"""
+    user_role = current_user.get("role", 6)
     
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can create corporate actions")
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can create corporate actions")
     
     # Verify stock exists
     stock = await db.stocks.find_one({"id": action_data.stock_id}, {"_id": 0})
