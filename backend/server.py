@@ -3220,24 +3220,10 @@ async def mark_all_notifications_read(current_user: dict = Depends(get_current_u
     )
     return {"message": f"Marked {result.modified_count} notifications as read"}
 
-# ============== Finance / Payments Dashboard ==============
+# NOTE: Finance endpoints (GET /finance/payments, /finance/summary, /finance/refund-requests, 
+# /finance/rp-payments, /finance/export/excel) have been moved to routers/finance.py
 
-@api_router.get("/finance/payments")
-async def get_all_payments(
-    payment_type: Optional[str] = None,  # 'client', 'vendor', or None for all
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
-):
-    """Get all payments (client and vendor) for finance dashboard (PE Level or Finance role)"""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access finance data")
-    
-    all_payments = []
-    
-    # Get client payments from bookings
-    if payment_type in [None, 'client']:
-        booking_query = {"payments": {"$exists": True, "$ne": []}}
+@api_router.post("/payments/upload-proof")
         if start_date:
             booking_query["booking_date"] = {"$gte": start_date}
         if end_date:
