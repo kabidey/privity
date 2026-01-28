@@ -16,11 +16,16 @@ const Login = () => {
     email: '',
     password: '',
     name: '',
+    pan_number: '',
   });
 
   const validateEmail = (email) => {
     const domain = email.split('@')[1]?.toLowerCase();
     return domain === 'smifs.com';
+  };
+
+  const validatePAN = (pan) => {
+    return pan && pan.length === 10;
   };
 
   const handleSubmit = async (e) => {
@@ -29,6 +34,12 @@ const Login = () => {
     // Check domain for registration
     if (!isLogin && !validateEmail(formData.email)) {
       toast.error('Registration is restricted to @smifs.com email addresses only');
+      return;
+    }
+    
+    // Validate PAN for registration
+    if (!isLogin && !validatePAN(formData.pan_number)) {
+      toast.error('PAN number must be exactly 10 characters');
       return;
     }
     
