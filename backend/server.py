@@ -3449,7 +3449,12 @@ async def get_analytics_summary(
         "total_revenue": round(total_revenue, 2),
         "total_profit": round(total_profit, 2),
         "total_bookings": len(bookings),
-        if start_date:
+        "total_clients": clients_count,
+        "avg_booking_value": round(avg_booking_value, 2),
+        "profit_margin": round(profit_margin, 2)
+    }
+
+@api_router.get("/analytics/stock-performance")
             purchase_query["purchase_date"] = {"$gte": start_date}
         if end_date:
             if "purchase_date" in purchase_query:
