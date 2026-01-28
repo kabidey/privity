@@ -1,53 +1,53 @@
 <analysis>**original_problem_statement:**
 The user's initial goal was to restore and enhance their Privity - Share Booking System application.
 
-**New requirements added and addressed in this session:**
-1.  Simplify the Booking Type feature to use a single Own Account checkbox.
-2.  Remove the client search feature from the booking form.
-3.  Implement a client suspension feature for the PE Desk role, with the suspension reason visible to employees.
-4.  Create an inventory blocking system where stock is blocked on booking approval, subtracted on transfer, and released on void/delete. Weighted average price calculations must exclude blocked stock.
-5.  Update application branding to PRIVITY and change the footer to SMIFS Ltd, Logic Somnath Dey.
-6.  Hardcode the super admin credentials to  with the password  and ensure this user is available on deployment.
-7.  Refactor all hardcoded email logic to use the centralized email template system.
-8.  On the DP Transfer page, disable the transfer button for completed transfers.
-9.  Modularize the backend  monolith.
-10. Add user management (creation/deletion) for the PE Desk role.
-11. Add a database backup and restore feature.
-12. Ensure the PE Desk role has the ability to delete all types of created data.
+**New requirements added during this session:**
+1.  Complete the User Management and Database Backup/Restore features.
+2.  Modify the stock creation form to remove NSE/BSE and default the Exchange to UNLISTED/CCPS.
+3.  Add new stock statuses: DRHP Filed and Blocked IPO/RTA. Stocks marked as Blocked IPO/RTA cannot be used in new bookings.
+4.  Make the entire web application mobile-responsive.
+5.  Add two floating action buttons (Inventory, Book) on mobile for quick access. The Book button should directly open the new booking form.
+6.  In the booking form, the Landing Price should be auto-populated from the stock's current weighted average price, be non-editable for employees, and be used to calculate revenue in real-time.
+7.  Fix inconsistencies in price formatting, ensuring all currency values are displayed with two decimal places.
+8.  Fix the inventory blocking logic so that stock is blocked immediately upon PE Desk approval, not after client confirmation.
+9.  Implement a wizard for client creation:
+    *   Step 1: Upload CML, PAN, and Cheque for OCR processing.
+    *   Step 2: Review auto-populated fields.
+    *   Add support for three email addresses (primary from CML, two others for PE Desk).
+    *   Check for name similarity (>= 50%) across uploaded documents before allowing creation.
+    *   Fields populated by OCR should be non-editable for employees.
+10. Apply the multiple-email logic to the vendor creation form.
+11. Add a delete option to the Inventory page for PE Desk users.
+12. Add duplicate client checking (by PAN, email, phone) to the client creation wizard.
+13. Fix a bug where the booking form accepted submissions without a landing or selling price.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack application (React, FastAPI, MongoDB) named PRIVITY for managing private equity transactions. The application supports role-based access control for clients, stocks, purchases, and bookings.
-
-In this session, the agent implemented several major features and refactors:
--   The booking form was simplified, and a comprehensive inventory blocking system was integrated into the booking lifecycle.
--   A client suspension feature was added for administrators.
--   The entire application was rebranded, and the hardcoded admin credentials were updated.
--   A significant refactor was completed to make all system emails use dynamic templates.
--   A partial refactoring of the backend monolith () was started, with , , and  successfully migrated to their own modular routers.
--   Work has begun on new User Management and Database Backup/Restore pages.
+A full-stack PRIVITY application for private equity transaction management. In this session, the agent completed the User Management and Database Backup features. The application was also made fully mobile-responsive, including new floating action buttons for core actions. A major feature was added: a multi-step client creation wizard that uses OCR to pre-fill data, validates name consistency across documents, checks for duplicates, and supports multiple email addresses for notifications. The vendor creation form was also updated. Numerous bugs and enhancements were also addressed, including fixing the inventory blocking mechanism, standardizing price display, and improving booking form logic.
 
 **Last working item**:
--   **Last item agent was working**: Implementing User Management (add/delete users) and a Database Backup/Restore system, both accessible to the PE Desk role. The agent created the backend API endpoints in new router files (, ) and created the stubbed-out frontend pages (, ).
+-   **Last item agent was working**: Fixing a bug where the booking form was accepting submissions without a  and . The agent added frontend validation in  to require these fields.
 -   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: both
+-   **Which testing method agent to use?**: backend testing agent
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-No pending issues from previous forks.
+-   **Issue 1**: (P0) Backend validation for booking creation is missing.
+    -   **Description**: The frontend booking form was fixed to prevent submission without a landing or selling price, but the backend API endpoint  still needs validation to enforce this rule at the server level.
+    -   **Next debug checklist**:
+        -   Add validation to the  function in .
+        -   Check the  Pydantic model to see if  and  can be made mandatory (non-optional).
+    -   **Why fix this issue and what will be achieved with the fix?**: To ensure data integrity and prevent the creation of incomplete or invalid bookings via direct API calls.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   **Task 1**: **(P0) Complete User Management & DB Backup/Restore Features**
-    -   **Where to resume**: The backend routes and frontend page files are in place. The next step is to build out the UI for  and , connect them to the new API endpoints, and thoroughly test the create/delete/backup/restore functionalities. This task also includes verifying that the PE Desk role can delete all major data entities (clients, stocks, bookings, etc.) as requested.
-    -   **What will be achieved with this?**: This will provide critical administrative capabilities for user governance and system data protection.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on something**: None.
-
--   **Task 2**: **(P1) Continue Backend Monolith Refactoring**
-    -   **Where to resume**: The initial modularization was successful for smaller endpoints. The next step is to continue this incremental process for larger, more complex resources remaining in , such as , , and . The established pattern is: create a new router file, move endpoints, update  to include the new router, and test.
+-   **Task 1**: **(P1) Continue Backend Monolith Refactoring**
+    -   **Where to resume**: The initial modularization was successful. The next step is to continue this incremental process for larger, more complex resources remaining in , such as , , and . The established pattern is: create a new router file, move endpoints, update  to include the new router, and test.
     -   **What will be achieved with this?**: This will significantly improve the backend's maintainability, scalability, and developer experience by resolving major technical debt.
     -   **Status**: IN PROGRESS
     -   **Should Test frontend/backend/both after fix?**: backend
@@ -59,17 +59,20 @@ No pending issues from previous forks.
     -   **(P2)** Implement Two-Factor Authentication (TOTP).
     -   **(P2)** Implement a bulk booking closure feature.
     -   **(P2)** Add configurable thresholds for loss-booking auto-approval.
-    -   **(P3)** General mobile responsiveness improvements for the web app.
 
 **Completed work in this session**
--   **Feature - Client Suspension**: Implemented functionality for PE Desk to suspend clients with a reason.
--   **Feature - Inventory Blocking System**: Integrated a system to block stock on booking approval, subtract on transfer, and release on void/delete.
--   **Refactor - Email Template Integration**: Replaced all hardcoded  calls with a centralized, dynamic template system.
--   **Refactor - Backend Modularization (Started)**: Successfully migrated , , and  endpoints from the  monolith into separate router files.
--   **Enhancement - Admin User Seeding**: Made the startup function for creating the admin user more robust to ensure access on deployment.
--   **Enhancement - Application Re-branding**: Replaced ShareBook with PRIVITY and updated the footer branding across the app.
--   **UI/UX - Booking Form Simplification**: Removed client search and replaced booking type radio buttons with a single Own Account checkbox.
--   **UI Fix - DP Transfer Page**: The Transfer button is now correctly disabled for records that have already been transferred.
+-   **Feature - User Management & DB Backup**: Completed the UI and backend for adding/deleting users and creating/restoring database backups.
+-   **Feature - Stock Statuses & Booking Logic**: Added DRHP Filed and Blocked IPO/RTA statuses. Stocks with Blocked status are now correctly filtered out from the booking form.
+-   **Feature - Client Creation Wizard**: Replaced the client creation form with a multi-step wizard that incorporates OCR, name similarity checks, duplicate validation, and support for three email addresses.
+-   **Feature - Inventory Deletion**: Added functionality for PE Desk users to delete inventory items.
+-   **Enhancement - Mobile Responsiveness**: Made the entire application mobile-responsive, including tables, forms, and navigation.
+-   **Enhancement - Mobile Floating Action Buttons**: Added Inventory and Book FABs for quick mobile access. The Book button now directly opens the booking modal.
+-   **Enhancement - Booking Form Logic**: The landing price is now auto-populated from the inventory's weighted average, is read-only for non-PE Desk users, and is used to display a real-time revenue calculation.
+-   **Enhancement - Vendor Form**: Updated the vendor creation form to support three email addresses.
+-   **Bugfix - Inventory Blocking**: Corrected the logic to block inventory immediately on PE Desk approval, rather than waiting for client confirmation.
+-   **Bugfix - Price Formatting**: Standardized all currency displays to use two decimal places.
+-   **Bugfix - Stock Creation Form**: Removed NSE/BSE options and set UNLISTED/CCPS as the default.
+-   **Bugfix - Duplicate Client Prevention**: Implemented frontend and backend checks to prevent the creation of duplicate clients.
 
 **Earlier issues found/mentioned but not fixed**
 None.
@@ -81,73 +84,66 @@ N/A
 
 
 **Key Technical Concepts**
--   **Frontend**: React.js, Tailwind CSS, Shadcn UI, Axios
+-   **Frontend**: React.js, Tailwind CSS, Shadcn UI, Axios, 
 -   **Backend**: Python, FastAPI, Pydantic
 -   **Database**: MongoDB
 -   **Authentication**: JWT
--   **Authorization**: Multi-layered RBAC
+-   **Name Similarity**: Levenshtein distance algorithm implemented in JS for document name matching.
 
 **key DB schema**
 -   **clients**: 
 -   **inventory**: 
--   **bookings**: 
+-   **stocks**:  (now includes 'DRHP Filed', 'Blocked IPO/RTA')
 
 **changes in tech stack**
 None.
 
 **All files of reference**
--   : The main backend file, now partially refactored.
--   : Directory containing the new modular backend routes.
--   : Modified to include user management endpoints.
--   : New router for DB management.
--   : New, in-progress page for user administration.
--   : New, in-progress page for DB backups.
--   : Modified to add client suspension UI.
--   : Modified for inventory blocking display and simplified form.
--   : Modified to disable completed transfer actions.
+-   : The main backend file, modified with new endpoints and logic fixes.
+-   : Updated with new client email fields.
+-   : Updated for sending emails to multiple addresses.
+-   : Significantly refactored to implement the client creation wizard.
+-   : Modified for form validation, price auto-population, and decimal formatting.
+-   : Updated with new stock statuses and form defaults.
+-   : Updated to include delete functionality.
+-   : Modified for mobile responsiveness and floating action buttons.
+-   : Modified with global styles for responsive tables.
 
 **Areas that need refactoring**:
--   ****: **Highest priority.** The monolithic structure is still a major source of technical debt. The incremental refactoring process that was started should be continued for all remaining resources (e.g., clients, purchases, bookings, reports).
+-   ****: **Highest priority.** The monolith continues to grow, making it harder to maintain. The incremental refactoring process that was started should be continued for all remaining resources (e.g., clients, purchases, bookings, reports).
 
 **key api endpoints**
 -   **New**:
-    -   , : Create and delete users.
-    -   , : Suspend/unsuspend clients.
-    -   : Voids a booking and releases inventory.
-    -   , : Manage database backups.
-    -   , , : New modular endpoints for refactored logic.
--   **Modified**:
-    -   : Now returns both ready and completed transfers.
-    -   : Now blocks inventory instead of subtracting.
-    -   : Finalizes inventory subtraction.
+    -   : Deletes an inventory record.
+    -   : Checks for duplicate clients by PAN, phone, or email.
 
 **Critical Info for New Agent**
-1.  **Resume Admin Features**: Your immediate priority is to complete the User Management and Database Backup features. The backend routes and frontend page stubs are already in place. You need to build the UI, wire it to the APIs, and test it thoroughly. As part of this, verify that the PE Desk role can delete all major data types as requested.
-2.  **Continue Backend Refactoring**: The most critical piece of technical debt is the  monolith. After the admin features are done, continue the incremental refactoring process. The next logical targets are , , and .
-3.  **Credentials**: The super admin login is  with password .
+1.  **Complete Booking Form Validation**: Your first task is to add backend validation to the  endpoint in  to ensure  and  are always present, completing the bug fix from the last session.
+2.  **Continue Backend Refactoring**: After the bugfix, the most critical task is to continue modularizing the  monolith. Prioritize moving the , , and  endpoints into their own router files.
+3.  **Client Creation Wizard**: A complex client creation wizard was just implemented in . Be aware of its multi-step logic, state management (, , ), and validation rules if you need to make changes there.
+4.  **Credentials**: The super admin login remains  with password .
 
 **documents and test reports created in this job**
 -    (updated)
 -   
--   
 
 **Last 10 User Messages and any pending HUMAN messages**
--   **User**:  (IN PROGRESS)
--   **User**:  (COMPLETED)
--   **User**:  (COMPLETED)
--   **User**:  (IN PROGRESS)
--   **User**:  (COMPLETED)
--   **User**:  (COMPLETED)
--   **User**:  (COMPLETED)
--   **User**:  (COMPLETED)
--   **User**:  (COMPLETED)
--   **User**:  (COMPLETED)
+1.   (IN PROGRESS)
+2.   (COMPLETED)
+3.   (COMPLETED)
+4.   (COMPLETED)
+5.   (COMPLETED)
+6.   (COMPLETED)
+7.   (COMPLETED)
+8.   (COMPLETED)
+9.   (COMPLETED)
+10.  (COMPLETED)
 
 **Project Health Check:**
 -   **Broken**: None
 -   **Mocked**: None
 -   **In Progress**:
-    -   User Management and Database Backup/Restore feature.
+    -   Booking form validation bugfix.
     -   Backend monolith refactoring.
 
 **3rd Party Integrations**
@@ -155,7 +151,7 @@ None.
 -   ****: Used for generating  Excel files for export.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES
+-   **Testing agent used after significant changes**: YES (for User Management/DB Backup features)
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: None
 -   **Known regressions**: None
@@ -166,4 +162,4 @@ None.
     -   **Password**: 
 
 **What agent forgot to execute**
--   The user requested a full verification to ensure the PE Desk role can delete all types of created data. This check was not completed and should be part of the Complete User Management task.</analysis>
+None. All user requests in this session appear to have been addressed or are currently in progress.</analysis>

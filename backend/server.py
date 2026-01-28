@@ -2014,7 +2014,7 @@ async def approve_booking(
                 )
             else:
                 # Send client confirmation email with Accept/Deny buttons using template
-                frontend_url = os.environ.get('FRONTEND_URL', 'https://booking-system-116.preview.emergentagent.com')
+                frontend_url = os.environ.get('FRONTEND_URL', 'https://privateq-system.preview.emergentagent.com')
                 await send_templated_email(
                     "booking_confirmation_request",
                     primary_email,
@@ -2129,7 +2129,7 @@ async def approve_loss_booking(
     # If loss approved and booking is already PE Desk approved, send client confirmation email
     if approve and booking.get("approval_status") == "approved":
         if client and client.get("email"):
-            frontend_url = os.environ.get('FRONTEND_URL', 'https://booking-system-116.preview.emergentagent.com')
+            frontend_url = os.environ.get('FRONTEND_URL', 'https://privateq-system.preview.emergentagent.com')
             await send_templated_email(
                 "loss_booking_confirmation_request",
                 client["email"],
