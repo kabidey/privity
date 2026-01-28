@@ -211,3 +211,220 @@ async def reset_user_password(user_id: str, new_password: str, current_user: dic
     
     return {"message": f"Password reset successfully for {user.get('name')}"}
 
+
+# ============== User Mapping Endpoints ==============
+class UserMapping(BaseModel):
+    user_id: str
+    manager_id: Optional[str] = None
+
+
+@router.get("/hierarchy")
+async def get_user_hierarchy(current_user: dict = Depends(get_current_user)):
+    """Get all users with their hierarchy mappings (PE Level or for own subordinates)"""
+    user_role = current_user.get("role", 6)
+    
+    # PE Level can see all users
+    if is_pe_level(user_role):
+        users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    # Manager can see their employees
+    elif user_role == 4:
+        users = await db.users.find(
+            {"$or": [{"id": current_user["id"]}, {"manager_id": current_user["id"]}]},
+            {"_id": 0, "password": 0}
+        ).to_list(1000)
+    # Zonal Manager can see their managers and those managers' employees
+    elif user_role == 3:
+        # Get direct reports (managers)
+        direct_reports = await db.users.find(
+            {"manager_id": current_user["id"]},
+            {"_id": 0, "password": 0}
+        ).to_list(100)
+        direct_report_ids = [u["id"] for u in direct_reports]
+        
+        # Get employees of those managers
+        employees = await db.users.find(
+            {"manager_id": {"$in": direct_report_ids}},
+            {"_id": 0, "password": 0}
+        ).to_list(1000)
+        
+        # Get self
+        self_user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0, "password": 0})
+        
+        users = [self_user] + direct_reports + employees if self_user else direct_reports + employees
+    else:
+        users = [await db.users.find_one({"id": current_user["id"]}, {"_id": 0, "password": 0})]
+        users = [u for u in users if u]
+    
+    # Add role_name and manager_name to each user
+    result = []
+    user_map = {u["id"]: u for u in users}
+    all_users = await db.users.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+    all_user_map = {u["id"]: u["name"] for u in all_users}
+    
+    for user in users:
+        user_data = {
+            **user,
+            "role_name": ROLES.get(user.get("role", 6), "Viewer"),
+            "manager_name": all_user_map.get(user.get("manager_id")) if user.get("manager_id") else None
+        }
+        result.append(user_data)
+    
+    return result
+
+
+@router.put("/{user_id}/assign-manager")
+async def assign_manager(user_id: str, manager_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    """Assign a user to a manager (PE Level only)
+    
+    Rules:
+    - Employee (role 5) can be assigned to Manager (role 4)
+    - Manager (role 4) can be assigned to Zonal Manager (role 3)
+    """
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can assign managers")
+    
+    # Get the user to be assigned
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # If removing assignment
+    if manager_id is None or manager_id == "":
+        await db.users.update_one(
+            {"id": user_id},
+            {"$unset": {"manager_id": ""}}
+        )
+        return {"message": f"Manager assignment removed for {user['name']}"}
+    
+    # Get the manager
+    manager = await db.users.find_one({"id": manager_id}, {"_id": 0})
+    if not manager:
+        raise HTTPException(status_code=404, detail="Manager not found")
+    
+    # Validate hierarchy rules
+    user_role = user.get("role", 6)
+    manager_role = manager.get("role", 6)
+    
+    # Employee (5) -> Manager (4)
+    if user_role == 5 and manager_role != 4:
+        raise HTTPException(status_code=400, detail="Employees can only be assigned to Managers")
+    
+    # Manager (4) -> Zonal Manager (3)
+    if user_role == 4 and manager_role != 3:
+        raise HTTPException(status_code=400, detail="Managers can only be assigned to Zonal Managers")
+    
+    # Zonal Manager (3) -> Cannot be assigned (top of hierarchy below PE)
+    if user_role == 3:
+        raise HTTPException(status_code=400, detail="Zonal Managers cannot be assigned to other managers")
+    
+    # PE roles cannot be assigned
+    if user_role in [1, 2]:
+        raise HTTPException(status_code=400, detail="PE Desk and PE Manager cannot be assigned to managers")
+    
+    # Prevent self-assignment
+    if user_id == manager_id:
+        raise HTTPException(status_code=400, detail="Cannot assign user to themselves")
+    
+    # Update assignment
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"manager_id": manager_id}}
+    )
+    
+    return {
+        "message": f"{user['name']} assigned to {manager['name']}",
+        "user_id": user_id,
+        "manager_id": manager_id
+    }
+
+
+@router.get("/{user_id}/subordinates")
+async def get_subordinates(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Get all subordinates for a user (direct and indirect)"""
+    user_role = current_user.get("role", 6)
+    
+    # Only allow viewing own subordinates or PE Level can view anyone's
+    if not is_pe_level(user_role) and current_user["id"] != user_id:
+        raise HTTPException(status_code=403, detail="You can only view your own subordinates")
+    
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    target_role = user.get("role", 6)
+    
+    subordinates = []
+    
+    # Manager (4) - get direct employees
+    if target_role == 4:
+        direct_reports = await db.users.find(
+            {"manager_id": user_id},
+            {"_id": 0, "password": 0}
+        ).to_list(100)
+        subordinates = direct_reports
+    
+    # Zonal Manager (3) - get managers and their employees
+    elif target_role == 3:
+        # Get direct reports (managers)
+        managers = await db.users.find(
+            {"manager_id": user_id},
+            {"_id": 0, "password": 0}
+        ).to_list(100)
+        
+        manager_ids = [m["id"] for m in managers]
+        
+        # Get employees under those managers
+        employees = await db.users.find(
+            {"manager_id": {"$in": manager_ids}},
+            {"_id": 0, "password": 0}
+        ).to_list(1000)
+        
+        subordinates = managers + employees
+    
+    # PE Level - can see entire hierarchy
+    elif target_role in [1, 2]:
+        all_users = await db.users.find(
+            {"role": {"$gte": 3}},  # Everyone except PE Desk and PE Manager
+            {"_id": 0, "password": 0}
+        ).to_list(1000)
+        subordinates = all_users
+    
+    # Add role names
+    for sub in subordinates:
+        sub["role_name"] = ROLES.get(sub.get("role", 6), "Viewer")
+    
+    return subordinates
+
+
+@router.get("/managers-list")
+async def get_managers_list(role: Optional[int] = None, current_user: dict = Depends(get_current_user)):
+    """Get list of users who can be managers (for dropdown selection)
+    
+    - For assigning Employees: returns Managers (role 4)
+    - For assigning Managers: returns Zonal Managers (role 3)
+    """
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access manager list")
+    
+    if role == 5:  # Getting managers for employees
+        managers = await db.users.find(
+            {"role": 4, "is_active": {"$ne": False}},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+        ).to_list(100)
+    elif role == 4:  # Getting zonal managers for managers
+        managers = await db.users.find(
+            {"role": 3, "is_active": {"$ne": False}},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+        ).to_list(100)
+    else:
+        # Return both managers and zonal managers
+        managers = await db.users.find(
+            {"role": {"$in": [3, 4]}, "is_active": {"$ne": False}},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+        ).to_list(100)
+    
+    for m in managers:
+        m["role_name"] = ROLES.get(m.get("role", 6), "Viewer")
+    
+    return managers
+
