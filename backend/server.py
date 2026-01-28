@@ -5158,18 +5158,18 @@ async def websocket_notifications(websocket: WebSocket, token: str = Query(...))
         logging.error(f"WebSocket error: {e}")
         await websocket.close(code=1011)
 
-# Include the router
-app.include_router(api_router)
-
-# Include modular routers (with /api prefix)
+# Include modular routers FIRST (with /api prefix) - these take precedence
+app.include_router(bookings_router, prefix="/api")
+app.include_router(clients_router, prefix="/api")
+app.include_router(finance_router, prefix="/api")
 app.include_router(email_templates_router, prefix="/api")
 app.include_router(smtp_config_router, prefix="/api")
 app.include_router(stocks_router, prefix="/api")
 app.include_router(database_backup_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
-app.include_router(bookings_router, prefix="/api")
-app.include_router(clients_router, prefix="/api")
-app.include_router(finance_router, prefix="/api")
+
+# Include the legacy api_router (endpoints here will be overridden by modular routers)
+app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
