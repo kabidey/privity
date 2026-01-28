@@ -60,6 +60,7 @@ const Clients = () => {
   const [wizardStep, setWizardStep] = useState(1); // 1: Documents, 2: Review/Edit, 3: Bank & Submit
   const [ocrCompleted, setOcrCompleted] = useState({ pan_card: false, cml_copy: false, cancelled_cheque: false });
   const [fieldsFromOcr, setFieldsFromOcr] = useState({}); // Track which fields came from OCR
+  const [extractedNames, setExtractedNames] = useState({ pan_card: '', cml_copy: '', cancelled_cheque: '' }); // Track names from each document
   
   const [newBankAccount, setNewBankAccount] = useState({
     bank_name: '',
