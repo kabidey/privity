@@ -113,17 +113,50 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Registration Success Message */}
+            {registrationSuccess ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                      <AlertCircle className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-green-800 dark:text-green-200">Account Created Successfully!</h3>
+                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                        Your login credentials have been sent to <strong>{registeredEmail}</strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    <strong>Note:</strong> Please check your email for your temporary password. You will be required to change it after your first login.
+                  </p>
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={() => {
+                    setRegistrationSuccess(false);
+                    setIsLogin(true);
+                    setFormData({ email: registeredEmail, password: '', name: '', pan_number: '' });
+                  }}
+                >
+                  Go to Login
+                </Button>
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <>
                   <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                     <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
                     <p className="text-xs text-blue-800 dark:text-blue-200">
-                      Registration is restricted to <strong>@smifs.com</strong> email addresses only. You will be registered as an Employee.
+                      Registration is restricted to <strong>@smifs.com</strong> email addresses. Password will be sent to your email.
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
                     <Input
                       id="name"
                       data-testid="name-input"
@@ -133,23 +166,25 @@ const Login = () => {
                       required={!isLogin}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pan_number">PAN Number <span className="text-red-500">*</span></Label>
-                    <Input
-                      id="pan_number"
-                      data-testid="pan-input"
-                      placeholder="ABCDE1234F"
-                      maxLength={10}
-                      value={formData.pan_number}
-                      onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })}
-                      required={!isLogin}
-                    />
-                    <p className="text-xs text-muted-foreground">Required for identity verification</p>
-                  </div>
+                  {!isSuperAdmin && (
+                    <div className="space-y-2">
+                      <Label htmlFor="pan_number">PAN Number <span className="text-red-500">*</span></Label>
+                      <Input
+                        id="pan_number"
+                        data-testid="pan-input"
+                        placeholder="ABCDE1234F"
+                        maxLength={10}
+                        value={formData.pan_number}
+                        onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })}
+                        required={!isLogin && !isSuperAdmin}
+                      />
+                      <p className="text-xs text-muted-foreground">Required for identity verification</p>
+                    </div>
+                  )}
                 </>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
                 <Input
                   id="email"
                   data-testid="email-input"
@@ -160,18 +195,20 @@ const Login = () => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  data-testid="password-input"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                />
-              </div>
+              {isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="password"
+                    data-testid="password-input"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                  />
+                </div>
+              )}
               <Button
                 type="submit"
                 data-testid="submit-button"
