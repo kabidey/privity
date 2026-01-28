@@ -3150,11 +3150,11 @@ async def confirm_stock_transfer(
     data: StockTransferConfirm = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Mark a booking as stock transferred and notify client (PE Desk only)"""
-    user_role = current_user.get("role", 5)
+    """Mark a booking as stock transferred and notify client (PE Level)"""
+    user_role = current_user.get("role", 6)
     
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can confirm stock transfers")
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can confirm stock transfers")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
