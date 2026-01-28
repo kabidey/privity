@@ -67,6 +67,7 @@ const Layout = ({ children }) => {
   // Add DP Transfer Report for PE Level (roles 1 and 2)
   if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: Banknote, label: 'DP Transfer', path: '/dp-transfer' });
+    menuItems.push({ icon: Wallet, label: 'Finance', path: '/finance' });
   }
 
   // Add Analytics and Email Templates for PE Level (roles 1 and 2)
