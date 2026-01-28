@@ -526,6 +526,80 @@ const Finance = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="rp-payments">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Referral Partner Payments
+              </CardTitle>
+              <CardDescription>
+                Manage commission payments to referral partners
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 md:p-6">
+              {rpPayments.length === 0 ? (
+                <p className="text-center py-8 text-muted-foreground">No RP payments found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Booking #</TableHead>
+                        <TableHead>Referral Partner</TableHead>
+                        <TableHead>Stock</TableHead>
+                        <TableHead className="text-right">Rev. Share %</TableHead>
+                        <TableHead className="text-right">Payment Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Reference</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {rpPayments.map((payment) => (
+                        <TableRow key={payment.id} data-testid={`rp-payment-row-${payment.id}`}>
+                          <TableCell className="whitespace-nowrap">{formatDate(payment.created_at)}</TableCell>
+                          <TableCell className="font-mono text-sm">{payment.booking_number}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{payment.rp_name}</p>
+                              <p className="text-xs text-muted-foreground font-mono">{payment.rp_code}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono">{payment.stock_symbol}</TableCell>
+                          <TableCell className="text-right">{payment.revenue_share_percent}%</TableCell>
+                          <TableCell className="text-right font-bold text-pink-600">
+                            {formatCurrency(payment.payment_amount)}
+                          </TableCell>
+                          <TableCell>{getRpPaymentStatusBadge(payment.status)}</TableCell>
+                          <TableCell>
+                            {payment.payment_reference ? (
+                              <span className="font-mono text-xs">{payment.payment_reference}</span>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openRpPaymentDialog(payment)}
+                              data-testid={`update-rp-payment-${payment.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Refund Update Dialog */}
