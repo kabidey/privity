@@ -1022,9 +1022,9 @@ const Clients = () => {
                   </div>
                   <div className="flex justify-end gap-2 pt-4">
                     <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                    <Button type="submit" className="rounded-sm" data-testid="save-client-button" disabled={uploading}>
-                      {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      {editingClient ? 'Update' : 'Create'}
+                    <Button type="submit" className="rounded-sm" data-testid="save-client-button" disabled={isSubmitting || uploading}>
+                      {(isSubmitting || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {isSubmitting ? 'Creating...' : (editingClient ? 'Update' : 'Create')}
                     </Button>
                   </div>
                 </form>
