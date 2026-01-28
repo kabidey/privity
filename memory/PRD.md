@@ -684,3 +684,30 @@ Each template supports:
 - PE Manager can: view users, view analytics, create backups, manage stocks
 - PE Manager CANNOT: delete stocks, clear database, restore database, delete users
 
+### User Hierarchy & Team Management (Jan 28, 2026) - ✅ COMPLETED
+**Feature:** Employee-Manager mapping system with hierarchical structure
+
+**Hierarchy:**
+- PE Desk / PE Manager → Can map all users
+- Zonal Manager → Can view their Managers and those Managers' Employees
+- Manager → Can view their Employees
+- Employee → Can only see their own data
+
+**Mapping Rules:**
+- Employee (role 5) → can be assigned to Manager (role 4)
+- Manager (role 4) → can be assigned to Zonal Manager (role 3)
+- Zonal Manager cannot be assigned (top of hierarchy below PE)
+- PE roles cannot be assigned
+
+**Backend Endpoints Added (`/app/backend/routers/users.py`):**
+- `GET /api/users/hierarchy` - Get users with their hierarchy info
+- `PUT /api/users/{id}/assign-manager` - Assign a user to a manager
+- `GET /api/users/{id}/subordinates` - Get all subordinates for a user
+- `GET /api/users/managers-list` - Get available managers for dropdown
+
+**Frontend Changes (`/app/frontend/src/pages/UserManagement.js`):**
+- Added "Team Hierarchy" tab showing visual org chart
+- Added "Reports To" column in user list
+- Added link icon for quick manager assignment
+- Shows unassigned managers and employees with assign buttons
+
