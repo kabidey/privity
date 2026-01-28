@@ -650,8 +650,8 @@ const Clients = () => {
   };
 
   const handleCloneToVendor = async (client) => {
-    if (!isPEDesk) {
-      toast.error('Only PE Desk can clone clients');
+    if (!isPELevel) {
+      toast.error('Only PE Desk or PE Manager can clone clients');
       return;
     }
     if (!window.confirm(`Clone client "${client.name}" as a Vendor?\n\nThis will create a new vendor entry with the same details.`)) return;
