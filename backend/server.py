@@ -1750,31 +1750,7 @@ async def export_bookings(
             headers={"Content-Disposition": f"attachment; filename=bookings_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"}
         )
 
-@api_router.get("/bookings/{booking_id}", response_model=BookingWithDetails)
-async def get_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
-    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "user_id": 0})
-    if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
-    
-    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
-    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
-    user = await db.users.find_one({"id": booking["created_by"]}, {"_id": 0})
-    
-    profit_loss = None
-    if booking.get("selling_price") and booking["status"] == "closed":
-        profit_loss = (booking["selling_price"] - booking["buying_price"]) * booking["quantity"]
-    
-    # Exclude fields that will be explicitly provided
-    booking_data = {k: v for k, v in booking.items() if k not in ["client_name", "stock_symbol", "stock_name", "created_by_name", "profit_loss"]}
-    
-    return BookingWithDetails(
-        **booking_data,
-        client_name=client["name"] if client else "Unknown",
-        stock_symbol=stock["symbol"] if stock else "Unknown",
-        stock_name=stock["name"] if stock else "Unknown",
-        created_by_name=user["name"] if user else "Unknown",
-        profit_loss=profit_loss
-    )
+# NOTE: GET /bookings/{id} has been moved to routers/bookings.py
 
 @api_router.put("/bookings/{booking_id}", response_model=Booking)
 async def update_booking(booking_id: str, booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
