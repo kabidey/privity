@@ -42,6 +42,7 @@ const Bookings = () => {
   const [referralPartners, setReferralPartners] = useState([]);
   const [showRpWarning, setShowRpWarning] = useState(false);
   const [showHighRpShareWarning, setShowHighRpShareWarning] = useState(false);
+  const [clientIsRpWarning, setClientIsRpWarning] = useState(null); // Stores RP info if client matches an RP
   const [formData, setFormData] = useState({
     client_id: '',
     stock_id: '',
