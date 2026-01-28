@@ -46,6 +46,13 @@ const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const { theme, toggleTheme } = useTheme();
 
@@ -53,6 +60,32 @@ const Layout = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (passwordData.new_password.length < 8) {
+      toast.error('New password must be at least 8 characters');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await api.post('/auth/change-password', {
+        current_password: passwordData.current_password,
+        new_password: passwordData.new_password
+      });
+      toast.success('Password changed successfully');
+      setShowChangePassword(false);
+      setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   // Base menu items visible to all
