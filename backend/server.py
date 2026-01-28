@@ -3418,7 +3418,37 @@ async def preview_email_template(
 
 # ============== Advanced Analytics Routes (PE Desk Only) ==============
 @api_router.get("/analytics/summary")
-        purchase_query = {"payments": {"$exists": True, "$ne": []}}
+async def get_analytics_summary(
+    days: int = 30,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get comprehensive analytics summary (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    
+    # Get all closed bookings
+    bookings = await db.bookings.find(
+        {"status": "closed", "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Calculate totals
+    total_revenue = sum(b.get("selling_price", 0) * b.get("quantity", 0) for b in bookings)
+    total_cost = sum(b.get("buying_price", 0) * b.get("quantity", 0) for b in bookings)
+    total_profit = total_revenue - total_cost
+    
+    # Get clients count
+    clients_count = await db.clients.count_documents({"is_vendor": False, "is_active": True})
+    
+    avg_booking_value = total_revenue / len(bookings) if bookings else 0
+    profit_margin = (total_profit / total_revenue * 100) if total_revenue > 0 else 0
+    
+    return {
+        "total_revenue": round(total_revenue, 2),
+        "total_profit": round(total_profit, 2),
+        "total_bookings": len(bookings),
         if start_date:
             purchase_query["purchase_date"] = {"$gte": start_date}
         if end_date:
