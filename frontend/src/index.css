@@ -93,6 +93,38 @@ code {
         border-width: 0;
     }
     
+    /* Notification bell ring animation */
+    @keyframes bellRing {
+        0%, 100% { transform: rotate(0deg); }
+        10% { transform: rotate(14deg); }
+        20% { transform: rotate(-12deg); }
+        30% { transform: rotate(10deg); }
+        40% { transform: rotate(-8deg); }
+        50% { transform: rotate(6deg); }
+        60% { transform: rotate(-4deg); }
+        70% { transform: rotate(2deg); }
+        80% { transform: rotate(-1deg); }
+        90% { transform: rotate(0.5deg); }
+    }
+    
+    .bell-ring {
+        animation: bellRing 0.5s ease-in-out infinite;
+    }
+    
+    /* Glow effect for notification */
+    @keyframes glowPulse {
+        0%, 100% { 
+            box-shadow: 0 0 5px #eab308, 0 0 10px #f59e0b, 0 0 15px #ef4444;
+        }
+        50% { 
+            box-shadow: 0 0 10px #eab308, 0 0 20px #f59e0b, 0 0 30px #ef4444;
+        }
+    }
+    
+    .notification-glow {
+        animation: glowPulse 0.5s ease-in-out infinite;
+    }
+    
     .page-enter {
         animation: pageEnter 0.3s ease-out;
     }
