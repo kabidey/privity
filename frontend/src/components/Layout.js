@@ -128,6 +128,7 @@ const Layout = ({ children }) => {
   if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
+    menuItems.push({ icon: Mail, label: 'Email Logs', path: '/email-logs' });
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
     menuItems.push({ icon: Database, label: 'DB Backup', path: '/database-backup' });
   }
