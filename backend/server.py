@@ -3572,7 +3572,35 @@ async def get_employee_performance(
     return result[:limit]
 
 @api_router.get("/analytics/daily-trend")
-            else:
+async def get_daily_trend(
+    days: int = 30,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get daily booking trend (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    result = []
+    
+    for i in range(days, -1, -1):
+        date = (datetime.now(timezone.utc) - timedelta(days=i)).strftime("%Y-%m-%d")
+        date_start = f"{date}T00:00:00"
+        date_end = f"{date}T23:59:59"
+        
+        # Get bookings for this day
+        bookings = await db.bookings.find({
+            "created_at": {"$gte": date_start, "$lte": date_end},
+            "approval_status": "approved"
+        }, {"_id": 0}).to_list(1000)
+        
+        # Get new clients for this day
+        new_clients = await db.clients.count_documents({
+            "created_at": {"$gte": date_start, "$lte": date_end},
+            "is_vendor": False
+        })
+        
+        bookings_value = sum(b.get("selling_price", 0) * b.get("quantity", 0) for b in bookings)
+        profit_loss = sum(
                 purchase_query["purchase_date"] = {"$lte": end_date}
         
         purchases = await db.purchases.find(purchase_query, {"_id": 0}).to_list(5000)
