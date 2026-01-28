@@ -4452,9 +4452,9 @@ async def test_email_config(
     test_request: SMTPTestRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Test SMTP configuration by sending a test email (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can test email configuration")
+    """Test SMTP configuration by sending a test email (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can test email configuration")
     
     config = await db.email_config.find_one({"_id": "smtp_config"})
     
