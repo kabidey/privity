@@ -4119,6 +4119,24 @@ app.include_router(stocks_router, prefix="/api")
 app.include_router(database_backup_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
 
+# Import and include new modular routers
+from routers import (
+    analytics_router,
+    audit_logs_router,
+    dashboard_router,
+    inventory_router,
+    purchases_router,
+    reports_router,
+    auth_router
+)
+app.include_router(analytics_router, prefix="/api")
+app.include_router(audit_logs_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
+app.include_router(inventory_router, prefix="/api")
+app.include_router(purchases_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+
 # Include the legacy api_router (endpoints here will be overridden by modular routers)
 app.include_router(api_router)
 
