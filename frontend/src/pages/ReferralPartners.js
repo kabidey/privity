@@ -271,6 +271,29 @@ const ReferralPartners = () => {
       toast.error('Address is required');
       return;
     }
+    // Validate bank details
+    if (!formData.bank_name.trim()) {
+      toast.error('Bank Name is required');
+      return;
+    }
+    if (!formData.bank_ifsc_code.trim()) {
+      toast.error('IFSC Code is required');
+      return;
+    }
+    // Validate IFSC format (11 characters: 4 letters + 0 + 6 alphanumeric)
+    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+    if (!ifscRegex.test(formData.bank_ifsc_code.toUpperCase())) {
+      toast.error('Invalid IFSC Code format (should be like HDFC0001234)');
+      return;
+    }
+    if (!formData.bank_account_number.trim()) {
+      toast.error('Bank Account Number is required');
+      return;
+    }
+    if (formData.bank_account_number.length < 9 || formData.bank_account_number.length > 18) {
+      toast.error('Bank Account Number should be 9-18 digits');
+      return;
+    }
 
     setSubmitting(true);
     try {
