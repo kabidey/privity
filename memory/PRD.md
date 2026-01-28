@@ -151,9 +151,8 @@ refund_requests: {
 - ✅ All resolved - no critical issues
 
 ### P1 (High Priority)
-- [ ] Backend Monolith Refactoring - Extract routes from server.py (5187 lines) to modular routers
-  - Next: Extract clients endpoints to `/app/backend/routers/clients.py`
-  - Then: Extract bookings, purchases, reports endpoints
+- ✅ Backend Monolith Refactoring - Extracted bookings, clients, and finance routes to modular routers
+- ✅ High-Concurrency Booking Support - Atomic inventory operations with locking
 - [ ] Two-factor authentication (TOTP)
 
 ### P2 (Medium Priority)
