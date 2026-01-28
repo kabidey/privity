@@ -367,6 +367,7 @@ async def login(login_data: UserLogin):
         id=user["id"],
         email=user["email"],
         name=user["name"],
+        pan_number=user.get("pan_number"),
         role=user.get("role", 5),
         role_name=ROLES.get(user.get("role", 5), "Viewer"),
         created_at=user["created_at"]
@@ -378,6 +379,13 @@ async def login(login_data: UserLogin):
 async def get_me(current_user: dict = Depends(get_current_user)):
     return User(
         id=current_user["id"],
+        email=current_user["email"],
+        name=current_user["name"],
+        pan_number=current_user.get("pan_number"),
+        role=current_user.get("role", 5),
+        role_name=ROLES.get(current_user.get("role", 5), "Viewer"),
+        created_at=current_user["created_at"]
+    )
         email=current_user["email"],
         name=current_user["name"],
         role=current_user.get("role", 5),
