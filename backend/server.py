@@ -2440,15 +2440,33 @@ async def confirm_stock_transfer(
     # Create RP payment if Referral Partner is associated with this booking
     rp_payment_created = False
     rp_payment_amount = 0
-    if booking.get("referral_partner_id") and booking.get("rp_revenue_share_percent"):
-        # Calculate RP payment amount based on profit
-        quantity = booking.get("quantity", 0)
-        selling_price = booking.get("selling_price", 0)
-        buying_price = booking.get("buying_price", 0)
-        profit = (selling_price - buying_price) * quantity
+    employee_commission_amount = 0
+    
+    # Calculate profit
+    quantity = booking.get("quantity", 0)
+    selling_price = booking.get("selling_price", 0)
+    buying_price = booking.get("buying_price", 0)
+    profit = (selling_price - buying_price) * quantity
+    
+    if profit > 0:
+        rp_share_percent = booking.get("rp_revenue_share_percent", 0) or 0
+        employee_share_percent = 100.0 - rp_share_percent
         
-        if profit > 0:
-            rp_share_percent = booking.get("rp_revenue_share_percent", 0)
+        # Calculate employee commission
+        employee_commission_amount = round(profit * (employee_share_percent / 100), 2)
+        
+        # Update booking with employee commission info
+        await db.bookings.update_one(
+            {"id": booking_id},
+            {"$set": {
+                "employee_revenue_share_percent": employee_share_percent,
+                "employee_commission_amount": employee_commission_amount,
+                "employee_commission_status": "calculated"
+            }}
+        )
+        
+        # Create RP payment if RP is associated
+        if booking.get("referral_partner_id") and rp_share_percent > 0:
             rp_payment_amount = round(profit * (rp_share_percent / 100), 2)
             
             # Get RP details
@@ -2522,7 +2540,8 @@ async def confirm_stock_transfer(
         "booking_number": booking_number,
         "client_email": client.get("email") if client else None,
         "rp_payment_created": rp_payment_created,
-        "rp_payment_amount": rp_payment_amount if rp_payment_created else None
+        "rp_payment_amount": rp_payment_amount if rp_payment_created else None,
+        "employee_commission_amount": employee_commission_amount
     }
 
 
