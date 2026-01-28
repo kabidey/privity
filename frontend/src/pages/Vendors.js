@@ -352,13 +352,36 @@ const Vendors = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">Primary Email</Label>
                       <Input
                         id="email"
                         data-testid="vendor-email-input"
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="Primary email"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email_secondary">Secondary Email</Label>
+                      <Input
+                        id="email_secondary"
+                        data-testid="vendor-email-secondary-input"
+                        type="email"
+                        value={formData.email_secondary}
+                        onChange={(e) => setFormData({ ...formData, email_secondary: e.target.value })}
+                        placeholder="Additional email"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email_tertiary">Tertiary Email</Label>
+                      <Input
+                        id="email_tertiary"
+                        data-testid="vendor-email-tertiary-input"
+                        type="email"
+                        value={formData.email_tertiary}
+                        onChange={(e) => setFormData({ ...formData, email_tertiary: e.target.value })}
+                        placeholder="Third email"
                       />
                     </div>
                     <div className="space-y-2">
