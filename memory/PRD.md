@@ -17,7 +17,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 4. **Manager (Role 4)**: Manage own clients, bookings, view reports
 5. **Employee (Role 5)**: Create bookings, view clients
 6. **Viewer (Role 6)**: Read-only access
-7. **Finance (Role 7)**: Employee rights + Full Finance page access (payments, refunds)
+7. **Finance (Role 7)**: Employee rights + Full Finance page access (payments, refunds, RP payments)
 
 ## Core Requirements (Static)
 - User authentication (register/login)
@@ -28,103 +28,82 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Inventory management with weighted average pricing
 - Booking management with inventory validation
 - P&L reporting with filtering and export
+- Referral Partner management and commission tracking
 
 ## What's Been Implemented
 
-### Phase 1-11: Previous Development
-See CHANGELOG.md for detailed history of phases 1-11.
-
 ### Latest Updates (Jan 28, 2026)
 
-#### ✅ Backend Refactoring - COMPLETED
-- Created modular routers for `/app/backend/routers/`:
-  - `bookings.py` - Booking CRUD with atomic inventory operations
-  - `clients.py` - Client/Vendor management
-  - `finance.py` - Finance dashboard and refund management
-- Updated router registration order for proper precedence
-- Cleaned up duplicate booking numbers in database
+#### ✅ Referral Partner (RP) Finance Integration - COMPLETED
+**RP Payment Tracking in Finance Module**
+- RP Payments automatically created when stock transfer is confirmed for bookings with RPs
+- Payment amount calculated as: `profit * (rp_revenue_share_percent / 100)`
+- Finance Dashboard shows RP Payments summary cards (Pending RP Payments, RP Payments Done)
+- New "RP Payments" tab displays all RP payments with full details
+- Update dialog allows marking payments as "Processing" or "Paid" with reference numbers
 
-#### ✅ High-Concurrency Booking Support - COMPLETED
-- Implemented atomic booking number generation using MongoDB counters with asyncio locks
-- Added atomic inventory reservation using `check_and_reserve_inventory()` with locking
-- Implemented `release_inventory_reservation()` for voided bookings
-- All concurrent booking tests passing (10 concurrent creates, 5 concurrent approvals)
-
-#### ✅ Finance Role (Role 7) - COMPLETED
-- New "Finance" role with employee-like permissions + full Finance page access
-- Can view/manage refund requests, view payments, export finance data
-- Cannot access vendors, stocks, purchases, users
-- Frontend menu shows only relevant items: Dashboard, Clients, Inventory, Bookings, Reports, Finance
-
-#### ✅ PE Manager Vendor Access - COMPLETED
-- PE Manager (role 2) can now access Vendors page
-- Can create and edit vendors
-- Cannot delete vendors (returns 403 - Only PE Desk can delete)
-
-#### ✅ Refund Feature - COMPLETED
-**Automatic Refund Request Creation on Voiding Paid Bookings**
-- When a booking with payments is voided, the system automatically creates a refund request
-- Refund request includes:
-  - Booking details (number, stock, quantity)
-  - Client information (name, email)
-  - Refund amount (total paid amount)
-  - Client bank details (extracted from primary bank account)
-  - Void reason
-  - Status tracking (pending → processing → completed/failed)
-
-**Finance Dashboard - Refunds Tab**
-- New "Refunds" tab on Finance page showing all refund requests
-- Summary cards show pending and completed refund counts/amounts
-- Table columns: Date, Booking #, Client, Stock, Amount, Bank Details, Status, Actions
-- Edit button opens Update Refund Request dialog
-
-**Refund Update Dialog**
-- Shows refund amount, stock, void reason
-- Displays client bank details (Bank, Account, IFSC, Holder)
-- Status dropdown: Pending, Processing, Completed, Failed
-- Transaction Reference Number input
-- Notes textarea
-- Update Refund button
+**30% Revenue Share Cap**
+- Backend validation: Returns 400 error if revenue share > 30%
+- Frontend validation: Input field caps at 30% max
 
 **API Endpoints**:
-- `GET /api/finance/refund-requests` - List all refund requests
-- `GET /api/finance/refund-requests/{id}` - Get specific refund
-- `PUT /api/finance/refund-requests/{id}` - Update refund status/notes/reference
-- `PUT /api/finance/refund-requests/{id}/bank-details` - Update bank details
+- `GET /api/finance/rp-payments` - List all RP payments with status filter
+- `GET /api/finance/rp-payments/summary` - Summary statistics
+- `PUT /api/finance/rp-payments/{id}` - Update payment status/reference/notes
 
-**Database Schema**:
+**RP Payment Schema**:
 ```javascript
-refund_requests: {
+rp_payments: {
   id: string,
+  referral_partner_id: string,
+  rp_code: string,
+  rp_name: string,
   booking_id: string,
   booking_number: string,
   client_id: string,
   client_name: string,
-  client_email: string,
   stock_id: string,
   stock_symbol: string,
   quantity: number,
-  refund_amount: number,
-  bank_details: {
-    bank_name: string,
-    account_number: string,
-    ifsc_code: string,
-    account_holder_name: string,
-    branch: string
-  },
-  void_reason: string,
-  voided_by: string,
-  voided_by_name: string,
-  status: "pending" | "processing" | "completed" | "failed",
-  reference_number: string,
-  notes: string,
-  created_at: datetime,
-  updated_at: datetime,
-  updated_by: string
+  profit: number,
+  revenue_share_percent: number,
+  payment_amount: number,
+  status: "pending" | "processing" | "paid",
+  payment_date: string | null,
+  payment_reference: string | null,
+  notes: string | null,
+  created_at: datetime
 }
 ```
 
-**Testing Results**: 100% pass rate (13/13 backend tests, all frontend tests passed)
+**Testing Results**: 100% pass rate (10/10 backend tests, 100% frontend verification)
+
+#### ✅ Referral Partner (RP) System - COMPLETED
+- Full CRUD system for managing Referral Partners
+- Unique RP codes (RP-XXXX format)
+- Integration into booking form with warning about post-creation restrictions
+- Documents upload support (PAN, Aadhar, Cancelled Cheque)
+
+#### ✅ Backend Refactoring - COMPLETED
+- Created modular routers for `/app/backend/routers/`:
+  - `bookings.py` - Booking CRUD with atomic inventory operations and RP fields
+  - `clients.py` - Client/Vendor management
+  - `finance.py` - Finance dashboard, refunds, and RP payments
+  - `referral_partners.py` - RP CRUD
+- Router registration prioritized over legacy endpoints
+
+#### ✅ High-Concurrency Booking Support - COMPLETED
+- Atomic booking number generation using MongoDB counters with asyncio locks
+- Atomic inventory reservation with locking mechanisms
+- All concurrent booking tests passing
+
+#### ✅ Finance Role (Role 7) - COMPLETED
+- Employee-like permissions + full Finance page access
+- Can view/manage refund requests, RP payments, view payments, export data
+
+#### ✅ Refund Feature - COMPLETED
+- Automatic refund request creation when voiding paid bookings
+- Finance Dashboard Refunds tab with full management capabilities
 
 ## Pages & Routes
 | Route | Page | Description |
@@ -134,7 +113,7 @@ refund_requests: {
 | / | Dashboard | Stats, charts, quick actions |
 | /clients | Clients | Client management with portfolio links |
 | /clients/:id/portfolio | ClientPortfolio | Detailed client holdings |
-| /vendors | Vendors | Vendor management (PE Desk only) |
+| /vendors | Vendors | Vendor management (PE Level + PE Manager with restrictions) |
 | /stocks | Stocks | Stock management |
 | /purchases | Purchases | Purchase recording |
 | /inventory | Inventory | Stock levels tracking |
@@ -144,22 +123,15 @@ refund_requests: {
 | /analytics | Analytics | Advanced analytics (PE Level only) |
 | /email-templates | EmailTemplates | Email template editor (PE Level only) |
 | /dp-transfer | DPTransferReport | Bookings ready for DP transfer |
-| /finance | Finance | Finance dashboard with payments and refunds |
+| /finance | Finance | Finance dashboard with payments, refunds, RP payments |
+| /referral-partners | ReferralPartners | Referral Partner management |
 
 ## Test Reports
-- `/app/test_reports/iteration_24.json` - Referral Partners feature testing (85.7% backend, 100% frontend)
-- `/app/test_reports/iteration_23.json` - Backend refactoring and concurrency testing (88.9% pass)
-- `/app/test_reports/iteration_22.json` - Finance role and PE Manager vendor access (100% pass)
-- `/app/test_reports/iteration_21.json` - Refund feature testing (100% pass)
-
-## Tech Stack
-- React 18 with React Router v6
-- FastAPI with Motor (async MongoDB)
-- Tailwind CSS + Shadcn UI
-- Recharts for analytics
-- JWT authentication
-- ReportLab (PDF) + OpenPyXL (Excel)
-- ThemeContext for dark mode
+- `/app/test_reports/iteration_25.json` - RP Finance Integration (100% pass)
+- `/app/test_reports/iteration_24.json` - Referral Partners feature
+- `/app/test_reports/iteration_23.json` - Backend refactoring and concurrency
+- `/app/test_reports/iteration_22.json` - Finance role and PE Manager vendor access
+- `/app/test_reports/iteration_21.json` - Refund feature
 
 ## Prioritized Backlog
 
@@ -167,11 +139,14 @@ refund_requests: {
 - ✅ All resolved - no critical issues
 
 ### P1 (High Priority)
-- ✅ Backend Monolith Refactoring - Extracted bookings, clients, and finance routes to modular routers
-- ✅ High-Concurrency Booking Support - Atomic inventory operations with locking
+- ✅ RP Finance Integration - Complete
+- ✅ 30% Revenue Share Cap - Complete
+- [ ] Remove duplicate endpoints from server.py (cleanup task)
+- [ ] Implement employee revenue share reduction by RP allocation
 - [ ] Two-factor authentication (TOTP)
 
 ### P2 (Medium Priority)
+- [ ] Create dashboard view for Referral Partners to see their generated revenue
 - [ ] Email sending history/log for auditing
 - [ ] Bulk booking closure feature
 - [ ] Configurable thresholds for loss-booking auto-approval
@@ -179,26 +154,28 @@ refund_requests: {
 
 ## Credentials for Testing
 - **PE Desk (Super Admin)**: `pedesk@smifs.com` / `Kutta@123`
-- **PE Manager**: `pemanager@smifs.com` / `Manager@123`
-- **Finance**: `finance@smifs.com` / `Finance@123`
+- **PE Manager**: `pemanager@test.com` / `Test@123`
+- **Finance**: `finance@test.com` / `Test@123`
 - **Employee**: `employee@test.com` / `Test@123`
 
 ## File Structure
 ```
 /app/
 ├── backend/
-│   ├── server.py              # Main monolith (5187 lines - needs refactoring)
+│   ├── server.py              # Main app (contains legacy endpoints - cleanup needed)
 │   ├── config.py              # Configuration, roles, permissions
 │   ├── database.py            # MongoDB connection
 │   ├── models/__init__.py     # All Pydantic models
 │   ├── routers/
-│   │   ├── auth.py            # Authentication routes
-│   │   ├── users.py           # User management (430 lines)
-│   │   ├── stocks.py          # Stocks and inventory
-│   │   ├── database_backup.py # Backup/restore
-│   │   ├── email_templates.py # Email template CRUD
-│   │   ├── smtp_config.py     # SMTP configuration
-│   │   └── notifications.py   # Real-time notifications
+│   │   ├── bookings.py        # Booking CRUD with RP fields (priority)
+│   │   ├── clients.py         # Client/Vendor management (priority)
+│   │   ├── finance.py         # Finance + RP payments (priority)
+│   │   ├── referral_partners.py # RP CRUD
+│   │   ├── email_templates.py
+│   │   ├── smtp_config.py
+│   │   ├── stocks.py
+│   │   ├── database_backup.py
+│   │   └── users.py
 │   └── services/
 │       ├── email_service.py
 │       ├── notification_service.py
@@ -208,8 +185,14 @@ refund_requests: {
 ├── frontend/
 │   └── src/
 │       ├── pages/
-│       │   ├── Finance.js     # Finance dashboard with Refunds tab
+│       │   ├── Finance.js     # Finance dashboard with RP Payments tab
+│       │   ├── ReferralPartners.js
+│       │   ├── Bookings.js    # With RP selection in form
 │       │   └── ...
 │       └── components/
 └── uploads/
 ```
+
+## 3rd Party Integrations
+- **OpenAI via `emergentintegrations`**: Used for OCR on document uploads. Uses the Emergent LLM Key.
+- **`openpyxl`**: Used for generating `.xlsx` Excel files for export.
