@@ -195,7 +195,7 @@ backend_structure = """
 │   └── azure_sso_service.py
 └── routers/               # API endpoint modules (18 routers)
 """
-elements.append(Paragraph(backend_structure.replace('\n', '<br/>'), styles['Code']))
+elements.append(Paragraph(backend_structure.replace('\n', '<br/>'), styles['CodeCustom']))
 
 elements.append(Paragraph("Router Modules:", styles['Heading3Custom']))
 routers_data = [
