@@ -921,11 +921,133 @@ const ReferralPartners = () => {
               <div className="text-xs text-muted-foreground">
                 Created by {selectedRp.created_by_name} on {new Date(selectedRp.created_at).toLocaleDateString()}
               </div>
+              {selectedRp.approval_status && (
+                <div className="mt-2 pt-2 border-t">
+                  <p className="text-sm text-muted-foreground">Approval Status</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {getApprovalStatusBadge(selectedRp.approval_status)}
+                    {selectedRp.approved_by_name && (
+                      <span className="text-xs text-muted-foreground">
+                        by {selectedRp.approved_by_name} on {new Date(selectedRp.approved_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                  {selectedRp.rejection_reason && (
+                    <p className="text-sm text-red-600 mt-1">Reason: {selectedRp.rejection_reason}</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowViewDialog(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Dialog */}
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-yellow-500" />
+              Review Referral Partner
+            </DialogTitle>
+            <DialogDescription>
+              Approve or reject {selectedRp?.name} ({selectedRp?.rp_code})
+            </DialogDescription>
+          </DialogHeader>
+          {selectedRp && (
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Name</p>
+                      <p className="font-medium">{selectedRp.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Email</p>
+                      <p>{selectedRp.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Phone</p>
+                      <p className="font-mono">{selectedRp.phone}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">PAN</p>
+                      <p className="font-mono">{selectedRp.pan_number}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-sm">Address</p>
+                    <p className="text-sm">{selectedRp.address}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-sm">Created By</p>
+                    <p className="text-sm">{selectedRp.created_by_name}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Documents Status</p>
+                <div className="flex gap-2">
+                  {selectedRp.pan_card_url ? (
+                    <Badge className="bg-green-500">PAN ✓</Badge>
+                  ) : (
+                    <Badge variant="destructive">PAN ✗</Badge>
+                  )}
+                  {selectedRp.aadhar_card_url ? (
+                    <Badge className="bg-green-500">Aadhar ✓</Badge>
+                  ) : (
+                    <Badge variant="destructive">Aadhar ✗</Badge>
+                  )}
+                  {selectedRp.cancelled_cheque_url ? (
+                    <Badge className="bg-green-500">Cheque ✓</Badge>
+                  ) : (
+                    <Badge variant="destructive">Cheque ✗</Badge>
+                  )}
+                </div>
+                {(!selectedRp.pan_card_url || !selectedRp.aadhar_card_url || !selectedRp.cancelled_cheque_url) && (
+                  <p className="text-xs text-yellow-600">Note: Some documents are missing. You may still approve if documents will be uploaded later.</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Rejection Reason (required if rejecting)</Label>
+                <Textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Enter reason for rejection..."
+                  rows={2}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowApprovalDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleApprove(false)}
+              disabled={submitting}
+              data-testid="reject-rp-btn"
+            >
+              <XCircle className="h-4 w-4 mr-1" />
+              Reject
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => handleApprove(true)}
+              disabled={submitting}
+              data-testid="confirm-approve-rp-btn"
+            >
+              <CheckCircle className="h-4 w-4 mr-1" />
+              Approve
             </Button>
           </DialogFooter>
         </DialogContent>
