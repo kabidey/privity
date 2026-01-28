@@ -98,8 +98,9 @@ rp_payments: {
   - `bookings.py` - Booking CRUD with atomic inventory operations and RP fields
   - `clients.py` - Client/Vendor management
   - `finance.py` - Finance dashboard, refunds, and RP payments
-  - `referral_partners.py` - RP CRUD
+  - `referral_partners.py` - RP CRUD with approval workflow
 - Router registration prioritized over legacy endpoints
+- **Removed duplicate endpoints from server.py** - Cleaned up ~400 lines of duplicate code for clients, bookings, and finance endpoints
 
 #### ✅ High-Concurrency Booking Support - COMPLETED
 - Atomic booking number generation using MongoDB counters with asyncio locks
