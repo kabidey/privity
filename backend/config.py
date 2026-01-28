@@ -545,5 +545,45 @@ DEFAULT_EMAIL_TEMPLATES = {
         """,
         "variables": ["user_name", "email", "role_name"],
         "is_active": True
+    },
+    "refund_completed": {
+        "key": "refund_completed",
+        "name": "Refund Completed",
+        "subject": "Refund Processed - Booking {{booking_number}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #064E3B;">Refund Processed Successfully</h2>
+            <p>Dear {{client_name}},</p>
+            <p>We are pleased to inform you that your refund has been processed successfully.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #064E3B; color: white;">
+                    <th style="padding: 10px; text-align: left;" colspan="2">Refund Details</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking Number</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{booking_number}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{stock_symbol}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Refund Amount</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong style="color: #059669;">₹{{refund_amount}}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Reference Number</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{reference_number}}</td>
+                </tr>
+            </table>
+            
+            <p>The refund amount has been credited to your registered bank account. Please allow 2-3 business days for the amount to reflect in your account.</p>
+            <p>If you have any questions regarding this refund, please contact us.</p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """,
+        "variables": ["client_name", "booking_number", "stock_symbol", "refund_amount", "reference_number"],
+        "is_active": True
     }
 }
