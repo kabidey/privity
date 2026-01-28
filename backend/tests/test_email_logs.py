@@ -37,8 +37,8 @@ def pe_desk_token(api_client):
     })
     assert response.status_code == 200, f"PE Desk login failed: {response.text}"
     data = response.json()
-    assert "access_token" in data, "No access_token in login response"
-    return data["access_token"]
+    assert "token" in data, "No token in login response"
+    return data["token"]
 
 
 @pytest.fixture(scope="module")
