@@ -181,10 +181,18 @@ const ReferralPartners = () => {
         aadhar_number: aadharDigits
       };
       const response = await api.post('/referral-partners', submitData);
-      toast.success(`Referral Partner created with code: ${response.data.rp_code}. Please upload all required documents.`);
+      const isApproved = response.data.approval_status === 'approved';
+      if (isApproved) {
+        toast.success(`Referral Partner created with code: ${response.data.rp_code}. Please upload all required documents.`);
+      } else {
+        toast.success(`Referral Partner created with code: ${response.data.rp_code}. Pending approval by PE Desk/PE Manager.`);
+      }
       setShowAddDialog(false);
       resetForm();
       fetchRps();
+      if (isPELevel) {
+        fetchPendingRps();
+      }
       // Open upload dialog for new RP
       setSelectedRp(response.data);
       setShowUploadDialog(true);
