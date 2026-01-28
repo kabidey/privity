@@ -799,17 +799,18 @@ async def get_clients(
     user_role = current_user.get("role", 5)
     user_id = current_user.get("id")
     
-    # Employee restrictions
-    if user_role == 4:
-        # Employees cannot see vendors
+    # Employee and Finance role restrictions (roles 4 and 7)
+    if user_role in [4, 7]:
+        # Employees and Finance cannot see vendors
         if is_vendor == True:
-            raise HTTPException(status_code=403, detail="Employees cannot access vendors")
+            raise HTTPException(status_code=403, detail="You do not have access to vendors")
         query["is_vendor"] = False
-        # Employees can only see their own clients
-        query["$or"] = [
-            {"mapped_employee_id": user_id},
-            {"created_by": user_id}
-        ]
+        # Employees can only see their own clients (Finance role sees all clients)
+        if user_role == 4:
+            query["$or"] = [
+                {"mapped_employee_id": user_id},
+                {"created_by": user_id}
+            ]
     else:
         # Vendor filter for non-employees
         if is_vendor is not None:
