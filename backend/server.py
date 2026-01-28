@@ -101,28 +101,24 @@ def generate_otc_ucc() -> str:
     return f"OTC{date_part}{unique_part}"
 
 
+# Lock for booking number generation to prevent race conditions
+_booking_number_lock = asyncio.Lock()
+
 async def generate_booking_number() -> str:
-    """Generate unique human-readable booking number (e.g., BK-2026-00001)"""
+    """Generate unique human-readable booking number using atomic counter."""
     year = datetime.now(timezone.utc).strftime("%Y")
     
-    # Get the last booking number for this year
-    last_booking = await db.bookings.find_one(
-        {"booking_number": {"$regex": f"^BK-{year}-"}},
-        {"_id": 0, "booking_number": 1},
-        sort=[("booking_number", -1)]
-    )
-    
-    if last_booking and last_booking.get("booking_number"):
-        # Extract the sequence number and increment
-        try:
-            last_seq = int(last_booking["booking_number"].split("-")[-1])
-            new_seq = last_seq + 1
-        except (ValueError, IndexError):
-            new_seq = 1
-    else:
-        new_seq = 1
-    
-    return f"BK-{year}-{new_seq:05d}"
+    async with _booking_number_lock:
+        # Use atomic findAndModify to get next sequence
+        counter = await db.counters.find_one_and_update(
+            {"_id": f"booking_{year}"},
+            {"$inc": {"seq": 1}},
+            upsert=True,
+            return_document=True
+        )
+        
+        seq_num = counter.get("seq", 1)
+        return f"BK-{year}-{seq_num:05d}"
 
 
 def get_client_emails(client: dict) -> list:
