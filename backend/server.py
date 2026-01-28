@@ -4146,13 +4146,158 @@ async def get_finance_summary(
     client_payments = [p for p in payments if p["type"] == "client"]
     vendor_payments = [p for p in payments if p["type"] == "vendor"]
     
+    # Get refund requests stats
+    refund_requests = await db.refund_requests.find({}, {"_id": 0}).to_list(1000)
+    pending_refunds = [r for r in refund_requests if r.get("status") == "pending"]
+    completed_refunds = [r for r in refund_requests if r.get("status") == "completed"]
+    
     return {
         "total_received": sum(p["amount"] for p in client_payments),
         "total_sent": sum(p["amount"] for p in vendor_payments),
         "client_payments_count": len(client_payments),
         "vendor_payments_count": len(vendor_payments),
-        "net_flow": sum(p["amount"] for p in client_payments) - sum(p["amount"] for p in vendor_payments)
+        "net_flow": sum(p["amount"] for p in client_payments) - sum(p["amount"] for p in vendor_payments),
+        "pending_refunds_count": len(pending_refunds),
+        "pending_refunds_amount": sum(r.get("refund_amount", 0) for r in pending_refunds),
+        "completed_refunds_count": len(completed_refunds),
+        "completed_refunds_amount": sum(r.get("refund_amount", 0) for r in completed_refunds)
     }
+
+
+# ============== Refund Requests Endpoints ==============
+@api_router.get("/finance/refund-requests")
+async def get_refund_requests(
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all refund requests (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access refund requests")
+    
+    query = {}
+    if status:
+        query["status"] = status
+    
+    refund_requests = await db.refund_requests.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    return refund_requests
+
+
+@api_router.get("/finance/refund-requests/{request_id}")
+async def get_refund_request(request_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a specific refund request"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access refund requests")
+    
+    refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
+    if not refund:
+        raise HTTPException(status_code=404, detail="Refund request not found")
+    
+    return refund
+
+
+class RefundStatusUpdate(BaseModel):
+    status: str  # processing, completed, failed
+    notes: Optional[str] = None
+    reference_number: Optional[str] = None
+
+
+@api_router.put("/finance/refund-requests/{request_id}")
+async def update_refund_request(
+    request_id: str,
+    update_data: RefundStatusUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update refund request status (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update refund requests")
+    
+    if update_data.status not in ["processing", "completed", "failed"]:
+        raise HTTPException(status_code=400, detail="Invalid status. Use: processing, completed, or failed")
+    
+    refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
+    if not refund:
+        raise HTTPException(status_code=404, detail="Refund request not found")
+    
+    update_fields = {
+        "status": update_data.status,
+        "processed_at": datetime.now(timezone.utc).isoformat(),
+        "processed_by": current_user["id"],
+        "processed_by_name": current_user["name"]
+    }
+    
+    if update_data.notes:
+        update_fields["notes"] = update_data.notes
+    if update_data.reference_number:
+        update_fields["reference_number"] = update_data.reference_number
+    
+    await db.refund_requests.update_one({"id": request_id}, {"$set": update_fields})
+    
+    # Notify about refund completion
+    if update_data.status == "completed":
+        # Get client info
+        client = await db.clients.find_one({"id": refund["client_id"]}, {"_id": 0})
+        if client and client.get("email"):
+            await send_templated_email(
+                "refund_completed",
+                client["email"],
+                {
+                    "client_name": client["name"],
+                    "booking_number": refund["booking_number"],
+                    "refund_amount": f"{refund['refund_amount']:,.2f}",
+                    "reference_number": update_data.reference_number or "N/A",
+                    "stock_symbol": refund.get("stock_symbol", "N/A")
+                }
+            )
+    
+    # Audit log
+    await create_audit_log(
+        action=f"REFUND_{update_data.status.upper()}",
+        entity_type="refund_request",
+        entity_id=request_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 6),
+        details={
+            "booking_number": refund["booking_number"],
+            "client_name": refund["client_name"],
+            "refund_amount": refund["refund_amount"],
+            "status": update_data.status,
+            "reference_number": update_data.reference_number
+        }
+    )
+    
+    return {"message": f"Refund request updated to {update_data.status}"}
+
+
+@api_router.put("/finance/refund-requests/{request_id}/bank-details")
+async def update_refund_bank_details(
+    request_id: str,
+    bank_name: str,
+    account_number: str,
+    ifsc_code: str,
+    account_holder_name: str,
+    branch: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update bank details for a refund request (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update refund requests")
+    
+    refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
+    if not refund:
+        raise HTTPException(status_code=404, detail="Refund request not found")
+    
+    bank_details = {
+        "bank_name": bank_name,
+        "account_number": account_number,
+        "ifsc_code": ifsc_code,
+        "account_holder_name": account_holder_name,
+        "branch": branch
+    }
+    
+    await db.refund_requests.update_one({"id": request_id}, {"$set": {"bank_details": bank_details}})
+    
+    return {"message": "Bank details updated successfully"}
 
 
 @api_router.get("/finance/export/excel")
