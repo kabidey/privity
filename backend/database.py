@@ -72,6 +72,13 @@ async def create_indexes():
         await db.employee_commissions.create_index("employee_id")
         await db.employee_commissions.create_index("status")
         
+        # Email logs collection indexes
+        await db.email_logs.create_index([("created_at", -1)])
+        await db.email_logs.create_index("status")
+        await db.email_logs.create_index("template_key", sparse=True)
+        await db.email_logs.create_index("to_email")
+        await db.email_logs.create_index([("related_entity_type", 1), ("related_entity_id", 1)], sparse=True)
+        
         print("Database indexes created successfully")
     except Exception as e:
         print(f"Error creating indexes: {e}")
