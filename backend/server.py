@@ -1469,10 +1469,10 @@ async def apply_corporate_action(
 
 @api_router.delete("/corporate-actions/{action_id}")
 async def delete_corporate_action(action_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a pending corporate action - PE Desk only"""
-    user_role = current_user.get("role", 5)
+    """Delete a pending corporate action - PE Desk only (deletion restricted)"""
+    user_role = current_user.get("role", 6)
     
-    if user_role != 1:
+    if not is_pe_desk_only(user_role):
         raise HTTPException(status_code=403, detail="Only PE Desk can delete corporate actions")
     
     action = await db.corporate_actions.find_one({"id": action_id}, {"_id": 0})
