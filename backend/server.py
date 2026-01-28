@@ -87,7 +87,8 @@ from routers import (
     users_router,
     bookings_router,
     clients_router,
-    finance_router
+    finance_router,
+    referral_partners_router
 )
 
 # Keep local Inventory alias for backward compatibility
