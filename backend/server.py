@@ -3324,11 +3324,71 @@ async def confirm_stock_transfer(
             {"booking_id": booking_id, "booking_number": booking_number, "client_name": client["name"] if client else None}
         )
     
+    # Create RP payment if Referral Partner is associated with this booking
+    rp_payment_created = False
+    rp_payment_amount = 0
+    if booking.get("referral_partner_id") and booking.get("rp_revenue_share_percent"):
+        # Calculate RP payment amount based on profit
+        quantity = booking.get("quantity", 0)
+        selling_price = booking.get("selling_price", 0)
+        buying_price = booking.get("buying_price", 0)
+        profit = (selling_price - buying_price) * quantity
+        
+        if profit > 0:
+            rp_share_percent = booking.get("rp_revenue_share_percent", 0)
+            rp_payment_amount = round(profit * (rp_share_percent / 100), 2)
+            
+            # Get RP details
+            rp = await db.referral_partners.find_one({"id": booking["referral_partner_id"]}, {"_id": 0})
+            
+            if rp and rp_payment_amount > 0:
+                # Create RP payment record
+                rp_payment_id = str(uuid.uuid4())
+                rp_payment_doc = {
+                    "id": rp_payment_id,
+                    "referral_partner_id": booking["referral_partner_id"],
+                    "rp_code": rp.get("rp_code"),
+                    "rp_name": rp.get("name"),
+                    "booking_id": booking_id,
+                    "booking_number": booking_number,
+                    "client_id": booking["client_id"],
+                    "client_name": client["name"] if client else "Unknown",
+                    "stock_id": booking["stock_id"],
+                    "stock_symbol": stock["symbol"] if stock else "Unknown",
+                    "quantity": quantity,
+                    "profit": profit,
+                    "revenue_share_percent": rp_share_percent,
+                    "payment_amount": rp_payment_amount,
+                    "status": "pending",  # pending, processing, paid
+                    "payment_date": None,
+                    "payment_reference": None,
+                    "notes": None,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "created_by": current_user["id"],
+                    "updated_at": None,
+                    "updated_by": None
+                }
+                
+                await db.rp_payments.insert_one(rp_payment_doc)
+                rp_payment_created = True
+                
+                # Update booking with RP payment info
+                await db.bookings.update_one(
+                    {"id": booking_id},
+                    {"$set": {
+                        "rp_payment_id": rp_payment_id,
+                        "rp_payment_amount": rp_payment_amount,
+                        "rp_payment_status": "pending"
+                    }}
+                )
+    
     return {
         "message": "Stock transfer confirmed and client notified",
         "booking_id": booking_id,
         "booking_number": booking_number,
-        "client_email": client.get("email") if client else None
+        "client_email": client.get("email") if client else None,
+        "rp_payment_created": rp_payment_created,
+        "rp_payment_amount": rp_payment_amount if rp_payment_created else None
     }
 
 
