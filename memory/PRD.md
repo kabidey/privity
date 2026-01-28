@@ -603,3 +603,25 @@ Each template supports:
 - Should be done incrementally with thorough testing
 - Recommend completing one router at a time with full regression testing
 
+### Bug Fix - Booking Selling Price Validation (Jan 28, 2026) - ✅ COMPLETED
+**Issue:** Booking creation API accepted bookings without a selling price, leading to incomplete data.
+
+**Fix Applied:**
+- Added backend validation in `/app/backend/server.py` (lines 1704-1709)
+- Validates that `selling_price` is not null, not zero, and not negative
+- Returns 400 error: "Selling price is required and must be greater than 0"
+
+**Test Coverage:**
+- 7 backend test cases (all passed):
+  - No selling_price → 400 error
+  - selling_price=0 → 400 error
+  - selling_price=-100 → 400 error
+  - selling_price=null → 400 error
+  - selling_price=150 → 200 (booking created)
+  - selling_price=0.01 → 200 (small positive accepted)
+  - selling_price=999999.99 → 200 (large value accepted)
+- Frontend validation shows toast: "Selling price is required"
+
+**Test Files Created:**
+- `/app/backend/tests/test_booking_selling_price_validation.py`
+
