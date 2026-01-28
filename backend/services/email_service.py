@@ -122,7 +122,9 @@ async def send_templated_email(
     to_email: str,
     variables: Dict[str, Any],
     cc_email: Optional[str] = None,
-    additional_emails: Optional[list] = None
+    additional_emails: Optional[list] = None,
+    related_entity_type: Optional[str] = None,
+    related_entity_id: Optional[str] = None
 ):
     """Send email using a template with variable substitution
     
@@ -132,15 +134,37 @@ async def send_templated_email(
         variables: Template variable substitutions
         cc_email: Optional CC email
         additional_emails: List of additional emails to send to (e.g., secondary and tertiary)
+        related_entity_type: Type of related entity (booking, client, rp, user)
+        related_entity_id: ID of related entity
     """
     template = await get_email_template(template_key)
     
     if not template:
         logging.warning(f"Email template '{template_key}' not found")
+        await log_email(
+            to_email=to_email,
+            subject=f"[Template: {template_key}]",
+            template_key=template_key,
+            status="skipped",
+            error_message="Template not found",
+            variables=variables,
+            related_entity_type=related_entity_type,
+            related_entity_id=related_entity_id
+        )
         return False
     
     if not template.get("is_active", True):
         logging.info(f"Email template '{template_key}' is disabled")
+        await log_email(
+            to_email=to_email,
+            subject=template.get("subject", f"[Template: {template_key}]"),
+            template_key=template_key,
+            status="skipped",
+            error_message="Template disabled",
+            variables=variables,
+            related_entity_type=related_entity_type,
+            related_entity_id=related_entity_id
+        )
         return False
     
     subject, body = render_template(template, variables)
@@ -154,13 +178,31 @@ async def send_templated_email(
     
     # Send to primary recipient with CC
     if to_email:
-        await send_email(to_email, subject, body, cc_email)
+        await send_email(
+            to_email, 
+            subject, 
+            body, 
+            cc_email,
+            template_key=template_key,
+            variables=variables,
+            related_entity_type=related_entity_type,
+            related_entity_id=related_entity_id
+        )
     
     # Send to additional emails (without CC to avoid duplicates)
     if additional_emails:
         for email in additional_emails:
             if email and email != to_email:
-                await send_email(email, subject, body, None)
+                await send_email(
+                    email, 
+                    subject, 
+                    body, 
+                    None,
+                    template_key=template_key,
+                    variables=variables,
+                    related_entity_type=related_entity_type,
+                    related_entity_id=related_entity_id
+                )
     
     return True
 
