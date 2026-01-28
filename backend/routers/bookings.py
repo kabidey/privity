@@ -147,6 +147,30 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             detail="Landing price is required and must be greater than 0"
         )
     
+    # Validate RP revenue share percentage cap at 30%
+    if booking_data.rp_revenue_share_percent is not None:
+        if booking_data.rp_revenue_share_percent > 30:
+            raise HTTPException(
+                status_code=400,
+                detail="Referral Partner revenue share cannot exceed 30%"
+            )
+        if booking_data.rp_revenue_share_percent < 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Referral Partner revenue share cannot be negative"
+            )
+    
+    # Get RP details if specified
+    rp_code = None
+    rp_name = None
+    if booking_data.referral_partner_id:
+        rp = await db.referral_partners.find_one({"id": booking_data.referral_partner_id}, {"_id": 0})
+        if rp:
+            rp_code = rp.get("rp_code")
+            rp_name = rp.get("name")
+        else:
+            raise HTTPException(status_code=404, detail="Referral Partner not found")
+    
     # Generate booking identifiers
     booking_id = str(uuid.uuid4())
     booking_number = await generate_booking_number()
@@ -173,6 +197,12 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "booking_type": booking_data.booking_type,
         "insider_form_uploaded": booking_data.insider_form_uploaded,
         "insider_form_path": None,
+        # Referral Partner fields
+        "referral_partner_id": booking_data.referral_partner_id,
+        "rp_code": rp_code,
+        "rp_name": rp_name,
+        "rp_revenue_share_percent": booking_data.rp_revenue_share_percent,
+        # Client confirmation
         "client_confirmation_status": "pending",
         "client_confirmation_token": confirmation_token,
         "client_confirmed_at": None,
