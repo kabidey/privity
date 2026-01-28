@@ -1327,11 +1327,11 @@ async def get_corporate_actions(
     status: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get corporate actions - PE Desk only"""
-    user_role = current_user.get("role", 5)
+    """Get corporate actions - PE Level only"""
+    user_role = current_user.get("role", 6)
     
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can view corporate actions")
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view corporate actions")
     
     query = {}
     if stock_id:
