@@ -85,10 +85,11 @@ class TestRPApprovalWorkflow:
             pytest.skip("Employee account not available")
         
         rp_data = self.generate_unique_rp_data("EMP")
-        # Ensure valid phone (10 digits)
-        rp_data["phone"] = "9876543210"
-        # Ensure valid aadhar (12 digits)
-        rp_data["aadhar_number"] = "123456789012"
+        # Ensure valid phone (10 digits) - use unique
+        import random
+        rp_data["phone"] = f"98{random.randint(10000000, 99999999)}"
+        # Ensure valid aadhar (12 digits) - use unique
+        rp_data["aadhar_number"] = f"{random.randint(100000000000, 999999999999)}"
         
         response = self.session.post(
             f"{BASE_URL}/api/referral-partners",
