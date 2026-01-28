@@ -386,12 +386,6 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         role_name=ROLES.get(current_user.get("role", 5), "Viewer"),
         created_at=current_user["created_at"]
     )
-        email=current_user["email"],
-        name=current_user["name"],
-        role=current_user.get("role", 5),
-        role_name=ROLES.get(current_user.get("role", 5), "Viewer"),
-        created_at=current_user["created_at"]
-    )
 
 @api_router.post("/auth/forgot-password")
 async def forgot_password(data: PasswordResetRequest):
