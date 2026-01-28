@@ -106,6 +106,32 @@ async def create_referral_partner(
             detail=f"Referral Partner with email {rp_data.email} already exists"
         )
     
+    # STRICT RULE: RP cannot be a Client - Check by PAN
+    existing_client_pan = await db.clients.find_one(
+        {"pan_number": rp_data.pan_number.upper()},
+        {"_id": 0, "name": 1, "pan_number": 1, "otc_ucc": 1}
+    )
+    if existing_client_pan:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot create RP: This PAN ({rp_data.pan_number.upper()}) belongs to an existing Client ({existing_client_pan.get('name', 'Unknown')} - {existing_client_pan.get('otc_ucc', '')}). A Client cannot be an RP."
+        )
+    
+    # STRICT RULE: RP cannot be a Client - Check by Email
+    existing_client_email = await db.clients.find_one(
+        {"$or": [
+            {"email": rp_data.email.lower()},
+            {"email_secondary": rp_data.email.lower()},
+            {"email_tertiary": rp_data.email.lower()}
+        ]},
+        {"_id": 0, "name": 1, "email": 1, "otc_ucc": 1}
+    )
+    if existing_client_email:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot create RP: This email ({rp_data.email}) belongs to an existing Client ({existing_client_email.get('name', 'Unknown')} - {existing_client_email.get('otc_ucc', '')}). A Client cannot be an RP."
+        )
+    
     rp_id = str(uuid.uuid4())
     rp_code = await generate_rp_code()
     
