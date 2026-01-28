@@ -73,6 +73,16 @@ def is_pe_desk_only(role: int) -> bool:
     """Check if user is PE Desk (full access including deletions)"""
     return role == 1
 
+
+def has_finance_access(role: int) -> bool:
+    """Check if user has access to Finance page (PE Level or Finance role)"""
+    return role in [1, 2, 7]
+
+
+def can_manage_finance(role: int) -> bool:
+    """Check if user can manage finance operations (update refunds etc.)"""
+    return role in [1, 2, 7]
+
 # Allowed email domains for registration
 ALLOWED_EMAIL_DOMAINS = ["smifs.com"]
 
