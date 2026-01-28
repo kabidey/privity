@@ -3291,7 +3291,8 @@ async def get_email_template(template_key: str, current_user: dict = Depends(get
         raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
     
     template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
-                    "proof_url": payment.get("proof_url"),
+    
+    if not template:
                     "booking_date": booking.get("booking_date"),
                     "total_amount": (booking.get("selling_price") or 0) * booking.get("quantity", 0),
                     "total_paid": booking.get("total_paid", 0),
