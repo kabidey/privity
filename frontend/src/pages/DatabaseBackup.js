@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Database, Download, Upload, Trash2, Plus, RefreshCw, AlertTriangle, HardDrive, Clock, FileArchive } from 'lucide-react';
+import { Database, Download, Upload, Trash2, Plus, RefreshCw, AlertTriangle, HardDrive, Clock, FileArchive, XCircle } from 'lucide-react';
 
 const DatabaseBackup = () => {
   const [backups, setBackups] = useState([]);
