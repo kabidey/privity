@@ -314,9 +314,9 @@ async def clear_database(current_user: dict = Depends(get_current_user)):
 # ============== Download Backup as ZIP ==============
 @router.get("/backups/{backup_id}/download")
 async def download_backup(backup_id: str, current_user: dict = Depends(get_current_user)):
-    """Download a backup as a ZIP file (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can download backups")
+    """Download a backup as a ZIP file (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can download backups")
     
     # Get backup with data
     backup = await db.database_backups.find_one({"id": backup_id}, {"_id": 0})
