@@ -253,8 +253,15 @@ async def seed_admin_user():
         logging.error(f"Error seeding admin user: {e}")
 
 # Auth Routes
-@api_router.post("/auth/register", response_model=TokenResponse)
+@api_router.post("/auth/register")
 async def register(user_data: UserCreate, request: Request = None):
+    """
+    Register a new employee. Password is auto-generated and sent via email.
+    PAN is required for all users except superadmin (pedesk@smifs.com).
+    """
+    import secrets
+    import string
+    
     # Check email domain restriction
     email_domain = user_data.email.split('@')[-1].lower()
     if email_domain not in ALLOWED_EMAIL_DOMAINS:
@@ -267,58 +274,107 @@ async def register(user_data: UserCreate, request: Request = None):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Validate PAN format
-    pan_number = user_data.pan_number.upper().strip()
-    if len(pan_number) != 10:
-        raise HTTPException(status_code=400, detail="PAN number must be exactly 10 characters")
+    # Superadmin check - pedesk@smifs.com doesn't need PAN
+    is_superadmin = user_data.email.lower() == "pedesk@smifs.com"
     
-    # Check for duplicate PAN among users
-    existing_pan_user = await db.users.find_one({"pan_number": pan_number}, {"_id": 0, "name": 1, "email": 1})
-    if existing_pan_user:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"PAN number already registered with another employee account"
+    pan_number = None
+    if not is_superadmin:
+        # PAN is required for non-superadmin users
+        if not user_data.pan_number:
+            raise HTTPException(status_code=400, detail="PAN number is required for employee registration")
+        
+        pan_number = user_data.pan_number.upper().strip()
+        if len(pan_number) != 10:
+            raise HTTPException(status_code=400, detail="PAN number must be exactly 10 characters")
+        
+        # Check for duplicate PAN among users
+        existing_pan_user = await db.users.find_one({"pan_number": pan_number}, {"_id": 0, "name": 1, "email": 1})
+        if existing_pan_user:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"PAN number already registered with another employee account"
+            )
+        
+        # STRICT RULE: Employee cannot be an RP - Check by PAN
+        existing_rp = await db.referral_partners.find_one(
+            {"pan_number": pan_number},
+            {"_id": 0, "name": 1, "rp_code": 1}
         )
+        if existing_rp:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot register: This PAN ({pan_number}) belongs to an existing Referral Partner ({existing_rp.get('name', 'Unknown')} - {existing_rp.get('rp_code', '')}). An RP cannot be an Employee."
+            )
+        
+        # STRICT RULE: Employee cannot be a Client - Check by PAN
+        existing_client = await db.clients.find_one(
+            {"pan_number": pan_number},
+            {"_id": 0, "name": 1, "otc_ucc": 1}
+        )
+        if existing_client:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot register: This PAN ({pan_number}) belongs to an existing Client ({existing_client.get('name', 'Unknown')} - {existing_client.get('otc_ucc', '')}). A Client cannot be an Employee."
+            )
     
-    # STRICT RULE: Employee cannot be an RP - Check by PAN
-    existing_rp = await db.referral_partners.find_one(
-        {"pan_number": pan_number},
-        {"_id": 0, "name": 1, "rp_code": 1}
-    )
-    if existing_rp:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Cannot register: This PAN ({pan_number}) belongs to an existing Referral Partner ({existing_rp.get('name', 'Unknown')} - {existing_rp.get('rp_code', '')}). An RP cannot be an Employee."
-        )
-    
-    # STRICT RULE: Employee cannot be a Client - Check by PAN
-    existing_client = await db.clients.find_one(
-        {"pan_number": pan_number},
-        {"_id": 0, "name": 1, "otc_ucc": 1}
-    )
-    if existing_client:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Cannot register: This PAN ({pan_number}) belongs to an existing Client ({existing_client.get('name', 'Unknown')} - {existing_client.get('otc_ucc', '')}). A Client cannot be an Employee."
-        )
+    # Generate random password (12 chars with letters, digits, and special chars)
+    alphabet = string.ascii_letters + string.digits + "!@#$%"
+    random_password = ''.join(secrets.choice(alphabet) for _ in range(12))
     
     user_id = str(uuid.uuid4())
-    hashed_pw = hash_password(user_data.password)
+    hashed_pw = hash_password(random_password)
     
-    # Default role is Employee (4) for smifs.com domain
-    user_role = 4  # Employee
+    # Set role: Superadmin (1) for pedesk@smifs.com, Employee (4) for others
+    user_role = 1 if is_superadmin else 4
     
     user_doc = {
         "id": user_id,
-        "email": user_data.email,
+        "email": user_data.email.lower(),
         "password": hashed_pw,
         "name": user_data.name,
         "pan_number": pan_number,
         "role": user_role,
+        "must_change_password": True,  # Force password change on first login
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.users.insert_one(user_doc)
+    
+    # Send welcome email with password
+    try:
+        from services.email_service import send_email
+        subject = "Welcome to SMIFS Private Equity - Your Account Credentials"
+        body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #064E3B;">Welcome to SMIFS Private Equity</h2>
+            <p>Dear {user_data.name},</p>
+            <p>Your employee account has been created successfully.</p>
+            
+            <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #064E3B;">Your Login Credentials</h3>
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>Email:</strong></td>
+                        <td style="padding: 8px 0;">{user_data.email}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>Temporary Password:</strong></td>
+                        <td style="padding: 8px 0; font-family: monospace; font-size: 16px; color: #dc2626; background-color: #fef2f2; padding: 8px; border-radius: 4px;">{random_password}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #92400e;"><strong>Important:</strong> Please change your password immediately after your first login for security purposes.</p>
+            </div>
+            
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """
+        await send_email(user_data.email, subject, body)
+    except Exception as e:
+        # Log error but don't fail registration
+        print(f"Failed to send welcome email: {e}")
     
     # Create audit log
     await create_audit_log(
@@ -329,21 +385,13 @@ async def register(user_data: UserCreate, request: Request = None):
         user_name=user_data.name,
         user_role=user_role,
         entity_name=user_data.name,
-        details={"email": user_data.email, "role": user_role, "pan_number": pan_number}
+        details={"email": user_data.email, "role": user_role, "pan_number": pan_number, "is_superadmin": is_superadmin}
     )
     
-    token = create_token(user_id, user_data.email)
-    user_response = User(
-        id=user_id,
-        email=user_data.email,
-        name=user_data.name,
-        pan_number=pan_number,
-        role=user_role,
-        role_name=ROLES.get(user_role, "Employee"),
-        created_at=user_doc["created_at"]
-    )
-    
-    return TokenResponse(token=token, user=user_response)
+    return {
+        "message": f"Account created successfully. Login credentials have been sent to {user_data.email}",
+        "email": user_data.email
+    }
 
 @api_router.post("/auth/login", response_model=TokenResponse)
 async def login(login_data: UserLogin):
