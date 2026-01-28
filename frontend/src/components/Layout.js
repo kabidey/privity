@@ -1,8 +1,20 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useTheme } from '../context/ThemeContext';
 import NotificationBell from './NotificationBell';
+import { toast } from 'sonner';
+import api from '../utils/api';
 import { 
   LayoutDashboard, 
   Users, 
@@ -26,7 +38,8 @@ import {
   Database,
   Plus,
   Wallet,
-  UserPlus
+  UserPlus,
+  Key
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
