@@ -53,8 +53,10 @@ const Bookings = () => {
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
-    notes: ''
+    notes: '',
+    proof_url: ''
   });
+  const [uploadingProof, setUploadingProof] = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
