@@ -130,11 +130,22 @@ const BookingConfirm = () => {
             <div className="mx-auto w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center mb-4">
               <AlertTriangle className="h-10 w-10 text-yellow-600 dark:text-yellow-400" />
             </div>
-            <CardTitle className="text-2xl">Error</CardTitle>
-            <CardDescription>{error}</CardDescription>
+            <CardTitle className="text-2xl">Booking Confirmation Error</CardTitle>
+            <CardDescription className="text-base mt-2">{error}</CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
-            <Button onClick={() => navigate('/')}>Go to Home</Button>
+          <CardContent className="text-center space-y-4">
+            <p className="text-sm text-muted-foreground">
+              This could happen if:
+            </p>
+            <ul className="text-sm text-muted-foreground text-left list-disc pl-6 space-y-1">
+              <li>The booking link has expired or already been used</li>
+              <li>The booking has been cancelled or voided</li>
+              <li>The confirmation token is invalid</li>
+            </ul>
+            <p className="text-sm text-muted-foreground mt-4">
+              Please contact your PE Desk representative for assistance.
+            </p>
+            <Button onClick={() => window.close()} variant="outline">Close Window</Button>
           </CardContent>
         </Card>
       </div>
