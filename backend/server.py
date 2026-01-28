@@ -480,6 +480,69 @@ async def change_password(data: ChangePassword, current_user: dict = Depends(get
     return {"message": "Password changed successfully"}
 
 
+# ============== SSO Authentication Endpoints ==============
+
+@api_router.get("/auth/sso/config")
+async def get_sso_config():
+    """Get SSO configuration for frontend"""
+    from services.azure_sso_service import AzureSSOService
+    sso_service = AzureSSOService(db)
+    return sso_service.get_sso_config()
+
+
+@api_router.post("/auth/sso/login")
+async def sso_login(token: str = Body(..., embed=True)):
+    """
+    Authenticate user via Microsoft SSO token.
+    Creates new user as Employee if not exists.
+    """
+    from services.azure_sso_service import AzureSSOService
+    
+    sso_service = AzureSSOService(db)
+    
+    if not sso_service.is_sso_enabled():
+        raise HTTPException(
+            status_code=400,
+            detail="SSO is not configured. Please contact administrator."
+        )
+    
+    # Validate token and get/create user
+    user = await sso_service.authenticate_sso_token(token)
+    
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid SSO token or authentication failed"
+        )
+    
+    # Create local JWT token for the session
+    local_token = create_token(user["id"], user["email"])
+    
+    # Create audit log
+    await create_audit_log(
+        action="SSO_LOGIN",
+        entity_type="user",
+        entity_id=user["id"],
+        user_id=user["id"],
+        user_name=user["name"],
+        user_role=user.get("role", 4),
+        entity_name=user["name"],
+        details={"email": user["email"], "auth_method": "azure_sso"}
+    )
+    
+    user_response = User(
+        id=user["id"],
+        email=user["email"],
+        name=user["name"],
+        pan_number=user.get("pan_number"),
+        role=user.get("role", 4),
+        role_name=ROLES.get(user.get("role", 4), "Employee"),
+        created_at=user["created_at"]
+    )
+    
+    return TokenResponse(token=local_token, user=user_response)
+
+
 @api_router.post("/auth/forgot-password")
 async def forgot_password(data: PasswordResetRequest):
     """Request password reset OTP"""
