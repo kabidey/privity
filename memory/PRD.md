@@ -147,6 +147,7 @@ refund_requests: {
 | /finance | Finance | Finance dashboard with payments and refunds |
 
 ## Test Reports
+- `/app/test_reports/iteration_24.json` - Referral Partners feature testing (85.7% backend, 100% frontend)
 - `/app/test_reports/iteration_23.json` - Backend refactoring and concurrency testing (88.9% pass)
 - `/app/test_reports/iteration_22.json` - Finance role and PE Manager vendor access (100% pass)
 - `/app/test_reports/iteration_21.json` - Refund feature testing (100% pass)
