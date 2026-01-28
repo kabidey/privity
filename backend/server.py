@@ -3285,7 +3285,12 @@ async def get_email_templates(current_user: dict = Depends(get_current_user)):
     return templates
 
 @api_router.get("/email-templates/{template_key}")
-                    "notes": payment.get("notes"),
+async def get_email_template(template_key: str, current_user: dict = Depends(get_current_user)):
+    """Get specific email template"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
                     "proof_url": payment.get("proof_url"),
                     "booking_date": booking.get("booking_date"),
                     "total_amount": (booking.get("selling_price") or 0) * booking.get("quantity", 0),
