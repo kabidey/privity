@@ -1728,6 +1728,19 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             detail="Landing price is required and must be greater than 0"
         )
     
+    # Validate RP revenue share cap at 30%
+    if booking_data.rp_revenue_share_percent is not None:
+        if booking_data.rp_revenue_share_percent > 30:
+            raise HTTPException(
+                status_code=400,
+                detail="Referral Partner revenue share cannot exceed 30%"
+            )
+        if booking_data.rp_revenue_share_percent < 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Referral Partner revenue share cannot be negative"
+            )
+    
     booking_id = str(uuid.uuid4())
     booking_number = await generate_booking_number()
     
