@@ -240,9 +240,9 @@ async def restore_database(
 
 @router.get("/stats")
 async def get_database_stats(current_user: dict = Depends(get_current_user)):
-    """Get database statistics (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access database stats")
+    """Get database statistics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access database stats")
     
     stats = {}
     
@@ -264,11 +264,11 @@ async def get_database_stats(current_user: dict = Depends(get_current_user)):
 # ============== Clear Database Endpoint ==============
 @router.delete("/clear")
 async def clear_database(current_user: dict = Depends(get_current_user)):
-    """Clear all database collections except users (PE Desk only)
+    """Clear all database collections except users (PE Desk only - deletion restricted)
     
     WARNING: This permanently deletes all data except user accounts!
     """
-    if current_user.get("role", 5) != 1:
+    if not is_pe_desk_only(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can clear the database")
     
     cleared_counts = {}
