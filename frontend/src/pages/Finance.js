@@ -167,11 +167,11 @@ const Finance = () => {
   const vendorPayments = payments.filter(p => p.type === 'vendor');
   const pendingRefunds = refundRequests.filter(r => r.status === 'pending' || r.status === 'processing');
 
-  if (!isPELevel) {
+  if (!hasFinanceAccess) {
     return (
       <div className="p-8 text-center">
         <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-        <p className="text-muted-foreground">Only PE Desk or PE Manager can access finance data.</p>
+        <p className="text-muted-foreground">Only PE Desk, PE Manager, or Finance can access finance data.</p>
       </div>
     );
   }
