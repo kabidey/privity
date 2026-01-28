@@ -1049,10 +1049,10 @@ async def clone_client_vendor(
     target_type: str = Query(..., description="Target type: 'client' or 'vendor'"),
     current_user: dict = Depends(get_current_user)
 ):
-    """Clone a client as vendor or vendor as client (PE Desk only)"""
-    # Only PE Desk can clone
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can clone clients/vendors")
+    """Clone a client as vendor or vendor as client (PE Desk or PE Manager)"""
+    # PE Level can clone
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can clone clients/vendors")
     
     if target_type not in ["client", "vendor"]:
         raise HTTPException(status_code=400, detail="target_type must be 'client' or 'vendor'")
