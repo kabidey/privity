@@ -367,7 +367,11 @@ const ReferralPartners = () => {
       phone: rp.phone || '',
       pan_number: rp.pan_number,
       aadhar_number: rp.aadhar_number,
-      address: rp.address || ''
+      address: rp.address || '',
+      bank_name: rp.bank_name || '',
+      bank_account_number: rp.bank_account_number || '',
+      bank_ifsc_code: rp.bank_ifsc_code || '',
+      bank_branch: rp.bank_branch || ''
     });
     setShowEditDialog(true);
   };
