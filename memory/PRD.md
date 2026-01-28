@@ -66,6 +66,24 @@ Build a Share Booking System for managing client share bookings, inventory track
   - If conflict found: Shows warning, disables RP selection, auto-clears RP fields
   - Booking notes auto-updated with "[AUTO: RP share zeroed - Client is also an RP]" flag
 
+#### ✅ Employee-RP-Client Separation with PAN - COMPLETED (Jan 28, 2026)
+**Implementation Details:**
+- **STRICT RULE: An Employee cannot be an RP or Client (and vice versa)**
+- Added `pan_number` field to User model (required for registration)
+- Backend validation:
+  - Employee registration blocked if PAN matches existing RP or Client (`/app/backend/server.py`)
+  - RP creation blocked if PAN/email matches existing Employee (`/app/backend/routers/referral_partners.py`)
+- Frontend:
+  - Added PAN Number field to registration form (`/app/frontend/src/pages/Login.js`)
+  - Auto-uppercase, 10-character limit, required validation
+
+**Conflict Matrix:**
+| Entity | Cannot be |
+|--------|-----------|
+| Employee | RP, Client |
+| Client | RP, Employee |
+| RP | Employee, Client |
+
 **API Flow:**
 - `PUT /api/referral-partners/{rp_id}/approve` with `{"approve": true}` → Sends approval email
 - `PUT /api/referral-partners/{rp_id}/approve` with `{"approve": false, "rejection_reason": "..."}` → Sends rejection email
