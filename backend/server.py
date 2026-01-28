@@ -2525,10 +2525,10 @@ async def update_booking(booking_id: str, booking_data: BookingCreate, current_u
             {"booking_id": booking_id, "stock_symbol": stock["symbol"] if stock else None, "updated_by": current_user["name"]}
         )
     
-    # Notify PE Desk about significant changes
-    if user_role != 1:
+    # Notify PE Desk about significant changes from non-PE users
+    if not is_pe_level(user_role):
         await notify_roles(
-            [1],
+            [1, 2],
             "booking_updated",
             "Booking Modified",
             f"Booking {booking_number} modified by {current_user['name']}",
