@@ -240,12 +240,14 @@ class PaymentTranche(BaseModel):
     recorded_by: str
     recorded_at: str
     notes: Optional[str] = None
+    proof_url: Optional[str] = None
 
 
 class PaymentTrancheCreate(BaseModel):
     amount: float
     payment_date: str
     notes: Optional[str] = None
+    proof_url: Optional[str] = None
 
 
 # ============== Booking Models ==============
