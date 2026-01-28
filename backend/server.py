@@ -3539,7 +3539,39 @@ async def get_employee_performance(
                 "total_profit": 0,
                 "client_ids": set()
             }
-                purchase_query["purchase_date"]["$lte"] = end_date
+        
+        qty = booking.get("quantity", 0)
+        revenue = booking.get("selling_price", 0) * qty
+        cost = booking.get("buying_price", 0) * qty
+        
+        emp_stats[user_id]["total_bookings"] += 1
+        emp_stats[user_id]["total_value"] += revenue
+        emp_stats[user_id]["total_profit"] += revenue - cost
+        emp_stats[user_id]["client_ids"].add(booking.get("client_id"))
+    
+    # Get user details
+    user_ids = list(emp_stats.keys())
+    users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "hashed_password": 0}).to_list(1000)
+    user_map = {u["id"]: u for u in users}
+    
+    result = []
+    for user_id, stats in emp_stats.items():
+        user = user_map.get(user_id, {})
+        result.append({
+            "user_id": user_id,
+            "user_name": user.get("name", "Unknown"),
+            "role": user.get("role", 5),
+            "role_name": ROLES.get(user.get("role", 5), "Unknown"),
+            "total_bookings": stats["total_bookings"],
+            "total_value": round(stats["total_value"], 2),
+            "total_profit": round(stats["total_profit"], 2),
+            "clients_count": len(stats["client_ids"])
+        })
+    
+    result.sort(key=lambda x: x["total_profit"], reverse=True)
+    return result[:limit]
+
+@api_router.get("/analytics/daily-trend")
             else:
                 purchase_query["purchase_date"] = {"$lte": end_date}
         
