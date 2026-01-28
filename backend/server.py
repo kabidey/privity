@@ -1759,6 +1759,11 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "booking_type": booking_data.booking_type,
         "insider_form_uploaded": booking_data.insider_form_uploaded,
         "insider_form_path": None,
+        # Referral Partner
+        "referral_partner_id": booking_data.referral_partner_id,
+        "rp_code": None,
+        "rp_name": None,
+        "rp_revenue_share_percent": booking_data.rp_revenue_share_percent,
         # Client confirmation
         "client_confirmation_status": "pending",
         "client_confirmation_token": confirmation_token,
@@ -1776,6 +1781,13 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "created_by_role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
+    
+    # If RP is selected, get RP details
+    if booking_data.referral_partner_id:
+        rp = await db.referral_partners.find_one({"id": booking_data.referral_partner_id}, {"_id": 0})
+        if rp:
+            booking_doc["rp_code"] = rp.get("rp_code")
+            booking_doc["rp_name"] = rp.get("name")
     
     await db.bookings.insert_one(booking_doc)
     
