@@ -28,16 +28,16 @@ const EmailTemplates = () => {
   const [previewVariables, setPreviewVariables] = useState({});
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
+  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
 
   useEffect(() => {
-    if (!isPEDesk) {
-      toast.error('Access denied. Only PE Desk can manage email templates.');
+    if (!isPELevel) {
+      toast.error('Access denied. Only PE Desk or PE Manager can manage email templates.');
       navigate('/');
       return;
     }
     fetchTemplates();
-  }, [isPEDesk, navigate]);
+  }, [isPELevel, navigate]);
 
   const fetchTemplates = async () => {
     try {
