@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Check, CheckCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,27 @@ import { useNotifications } from '../context/NotificationContext';
 
 const NotificationBell = () => {
   const [open, setOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead, isConnected } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, isConnected, hasNewNotification, setHasNewNotification } = useNotifications();
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Trigger animation when new notification arrives
+  useEffect(() => {
+    if (hasNewNotification) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasNewNotification]);
+
+  // Stop animation when popover opens
+  useEffect(() => {
+    if (open) {
+      setIsAnimating(false);
+      setHasNewNotification(false);
+    }
+  }, [open, setHasNewNotification]);
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
