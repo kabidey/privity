@@ -128,6 +128,13 @@ export const NotificationProvider = ({ children }) => {
             setNotifications(prev => [notification, ...prev]);
             setUnreadCount(prev => prev + 1);
             
+            // Play notification chime sound
+            playNotificationSound();
+            
+            // Trigger animation state
+            setHasNewNotification(true);
+            setTimeout(() => setHasNewNotification(false), 3000);
+            
             // Show toast notification
             toast(notification.title, {
               description: notification.message,
