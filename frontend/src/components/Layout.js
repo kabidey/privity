@@ -24,7 +24,8 @@ import {
   Banknote,
   Server,
   Database,
-  Plus
+  Plus,
+  Wallet
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
