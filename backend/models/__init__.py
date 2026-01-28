@@ -436,11 +436,11 @@ class ClientConfirmationRequest(BaseModel):
 # ============== Referral Partner Models ==============
 class ReferralPartnerCreate(BaseModel):
     name: str
-    email: Optional[EmailStr] = None
-    phone: Optional[str] = None
+    email: EmailStr  # Required
+    phone: str  # Required - 10 digit mobile number
     pan_number: str
     aadhar_number: str
-    address: Optional[str] = None
+    address: str  # Required
 
 
 class ReferralPartner(BaseModel):
