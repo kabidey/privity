@@ -195,6 +195,18 @@ const Bookings = () => {
       return;
     }
     
+    // Show warning if no RP selected (cannot be added later)
+    if (!formData.referral_partner_id && !showRpWarning) {
+      setShowRpWarning(true);
+      return;
+    }
+    
+    // Validate RP revenue share if RP is selected
+    if (formData.referral_partner_id && !formData.rp_revenue_share_percent) {
+      toast.error('Please enter revenue share % for the Referral Partner');
+      return;
+    }
+    
     // For "own" bookings, require form upload acknowledgement
     if (formData.booking_type === 'own' && !formData.insider_form_acknowledged) {
       toast.error('Please acknowledge the Insider Trading Policy first');
@@ -208,6 +220,7 @@ const Bookings = () => {
         quantity: parseInt(formData.quantity),
         buying_price: parseFloat(formData.buying_price),
         selling_price: parseFloat(formData.selling_price),
+        rp_revenue_share_percent: formData.rp_revenue_share_percent ? parseFloat(formData.rp_revenue_share_percent) : null,
         insider_form_uploaded: false,
       };
       
@@ -228,6 +241,7 @@ const Bookings = () => {
         }
       }
       setDialogOpen(false);
+      setShowRpWarning(false);
       resetForm();
       fetchData();
     } catch (error) {
