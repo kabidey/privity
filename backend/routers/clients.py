@@ -43,6 +43,29 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
             detail=f"{'Vendor' if client_data.is_vendor else 'Client'} with PAN {client_data.pan_number} already exists"
         )
     
+    # STRICT RULE: Client cannot be an RP - Check by PAN
+    existing_rp_pan = await db.referral_partners.find_one(
+        {"pan_number": client_data.pan_number.upper()},
+        {"_id": 0, "name": 1, "pan_number": 1, "rp_code": 1}
+    )
+    if existing_rp_pan:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot create {'Vendor' if client_data.is_vendor else 'Client'}: This PAN ({client_data.pan_number.upper()}) belongs to an existing Referral Partner ({existing_rp_pan.get('name', 'Unknown')} - {existing_rp_pan.get('rp_code', '')}). An RP cannot be a Client."
+        )
+    
+    # STRICT RULE: Client cannot be an RP - Check by Email (if email provided)
+    if client_data.email:
+        existing_rp_email = await db.referral_partners.find_one(
+            {"email": client_data.email.lower()},
+            {"_id": 0, "name": 1, "email": 1, "rp_code": 1}
+        )
+        if existing_rp_email:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot create {'Vendor' if client_data.is_vendor else 'Client'}: This email ({client_data.email}) belongs to an existing Referral Partner ({existing_rp_email.get('name', 'Unknown')} - {existing_rp_email.get('rp_code', '')}). An RP cannot be a Client."
+            )
+    
     client_id = str(uuid.uuid4())
     
     # PE Desk/Manager created clients are auto-approved
