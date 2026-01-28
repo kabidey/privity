@@ -363,6 +363,177 @@ async def update_rp_payment(
     return {"message": f"RP payment updated to {update_data.status}"}
 
 
+@router.get("/finance/employee-commissions")
+async def get_employee_commissions(
+    employee_id: Optional[str] = None,
+    status: Optional[str] = None,  # pending, calculated, paid
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get employee commissions from confirmed bookings"""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access commission data")
+    
+    query = {
+        "stock_transferred": True,
+        "employee_commission_amount": {"$exists": True, "$gt": 0}
+    }
+    
+    if employee_id:
+        query["created_by"] = employee_id
+    
+    if status:
+        query["employee_commission_status"] = status
+    
+    if start_date:
+        query["created_at"] = {"$gte": start_date}
+    if end_date:
+        if "created_at" in query:
+            query["created_at"]["$lte"] = end_date
+        else:
+            query["created_at"] = {"$lte": end_date}
+    
+    bookings = await db.bookings.find(query, {"_id": 0}).sort("created_at", -1).to_list(5000)
+    
+    # Get employee and stock details
+    employee_ids = list(set(b.get("created_by") for b in bookings if b.get("created_by")))
+    stock_ids = list(set(b.get("stock_id") for b in bookings if b.get("stock_id")))
+    client_ids = list(set(b.get("client_id") for b in bookings if b.get("client_id")))
+    
+    employees = await db.users.find({"id": {"$in": employee_ids}}, {"_id": 0, "hashed_password": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    
+    emp_map = {e["id"]: e for e in employees}
+    stock_map = {s["id"]: s for s in stocks}
+    client_map = {c["id"]: c for c in clients}
+    
+    result = []
+    for booking in bookings:
+        emp = emp_map.get(booking.get("created_by"), {})
+        stock = stock_map.get(booking.get("stock_id"), {})
+        client = client_map.get(booking.get("client_id"), {})
+        
+        result.append({
+            "booking_id": booking.get("id"),
+            "booking_number": booking.get("booking_number"),
+            "employee_id": booking.get("created_by"),
+            "employee_name": emp.get("name", "Unknown"),
+            "client_name": client.get("name", "Unknown"),
+            "stock_symbol": stock.get("symbol", "Unknown"),
+            "quantity": booking.get("quantity", 0),
+            "profit": round((booking.get("selling_price", 0) - booking.get("buying_price", 0)) * booking.get("quantity", 0), 2),
+            "rp_share_percent": booking.get("rp_revenue_share_percent", 0) or 0,
+            "employee_share_percent": booking.get("employee_revenue_share_percent", 100),
+            "employee_commission_amount": booking.get("employee_commission_amount", 0),
+            "rp_payment_amount": booking.get("rp_payment_amount", 0) or 0,
+            "status": booking.get("employee_commission_status", "pending"),
+            "transfer_date": booking.get("stock_transferred_at"),
+            "created_at": booking.get("created_at")
+        })
+    
+    return result
+
+
+@router.get("/finance/employee-commissions/summary")
+async def get_employee_commissions_summary(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get summary of employee commissions by employee"""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access commission data")
+    
+    bookings = await db.bookings.find(
+        {
+            "stock_transferred": True,
+            "employee_commission_amount": {"$exists": True, "$gt": 0}
+        },
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Aggregate by employee
+    emp_stats = {}
+    for booking in bookings:
+        emp_id = booking.get("created_by")
+        if not emp_id:
+            continue
+        
+        if emp_id not in emp_stats:
+            emp_stats[emp_id] = {
+                "total_bookings": 0,
+                "total_profit": 0,
+                "total_commission": 0,
+                "total_rp_share": 0,
+                "pending_commission": 0,
+                "calculated_commission": 0,
+                "paid_commission": 0
+            }
+        
+        profit = (booking.get("selling_price", 0) - booking.get("buying_price", 0)) * booking.get("quantity", 0)
+        commission = booking.get("employee_commission_amount", 0)
+        rp_amount = booking.get("rp_payment_amount", 0) or 0
+        status = booking.get("employee_commission_status", "pending")
+        
+        emp_stats[emp_id]["total_bookings"] += 1
+        emp_stats[emp_id]["total_profit"] += profit
+        emp_stats[emp_id]["total_commission"] += commission
+        emp_stats[emp_id]["total_rp_share"] += rp_amount
+        
+        if status == "pending":
+            emp_stats[emp_id]["pending_commission"] += commission
+        elif status == "calculated":
+            emp_stats[emp_id]["calculated_commission"] += commission
+        elif status == "paid":
+            emp_stats[emp_id]["paid_commission"] += commission
+    
+    # Get employee names
+    emp_ids = list(emp_stats.keys())
+    employees = await db.users.find({"id": {"$in": emp_ids}}, {"_id": 0, "id": 1, "name": 1, "role": 1}).to_list(1000)
+    emp_map = {e["id"]: e for e in employees}
+    
+    result = []
+    for emp_id, stats in emp_stats.items():
+        emp = emp_map.get(emp_id, {})
+        result.append({
+            "employee_id": emp_id,
+            "employee_name": emp.get("name", "Unknown"),
+            "role": emp.get("role", 5),
+            **{k: round(v, 2) if isinstance(v, float) else v for k, v in stats.items()}
+        })
+    
+    result.sort(key=lambda x: x["total_commission"], reverse=True)
+    return result
+
+
+@router.put("/finance/employee-commissions/{booking_id}/mark-paid")
+async def mark_commission_paid(
+    booking_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Mark an employee commission as paid"""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk can mark commissions as paid")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("employee_commission_amount"):
+        raise HTTPException(status_code=400, detail="No commission calculated for this booking")
+    
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {
+            "employee_commission_status": "paid",
+            "employee_commission_paid_at": datetime.now(timezone.utc).isoformat(),
+            "employee_commission_paid_by": current_user["id"]
+        }}
+    )
+    
+    return {"message": "Commission marked as paid"}
+
+
 @router.get("/finance/export/excel")
 async def export_finance_excel(
     payment_type: Optional[str] = None,
