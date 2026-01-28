@@ -267,6 +267,41 @@ async def register(user_data: UserCreate, request: Request = None):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Validate PAN format
+    pan_number = user_data.pan_number.upper().strip()
+    if len(pan_number) != 10:
+        raise HTTPException(status_code=400, detail="PAN number must be exactly 10 characters")
+    
+    # Check for duplicate PAN among users
+    existing_pan_user = await db.users.find_one({"pan_number": pan_number}, {"_id": 0, "name": 1, "email": 1})
+    if existing_pan_user:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"PAN number already registered with another employee account"
+        )
+    
+    # STRICT RULE: Employee cannot be an RP - Check by PAN
+    existing_rp = await db.referral_partners.find_one(
+        {"pan_number": pan_number},
+        {"_id": 0, "name": 1, "rp_code": 1}
+    )
+    if existing_rp:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot register: This PAN ({pan_number}) belongs to an existing Referral Partner ({existing_rp.get('name', 'Unknown')} - {existing_rp.get('rp_code', '')}). An RP cannot be an Employee."
+        )
+    
+    # STRICT RULE: Employee cannot be a Client - Check by PAN
+    existing_client = await db.clients.find_one(
+        {"pan_number": pan_number},
+        {"_id": 0, "name": 1, "otc_ucc": 1}
+    )
+    if existing_client:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot register: This PAN ({pan_number}) belongs to an existing Client ({existing_client.get('name', 'Unknown')} - {existing_client.get('otc_ucc', '')}). A Client cannot be an Employee."
+        )
+    
     user_id = str(uuid.uuid4())
     hashed_pw = hash_password(user_data.password)
     
@@ -278,6 +313,7 @@ async def register(user_data: UserCreate, request: Request = None):
         "email": user_data.email,
         "password": hashed_pw,
         "name": user_data.name,
+        "pan_number": pan_number,
         "role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
@@ -293,7 +329,7 @@ async def register(user_data: UserCreate, request: Request = None):
         user_name=user_data.name,
         user_role=user_role,
         entity_name=user_data.name,
-        details={"email": user_data.email, "role": user_role}
+        details={"email": user_data.email, "role": user_role, "pan_number": pan_number}
     )
     
     token = create_token(user_id, user_data.email)
@@ -301,6 +337,7 @@ async def register(user_data: UserCreate, request: Request = None):
         id=user_id,
         email=user_data.email,
         name=user_data.name,
+        pan_number=pan_number,
         role=user_role,
         role_name=ROLES.get(user_role, "Employee"),
         created_at=user_doc["created_at"]
