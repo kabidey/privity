@@ -253,6 +253,101 @@ async def update_refund_bank_details(
     return {"message": "Bank details updated successfully"}
 
 
+# ============== RP Payments Endpoints ==============
+class RPPaymentUpdate(BaseModel):
+    status: str  # processing, paid
+    payment_reference: Optional[str] = None
+    notes: Optional[str] = None
+    payment_date: Optional[str] = None
+
+
+@router.get("/finance/rp-payments")
+async def get_rp_payments(
+    status: Optional[str] = None,
+    rp_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all RP payments for finance dashboard."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access RP payments")
+    
+    query = {}
+    if status:
+        query["status"] = status
+    if rp_id:
+        query["referral_partner_id"] = rp_id
+    
+    payments = await db.rp_payments.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    return payments
+
+
+@router.get("/finance/rp-payments/summary")
+async def get_rp_payments_summary(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get RP payments summary statistics."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access RP payments")
+    
+    all_payments = await db.rp_payments.find({}, {"_id": 0}).to_list(10000)
+    
+    pending = [p for p in all_payments if p.get("status") == "pending"]
+    processing = [p for p in all_payments if p.get("status") == "processing"]
+    paid = [p for p in all_payments if p.get("status") == "paid"]
+    
+    return {
+        "pending_count": len(pending),
+        "pending_amount": sum(p.get("payment_amount", 0) for p in pending),
+        "processing_count": len(processing),
+        "processing_amount": sum(p.get("payment_amount", 0) for p in processing),
+        "paid_count": len(paid),
+        "paid_amount": sum(p.get("payment_amount", 0) for p in paid),
+        "total_count": len(all_payments),
+        "total_amount": sum(p.get("payment_amount", 0) for p in all_payments)
+    }
+
+
+@router.put("/finance/rp-payments/{payment_id}")
+async def update_rp_payment(
+    payment_id: str,
+    update_data: RPPaymentUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update RP payment status (mark as paid)."""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update RP payments")
+    
+    payment = await db.rp_payments.find_one({"id": payment_id}, {"_id": 0})
+    if not payment:
+        raise HTTPException(status_code=404, detail="RP payment not found")
+    
+    update_fields = {
+        "status": update_data.status,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user["id"]
+    }
+    
+    if update_data.payment_reference:
+        update_fields["payment_reference"] = update_data.payment_reference
+    if update_data.notes:
+        update_fields["notes"] = update_data.notes
+    if update_data.payment_date:
+        update_fields["payment_date"] = update_data.payment_date
+    elif update_data.status == "paid":
+        update_fields["payment_date"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.rp_payments.update_one({"id": payment_id}, {"$set": update_fields})
+    
+    # Also update the booking's RP payment status
+    if payment.get("booking_id"):
+        await db.bookings.update_one(
+            {"id": payment["booking_id"]},
+            {"$set": {"rp_payment_status": update_data.status}}
+        )
+    
+    return {"message": f"RP payment updated to {update_data.status}"}
+
+
 @router.get("/finance/export/excel")
 async def export_finance_excel(
     payment_type: Optional[str] = None,
