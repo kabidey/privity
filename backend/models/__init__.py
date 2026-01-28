@@ -24,15 +24,18 @@ class AuditLog(BaseModel):
 # ============== User Models ==============
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
     name: str
-    pan_number: str  # Required - for Employee-RP conflict check
-    role: int = 4  # Default to Employee for smifs.com domain
+    pan_number: Optional[str] = None  # Required for non-superadmin users
 
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+class ChangePassword(BaseModel):
+    current_password: str
+    new_password: str
 
 
 class User(BaseModel):
