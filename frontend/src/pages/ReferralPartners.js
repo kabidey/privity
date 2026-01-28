@@ -64,18 +64,65 @@ const ReferralPartners = () => {
   };
 
   const handleAddRp = async () => {
-    if (!formData.name || !formData.pan_number || !formData.aadhar_number) {
-      toast.error('Name, PAN Number, and Aadhar Number are required');
+    // Validate all required fields
+    if (!formData.name.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+    if (!formData.email.trim()) {
+      toast.error('Email is required');
+      return;
+    }
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    if (!formData.phone.trim()) {
+      toast.error('Phone number is required');
+      return;
+    }
+    // Validate 10-digit phone (without +91)
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (phoneDigits.length !== 10) {
+      toast.error('Phone number must be exactly 10 digits (without +91)');
+      return;
+    }
+    if (!formData.pan_number.trim() || formData.pan_number.length !== 10) {
+      toast.error('PAN Number must be exactly 10 characters');
+      return;
+    }
+    if (!formData.aadhar_number.trim()) {
+      toast.error('Aadhar Number is required');
+      return;
+    }
+    const aadharDigits = formData.aadhar_number.replace(/\D/g, '');
+    if (aadharDigits.length !== 12) {
+      toast.error('Aadhar Number must be exactly 12 digits');
+      return;
+    }
+    if (!formData.address.trim()) {
+      toast.error('Address is required');
       return;
     }
 
     setSubmitting(true);
     try {
-      const response = await api.post('/referral-partners', formData);
-      toast.success(`Referral Partner created with code: ${response.data.rp_code}`);
+      // Submit with cleaned phone number
+      const submitData = {
+        ...formData,
+        phone: phoneDigits,
+        aadhar_number: aadharDigits
+      };
+      const response = await api.post('/referral-partners', submitData);
+      toast.success(`Referral Partner created with code: ${response.data.rp_code}. Please upload all required documents.`);
       setShowAddDialog(false);
       resetForm();
       fetchRps();
+      // Open upload dialog for new RP
+      setSelectedRp(response.data);
+      setShowUploadDialog(true);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create referral partner');
     } finally {
