@@ -452,7 +452,7 @@ const Finance = () => {
 
       {/* Main Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
+        <TabsList className="grid w-full grid-cols-6 max-w-3xl">
           <TabsTrigger value="all">All ({payments.length})</TabsTrigger>
           <TabsTrigger value="client">
             <ArrowDownLeft className="h-3 w-3 mr-1" />
