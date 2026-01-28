@@ -3474,7 +3474,44 @@ async def get_stock_performance(
     stock_stats = {}
     for booking in bookings:
         stock_id = booking.get("stock_id")
-        if end_date:
+        if not stock_id:
+            continue
+        
+        if stock_id not in stock_stats:
+            stock_stats[stock_id] = {"total_qty": 0, "total_revenue": 0, "total_cost": 0}
+        
+        qty = booking.get("quantity", 0)
+        stock_stats[stock_id]["total_qty"] += qty
+        stock_stats[stock_id]["total_revenue"] += booking.get("selling_price", 0) * qty
+        stock_stats[stock_id]["total_cost"] += booking.get("buying_price", 0) * qty
+    
+    # Get stock details
+    stock_ids = list(stock_stats.keys())
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    stock_map = {s["id"]: s for s in stocks}
+    
+    result = []
+    for stock_id, stats in stock_stats.items():
+        stock = stock_map.get(stock_id, {})
+        profit = stats["total_revenue"] - stats["total_cost"]
+        margin = (profit / stats["total_revenue"] * 100) if stats["total_revenue"] > 0 else 0
+        
+        result.append({
+            "stock_id": stock_id,
+            "stock_symbol": stock.get("symbol", "Unknown"),
+            "stock_name": stock.get("name", "Unknown"),
+            "sector": stock.get("sector", "Unknown"),
+            "total_quantity_sold": stats["total_qty"],
+            "total_revenue": round(stats["total_revenue"], 2),
+            "total_cost": round(stats["total_cost"], 2),
+            "profit_loss": round(profit, 2),
+            "profit_margin": round(margin, 2)
+        })
+    
+    result.sort(key=lambda x: x["profit_loss"], reverse=True)
+    return result[:limit]
+
+@api_router.get("/analytics/employee-performance")
             if "purchase_date" in purchase_query:
                 purchase_query["purchase_date"]["$lte"] = end_date
             else:
