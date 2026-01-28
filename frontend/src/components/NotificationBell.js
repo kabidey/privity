@@ -64,15 +64,40 @@ const NotificationBell = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" data-testid="notification-bell">
-          <Bell className="h-5 w-5" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={`relative ${isAnimating ? 'animate-bounce' : ''}`}
+          data-testid="notification-bell"
+          style={isAnimating ? {
+            animation: 'bellRing 0.5s ease-in-out infinite',
+          } : {}}
+        >
+          <Bell 
+            className={`h-5 w-5 transition-all ${isAnimating ? 'text-yellow-500' : ''}`}
+            style={isAnimating ? {
+              filter: 'drop-shadow(0 0 8px #eab308) drop-shadow(0 0 16px #f59e0b)',
+            } : {}}
+          />
           {unreadCount > 0 && (
             <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs ${
+                isAnimating ? 'animate-ping' : ''
+              }`}
               variant="destructive"
+              style={isAnimating ? {
+                boxShadow: '0 0 10px #ef4444, 0 0 20px #ef4444',
+              } : {}}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
+          )}
+          {/* Animated ring effect when new notification */}
+          {isAnimating && (
+            <>
+              <span className="absolute inset-0 rounded-full bg-yellow-400 animate-ping opacity-30" />
+              <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-yellow-400 via-red-500 to-yellow-400 opacity-50 animate-pulse" style={{ filter: 'blur(4px)' }} />
+            </>
           )}
           {isConnected && (
             <span className="absolute bottom-0 right-0 h-2 w-2 bg-green-500 rounded-full" />
