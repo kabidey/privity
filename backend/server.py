@@ -4189,9 +4189,9 @@ async def get_employee_performance(
     limit: int = 10,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get employee performance analytics (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access advanced analytics")
+    """Get employee performance analytics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
     
     bookings = await db.bookings.find(
         {"status": "closed", "approval_status": "approved"},
