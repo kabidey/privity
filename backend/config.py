@@ -597,5 +597,74 @@ DEFAULT_EMAIL_TEMPLATES = {
         """,
         "variables": ["client_name", "booking_number", "stock_symbol", "refund_amount", "reference_number"],
         "is_active": True
+    },
+    "rp_deal_notification": {
+        "key": "rp_deal_notification",
+        "name": "RP Deal Notification",
+        "subject": "Revenue Booked - Booking {{booking_number}} | SMIFS PE",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #10b981;">✓ New Revenue Booked</h2>
+            <p>Dear {{rp_name}},</p>
+            <p>We are pleased to inform you that a stock transfer has been completed for a booking you referred. Your commission has been booked.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
+                <tr style="background-color: #064E3B; color: white;">
+                    <th colspan="2" style="padding: 12px; text-align: left;">Deal Details</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Your RP Code</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; font-family: monospace;">{{rp_code}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking Reference</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{booking_number}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Client Name</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{client_name}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{stock_symbol}} - {{stock_name}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{quantity}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Transfer Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{transfer_date}}</td>
+                </tr>
+            </table>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
+                <tr style="background-color: #7c3aed; color: white;">
+                    <th colspan="2" style="padding: 12px; text-align: left;">Your Commission</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Deal Profit</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{{profit}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Your Share</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{revenue_share_percent}}%</td>
+                </tr>
+                <tr style="background-color: #d1fae5;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Commission Amount</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong style="color: #059669; font-size: 18px;">₹{{payment_amount}}</strong></td>
+                </tr>
+            </table>
+            
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #92400e;"><strong>Note:</strong> Your commission is now pending and will be processed as per our payment cycle.</p>
+            </div>
+            
+            <p>Thank you for your continued partnership!</p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """,
+        "variables": ["rp_name", "rp_code", "booking_number", "client_name", "stock_symbol", "stock_name", "quantity", "transfer_date", "profit", "revenue_share_percent", "payment_amount"],
+        "is_active": True
     }
 }
