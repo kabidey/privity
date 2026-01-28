@@ -160,14 +160,38 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
                 detail="Referral Partner revenue share cannot be negative"
             )
     
+    # STRICT RULE: A Client cannot be an RP - Auto-zero RP share if client's PAN matches any RP
+    rp_share_auto_zeroed = False
+    if booking_data.referral_partner_id and booking_data.rp_revenue_share_percent:
+        # Check if client's PAN matches any RP's PAN
+        client_pan = client.get("pan_number", "").upper()
+        matching_rp = await db.referral_partners.find_one(
+            {"pan_number": client_pan},
+            {"_id": 0, "rp_code": 1, "name": 1}
+        )
+        if matching_rp:
+            # Client is also an RP - auto-zero the RP revenue share
+            booking_data.rp_revenue_share_percent = 0
+            booking_data.referral_partner_id = None  # Remove RP assignment
+            rp_share_auto_zeroed = True
+    
     # Get RP details if specified
     rp_code = None
     rp_name = None
     if booking_data.referral_partner_id:
         rp = await db.referral_partners.find_one({"id": booking_data.referral_partner_id}, {"_id": 0})
         if rp:
-            rp_code = rp.get("rp_code")
-            rp_name = rp.get("name")
+            # Additional check: Verify the selected RP is not the same person as the client
+            rp_pan = rp.get("pan_number", "").upper()
+            client_pan = client.get("pan_number", "").upper()
+            if rp_pan == client_pan:
+                # Same person - zero out RP share
+                booking_data.rp_revenue_share_percent = 0
+                booking_data.referral_partner_id = None
+                rp_share_auto_zeroed = True
+            else:
+                rp_code = rp.get("rp_code")
+                rp_name = rp.get("name")
         else:
             raise HTTPException(status_code=404, detail="Referral Partner not found")
     
