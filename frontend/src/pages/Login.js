@@ -12,6 +12,8 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -25,8 +27,12 @@ const Login = () => {
   };
 
   const validatePAN = (pan) => {
+    // PAN not required for pedesk@smifs.com
+    if (formData.email.toLowerCase() === 'pedesk@smifs.com') return true;
     return pan && pan.length === 10;
   };
+
+  const isSuperAdmin = formData.email.toLowerCase() === 'pedesk@smifs.com';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,8 +43,8 @@ const Login = () => {
       return;
     }
     
-    // Validate PAN for registration
-    if (!isLogin && !validatePAN(formData.pan_number)) {
+    // Validate PAN for registration (not required for superadmin)
+    if (!isLogin && !isSuperAdmin && !validatePAN(formData.pan_number)) {
       toast.error('PAN number must be exactly 10 characters');
       return;
     }
@@ -46,18 +52,32 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const payload = isLogin
-        ? { email: formData.email, password: formData.password }
-        : formData;
-
-      const response = await api.post(endpoint, payload);
-      
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      toast.success(isLogin ? 'Logged in successfully' : 'Account created as Employee');
-      navigate('/');
+      if (isLogin) {
+        const response = await api.post('/auth/login', { 
+          email: formData.email, 
+          password: formData.password 
+        });
+        
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        toast.success('Logged in successfully');
+        navigate('/');
+      } else {
+        // Registration - no password needed
+        const payload = {
+          email: formData.email,
+          name: formData.name,
+          pan_number: isSuperAdmin ? null : formData.pan_number
+        };
+        
+        const response = await api.post('/auth/register', payload);
+        
+        // Show success message
+        setRegistrationSuccess(true);
+        setRegisteredEmail(formData.email);
+        toast.success('Account created! Check your email for login credentials.');
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'An error occurred');
     } finally {
