@@ -1618,8 +1618,12 @@ async def get_stock_inventory(stock_id: str, current_user: dict = Depends(get_cu
 
 @api_router.delete("/inventory/{stock_id}")
 async def delete_inventory(stock_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete inventory record for a stock (PE Desk only)"""
-    check_permission(current_user, "manage_stocks")
+    """Delete inventory record for a stock (PE Desk only - deletion restricted)"""
+    user_role = current_user.get("role", 6)
+    
+    # Only PE Desk can delete inventory
+    if not is_pe_desk_only(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete inventory records")
     
     # Check if inventory exists
     inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
