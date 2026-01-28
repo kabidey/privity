@@ -27,16 +27,16 @@ const Analytics = () => {
   const [sectorDistribution, setSectorDistribution] = useState([]);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
+  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
 
   useEffect(() => {
-    if (!isPEDesk) {
-      toast.error('Access denied. Only PE Desk can access analytics.');
+    if (!isPELevel) {
+      toast.error('Access denied. Only PE Desk or PE Manager can access analytics.');
       navigate('/');
       return;
     }
     fetchAnalytics();
-  }, [days, isPEDesk, navigate]);
+  }, [days, isPELevel, navigate]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
