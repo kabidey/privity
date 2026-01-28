@@ -2612,21 +2612,21 @@ async def delete_booking(booking_id: str, current_user: dict = Depends(get_curre
     return {"message": "Booking deleted successfully. Inventory released."}
 
 
-# Void Booking (PE Desk Only) - Release inventory without deleting record
+# Void Booking (PE Level) - Release inventory without deleting record
 @api_router.put("/bookings/{booking_id}/void")
 async def void_booking(
     booking_id: str,
     reason: str = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Void a booking and release blocked inventory (PE Desk only).
+    """Void a booking and release blocked inventory (PE Level).
     
     Use this instead of delete when you want to keep the booking record for audit purposes.
     """
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 6)
     
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can void bookings")
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can void bookings")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
