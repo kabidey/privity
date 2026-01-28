@@ -958,10 +958,10 @@ async def unsuspend_client(
     client_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Unsuspend a client (PE Desk only)"""
-    # Only PE Desk (role 1) can unsuspend clients
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can unsuspend clients")
+    """Unsuspend a client (PE Desk or PE Manager)"""
+    # PE Level can unsuspend clients
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can unsuspend clients")
     
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
