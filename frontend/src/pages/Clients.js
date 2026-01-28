@@ -305,6 +305,11 @@ const Clients = () => {
               }
             }
             
+            // Store extracted name for comparison
+            if (extracted.client_name) {
+              setExtractedNames(prev => ({ ...prev, cml_copy: extracted.client_name }));
+            }
+            
             // Track which fields came from OCR
             const newOcrFields = {};
             if (fullDpId) newOcrFields.dp_id = true;
