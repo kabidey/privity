@@ -75,6 +75,59 @@ const ReferralPartners = () => {
     }
   };
 
+  const fetchPendingRps = async () => {
+    try {
+      const response = await api.get('/referral-partners-pending');
+      setPendingRps(response.data);
+    } catch (error) {
+      console.error('Failed to fetch pending RPs');
+    }
+  };
+
+  const handleApprove = async (approve) => {
+    if (!selectedRp) return;
+    
+    if (!approve && !rejectionReason.trim()) {
+      toast.error('Please provide a rejection reason');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await api.put(`/referral-partners/${selectedRp.id}/approve`, {
+        approve,
+        rejection_reason: approve ? null : rejectionReason
+      });
+      toast.success(approve ? 'Referral Partner approved!' : 'Referral Partner rejected');
+      setShowApprovalDialog(false);
+      setRejectionReason('');
+      fetchRps();
+      fetchPendingRps();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to process approval');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openApprovalDialog = (rp) => {
+    setSelectedRp(rp);
+    setRejectionReason('');
+    setShowApprovalDialog(true);
+  };
+
+  const getApprovalStatusBadge = (status) => {
+    switch (status) {
+      case 'approved':
+        return <Badge className="bg-green-500"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+      case 'pending':
+      default:
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-600"><Clock className="h-3 w-3 mr-1" />Pending Approval</Badge>;
+    }
+  };
+
   const handleAddRp = async () => {
     // Validate all required fields
     if (!formData.name.trim()) {
