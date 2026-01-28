@@ -41,19 +41,24 @@ FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://privateq-system.preview.e
 # User Roles
 ROLES = {
     1: "PE Desk",
-    2: "Zonal Manager",
-    3: "Manager",
-    4: "Employee",
-    5: "Viewer"
+    2: "PE Manager",
+    3: "Zonal Manager",
+    4: "Manager",
+    5: "Employee",
+    6: "Viewer"
 }
 
 # Role Permissions
 ROLE_PERMISSIONS = {
-    1: ["all"],  # PE Desk - full access, can approve bookings, manage vendors
-    2: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
-    3: ["view_all", "manage_clients", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
-    4: ["view_own", "create_bookings", "view_clients", "create_clients"],
-    5: ["view_own"]
+    1: ["all"],  # PE Desk - full access including all deletions, database management
+    2: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", 
+        "view_reports", "approve_clients", "approve_bookings", "manage_vendors", "manage_email_templates",
+        "view_analytics", "manage_inventory", "view_dp_transfer", "manage_corporate_actions",
+        "view_audit_logs", "manage_payments", "view_database_stats"],  # PE Manager - PE Desk without delete/restore
+    3: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
+    4: ["view_all", "manage_clients", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
+    5: ["view_own", "create_bookings", "view_clients", "create_clients"],
+    6: ["view_own"]
 }
 
 # Allowed email domains for registration
