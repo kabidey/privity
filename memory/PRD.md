@@ -53,6 +53,19 @@ Build a Share Booking System for managing client share bookings, inventory track
   - View dialog: Displays bank details (account number masked for security)
 - Validation: Bank name required, IFSC format (11 chars), account number (9-18 digits)
 
+#### ✅ Strict Client-RP Separation Rule - COMPLETED (Jan 28, 2026)
+**Implementation Details:**
+- **STRICT RULE: A Client cannot be an RP and vice versa**
+- Backend validation:
+  - RP creation blocked if PAN/email matches existing Client (`/app/backend/routers/referral_partners.py`)
+  - Client creation blocked if PAN/email matches existing RP (`/app/backend/routers/clients.py`)
+  - Booking: Auto-zeros RP revenue share if client's PAN matches any RP (`/app/backend/routers/bookings.py`)
+- Frontend UI:
+  - Added conflict check API: `GET /api/bookings/check-client-rp-conflict/{client_id}`
+  - When client is selected in booking form, system checks for RP conflict
+  - If conflict found: Shows warning, disables RP selection, auto-clears RP fields
+  - Booking notes auto-updated with "[AUTO: RP share zeroed - Client is also an RP]" flag
+
 **API Flow:**
 - `PUT /api/referral-partners/{rp_id}/approve` with `{"approve": true}` → Sends approval email
 - `PUT /api/referral-partners/{rp_id}/approve` with `{"approve": false, "rejection_reason": "..."}` → Sends rejection email
