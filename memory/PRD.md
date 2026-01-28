@@ -86,6 +86,29 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Added `POST /api/auth/change-password` endpoint
 - Added Change Password dialog in sidebar (`/app/frontend/src/components/Layout.js`)
 
+#### ✅ Microsoft Azure AD SSO Integration - COMPLETED (Jan 28, 2026)
+**Implementation Details:**
+- Added Microsoft Azure AD Single Sign-On (SSO) for all users
+- SSO users default to Employee role (role=4), admins manually upgrade
+- Created `/app/backend/services/azure_sso_service.py` for Azure AD token validation
+- Backend endpoints:
+  - `GET /api/auth/sso/config` - Returns SSO configuration for frontend
+  - `POST /api/auth/sso/login` - Validates Azure AD token, creates/updates user
+- Frontend:
+  - MSAL (Microsoft Authentication Library) integration
+  - "Sign in with Microsoft" button on login page (shows when SSO is configured)
+  - Auto-creates user on first SSO login
+
+**Azure AD Setup Required:**
+1. Register app in Azure Portal (App registrations)
+2. Set Redirect URI: `{frontend_url}`
+3. Add API permissions: `openid`, `profile`, `email`
+4. Configure `.env` with:
+   - `AZURE_TENANT_ID` - Azure AD Tenant ID
+   - `AZURE_CLIENT_ID` - Application (client) ID
+   - `AZURE_CLIENT_SECRET` - Client secret (optional for SPA)
+   - `AZURE_REDIRECT_URI` - Redirect URI
+
 **Registration Flow:**
 1. User enters: Name, PAN (not required for superadmin), Email (@smifs.com only)
 2. System generates random password and sends email
