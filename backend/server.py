@@ -2879,8 +2879,8 @@ async def upload_insider_form(
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
-    # Verify user owns this booking or is PE Desk
-    if booking.get("created_by") != current_user["id"] and current_user.get("role") != 1:
+    # Verify user owns this booking or is PE Level
+    if booking.get("created_by") != current_user["id"] and not is_pe_level(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="You can only upload forms for your own bookings")
     
     if booking.get("booking_type") != "own":
