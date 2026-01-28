@@ -241,12 +241,12 @@ const EmailLogs = () => {
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div>
                   <Label>Status</Label>
-                  <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
+                  <Select value={filters.status || "all"} onValueChange={(v) => setFilters({ ...filters, status: v === "all" ? "" : v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="All Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Status</SelectItem>
+                      <SelectItem value="all">All Status</SelectItem>
                       <SelectItem value="sent">Sent</SelectItem>
                       <SelectItem value="failed">Failed</SelectItem>
                       <SelectItem value="skipped">Skipped</SelectItem>
