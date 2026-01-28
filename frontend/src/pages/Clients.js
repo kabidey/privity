@@ -958,6 +958,30 @@ const Clients = () => {
                   </Card>
                 </div>
 
+                {/* Name Matching Status */}
+                {Object.values(extractedNames).filter(n => n).length >= 2 && (
+                  <div className={`p-3 rounded-lg border ${validateNameMatching().valid ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800' : 'bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800'}`}>
+                    <div className="flex items-center gap-2">
+                      {validateNameMatching().valid ? (
+                        <>
+                          <Check className="h-4 w-4 text-green-600" />
+                          <span className="text-sm text-green-800 dark:text-green-200 font-medium">Name matching verified across documents</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="h-4 w-4 text-red-600" />
+                          <span className="text-sm text-red-800 dark:text-red-200 font-medium">Name mismatch detected</span>
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {extractedNames.pan_card && <span className="block">PAN Card: {extractedNames.pan_card}</span>}
+                      {extractedNames.cml_copy && <span className="block">CML: {extractedNames.cml_copy}</span>}
+                      {extractedNames.cancelled_cheque && <span className="block">Cheque: {extractedNames.cancelled_cheque}</span>}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between pt-4">
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
                   <div className="flex gap-2">
