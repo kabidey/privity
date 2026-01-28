@@ -2945,9 +2945,9 @@ async def download_insider_form(
     booking_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Download insider trading form for a booking (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can download insider forms")
+    """Download insider trading form for a booking (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can download insider forms")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
