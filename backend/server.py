@@ -3455,7 +3455,25 @@ async def get_analytics_summary(
     }
 
 @api_router.get("/analytics/stock-performance")
-            purchase_query["purchase_date"] = {"$gte": start_date}
+async def get_stock_performance(
+    days: int = 30,
+    limit: int = 10,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get stock performance analytics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    start_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    
+    bookings = await db.bookings.find(
+        {"status": "closed", "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    stock_stats = {}
+    for booking in bookings:
+        stock_id = booking.get("stock_id")
         if end_date:
             if "purchase_date" in purchase_query:
                 purchase_query["purchase_date"]["$lte"] = end_date
