@@ -81,8 +81,11 @@ rp_payments: {
 #### ✅ Referral Partner (RP) System - COMPLETED
 - Full CRUD system for managing Referral Partners
 - Unique RP codes (RP-XXXX format)
+- **All fields mandatory**: Name, Email, Phone (10 digits without +91), PAN (10 chars), Aadhar (12 digits), Address
+- **All documents mandatory**: PAN Card, Aadhar Card, Cancelled Cheque (uploaded separately after creation)
+- Validation: Duplicate PAN, Email, and Aadhar detection
 - Integration into booking form with warning about post-creation restrictions
-- Documents upload support (PAN, Aadhar, Cancelled Cheque)
+- **Email notification to RP** when stock transfer is confirmed (rp_deal_notification template with deal details and revenue share)
 
 #### ✅ Backend Refactoring - COMPLETED
 - Created modular routers for `/app/backend/routers/`:
