@@ -311,8 +311,9 @@ const ReferralPartners = () => {
                   <TableRow>
                     <TableHead>RP Code</TableHead>
                     <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Mobile</TableHead>
                     <TableHead>PAN</TableHead>
-                    <TableHead>Phone</TableHead>
                     <TableHead>Documents</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -325,21 +326,22 @@ const ReferralPartners = () => {
                         <span className="font-mono font-bold text-primary">{rp.rp_code}</span>
                       </TableCell>
                       <TableCell className="font-medium">{rp.name}</TableCell>
-                      <TableCell className="font-mono">{rp.pan_number}</TableCell>
-                      <TableCell>{rp.phone || '-'}</TableCell>
+                      <TableCell className="text-sm">{rp.email || '-'}</TableCell>
+                      <TableCell className="font-mono">{rp.phone || '-'}</TableCell>
+                      <TableCell className="font-mono text-sm">{rp.pan_number}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           {rp.pan_card_url && (
-                            <Badge variant="outline" className="text-xs">PAN</Badge>
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">PAN</Badge>
                           )}
                           {rp.aadhar_card_url && (
-                            <Badge variant="outline" className="text-xs">Aadhar</Badge>
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Aadhar</Badge>
                           )}
                           {rp.cancelled_cheque_url && (
-                            <Badge variant="outline" className="text-xs">Cheque</Badge>
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Cheque</Badge>
                           )}
-                          {!rp.pan_card_url && !rp.aadhar_card_url && !rp.cancelled_cheque_url && (
-                            <span className="text-muted-foreground text-xs">None</span>
+                          {(!rp.pan_card_url || !rp.aadhar_card_url || !rp.cancelled_cheque_url) && (
+                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700">Incomplete</Badge>
                           )}
                         </div>
                       </TableCell>
