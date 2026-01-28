@@ -129,7 +129,7 @@ const EmailServerConfig = () => {
     }
   };
 
-  if (!isPEDesk) return null;
+  if (!isPELevel) return null;
 
   if (loading) {
     return (
