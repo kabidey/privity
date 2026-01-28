@@ -448,11 +448,11 @@ class ReferralPartner(BaseModel):
     id: str
     rp_code: str  # Unique code like RP-XXXX
     name: str
-    email: str  # Required
-    phone: str  # Required - 10 digit mobile number
+    email: Optional[str] = None  # Required for new RPs, but allow None for legacy data
+    phone: Optional[str] = None  # Required for new RPs, but allow None for legacy data
     pan_number: str
     aadhar_number: str
-    address: str  # Required
+    address: Optional[str] = None  # Required for new RPs, but allow None for legacy data
     # Documents (all mandatory for RP creation flow)
     pan_card_url: Optional[str] = None
     aadhar_card_url: Optional[str] = None
