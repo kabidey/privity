@@ -299,6 +299,11 @@ class Booking(BaseModel):
     rp_code: Optional[str] = None
     rp_name: Optional[str] = None
     rp_revenue_share_percent: Optional[float] = None
+    # Employee Revenue Share (reduced by RP share when applicable)
+    employee_revenue_share_percent: Optional[float] = None  # Employee's final share after RP deduction
+    base_employee_share_percent: float = 100.0  # Default before any deductions
+    employee_commission_amount: Optional[float] = None  # Calculated when stock transfer confirmed
+    employee_commission_status: str = "pending"  # pending, calculated, paid
     # Client confirmation
     client_confirmation_status: str = "pending"
     client_confirmation_token: Optional[str] = None
