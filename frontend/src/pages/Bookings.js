@@ -41,6 +41,7 @@ const Bookings = () => {
   const [uploadingForm, setUploadingForm] = useState(false);
   const [referralPartners, setReferralPartners] = useState([]);
   const [showRpWarning, setShowRpWarning] = useState(false);
+  const [showHighRpShareWarning, setShowHighRpShareWarning] = useState(false);
   const [formData, setFormData] = useState({
     client_id: '',
     stock_id: '',
