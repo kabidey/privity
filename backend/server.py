@@ -59,7 +59,7 @@ from services.ocr_service import process_document_ocr
 
 # Models (importing from models package for new code, keeping local for backward compat)
 from models import (
-    AuditLog, UserCreate, UserLogin, User, TokenResponse,
+    AuditLog, UserCreate, UserLogin, User, TokenResponse, ChangePassword,
     PasswordResetRequest, PasswordResetVerify, Notification,
     BankAccount, ClientDocument, ClientCreate, Client,
     StockCreate, Stock, CorporateActionCreate, CorporateAction,
