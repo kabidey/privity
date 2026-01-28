@@ -570,7 +570,31 @@ const Bookings = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Client * <span className="text-xs text-muted-foreground">(Approved clients only)</span></Label>
-                <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })} required>
+                <Select 
+                  value={formData.client_id} 
+                  onValueChange={async (value) => {
+                    setFormData({ ...formData, client_id: value });
+                    // Check for Client-RP conflict
+                    if (value) {
+                      try {
+                        const response = await api.get(`/bookings/check-client-rp-conflict/${value}`);
+                        if (response.data.has_conflict) {
+                          setClientIsRpWarning(response.data);
+                          // Auto-clear RP selection if there's a conflict
+                          setFormData(prev => ({ ...prev, client_id: value, referral_partner_id: '', rp_revenue_share_percent: '' }));
+                        } else {
+                          setClientIsRpWarning(null);
+                        }
+                      } catch (error) {
+                        console.error('Error checking client-RP conflict:', error);
+                        setClientIsRpWarning(null);
+                      }
+                    } else {
+                      setClientIsRpWarning(null);
+                    }
+                  }} 
+                  required
+                >
                   <SelectTrigger data-testid="booking-client-select">
                     <SelectValue placeholder="Select approved client" />
                   </SelectTrigger>
@@ -587,6 +611,24 @@ const Bookings = () => {
                     )}
                   </SelectContent>
                 </Select>
+                
+                {/* Client is RP Warning */}
+                {clientIsRpWarning && (
+                  <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/50 border-2 border-red-500">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-red-800 dark:text-red-200">Client is also a Referral Partner</p>
+                        <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                          {clientIsRpWarning.message}
+                        </p>
+                        <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-medium">
+                          RP Code: {clientIsRpWarning.rp_code} | RP Name: {clientIsRpWarning.rp_name}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
