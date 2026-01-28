@@ -3369,7 +3369,21 @@ async def update_email_template(
     return {"message": "Template updated successfully"}
 
 @api_router.post("/email-templates/{template_key}/reset")
-                    "payment_status": booking.get("payment_status", "pending")
+async def reset_email_template(template_key: str, current_user: dict = Depends(get_current_user)):
+    """Reset email template to default (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    from config import DEFAULT_EMAIL_TEMPLATES
+    default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
+    if not default:
+        raise HTTPException(status_code=404, detail="Default template not found")
+    
+    await db.email_templates.delete_one({"key": template_key})
+    
+    return {"message": "Template reset to default"}
+
+@api_router.post("/email-templates/{template_key}/preview")
                 })
     
     # Get vendor payments from purchases
