@@ -1641,68 +1641,7 @@ async def get_pending_bookings(current_user: dict = Depends(get_current_user)):
     
     return enriched
 
-@api_router.get("/bookings", response_model=List[BookingWithDetails])
-async def get_bookings(
-    client_id: Optional[str] = None,
-    stock_id: Optional[str] = None,
-    status: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
-):
-    query = {}
-    
-    # Role-based filtering
-    if current_user.get("role", 5) >= 3:
-        if "view_all" not in ROLE_PERMISSIONS.get(current_user.get("role", 5), []):
-            query["created_by"] = current_user["id"]
-    
-    if client_id:
-        query["client_id"] = client_id
-    if stock_id:
-        query["stock_id"] = stock_id
-    if status:
-        query["status"] = status
-    
-    bookings = await db.bookings.find(query, {"_id": 0, "user_id": 0}).to_list(1000)
-    
-    if not bookings:
-        return []
-    
-    # Batch fetch related data
-    client_ids = list(set(b["client_id"] for b in bookings))
-    stock_ids = list(set(b["stock_id"] for b in bookings))
-    user_ids = list(set(b["created_by"] for b in bookings))
-    
-    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
-    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
-    users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0}).to_list(1000)
-    
-    client_map = {c["id"]: c for c in clients}
-    stock_map = {s["id"]: s for s in stocks}
-    user_map = {u["id"]: u for u in users}
-    
-    enriched_bookings = []
-    for booking in bookings:
-        client = client_map.get(booking["client_id"])
-        stock = stock_map.get(booking["stock_id"])
-        user = user_map.get(booking["created_by"])
-        
-        profit_loss = None
-        if booking.get("selling_price") and booking["status"] == "closed":
-            profit_loss = (booking["selling_price"] - booking["buying_price"]) * booking["quantity"]
-        
-        # Exclude fields that will be explicitly provided to avoid duplicate key errors
-        booking_data = {k: v for k, v in booking.items() if k not in ["client_name", "stock_symbol", "stock_name", "created_by_name", "profit_loss"]}
-        
-        enriched_bookings.append(BookingWithDetails(
-            **booking_data,
-            client_name=client["name"] if client else "Unknown",
-            stock_symbol=stock["symbol"] if stock else "Unknown",
-            stock_name=stock["name"] if stock else "Unknown",
-            created_by_name=user["name"] if user else "Unknown",
-            profit_loss=profit_loss
-        ))
-    
-    return enriched_bookings
+# NOTE: GET /bookings has been moved to routers/bookings.py
 
 @api_router.get("/bookings-export")
 async def export_bookings(
