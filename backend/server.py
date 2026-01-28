@@ -897,8 +897,8 @@ async def update_client_employee_mapping(
 
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: dict = Depends(get_current_user)):
-    # Only PE Desk (role 1) can delete clients
-    if current_user.get("role", 5) != 1:
+    # Only PE Desk (role 1) can delete clients (PE Manager cannot delete)
+    if not is_pe_desk_only(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can delete clients")
     
     result = await db.clients.delete_one({"id": client_id})
