@@ -8,6 +8,9 @@ from .email_templates import router as email_templates_router
 from .smtp_config import router as smtp_config_router
 from .stocks import router as stocks_router
 from .database_backup import router as database_backup_router
+from .bookings import router as bookings_router
+from .clients import router as clients_router
+from .finance import router as finance_router
 
 __all__ = [
     'auth_router',
@@ -17,4 +20,7 @@ __all__ = [
     'smtp_config_router',
     'stocks_router',
     'database_backup_router',
+    'bookings_router',
+    'clients_router',
+    'finance_router',
 ]
