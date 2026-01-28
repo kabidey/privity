@@ -60,6 +60,7 @@ function App() {
                         <Route path="/users" element={<UserManagement />} />
                         <Route path="/analytics" element={<Analytics />} />
                         <Route path="/email-templates" element={<EmailTemplates />} />
+                        <Route path="/email-logs" element={<EmailLogs />} />
                         <Route path="/email-server" element={<EmailServerConfig />} />
                         <Route path="/dp-transfer" element={<DPTransferReport />} />
                         <Route path="/database-backup" element={<DatabaseBackup />} />
