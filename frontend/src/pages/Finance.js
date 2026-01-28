@@ -416,7 +416,7 @@ const Finance = () => {
 
       {/* Main Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
           <TabsTrigger value="all">All ({payments.length})</TabsTrigger>
           <TabsTrigger value="client">
             <ArrowDownLeft className="h-3 w-3 mr-1" />
@@ -429,6 +429,10 @@ const Finance = () => {
           <TabsTrigger value="refunds" data-testid="refunds-tab">
             <RotateCcw className="h-3 w-3 mr-1" />
             Refunds ({refundRequests.length})
+          </TabsTrigger>
+          <TabsTrigger value="rp-payments" data-testid="rp-payments-tab">
+            <CreditCard className="h-3 w-3 mr-1" />
+            RP Payments ({rpPayments.length})
           </TabsTrigger>
         </TabsList>
 
