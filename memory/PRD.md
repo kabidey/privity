@@ -164,7 +164,8 @@ refund_requests: {
 
 ## Credentials for Testing
 - **PE Desk (Super Admin)**: `pedesk@smifs.com` / `Kutta@123`
-- **PE Manager**: `pemanager@test.com` / `Test@123`
+- **PE Manager**: `pemanager@smifs.com` / `Manager@123`
+- **Finance**: `finance@smifs.com` / `Finance@123`
 - **Employee**: `employee@test.com` / `Test@123`
 
 ## File Structure
