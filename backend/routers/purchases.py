@@ -80,15 +80,46 @@ async def create_purchase(
 @router.get("", response_model=List[Purchase])
 async def get_purchases(
     status: Optional[str] = None,
+    vendor_id: Optional[str] = None,
+    stock_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all purchases"""
+    """Get all purchases with vendor and stock details"""
     query = {}
     if status:
         query["status"] = status
+    if vendor_id:
+        query["vendor_id"] = vendor_id
+    if stock_id:
+        query["stock_id"] = stock_id
     
     purchases = await db.purchases.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
-    return purchases
+    
+    if not purchases:
+        return []
+    
+    # Enrich with vendor and stock details
+    vendor_ids = list(set(p["vendor_id"] for p in purchases))
+    stock_ids = list(set(p["stock_id"] for p in purchases))
+    
+    vendors = await db.clients.find({"id": {"$in": vendor_ids}}, {"_id": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    
+    vendor_map = {v["id"]: v for v in vendors}
+    stock_map = {s["id"]: s for s in stocks}
+    
+    enriched_purchases = []
+    for p in purchases:
+        vendor = vendor_map.get(p["vendor_id"])
+        stock = stock_map.get(p["stock_id"])
+        
+        # Add vendor_name and stock_symbol if not present
+        p["vendor_name"] = p.get("vendor_name") or (vendor["name"] if vendor else "Unknown")
+        p["stock_symbol"] = p.get("stock_symbol") or (stock["symbol"] if stock else "Unknown")
+        
+        enriched_purchases.append(Purchase(**p))
+    
+    return enriched_purchases
 
 
 @router.get("/{purchase_id}/payments")
