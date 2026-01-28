@@ -1590,6 +1590,33 @@ async def get_stock_inventory(stock_id: str, current_user: dict = Depends(get_cu
         inventory = await update_inventory(stock_id)
     return inventory
 
+
+@api_router.delete("/inventory/{stock_id}")
+async def delete_inventory(stock_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete inventory record for a stock (PE Desk only)"""
+    check_permission(current_user, "manage_stocks")
+    
+    # Check if inventory exists
+    inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+    if not inventory:
+        raise HTTPException(status_code=404, detail="Inventory record not found")
+    
+    # Check for blocked quantity - don't allow deletion if stock is blocked
+    if inventory.get("blocked_quantity", 0) > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete inventory. {inventory.get('blocked_quantity')} shares are blocked for pending bookings."
+        )
+    
+    # Delete the inventory record
+    result = await db.inventory.delete_one({"stock_id": stock_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Inventory record not found")
+    
+    return {"message": f"Inventory for {inventory.get('stock_symbol', stock_id)} deleted successfully"}
+
+
 # Booking Routes
 @api_router.post("/bookings", response_model=Booking)
 async def create_booking(booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
