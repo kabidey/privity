@@ -1138,11 +1138,11 @@ async def clone_client_vendor(
 # Stock Routes (PE Desk Only for creation/edit)
 @api_router.post("/stocks", response_model=Stock)
 async def create_stock(stock_data: StockCreate, current_user: dict = Depends(get_current_user)):
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 6)
     
-    # Only PE Desk can create stocks
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can add stocks")
+    # PE Level can create stocks
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can add stocks")
     
     stock_id = str(uuid.uuid4())
     stock_doc = {
@@ -1190,11 +1190,11 @@ async def get_stock(stock_id: str, current_user: dict = Depends(get_current_user
 
 @api_router.put("/stocks/{stock_id}", response_model=Stock)
 async def update_stock(stock_id: str, stock_data: StockCreate, current_user: dict = Depends(get_current_user)):
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 6)
     
-    # Only PE Desk can update stocks
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can update stocks")
+    # PE Level can update stocks
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update stocks")
     
     result = await db.stocks.update_one(
         {"id": stock_id},
@@ -1209,10 +1209,10 @@ async def update_stock(stock_id: str, stock_data: StockCreate, current_user: dic
 
 @api_router.delete("/stocks/{stock_id}")
 async def delete_stock(stock_id: str, current_user: dict = Depends(get_current_user)):
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 6)
     
-    # Only PE Desk can delete stocks
-    if user_role != 1:
+    # Only PE Desk can delete stocks (PE Manager cannot delete)
+    if not is_pe_desk_only(user_role):
         raise HTTPException(status_code=403, detail="Only PE Desk can delete stocks")
     
     result = await db.stocks.delete_one({"id": stock_id})
@@ -1222,11 +1222,11 @@ async def delete_stock(stock_id: str, current_user: dict = Depends(get_current_u
 
 @api_router.post("/stocks/bulk-upload")
 async def bulk_upload_stocks(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 6)
     
-    # Only PE Desk can bulk upload stocks
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can bulk upload stocks")
+    # PE Level can bulk upload stocks
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can bulk upload stocks")
     
     try:
         content = await file.read()
