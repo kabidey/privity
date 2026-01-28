@@ -22,9 +22,11 @@ const Purchases = () => {
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
-    notes: ''
+    notes: '',
+    proof_url: ''
   });
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [uploadingProof, setUploadingProof] = useState(false);
   const [formData, setFormData] = useState({
     vendor_id: '',
     stock_id: '',
