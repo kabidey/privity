@@ -265,6 +265,9 @@ class BookingCreate(BaseModel):
     notes: Optional[str] = None
     booking_type: str = "client"  # "client", "team", or "own"
     insider_form_uploaded: bool = False
+    # Referral Partner
+    referral_partner_id: Optional[str] = None
+    rp_revenue_share_percent: Optional[float] = None  # Revenue share percentage for RP
 
 
 class Booking(BaseModel):
