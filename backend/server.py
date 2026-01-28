@@ -3930,6 +3930,282 @@ async def mark_all_notifications_read(current_user: dict = Depends(get_current_u
     )
     return {"message": f"Marked {result.modified_count} notifications as read"}
 
+# ============== Finance / Payments Dashboard ==============
+
+@api_router.get("/finance/payments")
+async def get_all_payments(
+    payment_type: Optional[str] = None,  # 'client', 'vendor', or None for all
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all payments (client and vendor) for finance dashboard (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access finance data")
+    
+    all_payments = []
+    
+    # Get client payments from bookings
+    if payment_type in [None, 'client']:
+        booking_query = {"payments": {"$exists": True, "$ne": []}}
+        if start_date:
+            booking_query["booking_date"] = {"$gte": start_date}
+        if end_date:
+            if "booking_date" in booking_query:
+                booking_query["booking_date"]["$lte"] = end_date
+            else:
+                booking_query["booking_date"] = {"$lte": end_date}
+        
+        bookings = await db.bookings.find(booking_query, {"_id": 0}).to_list(5000)
+        
+        # Get related data
+        client_ids = list(set(b["client_id"] for b in bookings))
+        stock_ids = list(set(b["stock_id"] for b in bookings))
+        user_ids = list(set(p.get("recorded_by") for b in bookings for p in b.get("payments", []) if p.get("recorded_by")))
+        
+        clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+        stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0, "id": 1, "symbol": 1, "name": 1}).to_list(1000)
+        users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+        
+        client_map = {c["id"]: c for c in clients}
+        stock_map = {s["id"]: s for s in stocks}
+        user_map = {u["id"]: u["name"] for u in users}
+        
+        for booking in bookings:
+            client = client_map.get(booking["client_id"], {})
+            stock = stock_map.get(booking["stock_id"], {})
+            booking_number = booking.get("booking_number", booking["id"][:8].upper())
+            
+            for payment in booking.get("payments", []):
+                all_payments.append({
+                    "id": f"client_{booking['id']}_{payment['tranche_number']}",
+                    "type": "client",
+                    "direction": "received",
+                    "reference_id": booking["id"],
+                    "reference_number": booking_number,
+                    "party_name": client.get("name", "Unknown"),
+                    "party_id": booking["client_id"],
+                    "stock_symbol": stock.get("symbol", "Unknown"),
+                    "stock_name": stock.get("name", "Unknown"),
+                    "tranche_number": payment["tranche_number"],
+                    "amount": payment["amount"],
+                    "payment_date": payment["payment_date"],
+                    "recorded_by": user_map.get(payment.get("recorded_by"), "System"),
+                    "recorded_at": payment.get("recorded_at"),
+                    "notes": payment.get("notes"),
+                    "proof_url": payment.get("proof_url"),
+                    "booking_date": booking.get("booking_date"),
+                    "total_amount": (booking.get("selling_price") or 0) * booking.get("quantity", 0),
+                    "total_paid": booking.get("total_paid", 0),
+                    "payment_status": booking.get("payment_status", "pending")
+                })
+    
+    # Get vendor payments from purchases
+    if payment_type in [None, 'vendor']:
+        purchase_query = {"payments": {"$exists": True, "$ne": []}}
+        if start_date:
+            purchase_query["purchase_date"] = {"$gte": start_date}
+        if end_date:
+            if "purchase_date" in purchase_query:
+                purchase_query["purchase_date"]["$lte"] = end_date
+            else:
+                purchase_query["purchase_date"] = {"$lte": end_date}
+        
+        purchases = await db.purchases.find(purchase_query, {"_id": 0}).to_list(5000)
+        
+        # Get related data
+        vendor_ids = list(set(p["vendor_id"] for p in purchases))
+        stock_ids = list(set(p["stock_id"] for p in purchases))
+        user_ids = list(set(pay.get("recorded_by") for p in purchases for pay in p.get("payments", []) if pay.get("recorded_by")))
+        
+        vendors = await db.clients.find({"id": {"$in": vendor_ids}, "is_vendor": True}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+        stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0, "id": 1, "symbol": 1, "name": 1}).to_list(1000)
+        users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+        
+        vendor_map = {v["id"]: v for v in vendors}
+        stock_map = {s["id"]: s for s in stocks}
+        user_map = {u["id"]: u["name"] for u in users}
+        
+        for purchase in purchases:
+            vendor = vendor_map.get(purchase["vendor_id"], {})
+            stock = stock_map.get(purchase["stock_id"], {})
+            
+            for payment in purchase.get("payments", []):
+                all_payments.append({
+                    "id": f"vendor_{purchase['id']}_{payment['tranche_number']}",
+                    "type": "vendor",
+                    "direction": "sent",
+                    "reference_id": purchase["id"],
+                    "reference_number": purchase["id"][:8].upper(),
+                    "party_name": vendor.get("name", "Unknown"),
+                    "party_id": purchase["vendor_id"],
+                    "stock_symbol": stock.get("symbol", "Unknown"),
+                    "stock_name": stock.get("name", "Unknown"),
+                    "tranche_number": payment["tranche_number"],
+                    "amount": payment["amount"],
+                    "payment_date": payment["payment_date"],
+                    "recorded_by": user_map.get(payment.get("recorded_by"), "System"),
+                    "recorded_at": payment.get("recorded_at"),
+                    "notes": payment.get("notes"),
+                    "proof_url": payment.get("proof_url"),
+                    "purchase_date": purchase.get("purchase_date"),
+                    "total_amount": purchase.get("total_amount", 0),
+                    "total_paid": purchase.get("total_paid", 0),
+                    "payment_status": purchase.get("payment_status", "pending")
+                })
+    
+    # Sort by payment date (newest first)
+    all_payments.sort(key=lambda x: x.get("payment_date", ""), reverse=True)
+    
+    return all_payments
+
+
+@api_router.get("/finance/summary")
+async def get_finance_summary(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get finance summary statistics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access finance data")
+    
+    # Get all payments first
+    payments = await get_all_payments(None, start_date, end_date, current_user)
+    
+    client_payments = [p for p in payments if p["type"] == "client"]
+    vendor_payments = [p for p in payments if p["type"] == "vendor"]
+    
+    return {
+        "total_received": sum(p["amount"] for p in client_payments),
+        "total_sent": sum(p["amount"] for p in vendor_payments),
+        "client_payments_count": len(client_payments),
+        "vendor_payments_count": len(vendor_payments),
+        "net_flow": sum(p["amount"] for p in client_payments) - sum(p["amount"] for p in vendor_payments)
+    }
+
+
+@api_router.get("/finance/export/excel")
+async def export_finance_excel(
+    payment_type: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Export finance data to Excel (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can export finance data")
+    
+    payments = await get_all_payments(payment_type, start_date, end_date, current_user)
+    
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Payments Report"
+    
+    # Headers
+    headers = [
+        "Payment Date", "Type", "Direction", "Party Name", "Stock Symbol", 
+        "Stock Name", "Tranche #", "Amount", "Total Amount", "Total Paid",
+        "Status", "Reference #", "Recorded By", "Notes"
+    ]
+    for col, header in enumerate(headers, 1):
+        ws.cell(row=1, column=col, value=header)
+        ws.cell(row=1, column=col).font = Font(bold=True)
+    
+    # Data
+    for row_idx, payment in enumerate(payments, 2):
+        ws.cell(row=row_idx, column=1, value=payment.get("payment_date", ""))
+        ws.cell(row=row_idx, column=2, value=payment.get("type", "").upper())
+        ws.cell(row=row_idx, column=3, value=payment.get("direction", "").upper())
+        ws.cell(row=row_idx, column=4, value=payment.get("party_name", ""))
+        ws.cell(row=row_idx, column=5, value=payment.get("stock_symbol", ""))
+        ws.cell(row=row_idx, column=6, value=payment.get("stock_name", ""))
+        ws.cell(row=row_idx, column=7, value=payment.get("tranche_number", 0))
+        ws.cell(row=row_idx, column=8, value=payment.get("amount", 0))
+        ws.cell(row=row_idx, column=9, value=payment.get("total_amount", 0))
+        ws.cell(row=row_idx, column=10, value=payment.get("total_paid", 0))
+        ws.cell(row=row_idx, column=11, value=payment.get("payment_status", "").upper())
+        ws.cell(row=row_idx, column=12, value=payment.get("reference_number", ""))
+        ws.cell(row=row_idx, column=13, value=payment.get("recorded_by", ""))
+        ws.cell(row=row_idx, column=14, value=payment.get("notes", ""))
+    
+    # Summary section
+    summary_row = len(payments) + 4
+    ws.cell(row=summary_row, column=1, value="SUMMARY")
+    ws.cell(row=summary_row, column=1).font = Font(bold=True)
+    
+    client_total = sum(p["amount"] for p in payments if p["type"] == "client")
+    vendor_total = sum(p["amount"] for p in payments if p["type"] == "vendor")
+    
+    ws.cell(row=summary_row + 1, column=1, value="Total Received (Clients):")
+    ws.cell(row=summary_row + 1, column=2, value=client_total)
+    ws.cell(row=summary_row + 2, column=1, value="Total Sent (Vendors):")
+    ws.cell(row=summary_row + 2, column=2, value=vendor_total)
+    ws.cell(row=summary_row + 3, column=1, value="Net Flow:")
+    ws.cell(row=summary_row + 3, column=2, value=client_total - vendor_total)
+    ws.cell(row=summary_row + 3, column=1).font = Font(bold=True)
+    ws.cell(row=summary_row + 3, column=2).font = Font(bold=True)
+    
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[column_letter].width = min(max_length + 2, 50)
+    
+    # Save to buffer
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    filename = f"finance_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@api_router.post("/payments/upload-proof")
+async def upload_payment_proof(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload payment proof document"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can upload payment proofs")
+    
+    # Validate file type
+    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"File type not allowed. Allowed: {', '.join(allowed_extensions)}")
+    
+    # Create upload directory
+    proof_dir = os.path.join(UPLOAD_DIR, "payment_proofs")
+    os.makedirs(proof_dir, exist_ok=True)
+    
+    # Generate unique filename
+    unique_filename = f"payment_proof_{uuid.uuid4().hex}{file_ext}"
+    file_path = os.path.join(proof_dir, unique_filename)
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    return {
+        "filename": unique_filename,
+        "original_name": file.filename,
+        "url": f"/uploads/payment_proofs/{unique_filename}"
+    }
+
 # ============== Email Templates Routes (PE Level) ==============
 @api_router.get("/email-templates")
 async def get_email_templates(current_user: dict = Depends(get_current_user)):
