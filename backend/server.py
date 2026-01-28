@@ -3309,7 +3309,38 @@ async def get_email_template(template_key: str, current_user: dict = Depends(get
     return template
 
 @api_router.put("/email-templates/{template_key}")
-                    "total_amount": (booking.get("selling_price") or 0) * booking.get("quantity", 0),
+async def update_email_template(
+    template_key: str,
+    subject: Optional[str] = None,
+    body: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update email template (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    # Check if template exists in database
+    existing = await db.email_templates.find_one({"key": template_key})
+    
+    update_data = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user["id"]
+    }
+    
+    if subject is not None:
+        update_data["subject"] = subject
+    if body is not None:
+        update_data["body"] = body
+    if is_active is not None:
+        update_data["is_active"] = is_active
+    
+    if existing:
+        await db.email_templates.update_one(
+            {"key": template_key},
+            {"$set": update_data}
+        )
+    else:
                     "total_paid": booking.get("total_paid", 0),
                     "payment_status": booking.get("payment_status", "pending")
                 })
