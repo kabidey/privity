@@ -46,10 +46,6 @@ async def generate_booking_number() -> str:
         
         seq_num = counter.get("seq", 1)
         return f"BK-{year}-{seq_num:05d}"
-    else:
-        new_num = 1
-    
-    return f"BK-{year}-{new_num:05d}"
 
 
 def get_client_emails(client: dict) -> list:
