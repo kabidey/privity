@@ -346,122 +346,242 @@ const ReferralPartners = () => {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle>All Referral Partners</CardTitle>
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, code, PAN..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                data-testid="rp-search"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="text-center py-8">Loading...</div>
-          ) : filteredRps.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No referral partners found
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>RP Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Mobile</TableHead>
-                    <TableHead>PAN</TableHead>
-                    <TableHead>Documents</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredRps.map((rp) => (
-                    <TableRow key={rp.id} data-testid={`rp-row-${rp.id}`}>
-                      <TableCell>
-                        <span className="font-mono font-bold text-primary">{rp.rp_code}</span>
-                      </TableCell>
-                      <TableCell className="font-medium">{rp.name}</TableCell>
-                      <TableCell className="text-sm">{rp.email || '-'}</TableCell>
-                      <TableCell className="font-mono">{rp.phone || '-'}</TableCell>
-                      <TableCell className="font-mono text-sm">{rp.pan_number}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {rp.pan_card_url && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">PAN</Badge>
-                          )}
-                          {rp.aadhar_card_url && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Aadhar</Badge>
-                          )}
-                          {rp.cancelled_cheque_url && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Cheque</Badge>
-                          )}
-                          {(!rp.pan_card_url || !rp.aadhar_card_url || !rp.cancelled_cheque_url) && (
-                            <Badge variant="outline" className="text-xs bg-red-50 text-red-700">Incomplete</Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={rp.is_active ? 'default' : 'secondary'}>
-                          {rp.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openViewDialog(rp)}
-                            data-testid={`view-rp-${rp.id}`}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openUploadDialog(rp)}
-                            data-testid={`upload-rp-${rp.id}`}
-                          >
-                            <Upload className="h-4 w-4" />
-                          </Button>
-                          {isPELevel && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => openEditDialog(rp)}
-                                data-testid={`edit-rp-${rp.id}`}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleToggleActive(rp)}
-                              >
-                                {rp.is_active ? 'Deactivate' : 'Activate'}
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className={isPELevel ? "grid w-full grid-cols-2 max-w-md" : ""}>
+          <TabsTrigger value="all">All RPs ({rps.length})</TabsTrigger>
+          {isPELevel && (
+            <TabsTrigger value="pending" data-testid="pending-approvals-tab">
+              <Clock className="h-3 w-3 mr-1" />
+              Pending Approvals ({pendingRps.length})
+            </TabsTrigger>
           )}
-        </CardContent>
-      </Card>
+        </TabsList>
+
+        <TabsContent value="all">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <CardTitle>All Referral Partners</CardTitle>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name, code, PAN..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                    data-testid="rp-search"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">Loading...</div>
+              ) : filteredRps.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No referral partners found
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>RP Code</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Mobile</TableHead>
+                        <TableHead>PAN</TableHead>
+                        <TableHead>Documents</TableHead>
+                        <TableHead>Approval</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredRps.map((rp) => (
+                        <TableRow key={rp.id} data-testid={`rp-row-${rp.id}`}>
+                          <TableCell>
+                            <span className="font-mono font-bold text-primary">{rp.rp_code}</span>
+                          </TableCell>
+                          <TableCell className="font-medium">{rp.name}</TableCell>
+                          <TableCell className="text-sm">{rp.email || '-'}</TableCell>
+                          <TableCell className="font-mono">{rp.phone || '-'}</TableCell>
+                          <TableCell className="font-mono text-sm">{rp.pan_number}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {rp.pan_card_url && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700">PAN</Badge>
+                              )}
+                              {rp.aadhar_card_url && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Aadhar</Badge>
+                              )}
+                              {rp.cancelled_cheque_url && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Cheque</Badge>
+                              )}
+                              {(!rp.pan_card_url || !rp.aadhar_card_url || !rp.cancelled_cheque_url) && (
+                                <Badge variant="outline" className="text-xs bg-red-50 text-red-700">Incomplete</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {getApprovalStatusBadge(rp.approval_status)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={rp.is_active ? 'default' : 'secondary'}>
+                              {rp.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openViewDialog(rp)}
+                                data-testid={`view-rp-${rp.id}`}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openUploadDialog(rp)}
+                                data-testid={`upload-rp-${rp.id}`}
+                              >
+                                <Upload className="h-4 w-4" />
+                              </Button>
+                              {isPELevel && (
+                                <>
+                                  {rp.approval_status === 'pending' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => openApprovalDialog(rp)}
+                                      className="text-yellow-600"
+                                      data-testid={`approve-rp-${rp.id}`}
+                                    >
+                                      <CheckCircle className="h-4 w-4" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => openEditDialog(rp)}
+                                    data-testid={`edit-rp-${rp.id}`}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleToggleActive(rp)}
+                                  >
+                                    {rp.is_active ? 'Deactivate' : 'Activate'}
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {isPELevel && (
+          <TabsContent value="pending">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-yellow-500" />
+                  Pending Approvals
+                </CardTitle>
+                <CardDescription>
+                  Review and approve referral partners created by employees
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {pendingRps.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No pending approvals
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>RP Code</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Mobile</TableHead>
+                          <TableHead>PAN</TableHead>
+                          <TableHead>Created By</TableHead>
+                          <TableHead>Documents</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {pendingRps.map((rp) => (
+                          <TableRow key={rp.id} data-testid={`pending-rp-row-${rp.id}`}>
+                            <TableCell>
+                              <span className="font-mono font-bold text-primary">{rp.rp_code}</span>
+                            </TableCell>
+                            <TableCell className="font-medium">{rp.name}</TableCell>
+                            <TableCell className="text-sm">{rp.email || '-'}</TableCell>
+                            <TableCell className="font-mono">{rp.phone || '-'}</TableCell>
+                            <TableCell className="font-mono text-sm">{rp.pan_number}</TableCell>
+                            <TableCell className="text-sm">{rp.created_by_name}</TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                {rp.pan_card_url && (
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700">PAN</Badge>
+                                )}
+                                {rp.aadhar_card_url && (
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Aadhar</Badge>
+                                )}
+                                {rp.cancelled_cheque_url && (
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Cheque</Badge>
+                                )}
+                                {(!rp.pan_card_url || !rp.aadhar_card_url || !rp.cancelled_cheque_url) && (
+                                  <Badge variant="outline" className="text-xs bg-red-50 text-red-700">Incomplete</Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openViewDialog(rp)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => openApprovalDialog(rp)}
+                                  className="bg-green-600 hover:bg-green-700"
+                                  data-testid={`approve-pending-rp-${rp.id}`}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Review
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+      </Tabs>
 
       {/* Add RP Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
