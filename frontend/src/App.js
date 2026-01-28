@@ -20,6 +20,7 @@ import EmailTemplates from './pages/EmailTemplates';
 import EmailServerConfig from './pages/EmailServerConfig';
 import DPTransferReport from './pages/DPTransferReport';
 import DatabaseBackup from './pages/DatabaseBackup';
+import Finance from './pages/Finance';
 import Layout from './components/Layout';
 import './App.css';
 
