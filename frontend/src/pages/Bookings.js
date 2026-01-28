@@ -908,6 +908,7 @@ const Bookings = () => {
                     </div>
                   )}
                 </div>
+                )}
                 
                 {/* High RP Share Warning Popup Dialog */}
                 <Dialog open={showHighRpShareWarning} onOpenChange={setShowHighRpShareWarning}>
