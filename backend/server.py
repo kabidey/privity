@@ -3616,88 +3616,49 @@ async def get_daily_trend(
     return result
 
 @api_router.get("/analytics/sector-distribution")
+async def get_sector_distribution(current_user: dict = Depends(get_current_user)):
+    """Get booking distribution by sector (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
+    
+    bookings = await db.bookings.find(
+        {"status": "closed", "approval_status": "approved"},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Get all stocks with sectors
+    stock_ids = list(set(b.get("stock_id") for b in bookings if b.get("stock_id")))
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    stock_map = {s["id"]: s for s in stocks}
+    
+    sector_stats = {}
+    for booking in bookings:
+        stock = stock_map.get(booking.get("stock_id"), {})
+        sector = stock.get("sector") or "Unknown"
         
-        purchases = await db.purchases.find(purchase_query, {"_id": 0}).to_list(5000)
+        if sector not in sector_stats:
+            sector_stats[sector] = {"bookings_count": 0, "total_value": 0, "total_profit": 0}
         
-        # Get related data
-        vendor_ids = list(set(p["vendor_id"] for p in purchases))
-        stock_ids = list(set(p["stock_id"] for p in purchases))
-        user_ids = list(set(pay.get("recorded_by") for p in purchases for pay in p.get("payments", []) if pay.get("recorded_by")))
+        qty = booking.get("quantity", 0)
+        revenue = booking.get("selling_price", 0) * qty
+        cost = booking.get("buying_price", 0) * qty
         
-        vendors = await db.clients.find({"id": {"$in": vendor_ids}, "is_vendor": True}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
-        stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0, "id": 1, "symbol": 1, "name": 1}).to_list(1000)
-        users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
-        
-        vendor_map = {v["id"]: v for v in vendors}
-        stock_map = {s["id"]: s for s in stocks}
-        user_map = {u["id"]: u["name"] for u in users}
-        
-        for purchase in purchases:
-            vendor = vendor_map.get(purchase["vendor_id"], {})
-            stock = stock_map.get(purchase["stock_id"], {})
-            
-            for payment in purchase.get("payments", []):
-                all_payments.append({
-                    "id": f"vendor_{purchase['id']}_{payment['tranche_number']}",
-                    "type": "vendor",
-                    "direction": "sent",
-                    "reference_id": purchase["id"],
-                    "reference_number": purchase["id"][:8].upper(),
-                    "party_name": vendor.get("name", "Unknown"),
-                    "party_id": purchase["vendor_id"],
-                    "stock_symbol": stock.get("symbol", "Unknown"),
-                    "stock_name": stock.get("name", "Unknown"),
-                    "tranche_number": payment["tranche_number"],
-                    "amount": payment["amount"],
-                    "payment_date": payment["payment_date"],
-                    "recorded_by": user_map.get(payment.get("recorded_by"), "System"),
-                    "recorded_at": payment.get("recorded_at"),
-                    "notes": payment.get("notes"),
-                    "proof_url": payment.get("proof_url"),
-                    "purchase_date": purchase.get("purchase_date"),
-                    "total_amount": purchase.get("total_amount", 0),
-                    "total_paid": purchase.get("total_paid", 0),
-                    "payment_status": purchase.get("payment_status", "pending")
-                })
+        sector_stats[sector]["bookings_count"] += 1
+        sector_stats[sector]["total_value"] += revenue
+        sector_stats[sector]["total_profit"] += revenue - cost
     
-    # Sort by payment date (newest first)
-    all_payments.sort(key=lambda x: x.get("payment_date", ""), reverse=True)
+    result = [
+        {
+            "sector": sector,
+            **stats,
+            "total_value": round(stats["total_value"], 2),
+            "total_profit": round(stats["total_profit"], 2)
+        }
+        for sector, stats in sector_stats.items()
+    ]
     
-    return all_payments
-
-
-@api_router.get("/finance/summary")
-async def get_finance_summary(
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
-):
-    """Get finance summary statistics (PE Level or Finance role)"""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access finance data")
-    
-    # Get all payments first
-    payments = await get_all_payments(None, start_date, end_date, current_user)
-    
-    client_payments = [p for p in payments if p["type"] == "client"]
-    vendor_payments = [p for p in payments if p["type"] == "vendor"]
-    
-    # Get refund requests stats
-    refund_requests = await db.refund_requests.find({}, {"_id": 0}).to_list(1000)
-    pending_refunds = [r for r in refund_requests if r.get("status") == "pending"]
-    completed_refunds = [r for r in refund_requests if r.get("status") == "completed"]
-    
-    return {
-        "total_received": sum(p["amount"] for p in client_payments),
-        "total_sent": sum(p["amount"] for p in vendor_payments),
-        "client_payments_count": len(client_payments),
-        "vendor_payments_count": len(vendor_payments),
-        "net_flow": sum(p["amount"] for p in client_payments) - sum(p["amount"] for p in vendor_payments),
-        "pending_refunds_count": len(pending_refunds),
-        "pending_refunds_amount": sum(r.get("refund_amount", 0) for r in pending_refunds),
-        "completed_refunds_count": len(completed_refunds),
-        "completed_refunds_amount": sum(r.get("refund_amount", 0) for r in completed_refunds)
-    }
+    result.sort(key=lambda x: x["total_value"], reverse=True)
+    return result
 
 
 # ============== Refund Requests Endpoints ==============
