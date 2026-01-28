@@ -32,12 +32,21 @@ const BookingConfirm = () => {
   const confirmBooking = async (reason = null) => {
     setSubmitting(true);
     try {
-      const response = await api.post(`/booking-confirm/${bookingId}/${token}/${action}`, {
-        reason: reason
-      });
+      let response;
+      if (action === 'accept') {
+        // Use GET for accept (no body needed)
+        response = await api.get(`/booking-confirm/${bookingId}/${token}/${action}`);
+      } else {
+        // Use POST for deny (to send reason)
+        response = await api.post(`/booking-confirm/${bookingId}/${token}/${action}`, {
+          reason: reason
+        });
+      }
       setResult(response.data);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to process confirmation');
+      const errorDetail = err.response?.data?.detail || 'Failed to process confirmation';
+      console.error('Booking confirmation error:', err.response?.data);
+      setError(errorDetail);
     } finally {
       setLoading(false);
       setSubmitting(false);
