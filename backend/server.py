@@ -84,7 +84,10 @@ from routers import (
     smtp_config_router,
     stocks_router,
     database_backup_router,
-    users_router
+    users_router,
+    bookings_router,
+    clients_router,
+    finance_router
 )
 
 # Keep local Inventory alias for backward compatibility
