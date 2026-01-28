@@ -21,6 +21,7 @@ import {
 const Finance = () => {
   const [payments, setPayments] = useState([]);
   const [refundRequests, setRefundRequests] = useState([]);
+  const [rpPayments, setRpPayments] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -35,6 +36,14 @@ const Finance = () => {
     status: '',
     notes: '',
     reference_number: ''
+  });
+  const [rpPaymentDialogOpen, setRpPaymentDialogOpen] = useState(false);
+  const [selectedRpPayment, setSelectedRpPayment] = useState(null);
+  const [rpPaymentForm, setRpPaymentForm] = useState({
+    status: '',
+    notes: '',
+    payment_reference: '',
+    payment_date: ''
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
