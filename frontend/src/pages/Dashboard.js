@@ -9,6 +9,9 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
 
   useEffect(() => {
     fetchData();
