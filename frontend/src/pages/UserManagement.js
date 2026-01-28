@@ -7,9 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Trash2, Pencil, Shield, Key, UserX, UserCheck, Users } from 'lucide-react';
+import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, ChevronRight, Building } from 'lucide-react';
 
 const ROLES = {
   1: { name: 'PE Desk', color: 'bg-purple-100 text-purple-800' },
@@ -22,11 +23,15 @@ const ROLES = {
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [managers, setManagers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedManagerId, setSelectedManagerId] = useState('');
+  const [availableManagers, setAvailableManagers] = useState([]);
   const [newPassword, setNewPassword] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -35,18 +40,30 @@ const UserManagement = () => {
     role: 5
   });
 
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isPEDesk = currentUser.role === 1;
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/users');
+      const response = await api.get('/users/hierarchy');
       setUsers(response.data);
     } catch (error) {
       toast.error('Failed to fetch users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAvailableManagers = async (userRole) => {
+    try {
+      const response = await api.get(`/users/managers-list?role=${userRole}`);
+      setAvailableManagers(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch managers');
     }
   };
 
@@ -99,6 +116,28 @@ const UserManagement = () => {
     }
   };
 
+  const handleAssignManager = async () => {
+    if (!selectedUser) return;
+    try {
+      const managerId = selectedManagerId === 'none' ? '' : selectedManagerId;
+      await api.put(`/users/${selectedUser.id}/assign-manager?manager_id=${managerId}`);
+      toast.success(managerId ? 'Manager assigned successfully' : 'Manager assignment removed');
+      setAssignDialogOpen(false);
+      setSelectedUser(null);
+      setSelectedManagerId('');
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to assign manager');
+    }
+  };
+
+  const openAssignDialog = async (user) => {
+    setSelectedUser(user);
+    setSelectedManagerId(user.manager_id || 'none');
+    await fetchAvailableManagers(user.role);
+    setAssignDialogOpen(true);
+  };
+
   const resetForm = () => {
     setFormData({ email: '', password: '', name: '', role: 5 });
   };
@@ -114,6 +153,34 @@ const UserManagement = () => {
     setResetPasswordDialogOpen(true);
   };
 
+  // Group users by hierarchy for the hierarchy view
+  const buildHierarchy = () => {
+    const zonalManagers = users.filter(u => u.role === 3);
+    const managersData = users.filter(u => u.role === 4);
+    const employees = users.filter(u => u.role === 5);
+    const peUsers = users.filter(u => u.role <= 2);
+    const viewers = users.filter(u => u.role === 6);
+
+    return { zonalManagers, managers: managersData, employees, peUsers, viewers };
+  };
+
+  const hierarchy = buildHierarchy();
+
+  const getSubordinates = (managerId) => {
+    return users.filter(u => u.manager_id === managerId);
+  };
+
+  const canAssignManager = (user) => {
+    // Only Employees and Managers can be assigned to a manager
+    return user.role === 4 || user.role === 5;
+  };
+
+  const getAssignmentLabel = (role) => {
+    if (role === 5) return 'Assign to Manager';
+    if (role === 4) return 'Assign to Zonal Manager';
+    return 'Assign';
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6" data-testid="user-management-page">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -122,7 +189,7 @@ const UserManagement = () => {
             <Users className="h-6 w-6 md:h-8 md:w-8 text-primary" />
             User Management
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base">Manage system users and their roles</p>
+          <p className="text-muted-foreground text-sm md:text-base">Manage users, roles, and team hierarchy</p>
         </div>
         <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto" data-testid="add-user-btn">
           <Plus className="h-4 w-4 mr-2" />
@@ -130,92 +197,296 @@ const UserManagement = () => {
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>System Users</CardTitle>
-          <CardDescription>Total: {users.length} users</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-center py-8 text-muted-foreground">Loading...</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={String(user.role)}
-                        onValueChange={(value) => handleRoleChange(user.id, parseInt(value))}
-                        disabled={user.email === 'pedesk@smifs.com'}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(ROLES).map(([key, { name }]) => (
-                            <SelectItem key={key} value={key}>{name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      {user.is_active !== false ? (
-                        <Badge className="bg-green-100 text-green-800">
-                          <UserCheck className="h-3 w-3 mr-1" />Active
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-red-100 text-red-800">
-                          <UserX className="h-3 w-3 mr-1" />Inactive
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openResetPasswordDialog(user)}
-                          title="Reset Password"
-                        >
-                          <Key className="h-4 w-4" />
-                        </Button>
-                        {user.email !== 'pedesk@smifs.com' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openDeleteDialog(user)}
-                            className="text-red-600"
-                            title="Delete User"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {user.email === 'pedesk@smifs.com' && (
-                          <Badge variant="outline" className="ml-2">
-                            <Shield className="h-3 w-3 mr-1" />Super Admin
-                          </Badge>
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="users" data-testid="users-tab">All Users</TabsTrigger>
+          <TabsTrigger value="hierarchy" data-testid="hierarchy-tab">Team Hierarchy</TabsTrigger>
+        </TabsList>
+
+        {/* All Users Tab */}
+        <TabsContent value="users">
+          <Card>
+            <CardHeader>
+              <CardTitle>System Users</CardTitle>
+              <CardDescription>Total: {users.length} users</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className="text-center py-8 text-muted-foreground">Loading...</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Reports To</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((user) => (
+                        <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
+                          <TableCell className="font-medium">{user.name}</TableCell>
+                          <TableCell className="text-sm">{user.email}</TableCell>
+                          <TableCell>
+                            <Select
+                              value={String(user.role)}
+                              onValueChange={(value) => handleRoleChange(user.id, parseInt(value))}
+                              disabled={user.email === 'pedesk@smifs.com'}
+                            >
+                              <SelectTrigger className="w-36">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(ROLES).map(([key, { name }]) => (
+                                  <SelectItem key={key} value={key}>{name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            {user.manager_name ? (
+                              <Badge variant="outline" className="font-normal">
+                                <Link2 className="h-3 w-3 mr-1" />
+                                {user.manager_name}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {user.is_active !== false ? (
+                              <Badge className="bg-green-100 text-green-800">
+                                <UserCheck className="h-3 w-3 mr-1" />Active
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-red-100 text-red-800">
+                                <UserX className="h-3 w-3 mr-1" />Inactive
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              {canAssignManager(user) && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openAssignDialog(user)}
+                                  title={getAssignmentLabel(user.role)}
+                                  data-testid={`assign-manager-${user.id}`}
+                                >
+                                  <Link2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openResetPasswordDialog(user)}
+                                title="Reset Password"
+                              >
+                                <Key className="h-4 w-4" />
+                              </Button>
+                              {user.email !== 'pedesk@smifs.com' && isPEDesk && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openDeleteDialog(user)}
+                                  className="text-red-600"
+                                  title="Delete User"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {user.email === 'pedesk@smifs.com' && (
+                                <Badge variant="outline" className="ml-2">
+                                  <Shield className="h-3 w-3 mr-1" />Super Admin
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Hierarchy Tab */}
+        <TabsContent value="hierarchy">
+          <div className="space-y-6">
+            {/* PE Users */}
+            {hierarchy.peUsers.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-purple-600" />
+                    PE Level Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {hierarchy.peUsers.map(user => (
+                      <Badge key={user.id} className={ROLES[user.role]?.color || 'bg-gray-100'}>
+                        {user.name} ({ROLES[user.role]?.name})
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Zonal Managers with their teams */}
+            {hierarchy.zonalManagers.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Building className="h-5 w-5 text-blue-600" />
+                    Zonal Managers & Teams
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {hierarchy.zonalManagers.map(zm => {
+                    const zmManagers = getSubordinates(zm.id);
+                    return (
+                      <div key={zm.id} className="border rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Badge className={ROLES[3]?.color}>{zm.name}</Badge>
+                          <span className="text-sm text-muted-foreground">
+                            ({zmManagers.length} direct reports)
+                          </span>
+                        </div>
+                        
+                        {zmManagers.length > 0 ? (
+                          <div className="ml-4 space-y-3">
+                            {zmManagers.map(manager => {
+                              const managerEmployees = getSubordinates(manager.id);
+                              return (
+                                <div key={manager.id} className="border-l-2 border-green-300 pl-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <ChevronRight className="h-4 w-4 text-green-600" />
+                                    <Badge className={ROLES[4]?.color}>{manager.name}</Badge>
+                                    <span className="text-sm text-muted-foreground">
+                                      ({managerEmployees.length} employees)
+                                    </span>
+                                  </div>
+                                  {managerEmployees.length > 0 && (
+                                    <div className="ml-6 flex flex-wrap gap-1">
+                                      {managerEmployees.map(emp => (
+                                        <Badge key={emp.id} variant="outline" className="text-xs">
+                                          {emp.name}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="ml-4 text-sm text-muted-foreground">No managers assigned</p>
                         )}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Unassigned Managers */}
+            {(() => {
+              const unassignedManagers = hierarchy.managers.filter(m => !m.manager_id);
+              if (unassignedManagers.length === 0) return null;
+              return (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2 text-amber-600">
+                      <Unlink className="h-5 w-5" />
+                      Unassigned Managers
+                    </CardTitle>
+                    <CardDescription>These managers are not assigned to any Zonal Manager</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {unassignedManagers.map(manager => {
+                        const managerEmployees = getSubordinates(manager.id);
+                        return (
+                          <div key={manager.id} className="border rounded-lg p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Badge className={ROLES[4]?.color}>{manager.name}</Badge>
+                                <span className="text-sm text-muted-foreground">
+                                  ({managerEmployees.length} employees)
+                                </span>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openAssignDialog(manager)}
+                              >
+                                <Link2 className="h-3 w-3 mr-1" />
+                                Assign
+                              </Button>
+                            </div>
+                            {managerEmployees.length > 0 && (
+                              <div className="mt-2 ml-4 flex flex-wrap gap-1">
+                                {managerEmployees.map(emp => (
+                                  <Badge key={emp.id} variant="outline" className="text-xs">
+                                    {emp.name}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
+            {/* Unassigned Employees */}
+            {(() => {
+              const unassignedEmployees = hierarchy.employees.filter(e => !e.manager_id);
+              if (unassignedEmployees.length === 0) return null;
+              return (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2 text-amber-600">
+                      <Unlink className="h-5 w-5" />
+                      Unassigned Employees
+                    </CardTitle>
+                    <CardDescription>These employees are not assigned to any Manager</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {unassignedEmployees.map(emp => (
+                        <div key={emp.id} className="flex items-center gap-1 border rounded-lg px-3 py-2">
+                          <Badge className={ROLES[5]?.color}>{emp.name}</Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openAssignDialog(emp)}
+                            className="h-6 w-6 p-0"
+                          >
+                            <Link2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Create User Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -279,6 +550,53 @@ const UserManagement = () => {
               <Button type="submit" data-testid="create-user-submit">Create User</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Manager Dialog */}
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent data-testid="assign-manager-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link2 className="h-5 w-5" />
+              {selectedUser?.role === 5 ? 'Assign to Manager' : 'Assign to Zonal Manager'}
+            </DialogTitle>
+            <DialogDescription>
+              Assign <strong>{selectedUser?.name}</strong> to a {selectedUser?.role === 5 ? 'Manager' : 'Zonal Manager'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{selectedUser?.role === 5 ? 'Select Manager' : 'Select Zonal Manager'}</Label>
+              <Select value={selectedManagerId} onValueChange={setSelectedManagerId}>
+                <SelectTrigger data-testid="manager-select">
+                  <SelectValue placeholder="Select..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">
+                    <span className="text-muted-foreground">— No Assignment —</span>
+                  </SelectItem>
+                  {availableManagers.map(manager => (
+                    <SelectItem key={manager.id} value={manager.id}>
+                      {manager.name} ({manager.role_name})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedUser?.manager_name && (
+              <p className="text-sm text-muted-foreground">
+                Currently assigned to: <strong>{selectedUser.manager_name}</strong>
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAssignManager} data-testid="confirm-assign">
+              <Link2 className="h-4 w-4 mr-2" />
+              {selectedManagerId === 'none' ? 'Remove Assignment' : 'Assign'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
