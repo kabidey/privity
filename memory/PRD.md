@@ -194,8 +194,8 @@ rp_payments: {
 - ✅ Remove duplicate endpoints from server.py - Complete (verified via regression testing)
 - ✅ Implement employee revenue share reduction by RP allocation - Complete
 - ✅ RP Approval/Rejection Email Notifications - Complete (Jan 28, 2026)
+- ✅ Capture RP bank details (IFSC, Account Number, Bank Name) for payouts - Complete (Jan 28, 2026)
 - [ ] Two-factor authentication (TOTP)
-- [ ] Capture RP bank details (IFSC, Account Number, Bank Name) for payouts
 
 ### P2 (Medium Priority)
 - [ ] Create dashboard view for Referral Partners to see their generated revenue
