@@ -153,6 +153,7 @@ const Inventory = () => {
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Weighted Avg Price</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Total Value</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Stock Level</TableHead>
+                    {isPEDesk && <TableHead className="text-xs uppercase tracking-wider font-semibold text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -172,6 +173,19 @@ const Inventory = () => {
                             <span className={`text-xs font-medium ${level.color} min-w-[70px]`}>{level.label}</span>
                           </div>
                         </TableCell>
+                        {isPEDesk && (
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleDeleteInventory(item.stock_id, item.stock_symbol)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`delete-inventory-${item.stock_id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })}
