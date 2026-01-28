@@ -907,17 +907,17 @@ async def delete_client(client_id: str, current_user: dict = Depends(get_current
     return {"message": "Client deleted successfully"}
 
 
-# Suspend/Unsuspend Client (PE Desk Only)
+# Suspend/Unsuspend Client (PE Level Only)
 @api_router.put("/clients/{client_id}/suspend")
 async def suspend_client(
     client_id: str,
     suspension_data: ClientSuspensionRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Suspend a client with a reason (PE Desk only)"""
-    # Only PE Desk (role 1) can suspend clients
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can suspend clients")
+    """Suspend a client with a reason (PE Desk or PE Manager)"""
+    # PE Level can suspend clients
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can suspend clients")
     
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
