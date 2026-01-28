@@ -796,6 +796,88 @@ const Bookings = () => {
                 </Select>
               </div>
               
+              {/* Referral Partner Selection */}
+              <div className="space-y-3 p-4 rounded-lg border-2 border-dashed border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="h-4 w-4 text-purple-600" />
+                  <Label className="text-purple-700 dark:text-purple-400 font-medium">Referral Partner (Optional)</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Select RP</Label>
+                    <Select 
+                      value={formData.referral_partner_id} 
+                      onValueChange={(value) => setFormData({ ...formData, referral_partner_id: value })}
+                    >
+                      <SelectTrigger data-testid="rp-select">
+                        <SelectValue placeholder="Select Referral Partner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No RP</SelectItem>
+                        {referralPartners.filter(rp => rp.is_active).map((rp) => (
+                          <SelectItem key={rp.id} value={rp.id}>
+                            {rp.rp_code} - {rp.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {formData.referral_partner_id && (
+                    <div className="space-y-2">
+                      <Label>Revenue Share %</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        data-testid="rp-revenue-share-input"
+                        value={formData.rp_revenue_share_percent}
+                        onChange={(e) => setFormData({ ...formData, rp_revenue_share_percent: e.target.value })}
+                        placeholder="e.g., 10"
+                      />
+                    </div>
+                  )}
+                </div>
+                {!editingBooking && (
+                  <p className="text-xs text-muted-foreground">
+                    <AlertCircle className="h-3 w-3 inline mr-1" />
+                    Note: Referral Partner cannot be added after booking is created.
+                  </p>
+                )}
+              </div>
+              
+              {/* RP Warning Dialog */}
+              {showRpWarning && (
+                <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-950 border-2 border-yellow-400 dark:border-yellow-600">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-yellow-800 dark:text-yellow-200">No Referral Partner Selected</p>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                        You haven't selected a Referral Partner. Once the booking is created, you <strong>cannot add an RP later</strong>.
+                      </p>
+                      <div className="flex gap-2 mt-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowRpWarning(false)}
+                        >
+                          Go Back & Select RP
+                        </Button>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          className="bg-yellow-600 hover:bg-yellow-700"
+                        >
+                          Continue Without RP
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <Label>Notes</Label>
                 <Textarea
