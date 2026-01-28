@@ -654,3 +654,33 @@ Each template supports:
 
 **Test Coverage:** 13 backend tests + UI tests (100% pass rate)
 
+### PE Manager Role Addition (Jan 28, 2026) - ✅ COMPLETED
+**New Role: PE Manager (Role ID: 2)**
+- Created a new role between PE Desk (1) and Zonal Manager (3)
+- PE Manager has almost all PE Desk permissions EXCEPT:
+  - **All deletion rights** (stocks, clients, bookings, purchases, inventory, users, backups)
+  - **Database clear** operation
+  - **Database restore** operation
+
+**Role Hierarchy Updated:**
+1. PE Desk (Full Access - Super Admin)
+2. PE Manager (PE Desk without delete/restore)
+3. Zonal Manager
+4. Manager
+5. Employee
+6. Viewer
+
+**Backend Changes:**
+- Added `is_pe_level()` and `is_pe_desk_only()` helper functions in `/app/backend/config.py`
+- Updated 50+ endpoints across `server.py`, `users.py`, `database_backup.py` to use these helpers
+- PE Manager can now: view analytics, manage users (not delete), manage stocks (not delete), manage bookings (not delete), view/create backups (not restore), manage email templates
+
+**Frontend Changes:**
+- Updated ROLES constant in `UserManagement.js` to include PE Manager
+- Updated `Layout.js` menu visibility for PE Manager
+- Updated `Analytics.js`, `EmailTemplates.js`, `Clients.js` for PE Level access
+
+**Test Coverage:**
+- PE Manager can: view users, view analytics, create backups, manage stocks
+- PE Manager CANNOT: delete stocks, clear database, restore database, delete users
+
