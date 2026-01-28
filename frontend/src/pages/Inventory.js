@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Package, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Package, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
@@ -15,6 +16,9 @@ const Inventory = () => {
     totalQuantity: 0,
     lowStockCount: 0,
   });
+  
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isPEDesk = currentUser.role === 1;
 
   useEffect(() => {
     fetchInventory();
