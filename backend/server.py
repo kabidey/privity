@@ -4042,9 +4042,9 @@ async def update_email_template(
 
 @api_router.post("/email-templates/{template_key}/reset")
 async def reset_email_template(template_key: str, current_user: dict = Depends(get_current_user)):
-    """Reset email template to default (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can manage email templates")
+    """Reset email template to default (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
     
     from config import DEFAULT_EMAIL_TEMPLATES
     default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
