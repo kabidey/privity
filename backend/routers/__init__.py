@@ -11,6 +11,7 @@ from .database_backup import router as database_backup_router
 from .bookings import router as bookings_router
 from .clients import router as clients_router
 from .finance import router as finance_router
+from .referral_partners import router as referral_partners_router
 
 __all__ = [
     'auth_router',
@@ -23,4 +24,5 @@ __all__ = [
     'bookings_router',
     'clients_router',
     'finance_router',
+    'referral_partners_router',
 ]
