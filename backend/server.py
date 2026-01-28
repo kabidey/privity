@@ -4279,9 +4279,9 @@ async def update_refund_bank_details(
     branch: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Update bank details for a refund request (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update refund requests")
+    """Update bank details for a refund request (PE Level or Finance role)"""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update refund requests")
     
     refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
     if not refund:
@@ -4307,9 +4307,9 @@ async def export_finance_excel(
     end_date: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Export finance data to Excel (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can export finance data")
+    """Export finance data to Excel (PE Level or Finance role)"""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can export finance data")
     
     payments = await get_all_payments(payment_type, start_date, end_date, current_user)
     
