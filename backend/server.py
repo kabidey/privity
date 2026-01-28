@@ -4009,9 +4009,9 @@ async def get_all_payments(
     end_date: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all payments (client and vendor) for finance dashboard (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access finance data")
+    """Get all payments (client and vendor) for finance dashboard (PE Level or Finance role)"""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access finance data")
     
     all_payments = []
     
