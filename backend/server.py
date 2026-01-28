@@ -4136,9 +4136,9 @@ async def get_finance_summary(
     end_date: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get finance summary statistics (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access finance data")
+    """Get finance summary statistics (PE Level or Finance role)"""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access finance data")
     
     # Get all payments first
     payments = await get_all_payments(None, start_date, end_date, current_user)
