@@ -21,20 +21,29 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Users, Plus, Search, Edit, Upload, Eye, FileText, CreditCard, Wallet } from 'lucide-react';
+import { Users, Plus, Search, Edit, Upload, Eye, FileText, CreditCard, Wallet, CheckCircle, XCircle, Clock } from 'lucide-react';
 import api from '../utils/api';
 
 const ReferralPartners = () => {
   const [rps, setRps] = useState([]);
+  const [pendingRps, setPendingRps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [selectedRp, setSelectedRp] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -49,7 +58,10 @@ const ReferralPartners = () => {
 
   useEffect(() => {
     fetchRps();
-  }, []);
+    if (isPELevel) {
+      fetchPendingRps();
+    }
+  }, [isPELevel]);
 
   const fetchRps = async () => {
     setLoading(true);
