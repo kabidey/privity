@@ -625,3 +625,32 @@ Each template supports:
 **Test Files Created:**
 - `/app/backend/tests/test_booking_selling_price_validation.py`
 
+### Database Backup Enhancements (Jan 28, 2026) - ✅ COMPLETED
+**New Features:**
+1. **Clear Database** (PE Desk only)
+   - DELETE `/api/database/clear` - Clears all collections except users
+   - UI requires typing "CLEAR DATABASE" to confirm
+   - Preserves super admin account (pedesk@smifs.com)
+   - Audit log entry created for tracking
+
+2. **Download Backup as ZIP**
+   - GET `/api/database/backups/{id}/download`
+   - Returns ZIP file with metadata.json and collections/*.json
+   - Download button added to backup list table
+
+3. **Upload & Restore from ZIP**
+   - POST `/api/database/restore-from-file`
+   - Accepts ZIP file upload via multipart/form-data
+   - Validates ZIP structure (requires metadata.json)
+   - Restores all collections from uploaded backup
+   - Upload Restore button opens dialog with file picker
+
+**UI Changes:**
+- Added "Upload Restore" button in header
+- Added "Clear DB" button (red, destructive) in header
+- Added download icon button in backup list Actions column
+- New Clear Database confirmation dialog with typed confirmation
+- New Upload Restore dialog with file input
+
+**Test Coverage:** 13 backend tests + UI tests (100% pass rate)
+
