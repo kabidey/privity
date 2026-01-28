@@ -2736,18 +2736,27 @@ async def void_booking(
     
     # Notify booking creator
     if booking.get("created_by") and booking["created_by"] != current_user["id"]:
+        refund_msg = f" Refund of ₹{total_paid:,.2f} has been initiated." if total_paid > 0 else ""
         await create_notification(
             booking["created_by"],
             "booking_voided",
             "Booking Voided",
-            f"Booking {booking.get('booking_number', booking_id[:8].upper())} for {stock['symbol'] if stock else 'Unknown'} has been voided by PE Desk. Reason: {reason or 'Not specified'}",
-            {"booking_id": booking_id, "stock_symbol": stock["symbol"] if stock else None, "void_reason": reason}
+            f"Booking {booking.get('booking_number', booking_id[:8].upper())} for {stock['symbol'] if stock else 'Unknown'} has been voided by PE Desk. Reason: {reason or 'Not specified'}.{refund_msg}",
+            {"booking_id": booking_id, "stock_symbol": stock["symbol"] if stock else None, "void_reason": reason, "refund_amount": total_paid}
         )
     
-    return {
+    response = {
         "message": f"Booking {booking.get('booking_number', booking_id[:8].upper())} has been voided. Inventory released.",
         "quantity_released": booking.get("quantity", 0)
     }
+    
+    if total_paid > 0:
+        response["refund_request_created"] = True
+        response["refund_request_id"] = refund_request_id
+        response["refund_amount"] = total_paid
+        response["message"] += f" Refund request of ₹{total_paid:,.2f} has been created."
+    
+    return response
 
 
 # ============== Payment Tracking Endpoints (PE Desk & Zonal Manager Only) ==============
