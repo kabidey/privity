@@ -61,6 +61,16 @@ ROLE_PERMISSIONS = {
     6: ["view_own"]
 }
 
+
+def is_pe_level(role: int) -> bool:
+    """Check if user has PE-level access (PE Desk or PE Manager)"""
+    return role in [1, 2]
+
+
+def is_pe_desk_only(role: int) -> bool:
+    """Check if user is PE Desk (full access including deletions)"""
+    return role == 1
+
 # Allowed email domains for registration
 ALLOWED_EMAIL_DOMAINS = ["smifs.com"]
 
