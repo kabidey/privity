@@ -36,6 +36,17 @@ See CHANGELOG.md for detailed history of phases 1-11.
 
 ### Latest Updates (Jan 28, 2026)
 
+#### ✅ Finance Role (Role 7) - COMPLETED
+- New "Finance" role with employee-like permissions + full Finance page access
+- Can view/manage refund requests, view payments, export finance data
+- Cannot access vendors, stocks, purchases, users
+- Frontend menu shows only relevant items: Dashboard, Clients, Inventory, Bookings, Reports, Finance
+
+#### ✅ PE Manager Vendor Access - COMPLETED
+- PE Manager (role 2) can now access Vendors page
+- Can create and edit vendors
+- Cannot delete vendors (returns 403 - Only PE Desk can delete)
+
 #### ✅ Refund Feature - COMPLETED
 **Automatic Refund Request Creation on Voiding Paid Bookings**
 - When a booking with payments is voided, the system automatically creates a refund request
