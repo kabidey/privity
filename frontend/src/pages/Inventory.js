@@ -48,6 +48,20 @@ const Inventory = () => {
     }
   };
 
+  const handleDeleteInventory = async (stockId, stockSymbol) => {
+    if (!window.confirm(`Are you sure you want to delete inventory for ${stockSymbol}? This will remove all inventory records for this stock.`)) {
+      return;
+    }
+    
+    try {
+      await api.delete(`/inventory/${stockId}`);
+      toast.success(`Inventory for ${stockSymbol} deleted successfully`);
+      fetchInventory();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete inventory');
+    }
+  };
+
   const getStockLevel = (quantity) => {
     if (quantity === 0) return { label: 'Out of Stock', color: 'text-red-600', progress: 0 };
     if (quantity < 50) return { label: 'Critical', color: 'text-red-600', progress: 10 };
