@@ -3988,9 +3988,9 @@ async def update_email_template(
     is_active: Optional[bool] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Update email template (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can manage email templates")
+    """Update email template (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
     
     # Check if template exists in database
     existing = await db.email_templates.find_one({"key": template_key})
