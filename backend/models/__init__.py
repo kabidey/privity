@@ -26,6 +26,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
+    pan_number: str  # Required - for Employee-RP conflict check
     role: int = 4  # Default to Employee for smifs.com domain
 
 
@@ -39,6 +40,7 @@ class User(BaseModel):
     id: str
     email: str
     name: str
+    pan_number: Optional[str] = None  # PAN number for conflict checks
     role: int
     role_name: str
     created_at: str
