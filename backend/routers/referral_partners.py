@@ -200,6 +200,22 @@ async def update_referral_partner(
     if not existing:
         raise HTTPException(status_code=404, detail="Referral Partner not found")
     
+    # Validate 10-digit phone number (without +91)
+    phone_digits = ''.join(filter(str.isdigit, rp_data.phone))
+    if len(phone_digits) != 10:
+        raise HTTPException(
+            status_code=400,
+            detail="Phone number must be exactly 10 digits (without +91)"
+        )
+    
+    # Validate Aadhar format
+    aadhar_digits = ''.join(filter(str.isdigit, rp_data.aadhar_number))
+    if len(aadhar_digits) != 12:
+        raise HTTPException(
+            status_code=400,
+            detail="Aadhar number must be exactly 12 digits"
+        )
+    
     # Check for duplicate PAN (if changed)
     if rp_data.pan_number.upper() != existing.get("pan_number"):
         dup_pan = await db.referral_partners.find_one(
@@ -212,13 +228,25 @@ async def update_referral_partner(
                 detail=f"Another RP with PAN {rp_data.pan_number} already exists"
             )
     
+    # Check for duplicate email (if changed)
+    if rp_data.email.lower() != existing.get("email", "").lower():
+        dup_email = await db.referral_partners.find_one(
+            {"email": rp_data.email.lower(), "id": {"$ne": rp_id}},
+            {"_id": 0}
+        )
+        if dup_email:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Another RP with email {rp_data.email} already exists"
+            )
+    
     update_data = {
-        "name": rp_data.name,
-        "email": rp_data.email,
-        "phone": rp_data.phone,
+        "name": rp_data.name.strip(),
+        "email": rp_data.email.lower().strip(),
+        "phone": phone_digits,
         "pan_number": rp_data.pan_number.upper(),
-        "aadhar_number": rp_data.aadhar_number,
-        "address": rp_data.address,
+        "aadhar_number": aadhar_digits,
+        "address": rp_data.address.strip(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "updated_by": current_user["id"]
     }
