@@ -495,6 +495,130 @@ const DatabaseBackup = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Clear Database Dialog */}
+      <Dialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+        <DialogContent data-testid="clear-database-dialog">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <XCircle className="h-5 w-5" />
+              Clear Database
+            </DialogTitle>
+            <DialogDescription>
+              This will permanently delete all data except user accounts.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Danger: This Cannot Be Undone!</AlertTitle>
+            <AlertDescription>
+              This will <strong>permanently delete</strong> all clients, vendors, stocks, bookings, purchases, inventory, and other data.
+              <br /><br />
+              <strong>User accounts will be preserved.</strong>
+              <br /><br />
+              Consider creating a backup first before clearing the database.
+            </AlertDescription>
+          </Alert>
+          
+          <div className="space-y-2">
+            <Label>Type <strong>CLEAR DATABASE</strong> to confirm:</Label>
+            <Input
+              value={clearConfirmText}
+              onChange={(e) => setClearConfirmText(e.target.value)}
+              placeholder="CLEAR DATABASE"
+              data-testid="clear-confirm-input"
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setClearDialogOpen(false); setClearConfirmText(''); }}>Cancel</Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleClearDatabase} 
+              disabled={clearing || clearConfirmText !== 'CLEAR DATABASE'}
+              data-testid="confirm-clear-database"
+            >
+              {clearing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Clearing...
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Clear Database
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Restore Dialog */}
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent data-testid="upload-restore-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Restore from Backup File
+            </DialogTitle>
+            <DialogDescription>
+              Upload a previously downloaded backup ZIP file to restore.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Warning: Destructive Action</AlertTitle>
+            <AlertDescription>
+              This will replace all current data with the uploaded backup data.
+              The super admin account (pedesk@smifs.com) will be preserved.
+            </AlertDescription>
+          </Alert>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Select Backup File (.zip)</Label>
+              <Input
+                ref={fileInputRef}
+                type="file"
+                accept=".zip"
+                onChange={(e) => setUploadFile(e.target.files[0])}
+                data-testid="upload-file-input"
+              />
+            </div>
+            {uploadFile && (
+              <div className="p-3 bg-muted rounded-lg text-sm">
+                <p><strong>File:</strong> {uploadFile.name}</p>
+                <p><strong>Size:</strong> {formatBytes(uploadFile.size)}</p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setUploadDialogOpen(false); setUploadFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>Cancel</Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleUploadRestore} 
+              disabled={uploading || !uploadFile}
+              data-testid="confirm-upload-restore"
+            >
+              {uploading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Restoring...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Restore from File
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
