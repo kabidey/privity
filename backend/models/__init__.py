@@ -268,6 +268,9 @@ class BookingCreate(BaseModel):
     # Referral Partner
     referral_partner_id: Optional[str] = None
     rp_revenue_share_percent: Optional[float] = None  # Revenue share percentage for RP
+    # Employee Revenue Share (reduced by RP share)
+    employee_revenue_share_percent: Optional[float] = None  # Employee's share after RP deduction
+    base_employee_share_percent: float = 100.0  # Default employee share before RP deduction
 
 
 class Booking(BaseModel):
