@@ -50,6 +50,16 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Verified all 32 backend API endpoints working after major server.py refactoring
 - Test report: `/app/test_reports/iteration_29.json`
 
+#### ✅ High RP Share Warning (>30%) - COMPLETED (Jan 28, 2026)
+**Feature:**
+- When an employee tries to assign more than 30% revenue share to an RP, a prominent warning is displayed
+- Warning includes disciplinary action notice and email contact for converting RP to BP
+- Styled with dazzling red/yellow gradient background and animation
+- "Remove RP Selection" button allows quick correction
+
+**Warning Text:**
+> You have chosen an RP to share X% of the booking revenue, it will be verified by PE Desk if the client was sourced by the RP. If this booking is found to be dubious, disciplinary action will be initiated against you. If you still want to share more than 30% of the revenue, please connect with partnersdesk@smifs.com to initiate and convert RP to BP. If you have chosen by mistake, please immediately remove the selection.
+
 #### ✅ Referral Partner (RP) Finance Integration - COMPLETED
 **RP Payment Tracking in Finance Module**
 - RP Payments automatically created when stock transfer is confirmed for bookings with RPs
