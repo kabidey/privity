@@ -66,17 +66,21 @@ const Finance = () => {
       if (filters.startDate) params.append('start_date', filters.startDate);
       if (filters.endDate) params.append('end_date', filters.endDate);
 
-      const [paymentsRes, summaryRes, refundsRes, rpPaymentsRes] = await Promise.all([
+      const [paymentsRes, summaryRes, refundsRes, rpPaymentsRes, commissionsRes, commSummaryRes] = await Promise.all([
         api.get(`/finance/payments?${params.toString()}`),
         api.get(`/finance/summary?${params.toString()}`),
         api.get('/finance/refund-requests'),
-        api.get('/finance/rp-payments')
+        api.get('/finance/rp-payments'),
+        api.get('/finance/employee-commissions'),
+        api.get('/finance/employee-commissions/summary')
       ]);
 
       setPayments(paymentsRes.data);
       setSummary(summaryRes.data);
       setRefundRequests(refundsRes.data);
       setRpPayments(rpPaymentsRes.data || []);
+      setEmployeeCommissions(commissionsRes.data || []);
+      setCommissionSummary(commSummaryRes.data || []);
     } catch (error) {
       toast.error('Failed to fetch finance data');
     } finally {
