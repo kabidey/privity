@@ -291,6 +291,11 @@ class Booking(BaseModel):
     booking_type: str = "client"  # "client", "team", or "own"
     insider_form_uploaded: bool = False
     insider_form_path: Optional[str] = None
+    # Referral Partner
+    referral_partner_id: Optional[str] = None
+    rp_code: Optional[str] = None
+    rp_name: Optional[str] = None
+    rp_revenue_share_percent: Optional[float] = None
     # Client confirmation
     client_confirmation_status: str = "pending"
     client_confirmation_token: Optional[str] = None
