@@ -104,6 +104,80 @@ const DatabaseBackup = () => {
     }
   };
 
+  const handleClearDatabase = async () => {
+    if (clearConfirmText !== 'CLEAR DATABASE') {
+      toast.error('Please type "CLEAR DATABASE" to confirm');
+      return;
+    }
+    
+    setClearing(true);
+    try {
+      const response = await api.delete('/database/clear');
+      toast.success(`Database cleared! ${response.data.total_deleted} records deleted.`);
+      setClearDialogOpen(false);
+      setClearConfirmText('');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to clear database');
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleDownloadBackup = async (backup) => {
+    try {
+      toast.info('Preparing download...');
+      const response = await api.get(`/database/backups/${backup.id}/download`, {
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const safeName = backup.name.replace(/[^a-zA-Z0-9-_]/g, '_');
+      link.setAttribute('download', `backup_${safeName}_${backup.created_at.slice(0, 10)}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Backup downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to download backup');
+    }
+  };
+
+  const handleUploadRestore = async () => {
+    if (!uploadFile) {
+      toast.error('Please select a backup file');
+      return;
+    }
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadFile);
+      
+      const response = await api.post('/database/restore-from-file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      if (response.data.errors?.length > 0) {
+        toast.warning(`Restored with some errors: ${response.data.errors.join(', ')}`);
+      } else {
+        toast.success('Database restored from uploaded file successfully');
+      }
+      setUploadDialogOpen(false);
+      setUploadFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to restore from file');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const openRestoreDialog = (backup) => {
     setSelectedBackup(backup);
     setRestoreDialogOpen(true);
