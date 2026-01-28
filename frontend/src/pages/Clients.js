@@ -603,6 +603,7 @@ const Clients = () => {
     setFieldsFromOcr({});
     setWizardStep(1);
     setEditingClient(null);
+    setIsSubmitting(false);
   };
 
   const getDocIcon = (docType) => {
