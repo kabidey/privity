@@ -7,52 +7,44 @@ During this session, the user requested several new features and bug fixes:
 3.  **Backend Refactoring & Concurrency**: Refactor the backend monolith () and implement logic to handle high-concurrency booking creation without race conditions.
 4.  **Booking Confirmation Bug**: Fix an issue where clients could not confirm their bookings via the link sent to their email.
 5.  **Referral Partner (RP) Feature**:
-    *   Create a full CRUD system for managing Referral Partners (RPs), with creation rights for Employees and edit rights for PE Desk/PE Managers.
+    *   Create a full CRUD system for RPs, with creation rights for Employees and edit rights for PE Desk/PE Managers.
     *   Assign a unique code to each RP.
     *   Integrate RP selection into the booking form, including a warning that an RP cannot be added later.
-    *   Add a field for the revenue share percentage to be given to the RP.
-    *   Cap the RP revenue share at 30%.
+    *   Add a field for the revenue share percentage to be given to the RP, capped at 30%.
     *   Integrate RP payouts into the finance system: automatically create a payable item for the RP when a booking's stock transfer is confirmed, and display this on the Finance page.
+    *   Make RP creation fields (cancelled cheque, email, mobile) mandatory and send an email notification to the RP upon stock transfer confirmation.
+    *   Implement an approval workflow where RPs must be approved by PE Desk/Managers to be active.
+6.  **Employee Revenue Share**: Implement logic to reduce an employee's revenue share by the amount allocated to an RP for a given booking.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack PRIVITY application for private equity transaction management. In this session, the agent successfully completed and tested the pending Refund Request feature. A major backend refactoring was performed, modularizing endpoints for clients, bookings, and finance into separate routers and implementing atomic operations to handle high-concurrency bookings. A new Finance role was created, and permissions for the PE Manager were updated. A critical bug in the client booking confirmation workflow was also fixed. Most recently, a comprehensive Referral Partner (RP) management system was implemented, including backend models, API endpoints, and frontend UI for managing RPs and selecting them during booking creation. The work to integrate RP payouts into the finance module is currently in progress.
+A full-stack PRIVITY application for private equity transaction management. In this session, the agent implemented and tested a comprehensive Referral Partner (RP) system, including CRUD, finance integration, mandatory field validation, email notifications, and an approval workflow. A major backend refactoring was performed, removing thousands of lines of duplicate code from  by migrating endpoints to modular routers. Most recently, a complete employee revenue share system was implemented, including backend models, commission calculation logic, API endpoints, and a new Employee Commissions tab on the Finance page for tracking payouts.
 
 **Last working item**:
--   **Last item agent was working**: Implementing the 30% revenue share cap for Referral Partners (RPs) and integrating their payouts into the Finance module. The backend logic to create an RP payment upon stock transfer confirmation is complete, along with API endpoints to manage these payments. The agent was in the middle of updating the frontend  page to display and manage these new RP payments.
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: both
+-   **Last item agent was working**: Implementing the employee revenue share reduction feature. This involved adding new fields to the  model, creating an  model, updating backend logic to calculate and record commissions (accounting for RP share), creating new API endpoints in the  router, and adding a new Employee Commissions tab and summary cards to the  page.
+-   **Status**: USER VERIFICATION PENDING
+-   **Agent Testing Done**: Y
+-   **Which testing method agent to use?**: NA
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: (P0) Complete and Test RP Finance Integration
-    -   **Description**: The agent was updating the  page to add a new RP Payments tab. This work is incomplete. The UI must be finished to display RP payments, allow status updates (e.g., Mark as Paid), and update the summary cards. The entire end-to-end flow is untested.
-    -   **Next debug checklist**:
-        -   Finish updating  to include the new RP Payments tab and its content.
-        -   Create and render a  component to display data from the  endpoint.
-        -   Update the summary cards to show Pending RP Payouts and Completed RP Payouts.
-        -   Implement a dialog to update an RP payment's status, calling the  endpoint.
-        -   Test the complete flow: Create a booking with an RP and revenue share > Confirm the booking's DP transfer > Verify the RP payment appears in the Finance page > Mark the payment as complete > Verify the status and summaries update correctly.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will complete the user-requested feature for tracking and managing referral partner payouts, making the financial module comprehensive.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on other issue**: None
+None.
 
 **In progress Task List**:
--   **Task 1**: (P1) Finalize Backend Monolith Refactoring
-    -   **Where to resume**: The agent successfully moved , , and  endpoints to their own routers and changed the  order as a temporary fix to prioritize the new routes. However, the duplicate, now-redundant endpoints still exist in . The next step is to physically remove these old endpoints from  to eliminate code duplication and prevent future bugs.
-    -   **What will be achieved with this?**: This will complete the refactoring effort, leading to a cleaner, more maintainable backend codebase.
+-   **Task 1**: (P1) Finalize and Verify Backend Monolith Refactoring
+    -   **Where to resume**: The agent performed a massive cleanup of , removing most duplicated endpoints. While initial checks show the server is running and core APIs are responsive, the scale of the changes requires a full regression test to ensure no functionality was broken.
+    -   **What will be achieved with this?**: A stable, cleaner, and more maintainable backend codebase, eliminating the risk of using shadowed, outdated endpoints.
     -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Should Test frontend/backend/both after fix?**: both
     -   **Blocked on something**: None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P1)** Implement logic to reduce an employee's revenue share by the amount allocated to the RP.
+    -   **(P1)** Send an email notification to the RP when their application is approved or rejected.
+    -   **(P2)** Capture RP bank details (IFSC, Account Number, Bank Name) during creation to facilitate payouts.
     -   **(P2)** Create a dashboard view for Referral Partners to see their generated revenue.
+    -   **(P2)** Create backend API documentation (e.g., Swagger/OpenAPI).
 -   **Future Tasks**:
     -   **(P2)** Implement an email sending history/log for auditing.
     -   **(P2)** Implement Two-Factor Authentication (TOTP).
@@ -61,12 +53,11 @@ A full-stack PRIVITY application for private equity transaction management. In t
     -   **(P2)** Create role-specific dashboards.
 
 **Completed work in this session**
--   **Feature - Refund Request**: Completed and tested the end-to-end flow for automatically creating refund requests when a paid booking is voided.
--   **Task - Backend Refactoring & High Concurrency**: Modularized the backend by moving endpoints for clients, bookings, and finance into separate routers. Implemented atomic inventory and booking number generation to handle high-concurrency scenarios.
--   **Feature - New Finance Role**: Created a Finance role (ID 7) with employee rights plus full access to the Finance page.
--   **Feature - PE Manager Vendor Access**: Updated permissions to allow PE Managers to access the Vendors page (excluding deletion).
--   **Bugfix - Client Booking Confirmation**: Resolved an issue preventing clients from confirming bookings via email links and improved the confirmation page's UI/UX.
--   **Feature - Referral Partner (RP) System**: Implemented a full CRUD system for RPs, integrated RP selection into the booking form, and added backend models and API endpoints.
+-   **Feature - Referral Partner Finance Integration**: Completed the UI on the Finance page to display and manage RP payouts, including a new RP Payments tab and summary cards.
+-   **Feature - Enhanced RP Creation & Notification**: Made RP fields (email, phone, documents) mandatory, added backend validation, and implemented an email notification to the RP upon stock transfer confirmation.
+-   **Feature - RP Approval Workflow**: Implemented a system where RPs created by employees are pending and must be approved by PE Desk/Managers to become active. The UI was updated with tabs and dialogs to manage this.
+-   **Feature - Employee Revenue Share**: Implemented the end-to-end system for calculating and tracking employee commissions, which are reduced when an RP is involved in a booking. This included backend logic and a new Employee Commissions tab in the Finance UI.
+-   **Task - Backend Monolith Refactoring**: Removed a significant number (~4,000 lines) of duplicated client, booking, and finance endpoints from .
 
 **Earlier issues found/mentioned but not fixed**
 None.
@@ -82,74 +73,66 @@ N/A
 -   **Backend**: Python, FastAPI, Pydantic
 -   **Database**: MongoDB
 -   **Authentication**: JWT
--   **High Concurrency**: Used MongoDB's  operator for atomic counters and a locking mechanism within the  to ensure atomic check-and-update operations for stock quantities.
--   **Backend Refactoring**: Migrated monolithic endpoints from  into modular  files located in the  directory.
+-   **Backend Refactoring**: Migrated monolithic endpoints from  into modular  files.
 
 **key DB schema**
--   **users**: 
 -   **bookings**:  (new fields)
--   **refund_requests**: (New Collection from previous session)
--   **referral_partners**: (New Collection) 
--   **rp_payments**: (New Collection) 
+-   **referral_partners**:  (new field)
+-   **employee_commissions**: (New Collection) 
 
 **changes in tech stack**
 None.
 
 **All files of reference**
--   : New router containing all finance-related endpoints, including the new RP payment logic.
--   : New router for booking CRUD, refactored for high-concurrency.
--   : New router for RP CRUD operations.
--   : Heavily modified to add  and  Pydantic models.
--   : Contains the core app logic and triggers RP payment creation upon stock transfer confirmation. Still contains duplicate endpoints that need removal.
--   : **Currently being modified** to add the RP Payments tab.
--   : New page for managing Referral Partners.
--   : Modified to include the RP selection dropdown in the booking creation form.
+-   : Heavily modified to remove duplicate endpoints. Still contains unique logic like stock transfer confirmation.
+-   : Modified to add employee commission endpoints (, , ).
+-   : Modified to add the approval workflow (, , ).
+-   : Modified to add  to  and create new models for .
+-   : Heavily modified to add the RP Payments and Employee Commissions tabs.
+-   : Heavily modified to add UI for the Pending Approvals workflow.
+-   : Modified to fetch only approved RPs for the dropdown.
 
 **Areas that need refactoring**:
--   ****: **High priority.** Although new routers have been created and prioritized, the old, duplicate endpoints for bookings, clients, and finance still exist in this file and must be removed to complete the refactoring and prevent bugs.
+-   ****: A full regression test is required to validate the stability after the large-scale refactoring. The remaining unique endpoints could also be migrated to their respective routers for better organization.
 
 **key api endpoints**
--   **New (Referral Partner)**:
+-   **New (RP Approval)**:
     -   
     -   
     -   
--   **New (RP Finance)**:
+-   **New (Employee Commissions)**:
     -   
     -   
--   **Refactored**: All endpoints under , , and most under  are now served from dedicated router files.
+    -   
+-   **Modified**:
+    -    is now fetched as  in the booking form.
+-   **Removed from **:
+    -   Most CRUD endpoints for , , and .
 
 **Critical Info for New Agent**
-1.  **Finish RP Finance UI**: Your immediate priority is to complete the frontend work on . This involves adding the RP Payments tab, a table to display the data from the new endpoint, updating the summary cards, and implementing a dialog to mark payments as complete.
-2.  **Test RP Finance Flow**: Once the UI is complete, perform an end-to-end test of the entire RP payment flow (from booking creation with an RP to marking their payment as Paid in the Finance module).
-3.  **Finalize Backend Refactor**: After the RP feature is stable, continue the backend cleanup by removing the now-redundant endpoints from . This is crucial for long-term maintainability.
-4.  **New Role Context**: Remember that a Finance role (ID 7) exists, which has employee-level access plus full access to the finance page. The  helper function in  is used to manage this.
+1.  **Verify Backend Refactoring**: Your immediate priority is to conduct a full regression test of the application to ensure the large-scale removal of code from  did not introduce any bugs. Use the testing agent for this.
+2.  **Continue with User Requests**: After confirming stability, proceed with the next user-requested feature, which is to send email notifications to RPs when their application status changes (approved/rejected).
+3.  **Complete Refactoring**: As a lower-priority task, consider migrating the few remaining unique endpoints from  (e.g., document uploads, booking confirmation) into their appropriate routers to finalize the modularization.
 
 **documents and test reports created in this job**
--   
--   
+-    (updated multiple times)
 -   
 -   
 -   
 -   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.   (IN PROGRESS)
-2.   (COMPLETED)
+1.   (COMPLETED)
+2.   (IN PROGRESS)
 3.   (COMPLETED)
 4.   (COMPLETED)
-5.   (COMPLETED)
-6.   (COMPLETED)
-7.   (COMPLETED - was a user misunderstanding)
-8.   (COMPLETED)
-9.   (COMPLETED)
-10.  (This message is a duplicate, part of a larger request)
+5.   (User confirmation to proceed with previous plan)
 
 **Project Health Check:**
 -   **Broken**: None
 -   **Mocked**: None
 -   **In Progress**:
-    -   Referral Partner payment integration into the Finance page UI.
-    -   Final cleanup of the  monolith.
+    -   Final verification and testing of the backend  refactoring.
 
 **3rd Party Integrations**
 -   **OpenAI via **: Used for OCR on document uploads. Uses the Emergent LLM Key.
@@ -165,7 +148,9 @@ None.
 -   **PE Desk**:  / 
 -   **PE Manager**:  / 
 -   **Employee**:  / 
--   **Finance**:  /  (can be recreated if needed)
+-   **Finance**:  / 
 
 **What agent forgot to execute**
--   The user's request included: ...the % entered by the employee must be reduced from his revenue and shown on the dashboard of the RP. This logic was not implemented. The agent focused on getting the RP payment created and displayed in the main finance module but did not implement the employee revenue reduction or a dedicated dashboard for the RP. These items have been added to the **Upcoming Tasks**.</analysis>
+-   The user requested to send an email notification to the RP when their application is **approved or rejected**. This was acknowledged in the agent's summary but not implemented. It has been added to **Upcoming Tasks**.
+-   The user requested to capture **bank details** for RPs. This was acknowledged as a potential enhancement but not implemented. It has been added to **Upcoming Tasks**.
+-   The agent suggested creating API documentation as a next step, which the user did not explicitly request but is a good practice. It has been added to **Upcoming Tasks**.</analysis>
