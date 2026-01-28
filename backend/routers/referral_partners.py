@@ -2,12 +2,14 @@
 Referral Partners Router
 
 Handles all referral partner (RP) management operations.
-- Employees can CREATE RPs
-- PE Desk and PE Manager can EDIT RPs
+- Employees can CREATE RPs (pending approval)
+- PE Desk and PE Manager can CREATE RPs (auto-approved)
+- PE Desk and PE Manager can APPROVE/REJECT/EDIT RPs
 """
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import List, Optional
 from datetime import datetime, timezone
+from pydantic import BaseModel
 import uuid
 import os
 import aiofiles
