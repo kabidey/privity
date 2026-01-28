@@ -89,7 +89,7 @@ const Bookings = () => {
         api.get('/clients'),
         api.get('/stocks'),
         api.get('/inventory'),
-        api.get('/referral-partners'),
+        api.get('/referral-partners-approved'),  // Only approved and active RPs for booking form
       ]);
       setBookings(bookingsRes.data);
       setClients(clientsRes.data);
