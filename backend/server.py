@@ -1303,21 +1303,12 @@ async def delete_inventory(stock_id: str, current_user: dict = Depends(get_curre
     return {"message": f"Inventory for {inventory.get('stock_symbol', stock_id)} deleted successfully"}
 
 
-# Booking Routes
-@api_router.post("/bookings", response_model=Booking)
-async def create_booking(booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
-    user_role = current_user.get("role", 5)
-    
-    # Employees can create bookings
-    if user_role == 4:
-        check_permission(current_user, "create_bookings")
-    else:
-        check_permission(current_user, "manage_bookings")
-    
-    # Verify client exists and is active
-    client = await db.clients.find_one({"id": booking_data.client_id}, {"_id": 0})
-    if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
+# NOTE: POST /bookings and PUT /bookings/{id}/approve have been moved to routers/bookings.py
+
+# ============== Booking Confirmation Endpoints ==============
+# (Client confirmation via email link - kept here as it's a public endpoint)
+
+@api_router.put("/bookings/{booking_id}/approve-loss")
     
     # Check if client is approved by PE Desk
     if client.get("approval_status") != "approved":
