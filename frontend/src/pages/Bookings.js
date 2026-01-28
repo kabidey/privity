@@ -989,6 +989,7 @@ const Bookings = () => {
                   </p>
                 )}
               </div>
+                )}
               
               {/* RP Warning Dialog */}
               {showRpWarning && (
