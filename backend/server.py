@@ -4132,9 +4132,9 @@ async def get_stock_performance(
     limit: int = 10,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get stock performance analytics (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access advanced analytics")
+    """Get stock performance analytics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access advanced analytics")
     
     start_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     
