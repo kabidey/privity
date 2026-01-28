@@ -6,6 +6,7 @@ from .auth import router as auth_router
 from .users import router as users_router
 from .notifications import router as notifications_router
 from .email_templates import router as email_templates_router
+from .email_logs import router as email_logs_router
 from .smtp_config import router as smtp_config_router
 from .stocks import router as stocks_router
 from .database_backup import router as database_backup_router
@@ -25,6 +26,7 @@ __all__ = [
     'users_router',
     'notifications_router',
     'email_templates_router',
+    'email_logs_router',
     'smtp_config_router',
     'stocks_router',
     'database_backup_router',
