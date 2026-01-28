@@ -465,7 +465,8 @@ class TestReferralPartnersEndpoints:
     
     def test_02_get_approved_referral_partners(self):
         """Test get approved referral partners"""
-        response = self.session.get(f"{BASE_URL}/api/referral-partners/approved")
+        # The endpoint is /referral-partners-approved (not /referral-partners/approved)
+        response = self.session.get(f"{BASE_URL}/api/referral-partners-approved")
         assert response.status_code == 200, f"Get approved RPs failed: {response.text}"
         
         data = response.json()
