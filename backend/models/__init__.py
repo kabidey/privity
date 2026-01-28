@@ -419,6 +419,42 @@ class ClientConfirmationRequest(BaseModel):
     reason: Optional[str] = None
 
 
+
+# ============== Referral Partner Models ==============
+class ReferralPartnerCreate(BaseModel):
+    name: str
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    pan_number: str
+    aadhar_number: str
+    address: Optional[str] = None
+
+
+class ReferralPartner(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    rp_code: str  # Unique code like RP-XXXX
+    name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    pan_number: str
+    aadhar_number: str
+    address: Optional[str] = None
+    # Documents
+    pan_card_url: Optional[str] = None
+    aadhar_card_url: Optional[str] = None
+    cancelled_cheque_url: Optional[str] = None
+    # Status
+    is_active: bool = True
+    # Audit
+    created_by: str
+    created_by_name: Optional[str] = None
+    created_at: str
+    updated_at: Optional[str] = None
+    updated_by: Optional[str] = None
+
+
+
 # ============== Email Template Models ==============
 class EmailTemplateUpdate(BaseModel):
     subject: Optional[str] = None
