@@ -464,6 +464,30 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
     if client_data.dp_type == "smifs" and not client_data.trading_ucc:
         raise HTTPException(status_code=400, detail="Trading UCC is required when DP is with SMIFS")
     
+    # Check for duplicate client by PAN number
+    existing_by_pan = await db.clients.find_one(
+        {"pan_number": client_data.pan_number.upper(), "is_vendor": client_data.is_vendor},
+        {"_id": 0, "name": 1, "otc_ucc": 1}
+    )
+    if existing_by_pan:
+        entity_type = "Vendor" if client_data.is_vendor else "Client"
+        raise HTTPException(
+            status_code=400, 
+            detail=f"{entity_type} with PAN {client_data.pan_number} already exists: {existing_by_pan['name']} ({existing_by_pan.get('otc_ucc', 'N/A')})"
+        )
+    
+    # Check for duplicate client by DP ID
+    existing_by_dp = await db.clients.find_one(
+        {"dp_id": client_data.dp_id, "is_vendor": client_data.is_vendor},
+        {"_id": 0, "name": 1, "otc_ucc": 1}
+    )
+    if existing_by_dp:
+        entity_type = "Vendor" if client_data.is_vendor else "Client"
+        raise HTTPException(
+            status_code=400, 
+            detail=f"{entity_type} with DP ID {client_data.dp_id} already exists: {existing_by_dp['name']} ({existing_by_dp.get('otc_ucc', 'N/A')})"
+        )
+    
     # Check permission based on whether it's a client or vendor
     if client_data.is_vendor:
         check_permission(current_user, "manage_vendors")
