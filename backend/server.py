@@ -3223,31 +3223,42 @@ async def mark_all_notifications_read(current_user: dict = Depends(get_current_u
 # NOTE: Finance endpoints (GET /finance/payments, /finance/summary, /finance/refund-requests, 
 # /finance/rp-payments, /finance/export/excel) have been moved to routers/finance.py
 
+
 @api_router.post("/payments/upload-proof")
-        if start_date:
-            booking_query["booking_date"] = {"$gte": start_date}
-        if end_date:
-            if "booking_date" in booking_query:
-                booking_query["booking_date"]["$lte"] = end_date
-            else:
-                booking_query["booking_date"] = {"$lte": end_date}
-        
-        bookings = await db.bookings.find(booking_query, {"_id": 0}).to_list(5000)
-        
-        # Get related data
-        client_ids = list(set(b["client_id"] for b in bookings))
-        stock_ids = list(set(b["stock_id"] for b in bookings))
-        user_ids = list(set(p.get("recorded_by") for b in bookings for p in b.get("payments", []) if p.get("recorded_by")))
-        
-        clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
-        stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0, "id": 1, "symbol": 1, "name": 1}).to_list(1000)
-        users = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
-        
-        client_map = {c["id"]: c for c in clients}
-        stock_map = {s["id"]: s for s in stocks}
-        user_map = {u["id"]: u["name"] for u in users}
-        
-        for booking in bookings:
+async def upload_payment_proof(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload payment proof document"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can upload payment proofs")
+    
+    # Validate file type
+    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx']
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"File type not allowed. Allowed: {', '.join(allowed_extensions)}")
+    
+    # Create upload directory
+    proof_dir = os.path.join(UPLOAD_DIR, "payment_proofs")
+    os.makedirs(proof_dir, exist_ok=True)
+    
+    # Generate unique filename
+    unique_filename = f"payment_proof_{uuid.uuid4().hex}{file_ext}"
+    file_path = os.path.join(proof_dir, unique_filename)
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+    
+    return {
+        "filename": unique_filename,
+        "original_name": file.filename,
+        "url": f"/uploads/payment_proofs/{unique_filename}"
+    }
+
+# ============== Email Templates Routes (PE Level) ==============
             client = client_map.get(booking["client_id"], {})
             stock = stock_map.get(booking["stock_id"], {})
             booking_number = booking.get("booking_number", booking["id"][:8].upper())
