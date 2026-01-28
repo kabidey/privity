@@ -435,6 +435,53 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         created_at=current_user["created_at"]
     )
 
+
+@api_router.post("/auth/change-password")
+async def change_password(data: ChangePassword, current_user: dict = Depends(get_current_user)):
+    """
+    Change password for logged-in user.
+    Requires current password verification.
+    """
+    from models import ChangePassword
+    
+    # Verify current password
+    if not verify_password(data.current_password, current_user["password"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Validate new password length
+    if len(data.new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters")
+    
+    # Hash new password
+    hashed_new_pw = hash_password(data.new_password)
+    
+    # Update password and clear must_change_password flag
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {
+            "$set": {
+                "password": hashed_new_pw,
+                "must_change_password": False,
+                "password_changed_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="PASSWORD_CHANGE",
+        entity_type="user",
+        entity_id=current_user["id"],
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
+        entity_name=current_user["name"],
+        details={"method": "change_password"}
+    )
+    
+    return {"message": "Password changed successfully"}
+
+
 @api_router.post("/auth/forgot-password")
 async def forgot_password(data: PasswordResetRequest):
     """Request password reset OTP"""
