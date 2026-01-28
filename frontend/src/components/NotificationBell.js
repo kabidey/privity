@@ -13,26 +13,17 @@ import { useNotifications } from '../context/NotificationContext';
 const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead, isConnected, hasNewNotification, setHasNewNotification } = useNotifications();
-  const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Derive animation state directly from hasNewNotification
+  const isAnimating = hasNewNotification && !open;
 
-  // Trigger animation when new notification arrives
-  useEffect(() => {
-    if (hasNewNotification) {
-      setIsAnimating(true);
-      const timer = setTimeout(() => {
-        setIsAnimating(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [hasNewNotification]);
-
-  // Stop animation when popover opens
-  useEffect(() => {
-    if (open) {
-      setIsAnimating(false);
+  // Handle popover open to stop animation
+  const handleOpenChange = (newOpen) => {
+    setOpen(newOpen);
+    if (newOpen && hasNewNotification) {
       setHasNewNotification(false);
     }
-  }, [open, setHasNewNotification]);
+  };
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
