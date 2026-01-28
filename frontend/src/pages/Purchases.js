@@ -505,6 +505,30 @@ const Purchases = () => {
                 />
               </div>
               
+              <div className="space-y-2">
+                <Label>Upload Payment Proof (Optional)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={handleUploadPaymentProof}
+                    disabled={uploadingProof}
+                    className="flex-1"
+                    data-testid="vendor-payment-proof-input"
+                  />
+                  {uploadingProof && <RefreshCw className="h-4 w-4 animate-spin" />}
+                </div>
+                {paymentForm.proof_url && (
+                  <p className="text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Proof uploaded successfully
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Supported: PDF, JPG, PNG, DOC, DOCX
+                </p>
+              </div>
+              
               <DialogFooter>
                 <Button
                   type="button"
