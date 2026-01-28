@@ -205,6 +205,26 @@ const Finance = () => {
   const clientPayments = payments.filter(p => p.type === 'client');
   const vendorPayments = payments.filter(p => p.type === 'vendor');
   const pendingRefunds = refundRequests.filter(r => r.status === 'pending' || r.status === 'processing');
+  const pendingRpPayments = rpPayments.filter(p => p.status === 'pending' || p.status === 'processing');
+
+  const getRpPaymentStatusBadge = (status) => {
+    const styles = {
+      pending: 'bg-orange-100 text-orange-800',
+      processing: 'bg-blue-100 text-blue-800',
+      paid: 'bg-green-100 text-green-800'
+    };
+    const icons = {
+      pending: <Clock className="h-3 w-3 mr-1" />,
+      processing: <RefreshCw className="h-3 w-3 mr-1 animate-spin" />,
+      paid: <CheckCircle className="h-3 w-3 mr-1" />
+    };
+    return (
+      <Badge className={styles[status] || 'bg-gray-100'}>
+        {icons[status]}
+        {status?.toUpperCase()}
+      </Badge>
+    );
+  };
 
   if (!hasFinanceAccess) {
     return (
