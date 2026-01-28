@@ -165,12 +165,32 @@ async def send_templated_email(
     return True
 
 
-async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[str] = None):
+async def send_email(
+    to_email: str, 
+    subject: str, 
+    body: str, 
+    cc_email: Optional[str] = None,
+    template_key: Optional[str] = None,
+    variables: Optional[Dict[str, Any]] = None,
+    related_entity_type: Optional[str] = None,
+    related_entity_id: Optional[str] = None
+):
     """Send email via SMTP with optional CC - uses database config or env vars"""
     smtp_config = await get_smtp_config()
     
     if not smtp_config:
         logging.warning("Email not configured - neither database config nor environment variables set")
+        await log_email(
+            to_email=to_email,
+            subject=subject,
+            template_key=template_key,
+            status="skipped",
+            error_message="Email not configured",
+            cc_email=cc_email,
+            variables=variables,
+            related_entity_type=related_entity_type,
+            related_entity_id=related_entity_id
+        )
         return
     
     try:
@@ -209,8 +229,34 @@ async def send_email(to_email: str, subject: str, body: str, cc_email: Optional[
         server.quit()
         
         logging.info(f"Email sent successfully to {to_email}")
+        
+        # Log successful email
+        await log_email(
+            to_email=to_email,
+            subject=subject,
+            template_key=template_key,
+            status="sent",
+            cc_email=cc_email,
+            variables=variables,
+            related_entity_type=related_entity_type,
+            related_entity_id=related_entity_id
+        )
+        
     except Exception as e:
         logging.error(f"Failed to send email: {e}")
+        
+        # Log failed email
+        await log_email(
+            to_email=to_email,
+            subject=subject,
+            template_key=template_key,
+            status="failed",
+            error_message=str(e),
+            cc_email=cc_email,
+            variables=variables,
+            related_entity_type=related_entity_type,
+            related_entity_id=related_entity_id
+        )
 
 
 def generate_otp(length: int = 6) -> str:
