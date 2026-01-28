@@ -3341,7 +3341,34 @@ async def update_email_template(
             {"$set": update_data}
         )
     else:
-                    "total_paid": booking.get("total_paid", 0),
+        # Create from default
+        from config import DEFAULT_EMAIL_TEMPLATES
+        default = DEFAULT_EMAIL_TEMPLATES.get(template_key)
+        if not default:
+            raise HTTPException(status_code=404, detail="Template not found")
+        
+        new_template = {
+            "id": str(uuid.uuid4()),
+            "key": template_key,
+            **default,
+            **update_data
+        }
+        await db.email_templates.insert_one(new_template)
+    
+    # Create audit log
+    await create_audit_log(
+        action="EMAIL_TEMPLATE_UPDATE",
+        entity_type="email_template",
+        entity_id=template_key,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
+        details={"template_key": template_key, "updates": list(update_data.keys())}
+    )
+    
+    return {"message": "Template updated successfully"}
+
+@api_router.post("/email-templates/{template_key}/reset")
                     "payment_status": booking.get("payment_status", "pending")
                 })
     
