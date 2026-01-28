@@ -3261,23 +3261,30 @@ async def upload_payment_proof(
 # ============== Email Templates Routes (PE Level) ==============
 @api_router.get("/email-templates")
 async def get_email_templates(current_user: dict = Depends(get_current_user)):
-            
-            for payment in booking.get("payments", []):
-                all_payments.append({
-                    "id": f"client_{booking['id']}_{payment['tranche_number']}",
-                    "type": "client",
-                    "direction": "received",
-                    "reference_id": booking["id"],
-                    "reference_number": booking_number,
-                    "party_name": client.get("name", "Unknown"),
-                    "party_id": booking["client_id"],
-                    "stock_symbol": stock.get("symbol", "Unknown"),
-                    "stock_name": stock.get("name", "Unknown"),
-                    "tranche_number": payment["tranche_number"],
-                    "amount": payment["amount"],
-                    "payment_date": payment["payment_date"],
-                    "recorded_by": user_map.get(payment.get("recorded_by"), "System"),
-                    "recorded_at": payment.get("recorded_at"),
+    """Get all email templates (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can manage email templates")
+    
+    templates = await db.email_templates.find({}, {"_id": 0}).to_list(100)
+    
+    # Add default templates if not in database
+    from config import DEFAULT_EMAIL_TEMPLATES
+    existing_keys = {t["key"] for t in templates}
+    
+    for key, default_data in DEFAULT_EMAIL_TEMPLATES.items():
+        if key not in existing_keys:
+            templates.append({
+                "id": key,
+                "key": key,
+                **default_data,
+                "is_active": True,
+                "updated_at": None,
+                "updated_by": None
+            })
+    
+    return templates
+
+@api_router.get("/email-templates/{template_key}")
                     "notes": payment.get("notes"),
                     "proof_url": payment.get("proof_url"),
                     "booking_date": booking.get("booking_date"),
