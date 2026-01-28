@@ -18,7 +18,8 @@ const ROLES = {
   3: { name: 'Zonal Manager', color: 'bg-blue-100 text-blue-800' },
   4: { name: 'Manager', color: 'bg-green-100 text-green-800' },
   5: { name: 'Employee', color: 'bg-yellow-100 text-yellow-800' },
-  6: { name: 'Viewer', color: 'bg-gray-100 text-gray-800' }
+  6: { name: 'Viewer', color: 'bg-gray-100 text-gray-800' },
+  7: { name: 'Finance', color: 'bg-emerald-100 text-emerald-800' }
 };
 
 const UserManagement = () => {
