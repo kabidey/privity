@@ -3259,8 +3259,7 @@ async def upload_payment_proof(
     }
 
 # ============== Email Templates Routes (PE Level) ==============
-            client = client_map.get(booking["client_id"], {})
-            stock = stock_map.get(booking["stock_id"], {})
+@api_router.get("/email-templates")
             booking_number = booking.get("booking_number", booking["id"][:8].upper())
             
             for payment in booking.get("payments", []):
