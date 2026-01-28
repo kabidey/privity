@@ -3358,10 +3358,10 @@ async def get_purchase_payments(
     current_user: dict = Depends(get_current_user)
 ):
     """Get payment details for a purchase"""
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 6)
     
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can view purchase payments")
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view purchase payments")
     
     purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
     if not purchase:
