@@ -739,8 +739,8 @@ const Finance = () => {
                     <span>{selectedRpPayment.revenue_share_percent}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Booking Total:</span>
-                    <span>{formatCurrency(selectedRpPayment.booking_total_amount)}</span>
+                    <span className="text-muted-foreground">Booking Profit:</span>
+                    <span>{formatCurrency(selectedRpPayment.profit)}</span>
                   </div>
                 </CardContent>
               </Card>
