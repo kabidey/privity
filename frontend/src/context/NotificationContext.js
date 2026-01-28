@@ -195,6 +195,8 @@ export const NotificationProvider = ({ children }) => {
     notifications,
     unreadCount,
     isConnected,
+    hasNewNotification,
+    setHasNewNotification,
     fetchNotifications,
     fetchUnreadCount,
     markAsRead,
