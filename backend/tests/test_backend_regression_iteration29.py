@@ -269,12 +269,16 @@ class TestReferralPartners:
         
         # Generate unique test data
         unique_id = str(uuid.uuid4())[:8]
+        # Generate unique 12-digit Aadhar using timestamp
+        timestamp = str(int(datetime.now().timestamp()))[-12:]
+        aadhar = timestamp.zfill(12)
+        
         test_rp = {
             "name": f"TEST_RP_{unique_id}",
             "email": f"test_rp_{unique_id}@example.com",
             "phone": "9876543210",
             "pan_number": f"ABCDE{unique_id[:4].upper()}F",
-            "aadhar_number": "123456789012",
+            "aadhar_number": aadhar,
             "address": "Test Address, Test City"
         }
         
