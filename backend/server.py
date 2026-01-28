@@ -4389,9 +4389,9 @@ async def update_email_config(
     config: SMTPConfigUpdate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Update SMTP configuration (PE Desk only)"""
-    if current_user.get("role") != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can update email configuration")
+    """Update SMTP configuration (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update email configuration")
     
     # Get existing config to preserve password if not provided
     existing = await db.email_config.find_one({"_id": "smtp_config"})
