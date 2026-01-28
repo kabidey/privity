@@ -80,8 +80,10 @@ async def create_stock(stock_data: StockCreate, current_user: dict = Depends(get
         "symbol": stock_data.symbol.upper(),
         "name": stock_data.name,
         "isin_number": stock_data.isin_number,
-        "bse_code": stock_data.bse_code,
-        "nse_code": stock_data.nse_code,
+        "exchange": stock_data.exchange,
+        "sector": stock_data.sector,
+        "product": stock_data.product,
+        "face_value": stock_data.face_value,
         "is_active": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user["id"]
