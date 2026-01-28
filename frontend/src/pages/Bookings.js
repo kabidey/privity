@@ -814,13 +814,16 @@ const Bookings = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">No RP</SelectItem>
-                        {referralPartners.filter(rp => rp.is_active).map((rp) => (
+                        {referralPartners.map((rp) => (
                           <SelectItem key={rp.id} value={rp.id}>
                             {rp.rp_code} - {rp.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {referralPartners.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No approved RPs available. RPs must be approved by PE Desk/PE Manager first.</p>
+                    )}
                   </div>
                   {formData.referral_partner_id && (
                     <div className="space-y-2">
