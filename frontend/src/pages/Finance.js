@@ -15,13 +15,15 @@ import {
   Wallet, ArrowDownLeft, ArrowUpRight, FileSpreadsheet, 
   RefreshCw, TrendingUp, TrendingDown, DollarSign, FileText,
   ExternalLink, RotateCcw, CheckCircle, Clock, AlertCircle, XCircle,
-  Building, CreditCard, Edit
+  Building, CreditCard, Edit, Users
 } from 'lucide-react';
 
 const Finance = () => {
   const [payments, setPayments] = useState([]);
   const [refundRequests, setRefundRequests] = useState([]);
   const [rpPayments, setRpPayments] = useState([]);
+  const [employeeCommissions, setEmployeeCommissions] = useState([]);
+  const [commissionSummary, setCommissionSummary] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
