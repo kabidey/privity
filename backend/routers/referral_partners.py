@@ -43,8 +43,32 @@ async def create_referral_partner(
     """
     Create a new Referral Partner.
     Any authenticated user (including Employees) can create RPs.
+    All fields are mandatory including documents (uploaded separately).
     """
     user_role = current_user.get("role", 6)
+    
+    # Validate 10-digit phone number (without +91)
+    phone_digits = ''.join(filter(str.isdigit, rp_data.phone))
+    if len(phone_digits) != 10:
+        raise HTTPException(
+            status_code=400,
+            detail="Phone number must be exactly 10 digits (without +91)"
+        )
+    
+    # Validate PAN format (basic validation)
+    if len(rp_data.pan_number) != 10:
+        raise HTTPException(
+            status_code=400,
+            detail="PAN number must be exactly 10 characters"
+        )
+    
+    # Validate Aadhar format
+    aadhar_digits = ''.join(filter(str.isdigit, rp_data.aadhar_number))
+    if len(aadhar_digits) != 12:
+        raise HTTPException(
+            status_code=400,
+            detail="Aadhar number must be exactly 12 digits"
+        )
     
     # Check for duplicate PAN
     existing = await db.referral_partners.find_one(
@@ -59,7 +83,7 @@ async def create_referral_partner(
     
     # Check for duplicate Aadhar
     existing_aadhar = await db.referral_partners.find_one(
-        {"aadhar_number": rp_data.aadhar_number},
+        {"aadhar_number": aadhar_digits},
         {"_id": 0}
     )
     if existing_aadhar:
@@ -68,18 +92,29 @@ async def create_referral_partner(
             detail=f"Referral Partner with Aadhar {rp_data.aadhar_number} already exists"
         )
     
+    # Check for duplicate email
+    existing_email = await db.referral_partners.find_one(
+        {"email": rp_data.email.lower()},
+        {"_id": 0}
+    )
+    if existing_email:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Referral Partner with email {rp_data.email} already exists"
+        )
+    
     rp_id = str(uuid.uuid4())
     rp_code = await generate_rp_code()
     
     rp_doc = {
         "id": rp_id,
         "rp_code": rp_code,
-        "name": rp_data.name,
-        "email": rp_data.email,
-        "phone": rp_data.phone,
+        "name": rp_data.name.strip(),
+        "email": rp_data.email.lower().strip(),
+        "phone": phone_digits,  # Store only digits
         "pan_number": rp_data.pan_number.upper(),
-        "aadhar_number": rp_data.aadhar_number,
-        "address": rp_data.address,
+        "aadhar_number": aadhar_digits,  # Store only digits
+        "address": rp_data.address.strip(),
         "pan_card_url": None,
         "aadhar_card_url": None,
         "cancelled_cheque_url": None,
