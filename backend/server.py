@@ -2670,6 +2670,48 @@ async def void_booking(
     
     await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
     
+    # Create refund request if there are payments
+    refund_request_id = None
+    total_paid = booking.get("total_paid", 0)
+    if total_paid > 0:
+        # Get client bank details
+        bank_accounts = client.get("bank_accounts", []) if client else []
+        primary_bank = bank_accounts[0] if bank_accounts else None
+        
+        refund_request_id = str(uuid.uuid4())
+        refund_request = {
+            "id": refund_request_id,
+            "booking_id": booking_id,
+            "booking_number": booking.get("booking_number", booking_id[:8].upper()),
+            "client_id": booking["client_id"],
+            "client_name": client["name"] if client else "Unknown",
+            "client_email": client.get("email") if client else None,
+            "client_phone": client.get("phone") if client else None,
+            "stock_id": booking["stock_id"],
+            "stock_symbol": stock["symbol"] if stock else "Unknown",
+            "refund_amount": total_paid,
+            "payment_status": booking.get("payment_status", "unknown"),
+            "void_reason": reason or "No reason provided",
+            "bank_details": {
+                "bank_name": primary_bank.get("bank_name") if primary_bank else None,
+                "account_number": primary_bank.get("account_number") if primary_bank else None,
+                "ifsc_code": primary_bank.get("ifsc_code") if primary_bank else None,
+                "account_holder_name": primary_bank.get("account_holder_name") if primary_bank else (client["name"] if client else None),
+                "branch": primary_bank.get("branch") if primary_bank else None
+            },
+            "status": "pending",  # pending, processing, completed, failed
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": current_user["id"],
+            "created_by_name": current_user["name"],
+            "processed_at": None,
+            "processed_by": None,
+            "processed_by_name": None,
+            "notes": None,
+            "reference_number": None
+        }
+        
+        await db.refund_requests.insert_one(refund_request)
+    
     # Update inventory to release blocked quantity
     await update_inventory(booking["stock_id"])
     
