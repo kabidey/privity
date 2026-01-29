@@ -31,6 +31,10 @@ const DatabaseBackup = () => {
   const [uploadFile, setUploadFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Get current user for role check - only PE Desk (role 1) can clear DB
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isPEDesk = currentUser.role === 1;
+
   useEffect(() => {
     fetchData();
   }, []);
