@@ -68,9 +68,10 @@ async def create_notification(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await db.notifications.insert_one(notification)
+    # Insert a copy to avoid _id being added to original dict
+    await db.notifications.insert_one(notification.copy())
     
-    # Send via WebSocket
+    # Send via WebSocket (without _id)
     await ws_manager.send_to_user(user_id, {
         "event": "notification",
         "data": notification
