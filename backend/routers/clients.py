@@ -23,6 +23,18 @@ from services.ocr_service import process_document_ocr
 router = APIRouter(tags=["Clients"])
 
 
+async def generate_otc_ucc() -> str:
+    """Generate unique OTC UCC code"""
+    counter = await db.counters.find_one_and_update(
+        {"_id": "otc_ucc"},
+        {"$inc": {"seq": 1}},
+        upsert=True,
+        return_document=True
+    )
+    seq = counter.get("seq", 1)
+    return f"OTC{str(seq).zfill(6)}"
+
+
 @router.post("/clients", response_model=Client)
 async def create_client(client_data: ClientCreate, current_user: dict = Depends(get_current_user)):
     """Create a new client or vendor."""
