@@ -459,6 +459,19 @@ async def approve_booking(
                     cc_email=creator.get("email") if creator else None,
                     additional_emails=additional_emails
                 )
+            
+            # Send payment request email with bank details and company documents
+            company_master = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
+            if company_master:
+                await send_payment_request_email(
+                    booking_id=booking_id,
+                    client=client,
+                    stock=stock,
+                    booking=booking,
+                    company_master=company_master,
+                    approved_by=current_user["name"],
+                    cc_email=creator.get("email") if creator else None
+                )
         
         # Notify booking creator
         if booking.get("created_by"):
