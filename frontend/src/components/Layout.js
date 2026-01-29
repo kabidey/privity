@@ -348,6 +348,9 @@ const Layout = ({ children }) => {
         
         {/* Footer */}
         <div className="p-4 border-t border-gray-200/50 dark:border-gray-800/50 space-y-2">
+          {/* Kill Switch - PE Desk Only */}
+          <KillSwitch userRole={user.role} />
+          
           {/* Notifications */}
           <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
             <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Notifications</span>
