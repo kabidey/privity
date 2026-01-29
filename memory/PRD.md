@@ -801,7 +801,15 @@ rp_payments: {
 ## Recent Features Added (Jan 29, 2026)
 - **Payment Request Email on Booking Approval**: When PE Desk/Manager approves a booking, an automatic email is sent to the client with:
   - Subject: "Payment Request - Booking {number} | {stock_symbol}"
-  - Detailed payment calculation (quantity × price = total)
+  - Detailed payment calculation (quantity × sell price = total)
   - Company bank account details from Company Master
   - Attached company documents (NSDL CML, CDSL CML, PAN Card) as PDF attachments
   - Professional HTML email template with booking summary and payment instructions
+
+- **Stock Transfer Request Email on Vendor Payment Completion**: When a vendor payment is fully completed (no remaining amount), an automatic email is sent to the vendor with:
+  - Subject: "Stock Transfer Request - {stock_symbol} | {purchase_number}"
+  - Payment confirmation (total amount paid, date, time)
+  - Stock transfer details (stock name, quantity)
+  - Company DP details (CDSL DP ID, NSDL DP ID)
+  - Urgent notice requesting immediate stock transfer
+  - Attached company documents (NSDL CML, CDSL CML, PAN Card, Cancelled Cheque)
