@@ -437,3 +437,279 @@ async def update_client_employee_mapping(
     )
     
     return {"message": f"Client mapped to {employee['name']} successfully"}
+
+
+# Document Management Endpoints
+@router.post("/clients/{client_id}/documents")
+async def upload_client_document(
+    client_id: str,
+    doc_type: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a document for a client with OCR processing."""
+    user_role = current_user.get("role", 5)
+    
+    # Allow both manage_clients (managers+) and create_clients (employees) to upload docs
+    if user_role == 5:  # Employee
+        check_permission(current_user, "create_clients")
+        client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        if client.get("created_by") != current_user["id"]:
+            raise HTTPException(status_code=403, detail="You can only upload documents to your own clients")
+    else:
+        check_permission(current_user, "manage_clients")
+        client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Create client directory
+    client_dir = UPLOAD_DIR / client_id
+    client_dir.mkdir(exist_ok=True)
+    
+    # Save file
+    file_ext = Path(file.filename).suffix
+    filename = f"{doc_type}_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{file_ext}"
+    file_path = client_dir / filename
+    
+    async with aiofiles.open(file_path, 'wb') as f:
+        content = await file.read()
+        await f.write(content)
+    
+    # Process OCR
+    ocr_data = await process_document_ocr(str(file_path), doc_type)
+    
+    # Update client document record
+    doc_record = {
+        "doc_type": doc_type,
+        "filename": filename,
+        "file_path": str(file_path),
+        "upload_date": datetime.now(timezone.utc).isoformat(),
+        "ocr_data": ocr_data
+    }
+    
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$push": {"documents": doc_record}}
+    )
+    
+    return {"message": "Document uploaded successfully", "document": doc_record}
+
+
+@router.get("/clients/{client_id}/documents/{filename}")
+async def download_client_document(
+    client_id: str,
+    filename: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Download a client document."""
+    from fastapi.responses import FileResponse
+    
+    file_path = UPLOAD_DIR / client_id / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    return FileResponse(file_path, filename=filename)
+
+
+@router.get("/clients/{client_id}/documents/{filename}/ocr")
+async def get_document_ocr(
+    client_id: str,
+    filename: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get OCR data for a specific document."""
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    document = None
+    for doc in client.get("documents", []):
+        if doc["filename"] == filename:
+            document = doc
+            break
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    return {
+        "filename": filename,
+        "doc_type": document.get("doc_type"),
+        "ocr_data": document.get("ocr_data"),
+        "upload_date": document.get("upload_date")
+    }
+
+
+@router.post("/ocr/preview")
+async def ocr_preview(
+    doc_type: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Process OCR on a document without saving - for auto-fill preview."""
+    import uuid as uuid_module
+    
+    temp_dir = UPLOAD_DIR / "temp"
+    temp_dir.mkdir(exist_ok=True)
+    
+    file_ext = Path(file.filename).suffix
+    temp_filename = f"temp_{uuid_module.uuid4()}{file_ext}"
+    temp_path = temp_dir / temp_filename
+    
+    try:
+        async with aiofiles.open(temp_path, 'wb') as f:
+            content = await file.read()
+            await f.write(content)
+        
+        ocr_data = await process_document_ocr(str(temp_path), doc_type)
+        return ocr_data
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
+
+
+@router.post("/clients/{client_id}/clone")
+async def clone_client_vendor(
+    client_id: str, 
+    target_type: str = Query(..., description="Target type: 'client' or 'vendor'"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Clone a client as vendor or vendor as client (PE Level only)."""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can clone clients/vendors")
+    
+    if target_type not in ["client", "vendor"]:
+        raise HTTPException(status_code=400, detail="target_type must be 'client' or 'vendor'")
+    
+    source = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not source:
+        raise HTTPException(status_code=404, detail="Source client/vendor not found")
+    
+    is_currently_vendor = source.get("is_vendor", False)
+    if (target_type == "vendor" and is_currently_vendor) or (target_type == "client" and not is_currently_vendor):
+        raise HTTPException(status_code=400, detail=f"This is already a {target_type}")
+    
+    existing = await db.clients.find_one({
+        "pan_number": source["pan_number"],
+        "is_vendor": target_type == "vendor"
+    }, {"_id": 0})
+    
+    if existing:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"A {target_type} with PAN {source['pan_number']} already exists"
+        )
+    
+    new_id = str(uuid.uuid4())
+    otc_ucc = await generate_otc_ucc()
+    
+    cloned_doc = {
+        "id": new_id,
+        "otc_ucc": otc_ucc,
+        "name": source["name"],
+        "email": source.get("email"),
+        "phone": source.get("phone"),
+        "mobile": source.get("mobile"),
+        "pan_number": source["pan_number"],
+        "dp_id": source["dp_id"],
+        "dp_type": source.get("dp_type", "outside"),
+        "trading_ucc": source.get("trading_ucc"),
+        "address": source.get("address"),
+        "pin_code": source.get("pin_code"),
+        "bank_accounts": source.get("bank_accounts", []),
+        "is_vendor": target_type == "vendor",
+        "is_active": True,
+        "approval_status": "approved",
+        "documents": [],
+        "user_id": current_user["id"],
+        "created_by": current_user["id"],
+        "created_by_role": current_user.get("role", 1),
+        "mapped_employee_id": None,
+        "mapped_employee_name": None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.clients.insert_one(cloned_doc)
+    
+    source_type = "vendor" if is_currently_vendor else "client"
+    await create_audit_log(
+        action="CLIENT_CREATE",
+        entity_type=target_type,
+        entity_id=new_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 1),
+        entity_name=source["name"],
+        details={
+            "cloned_from": client_id,
+            "source_type": source_type,
+            "target_type": target_type,
+            "pan_number": source["pan_number"]
+        }
+    )
+    
+    return {
+        "message": f"Successfully cloned {source_type} '{source['name']}' as {target_type}",
+        "id": new_id,
+        "otc_ucc": otc_ucc
+    }
+
+
+@router.get("/clients/{client_id}/portfolio")
+async def get_client_portfolio(client_id: str, current_user: dict = Depends(get_current_user)):
+    """Get a client's portfolio showing all their holdings."""
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Get all completed bookings for this client
+    bookings = await db.bookings.find({
+        "client_id": client_id,
+        "stock_transferred": True,
+        "is_voided": {"$ne": True}
+    }, {"_id": 0}).to_list(10000)
+    
+    # Group by stock and calculate holdings
+    holdings = {}
+    for booking in bookings:
+        stock_id = booking.get("stock_id")
+        if stock_id not in holdings:
+            holdings[stock_id] = {
+                "stock_id": stock_id,
+                "stock_symbol": booking.get("stock_symbol", ""),
+                "stock_name": booking.get("stock_name", ""),
+                "quantity": 0,
+                "total_value": 0,
+                "avg_price": 0,
+                "bookings": []
+            }
+        
+        qty = booking.get("quantity", 0)
+        price = booking.get("selling_price", 0)
+        holdings[stock_id]["quantity"] += qty
+        holdings[stock_id]["total_value"] += qty * price
+        holdings[stock_id]["bookings"].append({
+            "booking_number": booking.get("booking_number"),
+            "quantity": qty,
+            "price": price,
+            "date": booking.get("created_at")
+        })
+    
+    # Calculate average price
+    for stock_id, holding in holdings.items():
+        if holding["quantity"] > 0:
+            holding["avg_price"] = holding["total_value"] / holding["quantity"]
+    
+    portfolio_list = list(holdings.values())
+    total_portfolio_value = sum(h["total_value"] for h in portfolio_list)
+    
+    return {
+        "client_id": client_id,
+        "client_name": client.get("name"),
+        "otc_ucc": client.get("otc_ucc"),
+        "holdings": portfolio_list,
+        "total_value": total_portfolio_value,
+        "total_stocks": len(portfolio_list)
+    }
+
