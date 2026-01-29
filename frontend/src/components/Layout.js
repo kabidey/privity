@@ -275,9 +275,14 @@ const Layout = ({ children }) => {
             <h1 className="text-2xl font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title">
               PRIVITY
             </h1>
-            <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full" data-testid="app-version">
+            <button
+              onClick={openChangelog}
+              className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full hover:bg-emerald-100 hover:text-emerald-600 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+              data-testid="app-version"
+              title="View changelog"
+            >
               {getVersion()}
-            </span>
+            </button>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">Private Equity System</p>
           
