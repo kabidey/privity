@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,12 @@ import {
   Percent, 
   UserCheck,
   Building2,
-  Search
+  Search,
+  Upload,
+  FileCheck,
+  FileX,
+  Eye,
+  X
 } from 'lucide-react';
 
 const BusinessPartners = () => {
