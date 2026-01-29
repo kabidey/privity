@@ -228,10 +228,12 @@ const DatabaseBackup = () => {
             <Plus className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Create </span>Backup
           </Button>
-          <Button variant="destructive" onClick={() => setClearDialogOpen(true)} className="flex-1 sm:flex-none" data-testid="clear-database-btn">
-            <XCircle className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Clear </span>DB
-          </Button>
+          {isPEDesk && (
+            <Button variant="destructive" onClick={() => setClearDialogOpen(true)} className="flex-1 sm:flex-none" data-testid="clear-database-btn">
+              <XCircle className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Clear </span>DB
+            </Button>
+          )}
         </div>
       </div>
 
