@@ -3,7 +3,7 @@ Notification service for real-time notifications
 """
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Any, Optional
 from fastapi import WebSocket
 
@@ -15,6 +15,7 @@ class ConnectionManager:
     
     def __init__(self):
         self.active_connections: Dict[str, List[WebSocket]] = {}
+        self.pe_online_users: Dict[str, dict] = {}  # Track PE users online status
     
     async def connect(self, websocket: WebSocket, user_id: str):
         await websocket.accept()
@@ -43,6 +44,66 @@ class ConnectionManager:
         users = await db.users.find({"role": {"$in": roles}}, {"id": 1}).to_list(1000)
         for user in users:
             await self.send_to_user(user["id"], message)
+    
+    async def broadcast_to_all(self, message: dict):
+        """Broadcast a message to all connected users"""
+        for user_id in list(self.active_connections.keys()):
+            await self.send_to_user(user_id, message)
+    
+    def update_pe_status(self, user_id: str, user_name: str, user_role: int, role_name: str):
+        """Update PE user online status and return if status changed"""
+        was_pe_online = self.is_pe_online()
+        
+        self.pe_online_users[user_id] = {
+            "last_seen": datetime.now(timezone.utc),
+            "name": user_name,
+            "role": user_role,
+            "role_name": role_name
+        }
+        
+        is_pe_online_now = self.is_pe_online()
+        return was_pe_online != is_pe_online_now
+    
+    def is_pe_online(self) -> bool:
+        """Check if any PE user is currently online (within 60 seconds)"""
+        now = datetime.now(timezone.utc)
+        stale_threshold = now - timedelta(seconds=60)
+        
+        # Clean up stale entries
+        stale_users = [uid for uid, data in self.pe_online_users.items() 
+                       if data["last_seen"] < stale_threshold]
+        for uid in stale_users:
+            del self.pe_online_users[uid]
+        
+        return len(self.pe_online_users) > 0
+    
+    def get_pe_status(self) -> dict:
+        """Get current PE online status"""
+        now = datetime.now(timezone.utc)
+        stale_threshold = now - timedelta(seconds=60)
+        
+        # Clean up stale entries
+        stale_users = [uid for uid, data in self.pe_online_users.items() 
+                       if data["last_seen"] < stale_threshold]
+        for uid in stale_users:
+            del self.pe_online_users[uid]
+        
+        online_pe_users = []
+        for uid, data in self.pe_online_users.items():
+            online_pe_users.append({
+                "name": data["name"],
+                "role_name": data["role_name"],
+                "last_seen": data["last_seen"].isoformat()
+            })
+        
+        is_pe_online = len(online_pe_users) > 0
+        
+        return {
+            "pe_online": is_pe_online,
+            "online_count": len(online_pe_users),
+            "online_users": online_pe_users[:3],  # Limit to 3 for privacy
+            "message": "PE Support Available" if is_pe_online else "PE Support Offline"
+        }
 
 
 # Global WebSocket manager instance
