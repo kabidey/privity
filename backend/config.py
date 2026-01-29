@@ -62,7 +62,7 @@ ROLE_PERMISSIONS = {
     5: ["view_own", "create_bookings", "view_clients", "create_clients"],
     6: ["view_own"],
     7: ["view_own", "create_bookings", "view_clients", "create_clients", "view_finance", "manage_finance"],  # Finance - Employee + full Finance access
-    8: ["view_own", "view_bp_dashboard", "view_bp_reports"]  # Business Partner - limited access to own data
+    8: ["view_own", "create_bookings", "view_clients", "create_clients", "view_bp_dashboard", "view_bp_reports"]  # Business Partner - can create bookings and clients, view own dashboard
 }
 
 
