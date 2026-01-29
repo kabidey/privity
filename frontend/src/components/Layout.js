@@ -202,6 +202,7 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: FileText, label: 'Contract Notes', path: '/contract-notes' });
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
     menuItems.push({ icon: MailCheck, label: 'Email Logs', path: '/email-logs' });
+    menuItems.push({ icon: Shield, label: 'Audit Trail', path: '/audit-trail' });
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
     menuItems.push({ icon: Database, label: 'DB Backup', path: '/database-backup' });
   }
