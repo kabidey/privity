@@ -380,7 +380,6 @@ const Stocks = () => {
                       )}
                     </>
                   )}
-                  )}
                   
                   <div className="space-y-2">
                     <Label>Record Date *</Label>
