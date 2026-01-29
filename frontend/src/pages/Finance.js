@@ -245,7 +245,7 @@ const Finance = () => {
   const vendorPayments = payments.filter(p => p.type === 'vendor');
   const pendingRefunds = refundRequests.filter(r => r.status === 'pending' || r.status === 'processing');
   const pendingRpPayments = rpPayments.filter(p => p.status === 'pending' || p.status === 'processing');
-  const pendingCommissions = employeeCommissions.filter(c => c.status === 'pending' || c.status === 'calculated');
+  const pendingBpPayments = bpPayments.filter(p => p.status === 'pending' || p.status === 'processing');
 
   const getRpPaymentStatusBadge = (status) => {
     const styles = {
