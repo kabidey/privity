@@ -37,6 +37,22 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 29, 2026)
 
+#### ✅ WebSocket Real-time PE Status Updates - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **Centralized PE tracking** in `notification_service.py`:
+  - `ws_manager.update_pe_status()` - Updates PE online status and detects changes
+  - `ws_manager.get_pe_status()` - Returns current PE availability
+  - `ws_manager.broadcast_to_all()` - Broadcasts messages to all connected users
+- **Real-time broadcasting**: When PE status changes (PE logs in/out), broadcasts `pe_status_change` event to all users via WebSocket
+- **Frontend integration**:
+  - `NotificationContext` handles `pe_status_change` WebSocket events
+  - `Layout` component subscribes to PE status updates via `onPeStatusChange` callback
+  - Shows toast notification when PE comes online/goes offline
+- **Fallback mechanism**: Polling every 30 seconds when WebSocket is disconnected
+- **Added `decode_token()` function** to `utils/auth.py` for WebSocket authentication
+- **Files modified**: `services/notification_service.py`, `routers/users.py`, `context/NotificationContext.js`, `components/Layout.js`, `utils/auth.py`
+- **Testing**: Verified via console logs - "PE Status changed via WebSocket" messages received
+
 #### ✅ PE Availability Indicator - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
 - **Real-time PE presence tracking**: Backend tracks PE Desk/Manager heartbeats in memory
