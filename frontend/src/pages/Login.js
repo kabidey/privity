@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
+import { TrendingUp, AlertCircle, Loader2, Building2, Mail, ArrowLeft } from 'lucide-react';
 import { getMsalConfig, getLoginRequest } from '../config/msalConfig';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,6 +20,9 @@ const Login = () => {
   const [msalInstance, setMsalInstance] = useState(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [loginType, setLoginType] = useState('employee'); // 'employee' or 'partner'
+  const [bpOtpSent, setBpOtpSent] = useState(false);
+  const [bpOtp, setBpOtp] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
