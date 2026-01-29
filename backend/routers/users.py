@@ -447,10 +447,7 @@ async def get_managers_list(role: Optional[int] = None, current_user: dict = Dep
 
 
 # ============== PE Online Status Tracking ==============
-# In-memory store for tracking online PE users (user_id -> last_heartbeat)
-_pe_online_users = {}
-
-from datetime import timedelta
+from services.notification_service import ws_manager
 
 @router.post("/heartbeat")
 async def user_heartbeat(current_user: dict = Depends(get_current_user)):
@@ -461,12 +458,20 @@ async def user_heartbeat(current_user: dict = Depends(get_current_user)):
     
     # Only track PE level users (role 1 = PE Desk, role 2 = PE Manager)
     if user_role in [1, 2]:
-        _pe_online_users[user_id] = {
-            "last_seen": datetime.now(timezone.utc),
-            "name": current_user.get("name", "Unknown"),
-            "role": user_role,
-            "role_name": ROLES.get(user_role, "Unknown")
-        }
+        status_changed = ws_manager.update_pe_status(
+            user_id=user_id,
+            user_name=current_user.get("name", "Unknown"),
+            user_role=user_role,
+            role_name=ROLES.get(user_role, "Unknown")
+        )
+        
+        # If PE status changed, broadcast to all connected users
+        if status_changed:
+            pe_status = ws_manager.get_pe_status()
+            await ws_manager.broadcast_to_all({
+                "event": "pe_status_change",
+                "data": pe_status
+            })
     
     return {"status": "ok"}
 
@@ -475,33 +480,5 @@ async def user_heartbeat(current_user: dict = Depends(get_current_user)):
 async def get_pe_online_status(current_user: dict = Depends(get_current_user)):
     """Check if any PE Desk or PE Manager is currently online.
     Returns green status if PE is available, red if not."""
-    
-    # Clean up stale entries (older than 60 seconds)
-    now = datetime.now(timezone.utc)
-    stale_threshold = now - timedelta(seconds=60)
-    
-    # Remove stale users
-    stale_users = [uid for uid, data in _pe_online_users.items() 
-                   if data["last_seen"] < stale_threshold]
-    for uid in stale_users:
-        del _pe_online_users[uid]
-    
-    # Check if any PE user is online
-    online_pe_users = []
-    for uid, data in _pe_online_users.items():
-        if data["last_seen"] >= stale_threshold:
-            online_pe_users.append({
-                "name": data["name"],
-                "role_name": data["role_name"],
-                "last_seen": data["last_seen"].isoformat()
-            })
-    
-    is_pe_online = len(online_pe_users) > 0
-    
-    return {
-        "pe_online": is_pe_online,
-        "online_count": len(online_pe_users),
-        "online_users": online_pe_users if len(online_pe_users) <= 3 else online_pe_users[:3],  # Limit to 3 for privacy
-        "message": "PE Support Available" if is_pe_online else "PE Support Offline"
-    }
+    return ws_manager.get_pe_status()
 
