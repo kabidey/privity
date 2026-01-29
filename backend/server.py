@@ -4286,10 +4286,11 @@ app.include_router(business_partners_router, prefix="/api")
 app.include_router(api_router)
 
 # Mount static files for uploads (images, documents, etc.)
+# Note: Mounted under /api/uploads because non-/api routes go to frontend in kubernetes
 from fastapi.staticfiles import StaticFiles
 UPLOADS_PATH = Path("/app/uploads")
 UPLOADS_PATH.mkdir(exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=str(UPLOADS_PATH)), name="uploads")
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_PATH)), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
