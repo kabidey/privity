@@ -38,6 +38,7 @@ import FinanceDashboard from './pages/FinanceDashboard';
 import MyDashboard from './pages/MyDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import Layout from './components/Layout';
+import SohiniAssistant from './components/SohiniAssistant';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
