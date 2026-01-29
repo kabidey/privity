@@ -34,6 +34,28 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 28, 2026)
 
+#### ✅ Contract Notes Generation - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- Created `/app/backend/services/contract_note_service.py` for PDF generation
+- Contract note PDF includes:
+  - Company/Seller details from Company Master (Name, CIN, GST, PAN, Bank Account)
+  - Buyer/Client details (Name, PAN, Address, Demat info)
+  - Transaction details (Stock, ISIN, Quantity, Rate, Amount)
+  - Financial summary with Stamp Duty calculation
+  - Bank details for payment
+  - Terms & Conditions and signatures section
+- Created `/app/backend/routers/contract_notes.py` with endpoints:
+  - `GET /contract-notes` - List with filters and pagination
+  - `GET /contract-notes/{id}` - Single note details
+  - `POST /contract-notes/generate/{booking_id}` - Generate after DP transfer
+  - `GET /contract-notes/download/{id}` - Download PDF
+  - `POST /contract-notes/preview/{booking_id}` - Preview without saving
+  - `POST /contract-notes/send-email/{id}` - Email to client
+  - `GET /contract-notes/by-booking/{booking_id}` - Check existence
+- Created `/app/frontend/src/pages/ContractNotes.js` with stats, filters, table
+- Contract Note number format: SMIFS/CN/YY-YY/XXXX
+- **Testing**: 19/19 backend tests passed (iteration_33)
+
 #### ✅ Company Master Settings - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
 - Created `/app/backend/routers/company_master.py` with PE Desk only access control
