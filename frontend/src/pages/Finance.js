@@ -1007,6 +1007,116 @@ const Finance = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* BP Payment Update Dialog */}
+      <Dialog open={bpPaymentDialogOpen} onOpenChange={setBpPaymentDialogOpen}>
+        <DialogContent className="max-w-lg" data-testid="bp-payment-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5 text-purple-600" />
+              Update BP Payment
+            </DialogTitle>
+            <DialogDescription>
+              {selectedBpPayment?.booking_number} - {selectedBpPayment?.bp_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedBpPayment && (
+            <div className="space-y-4">
+              {/* Payment Details */}
+              <Card>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment Amount:</span>
+                    <span className="font-bold text-purple-600">{formatCurrency(selectedBpPayment.payment_amount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Stock:</span>
+                    <span className="font-mono">{selectedBpPayment.stock_symbol}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Client:</span>
+                    <span>{selectedBpPayment.client_name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">BP Share:</span>
+                    <span>{selectedBpPayment.bp_share_percent}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Booking Profit:</span>
+                    <span>{formatCurrency(selectedBpPayment.profit)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* BP Details */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Business Partner Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-1">
+                  <p><strong>Name:</strong> {selectedBpPayment.bp_name}</p>
+                  {selectedBpPayment.bp_email && <p><strong>Email:</strong> {selectedBpPayment.bp_email}</p>}
+                  {selectedBpPayment.bp_pan && <p><strong>PAN:</strong> <span className="font-mono">{selectedBpPayment.bp_pan}</span></p>}
+                </CardContent>
+              </Card>
+
+              {/* Update Form */}
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label>Status</Label>
+                  <Select value={bpPaymentForm.status} onValueChange={(v) => setBpPaymentForm({ ...bpPaymentForm, status: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="processing">Processing</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Payment Date</Label>
+                  <Input
+                    type="date"
+                    value={bpPaymentForm.payment_date}
+                    onChange={(e) => setBpPaymentForm({ ...bpPaymentForm, payment_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Payment Reference Number</Label>
+                  <Input
+                    value={bpPaymentForm.payment_reference}
+                    onChange={(e) => setBpPaymentForm({ ...bpPaymentForm, payment_reference: e.target.value })}
+                    placeholder="e.g., UTR123456789"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Notes</Label>
+                  <Textarea
+                    value={bpPaymentForm.notes}
+                    onChange={(e) => setBpPaymentForm({ ...bpPaymentForm, notes: e.target.value })}
+                    placeholder="Add any notes about this payment..."
+                    rows={2}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBpPaymentDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateBpPayment} data-testid="save-bp-payment-btn">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Update Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
