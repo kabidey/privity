@@ -21,6 +21,7 @@ const EmailLogs = () => {
   const [total, setTotal] = useState(0);
   const [selectedLog, setSelectedLog] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [resending, setResending] = useState(null);
   
   // Filters
   const [filters, setFilters] = useState({
