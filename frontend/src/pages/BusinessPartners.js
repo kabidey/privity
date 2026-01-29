@@ -81,13 +81,20 @@ const BusinessPartners = () => {
 
   const fetchData = async () => {
     try {
+      // Partners Desk uses /users/employees, PE Level uses /users
+      const employeesEndpoint = isPartnersDesk ? '/users/employees' : '/users';
+      
       const [partnersRes, usersRes] = await Promise.all([
         api.get('/business-partners'),
-        api.get('/users')
+        api.get(employeesEndpoint)
       ]);
       setPartners(partnersRes.data);
-      // Filter to get only employees (roles 3-7)
-      setEmployees(usersRes.data.filter(u => u.role >= 3 && u.role <= 7));
+      // For PE Level, filter to get only employees (roles 3-7)
+      // For Partners Desk, the endpoint already returns filtered employees
+      const employeesList = isPartnersDesk 
+        ? usersRes.data 
+        : usersRes.data.filter(u => u.role >= 3 && u.role <= 7);
+      setEmployees(employeesList);
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
