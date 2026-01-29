@@ -22,6 +22,7 @@ import EmailTemplates from './pages/EmailTemplates';
 import EmailLogs from './pages/EmailLogs';
 import EmailServerConfig from './pages/EmailServerConfig';
 import DPTransferReport from './pages/DPTransferReport';
+import DPReceivables from './pages/DPReceivables';
 import DatabaseBackup from './pages/DatabaseBackup';
 import Finance from './pages/Finance';
 import ReferralPartners from './pages/ReferralPartners';
