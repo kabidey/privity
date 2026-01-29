@@ -3,11 +3,11 @@ Dashboard Router
 Handles dashboard stats and overview endpoints
 """
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends
 
 from database import db
-from config import is_pe_level
+from config import is_pe_level, ROLES
 from models import DashboardStats
 from utils.auth import get_current_user
 
@@ -97,5 +97,361 @@ async def get_dashboard_analytics(current_user: dict = Depends(get_current_user)
     return {
         "status_distribution": {item["_id"]: item["count"] for item in status_dist if item["_id"]},
         "approval_distribution": {item["_id"]: item["count"] for item in approval_dist if item["_id"]},
+        "recent_bookings": recent_bookings
+    }
+
+
+# ============== PE DASHBOARD ==============
+@router.get("/pe")
+async def get_pe_dashboard(current_user: dict = Depends(get_current_user)):
+    """Get PE Desk/Manager specific dashboard data"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        return {"error": "Access denied"}
+    
+    # Pending approvals
+    pending_bookings = await db.bookings.count_documents({"approval_status": "pending"})
+    pending_loss_approval = await db.bookings.count_documents({"approval_status": "pending_loss_approval"})
+    pending_clients = await db.clients.count_documents({"approval_status": "pending"})
+    pending_rp_approval = await db.referral_partners.count_documents({"approval_status": "pending"})
+    
+    # Today's activity
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today_bookings = await db.bookings.count_documents({"created_at": {"$regex": f"^{today}"}})
+    today_logins = await db.audit_logs.count_documents({
+        "action": "USER_LOGIN",
+        "timestamp": {"$regex": f"^{today}"}
+    })
+    
+    # User stats
+    total_users = await db.users.count_documents({"is_active": True})
+    online_users = await db.users.count_documents({
+        "last_activity": {"$gte": (datetime.now(timezone.utc) - timedelta(minutes=15)).isoformat()}
+    })
+    
+    # Recent pending items
+    recent_pending_bookings = await db.bookings.find(
+        {"approval_status": {"$in": ["pending", "pending_loss_approval"]}},
+        {"_id": 0, "id": 1, "booking_number": 1, "client_name": 1, "stock_symbol": 1, "approval_status": 1, "created_at": 1}
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    recent_pending_clients = await db.clients.find(
+        {"approval_status": "pending"},
+        {"_id": 0, "id": 1, "name": 1, "pan_number": 1, "created_at": 1}
+    ).sort("created_at", -1).limit(5).to_list(5)
+    
+    # System health
+    total_bookings_value = 0
+    bookings = await db.bookings.find(
+        {"status": {"$ne": "cancelled"}, "is_voided": {"$ne": True}},
+        {"_id": 0, "quantity": 1, "buying_price": 1}
+    ).to_list(10000)
+    for b in bookings:
+        total_bookings_value += b.get("quantity", 0) * b.get("buying_price", 0)
+    
+    return {
+        "pending_actions": {
+            "bookings": pending_bookings,
+            "loss_approvals": pending_loss_approval,
+            "clients": pending_clients,
+            "rp_approvals": pending_rp_approval,
+            "total": pending_bookings + pending_loss_approval + pending_clients + pending_rp_approval
+        },
+        "today_activity": {
+            "bookings_created": today_bookings,
+            "user_logins": today_logins
+        },
+        "user_stats": {
+            "total_users": total_users,
+            "online_users": online_users
+        },
+        "recent_pending_bookings": recent_pending_bookings,
+        "recent_pending_clients": recent_pending_clients,
+        "total_bookings_value": total_bookings_value
+    }
+
+
+# ============== FINANCE DASHBOARD ==============
+@router.get("/finance")
+async def get_finance_dashboard(current_user: dict = Depends(get_current_user)):
+    """Get Finance specific dashboard data"""
+    user_role = current_user.get("role", 6)
+    
+    # Finance role (7), PE Desk (1), PE Manager (2)
+    if user_role not in [1, 2, 7]:
+        return {"error": "Access denied"}
+    
+    # Payment stats from bookings
+    bookings = await db.bookings.find(
+        {"status": {"$ne": "cancelled"}, "is_voided": {"$ne": True}},
+        {"_id": 0, "id": 1, "booking_number": 1, "client_name": 1, "quantity": 1, 
+         "buying_price": 1, "payments": 1, "payment_status": 1, "stock_symbol": 1}
+    ).to_list(10000)
+    
+    total_receivable = 0
+    total_received = 0
+    pending_collections = []
+    recent_payments = []
+    
+    for booking in bookings:
+        booking_value = booking.get("quantity", 0) * booking.get("buying_price", 0)
+        payments = booking.get("payments", [])
+        paid_amount = sum(p.get("amount", 0) for p in payments)
+        
+        total_receivable += booking_value
+        total_received += paid_amount
+        
+        if paid_amount < booking_value:
+            pending_collections.append({
+                "booking_number": booking.get("booking_number"),
+                "client_name": booking.get("client_name"),
+                "stock_symbol": booking.get("stock_symbol"),
+                "total_amount": booking_value,
+                "paid_amount": paid_amount,
+                "pending_amount": booking_value - paid_amount
+            })
+        
+        for payment in payments:
+            recent_payments.append({
+                "booking_number": booking.get("booking_number"),
+                "client_name": booking.get("client_name"),
+                "amount": payment.get("amount", 0),
+                "payment_date": payment.get("payment_date"),
+                "notes": payment.get("notes", "")
+            })
+    
+    # Sort recent payments by date
+    recent_payments.sort(key=lambda x: x.get("payment_date", ""), reverse=True)
+    
+    # Sort pending by amount (highest first)
+    pending_collections.sort(key=lambda x: x.get("pending_amount", 0), reverse=True)
+    
+    # Vendor payments from purchases
+    purchases = await db.purchases.find(
+        {},
+        {"_id": 0, "id": 1, "quantity": 1, "price_per_share": 1, "payments": 1}
+    ).to_list(10000)
+    
+    total_payable = 0
+    total_paid = 0
+    
+    for purchase in purchases:
+        purchase_value = purchase.get("quantity", 0) * purchase.get("price_per_share", 0)
+        payments = purchase.get("payments", [])
+        paid_amount = sum(p.get("amount", 0) for p in payments)
+        
+        total_payable += purchase_value
+        total_paid += paid_amount
+    
+    # Refund requests
+    pending_refunds = await db.bookings.count_documents({
+        "refund_request": {"$exists": True},
+        "refund_request.status": "pending"
+    })
+    
+    return {
+        "receivables": {
+            "total": total_receivable,
+            "received": total_received,
+            "pending": total_receivable - total_received,
+            "collection_rate": round((total_received / total_receivable * 100) if total_receivable > 0 else 0, 2)
+        },
+        "payables": {
+            "total": total_payable,
+            "paid": total_paid,
+            "pending": total_payable - total_paid
+        },
+        "pending_refunds": pending_refunds,
+        "pending_collections": pending_collections[:10],
+        "recent_payments": recent_payments[:10]
+    }
+
+
+# ============== EMPLOYEE DASHBOARD ==============
+@router.get("/employee")
+async def get_employee_dashboard(current_user: dict = Depends(get_current_user)):
+    """Get Employee specific dashboard data"""
+    user_id = current_user.get("id")
+    user_name = current_user.get("name")
+    user_role = current_user.get("role", 6)
+    
+    # My clients (mapped to me)
+    my_clients = await db.clients.find(
+        {"mapped_employee_id": user_id, "is_active": True, "is_vendor": False},
+        {"_id": 0, "id": 1, "name": 1, "pan_number": 1, "approval_status": 1}
+    ).to_list(1000)
+    
+    my_client_ids = [c["id"] for c in my_clients]
+    
+    # My bookings (created by me or for my clients)
+    my_bookings_query = {
+        "$or": [
+            {"created_by": user_id},
+            {"client_id": {"$in": my_client_ids}}
+        ],
+        "status": {"$ne": "cancelled"},
+        "is_voided": {"$ne": True}
+    }
+    
+    my_bookings = await db.bookings.find(
+        my_bookings_query,
+        {"_id": 0, "id": 1, "booking_number": 1, "client_name": 1, "stock_symbol": 1, 
+         "quantity": 1, "buying_price": 1, "selling_price": 1, "status": 1, 
+         "approval_status": 1, "created_at": 1}
+    ).to_list(10000)
+    
+    # Calculate metrics
+    total_bookings = len(my_bookings)
+    open_bookings = len([b for b in my_bookings if b.get("status") == "open"])
+    closed_bookings = len([b for b in my_bookings if b.get("status") == "closed"])
+    pending_approval = len([b for b in my_bookings if b.get("approval_status") in ["pending", "pending_loss_approval"]])
+    
+    total_revenue = 0
+    total_profit = 0
+    for b in my_bookings:
+        qty = b.get("quantity", 0)
+        buying = b.get("buying_price", 0)
+        selling = b.get("selling_price", 0) or buying
+        total_revenue += qty * selling
+        total_profit += qty * (selling - buying)
+    
+    # My RPs (mapped to me)
+    my_rps = await db.referral_partners.find(
+        {"mapped_employee_id": user_id, "is_active": True},
+        {"_id": 0, "id": 1, "name": 1, "code": 1, "approval_status": 1}
+    ).to_list(100)
+    
+    # Recent bookings
+    recent_bookings = sorted(my_bookings, key=lambda x: x.get("created_at", ""), reverse=True)[:10]
+    
+    # This month's performance
+    this_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    this_month_bookings = [b for b in my_bookings if b.get("created_at", "").startswith(this_month)]
+    
+    return {
+        "overview": {
+            "total_clients": len(my_clients),
+            "total_rps": len(my_rps),
+            "total_bookings": total_bookings,
+            "open_bookings": open_bookings,
+            "closed_bookings": closed_bookings,
+            "pending_approval": pending_approval
+        },
+        "performance": {
+            "total_revenue": total_revenue,
+            "total_profit": total_profit,
+            "this_month_bookings": len(this_month_bookings)
+        },
+        "my_clients": my_clients[:10],
+        "my_rps": my_rps[:5],
+        "recent_bookings": recent_bookings
+    }
+
+
+# ============== CLIENT DASHBOARD ==============
+@router.get("/client")
+async def get_client_dashboard(current_user: dict = Depends(get_current_user)):
+    """Get Client specific dashboard data"""
+    user_role = current_user.get("role", 6)
+    user_email = current_user.get("email")
+    
+    if user_role != 6:
+        return {"error": "This dashboard is for clients only"}
+    
+    # Find the client record linked to this user
+    client = await db.clients.find_one(
+        {"primary_email": user_email, "is_active": True, "is_vendor": False},
+        {"_id": 0}
+    )
+    
+    if not client:
+        return {"error": "No client profile found"}
+    
+    client_id = client.get("id")
+    
+    # Get client's bookings
+    bookings = await db.bookings.find(
+        {"client_id": client_id, "status": {"$ne": "cancelled"}, "is_voided": {"$ne": True}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Calculate portfolio
+    portfolio = {}
+    total_invested = 0
+    total_current_value = 0
+    
+    for booking in bookings:
+        stock_id = booking.get("stock_id")
+        stock_symbol = booking.get("stock_symbol", "Unknown")
+        qty = booking.get("quantity", 0)
+        buying_price = booking.get("buying_price", 0)
+        selling_price = booking.get("selling_price", 0) or buying_price
+        status = booking.get("status")
+        
+        if stock_id not in portfolio:
+            portfolio[stock_id] = {
+                "stock_symbol": stock_symbol,
+                "stock_name": booking.get("stock_name", ""),
+                "total_quantity": 0,
+                "avg_price": 0,
+                "total_invested": 0,
+                "current_value": 0,
+                "bookings_count": 0
+            }
+        
+        portfolio[stock_id]["total_quantity"] += qty
+        portfolio[stock_id]["total_invested"] += qty * buying_price
+        portfolio[stock_id]["current_value"] += qty * selling_price
+        portfolio[stock_id]["bookings_count"] += 1
+        
+        total_invested += qty * buying_price
+        total_current_value += qty * selling_price
+    
+    # Calculate average price per stock
+    for stock_id in portfolio:
+        if portfolio[stock_id]["total_quantity"] > 0:
+            portfolio[stock_id]["avg_price"] = portfolio[stock_id]["total_invested"] / portfolio[stock_id]["total_quantity"]
+    
+    # Booking summary
+    open_bookings = len([b for b in bookings if b.get("status") == "open"])
+    closed_bookings = len([b for b in bookings if b.get("status") == "closed"])
+    awaiting_confirmation = len([b for b in bookings if b.get("approval_status") == "approved" and not b.get("client_confirmed")])
+    
+    # Payment summary
+    total_payments = 0
+    for booking in bookings:
+        payments = booking.get("payments", [])
+        total_payments += sum(p.get("amount", 0) for p in payments)
+    
+    # Recent bookings
+    recent_bookings = sorted(bookings, key=lambda x: x.get("created_at", ""), reverse=True)[:10]
+    for b in recent_bookings:
+        b.pop("payments", None)  # Remove payment details for security
+    
+    return {
+        "client_info": {
+            "name": client.get("name"),
+            "otc_ucc": client.get("otc_ucc"),
+            "pan_number": client.get("pan_number"),
+            "approval_status": client.get("approval_status")
+        },
+        "portfolio_summary": {
+            "total_invested": total_invested,
+            "current_value": total_current_value,
+            "profit_loss": total_current_value - total_invested,
+            "stocks_count": len(portfolio)
+        },
+        "booking_summary": {
+            "total": len(bookings),
+            "open": open_bookings,
+            "closed": closed_bookings,
+            "awaiting_confirmation": awaiting_confirmation
+        },
+        "payment_summary": {
+            "total_paid": total_payments,
+            "pending": total_invested - total_payments
+        },
+        "portfolio": list(portfolio.values()),
         "recent_bookings": recent_bookings
     }
