@@ -107,8 +107,29 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
   const [hasNewNotification, setHasNewNotification] = useState(false);
+  const [floatingNotifications, setFloatingNotifications] = useState([]); // For floating display
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
+  const [latestNotification, setLatestNotification] = useState(null);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+
+  // Add floating notification
+  const addFloatingNotification = useCallback((notification) => {
+    const floatingId = `${notification.id}-${Date.now()}`;
+    const floatingNotif = { ...notification, floatingId };
+    
+    setFloatingNotifications(prev => [...prev, floatingNotif]);
+    
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+      setFloatingNotifications(prev => prev.filter(n => n.floatingId !== floatingId));
+    }, 8000);
+  }, []);
+
+  // Dismiss floating notification
+  const dismissFloatingNotification = useCallback((floatingId) => {
+    setFloatingNotifications(prev => prev.filter(n => n.floatingId !== floatingId));
+  }, []);
 
   const fetchNotifications = useCallback(async () => {
     try {
