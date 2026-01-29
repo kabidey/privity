@@ -614,7 +614,7 @@ async def approve_booking(
                     cc_email=creator.get("email") if creator else None
                 )
             else:
-                frontend_url = os.environ.get('FRONTEND_URL', 'https://privity-share-1.preview.emergentagent.com')
+                frontend_url = os.environ.get('FRONTEND_URL', 'https://privity-backup.preview.emergentagent.com')
                 email_body = f"""
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #10b981;">Booking Approved - Please Confirm ✓</h2>
@@ -955,7 +955,7 @@ async def approve_loss_booking(
     
     if approve and booking.get("approval_status") == "approved":
         if client and client.get("email"):
-            frontend_url = os.environ.get('FRONTEND_URL', 'https://privity-share-1.preview.emergentagent.com')
+            frontend_url = os.environ.get('FRONTEND_URL', 'https://privity-backup.preview.emergentagent.com')
             email_body = f"""
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #10b981;">Booking Fully Approved - Please Confirm ✓</h2>
