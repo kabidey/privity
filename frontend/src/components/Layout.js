@@ -479,6 +479,9 @@ const Layout = ({ children }) => {
             <h1 className="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title-mobile">
               PRIVITY
             </h1>
+            <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full" data-testid="app-version-mobile">
+              {getVersion()}
+            </span>
             {/* PE Availability Indicator for Mobile */}
             <div 
               className={`w-2.5 h-2.5 rounded-full ${
