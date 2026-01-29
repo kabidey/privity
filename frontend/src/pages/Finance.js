@@ -266,15 +266,15 @@ const Finance = () => {
     );
   };
 
-  const getCommissionStatusBadge = (status) => {
+  const getBpPaymentStatusBadge = (status) => {
     const styles = {
-      pending: 'bg-gray-100 text-gray-800',
-      calculated: 'bg-blue-100 text-blue-800',
+      pending: 'bg-purple-100 text-purple-800',
+      processing: 'bg-blue-100 text-blue-800',
       paid: 'bg-green-100 text-green-800'
     };
     const icons = {
       pending: <Clock className="h-3 w-3 mr-1" />,
-      calculated: <DollarSign className="h-3 w-3 mr-1" />,
+      processing: <RefreshCw className="h-3 w-3 mr-1 animate-spin" />,
       paid: <CheckCircle className="h-3 w-3 mr-1" />
     };
     return (
@@ -283,16 +283,6 @@ const Finance = () => {
         {status?.toUpperCase()}
       </Badge>
     );
-  };
-
-  const handleMarkCommissionPaid = async (bookingId) => {
-    try {
-      await api.put(`/finance/employee-commissions/${bookingId}/mark-paid`);
-      toast.success('Commission marked as paid');
-      fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to mark commission as paid');
-    }
   };
 
   if (!hasFinanceAccess) {
