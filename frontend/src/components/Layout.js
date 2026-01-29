@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,8 @@ import {
   Plus,
   Wallet,
   UserPlus,
-  Key
+  Key,
+  ChevronRight
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
@@ -56,6 +57,23 @@ const Layout = ({ children }) => {
   });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const { theme, toggleTheme } = useTheme();
+
+  // Close sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  // Prevent body scroll when sidebar is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [sidebarOpen]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -89,40 +107,31 @@ const Layout = ({ children }) => {
     }
   };
 
-  // Base menu items visible to all
+  // Build menu items based on user role
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Clients', path: '/clients' },
+    { icon: Building2, label: 'Vendors', path: '/vendors' },
+    { icon: Package, label: 'Stocks', path: '/stocks' },
+    { icon: ShoppingCart, label: 'Purchases', path: '/purchases' },
+    { icon: Boxes, label: 'Inventory', path: '/inventory' },
+    { icon: FileText, label: 'Bookings', path: '/bookings' },
+    { icon: BarChart3, label: 'Reports', path: '/reports' },
   ];
 
-  // PE Level (role 1 & 2): Vendors, Stocks, Purchases
-  if (user.role === 1 || user.role === 2) {
-    menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
-    menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
-    menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
+  // Add finance for Finance role or PE level
+  if (user.role === 7 || user.role === 1 || user.role === 2) {
+    menuItems.push({ icon: Banknote, label: 'Finance', path: '/finance' });
   }
 
-  // Common modules for all roles
-  menuItems.push({ icon: Boxes, label: 'Inventory', path: '/inventory' });
-  menuItems.push({ icon: FileText, label: 'Bookings', path: '/bookings' });
-  menuItems.push({ icon: BarChart3, label: 'Reports', path: '/reports' });
-  
-  // Referral Partners - visible to all (employees can create, PE Level can edit)
-  menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
-
-  // Add user management for PE Level (1 and 2)
+  // Add user management for PE level
   if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
   }
 
-  // Add DP Transfer Report for PE Level (roles 1 and 2)
-  if (user.role === 1 || user.role === 2) {
-    menuItems.push({ icon: Banknote, label: 'DP Transfer', path: '/dp-transfer' });
-  }
-
-  // Add Finance for PE Level (roles 1 and 2) and Finance role (role 7)
-  if (user.role === 1 || user.role === 2 || user.role === 7) {
-    menuItems.push({ icon: Wallet, label: 'Finance', path: '/finance' });
+  // Add Referral Partners for PE level and Employees
+  if (user.role === 1 || user.role === 2 || user.role === 4) {
+    menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
   }
 
   // Add Analytics and Email Templates for PE Level (roles 1 and 2)
@@ -141,15 +150,20 @@ const Layout = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex lg:flex-col w-64 bg-card border-r border-border fixed h-full">
-        <div className="p-6 border-b border-border">
-          <h1 className="text-2xl font-bold" data-testid="app-title">PRIVITY</h1>
-          <p className="text-xs text-muted-foreground mt-1">Private Equity System</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* iOS-style Desktop Sidebar */}
+      <aside className="hidden lg:flex lg:flex-col w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 fixed h-full z-40">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200/50 dark:border-gray-800/50">
+          <h1 className="text-2xl font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title">
+            PRIVITY
+          </h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">Private Equity System</p>
         </div>
-        <nav className="flex-1 p-4 overflow-y-auto" data-testid="sidebar-nav">
-          <div className="space-y-1">
+        
+        {/* Navigation */}
+        <nav className="flex-1 p-3 overflow-y-auto" data-testid="sidebar-nav">
+          <div className="space-y-0.5">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
@@ -159,79 +173,75 @@ const Layout = ({ children }) => {
                   key={item.path}
                   data-testid={`nav-${item.label.toLowerCase()}`}
                   onClick={() => navigate(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors duration-200 ${
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted text-foreground'
+                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 active:scale-[0.98]'
                   }`}
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.5} />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium text-sm">{item.label}</span>
                 </button>
               );
             })}
           </div>
         </nav>
-        <div className="p-4 border-t border-border">
+        
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-200/50 dark:border-gray-800/50 space-y-2">
           {/* Notifications */}
-          <div className="flex items-center justify-between mb-3 px-2">
-            <span className="text-sm text-muted-foreground">Notifications</span>
+          <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+            <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Notifications</span>
             <NotificationBell />
           </div>
           
           {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={toggleTheme}
-            className="w-full justify-start mb-3"
+            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             data-testid="theme-toggle"
           >
-            {theme === 'light' ? (
-              <>
-                <Moon className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                Dark Mode
-              </>
-            ) : (
-              <>
-                <Sun className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                Light Mode
-              </>
-            )}
-          </Button>
+            <span className="flex items-center gap-3">
+              {theme === 'light' ? (
+                <Moon className="h-5 w-5" strokeWidth={1.5} />
+              ) : (
+                <Sun className="h-5 w-5" strokeWidth={1.5} />
+              )}
+              <span className="text-sm font-medium">{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+            </span>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </button>
           
-          <div className="mb-3 px-4">
-            <div className="text-sm font-medium" data-testid="user-name">{user.name}</div>
-            <div className="text-xs text-muted-foreground" data-testid="user-role">{user.role_name}</div>
+          {/* User Info */}
+          <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl">
+            <div className="text-sm font-semibold text-gray-900 dark:text-white" data-testid="user-name">{user.name}</div>
+            <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium" data-testid="user-role">{user.role_name}</div>
           </div>
           
-          {/* Change Password Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start mb-2"
+          {/* Action Buttons */}
+          <button
             onClick={() => setShowChangePassword(true)}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
             data-testid="change-password-button"
           >
-            <Key className="mr-2 h-4 w-4" strokeWidth={1.5} />
-            Change Password
-          </Button>
+            <Key className="h-5 w-5" strokeWidth={1.5} />
+            <span className="text-sm font-medium">Change Password</span>
+          </button>
           
-          <Button
-            variant="outline"
-            className="w-full justify-start"
+          <button
             onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             data-testid="logout-button"
           >
-            <LogOut className="mr-2 h-4 w-4" strokeWidth={1.5} />
-            Logout
-          </Button>
+            <LogOut className="h-5 w-5" strokeWidth={1.5} />
+            <span className="text-sm font-medium">Logout</span>
+          </button>
         </div>
       </aside>
 
       {/* Change Password Dialog */}
       <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
             <DialogDescription>
@@ -247,6 +257,7 @@ const Layout = ({ children }) => {
                 value={passwordData.current_password}
                 onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
                 placeholder="Enter current password"
+                className="rounded-xl"
               />
             </div>
             <div className="space-y-2">
@@ -257,6 +268,7 @@ const Layout = ({ children }) => {
                 value={passwordData.new_password}
                 onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
                 placeholder="Min 8 characters"
+                className="rounded-xl"
               />
             </div>
             <div className="space-y-2">
@@ -267,127 +279,168 @@ const Layout = ({ children }) => {
                 value={passwordData.confirm_password}
                 onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
                 placeholder="Confirm new password"
+                className="rounded-xl"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowChangePassword(false)}>
+            <Button variant="outline" onClick={() => setShowChangePassword(false)} className="rounded-xl">
               Cancel
             </Button>
-            <Button onClick={handleChangePassword} disabled={changingPassword}>
+            <Button onClick={handleChangePassword} disabled={changingPassword} className="rounded-xl bg-emerald-500 hover:bg-emerald-600">
               {changingPassword ? 'Changing...' : 'Change Password'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4">
-        <h1 className="text-xl font-bold" data-testid="app-title-mobile">PRIVITY</h1>
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            data-testid="mobile-theme-toggle"
-          >
-            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-          </Button>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            data-testid="mobile-menu-button"
-            className="p-2 hover:bg-muted rounded-md"
-          >
-            {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+      {/* iOS-style Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50">
+        <div className="h-14 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between px-4 safe-area-inset-top">
+          <h1 className="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title-mobile">
+            PRIVITY
+          </h1>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <button
+              onClick={toggleTheme}
+              className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              data-testid="mobile-theme-toggle"
+            >
+              {theme === 'light' ? <Moon className="h-5 w-5 text-gray-600" /> : <Sun className="h-5 w-5 text-gray-300" />}
+            </button>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              data-testid="mobile-menu-button"
+              className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <Menu className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-30 bg-background/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)}>
-          <aside
-            className="fixed left-0 top-16 bottom-0 w-64 bg-card border-r border-border"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <nav className="p-4" data-testid="mobile-sidebar-nav">
-              <div className="space-y-1">
-                {menuItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path ||
-                    (item.path !== '/' && location.pathname.startsWith(item.path));
-                  return (
-                    <button
-                      key={item.path}
-                      data-testid={`mobile-nav-${item.label.toLowerCase()}`}
-                      onClick={() => {
-                        navigate(item.path);
-                        setSidebarOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors duration-200 ${
-                        isActive
-                          ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-muted text-foreground'
-                      }`}
-                    >
+      {/* iOS-style Mobile Sidebar Overlay */}
+      <div 
+        className={`lg:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
+          sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+        
+        {/* Slide-over Panel */}
+        <aside
+          className={`absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-out ${
+            sidebarOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Panel Header */}
+          <div className="h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 safe-area-inset-top">
+            <span className="font-semibold text-gray-900 dark:text-white">Menu</span>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              data-testid="close-menu-button"
+            >
+              <X className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
+          
+          {/* User Card */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold text-lg">
+                {user.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900 dark:text-white">{user.name}</div>
+                <div className="text-sm text-emerald-600 dark:text-emerald-400">{user.role_name}</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Navigation */}
+          <nav className="flex-1 p-3 overflow-y-auto max-h-[calc(100vh-220px)]" data-testid="mobile-sidebar-nav">
+            <div className="space-y-0.5">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path ||
+                  (item.path !== '/' && location.pathname.startsWith(item.path));
+                return (
+                  <button
+                    key={item.path}
+                    data-testid={`mobile-nav-${item.label.toLowerCase()}`}
+                    onClick={() => {
+                      navigate(item.path);
+                      setSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 active:scale-[0.98] ${
+                      isActive
+                        ? 'bg-emerald-500 text-white'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="flex items-center gap-3">
                       <Icon className="h-5 w-5" strokeWidth={1.5} />
                       <span className="font-medium">{item.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
-            <div className="p-4 border-t border-border absolute bottom-0 left-0 right-0">
-              <div className="mb-3 px-4">
-                <div className="text-sm font-medium">{user.name}</div>
-                <div className="text-xs text-muted-foreground">{user.role_name}</div>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
+                    </span>
+                    <ChevronRight className={`h-4 w-4 ${isActive ? 'text-white/70' : 'text-gray-400'}`} />
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+          
+          {/* Footer Actions */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 safe-area-inset-bottom">
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setShowChangePassword(true);
+                  setSidebarOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <Key className="h-5 w-5" strokeWidth={1.5} />
+                <span className="font-medium">Change Password</span>
+              </button>
+              <button
                 onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 data-testid="mobile-logout-button"
               >
-                <LogOut className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                Logout
-              </Button>
+                <LogOut className="h-5 w-5" strokeWidth={1.5} />
+                <span className="font-medium">Logout</span>
+              </button>
             </div>
-          </aside>
-        </div>
-      )}
+          </div>
+        </aside>
+      </div>
 
-      {/* Mobile Floating Action Buttons */}
-      <div className="lg:hidden fixed bottom-20 right-4 flex flex-col gap-3 z-50">
-        <button
-          onClick={() => navigate('/inventory')}
-          className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg transition-all duration-200 ${
-            location.pathname === '/inventory'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-card border border-border text-foreground hover:bg-muted'
-          }`}
-          data-testid="fab-inventory"
-        >
-          <Boxes className="h-5 w-5" />
-          <span className="text-sm font-medium">Inventory</span>
-        </button>
+      {/* iOS-style Floating Action Button */}
+      <div className="lg:hidden fixed bottom-6 right-4 z-40 safe-area-inset-bottom">
         <button
           onClick={() => navigate('/bookings?openForm=true')}
-          className={`flex items-center gap-2 px-4 py-3 rounded-full shadow-lg transition-all duration-200 ${
-            location.pathname === '/bookings'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-green-600 text-white hover:bg-green-700'
-          }`}
+          className="flex items-center gap-2 px-5 py-3.5 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 active:scale-95 transition-all duration-200"
           data-testid="fab-bookings"
         >
-          <Plus className="h-5 w-5" />
-          <span className="text-sm font-medium">Book</span>
+          <Plus className="h-5 w-5" strokeWidth={2} />
+          <span className="font-semibold">New Booking</span>
         </button>
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
-        <div className="min-h-screen bg-background pb-24 lg:pb-0">{children}</div>
+      <main className="lg:ml-72 min-h-screen">
+        <div className="pt-14 lg:pt-0 pb-24 lg:pb-6 px-4 lg:px-6">
+          <div className="max-w-7xl mx-auto py-4 lg:py-6">
+            {children}
+          </div>
+        </div>
       </main>
     </div>
   );
