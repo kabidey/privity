@@ -24,6 +24,7 @@ import DatabaseBackup from './pages/DatabaseBackup';
 import Finance from './pages/Finance';
 import ReferralPartners from './pages/ReferralPartners';
 import CompanyMaster from './pages/CompanyMaster';
+import ContractNotes from './pages/ContractNotes';
 import Layout from './components/Layout';
 import './App.css';
 
