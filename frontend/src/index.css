@@ -493,25 +493,10 @@ code {
     }
 }
 
-/* iOS Dialog/Modal Styles */
-[role="dialog"] {
-    @apply rounded-2xl;
-}
-
-/* iOS Sheet (Bottom Modal) */
-@media (max-width: 640px) {
+/* iOS Dialog/Modal Styles - Desktop */
+@media (min-width: 641px) {
     [role="dialog"] {
-        @apply rounded-t-2xl rounded-b-none fixed bottom-0 left-0 right-0 max-h-[90vh];
-        animation: slideUp 0.3s ease-out;
-    }
-    
-    @keyframes slideUp {
-        from {
-            transform: translateY(100%);
-        }
-        to {
-            transform: translateY(0);
-        }
+        @apply rounded-2xl;
     }
 }
 
