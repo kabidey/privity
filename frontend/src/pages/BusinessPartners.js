@@ -158,7 +158,7 @@ const BusinessPartners = () => {
       p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (p.pan_number && p.pan_number.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesEmployee = !filterEmployee || p.linked_employee_id === filterEmployee;
+    const matchesEmployee = !filterEmployee || filterEmployee === 'all' || p.linked_employee_id === filterEmployee;
     
     return matchesSearch && matchesEmployee;
   });
