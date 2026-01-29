@@ -132,11 +132,12 @@ async def send_bp_otp_email(email: str, otp: str, bp_name: str):
     </div>
     """
     
-    await send_templated_email(
+    await send_email(
         to_email=email,
         subject="Your Privity Login OTP",
-        html_content=html_content,
-        template_key="bp_login_otp"
+        body=html_content,
+        template_key="bp_login_otp",
+        related_entity_type="business_partner"
     )
 
 
