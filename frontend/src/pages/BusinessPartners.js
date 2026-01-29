@@ -54,6 +54,9 @@ const BusinessPartners = () => {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
   const isPEDesk = currentUser.role === 1;
+  const isPartnersDesk = currentUser.role === 9;
+  const canAccessBP = isPELevel || isPartnersDesk;
+  const canDeleteBP = isPEDesk; // Only PE Desk can delete
 
   const [formData, setFormData] = useState({
     name: '',
@@ -69,7 +72,7 @@ const BusinessPartners = () => {
   });
 
   useEffect(() => {
-    if (!isPELevel) {
+    if (!canAccessBP) {
       navigate('/');
       return;
     }
