@@ -89,12 +89,27 @@ code {
     body {
         @apply bg-background text-foreground;
     }
+    
+    /* iOS-style Typography */
     h1, h2, h3 {
-        font-family: 'Cormorant Garamond', serif;
+        font-weight: 600;
         letter-spacing: -0.02em;
     }
+    
+    h1 {
+        @apply text-2xl sm:text-3xl;
+    }
+    
+    h2 {
+        @apply text-lg sm:text-xl;
+    }
+    
+    h3 {
+        @apply text-base sm:text-lg;
+    }
+    
     .mono {
-        font-family: 'JetBrains Mono', monospace;
+        font-family: 'SF Mono', 'Fira Code', monospace;
         font-feature-settings: 'tnum';
     }
 }
