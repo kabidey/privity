@@ -385,9 +385,24 @@ const Layout = ({ children }) => {
       {/* iOS-style Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50">
         <div className="h-14 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-4 safe-area-inset-top">
-          <h1 className="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title-mobile">
-            PRIVITY
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title-mobile">
+              PRIVITY
+            </h1>
+            {/* Status Indicator for Mobile */}
+            <div 
+              className={`w-2.5 h-2.5 rounded-full ${
+                isPELevel 
+                  ? 'bg-green-500' 
+                  : 'bg-red-500'
+              }`}
+              style={{
+                boxShadow: isPELevel 
+                  ? '0 0 6px #22c55e, 0 0 12px #22c55e' 
+                  : '0 0 6px #ef4444, 0 0 12px #ef4444'
+              }}
+            />
+          </div>
           <div className="flex items-center gap-1">
             <NotificationBell />
             <button
