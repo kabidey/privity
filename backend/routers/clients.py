@@ -3,7 +3,8 @@ Clients Router
 
 Handles all client and vendor management operations.
 """
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query
+from fastapi.responses import FileResponse
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
