@@ -651,10 +651,10 @@ async def send_payment_request_email(
         logging.warning(f"Cannot send payment request - no email for client {client.get('id')}")
         return
     
-    # Calculate payment details
+    # Calculate payment details - use selling_price for client payment
     quantity = booking.get("quantity", 0)
-    buying_price = booking.get("buying_price", 0)
-    total_amount = quantity * buying_price
+    selling_price = booking.get("selling_price") or booking.get("buying_price", 0)
+    total_amount = quantity * selling_price
     booking_number = booking.get("booking_number", booking_id[:8].upper())
     
     # Get bank details from company master
