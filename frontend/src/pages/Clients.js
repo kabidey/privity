@@ -988,16 +988,21 @@ const Clients = () => {
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
                   <div className="flex gap-2">
                     <Button 
-                      type="button" 
-                      variant="ghost"
-                      onClick={() => setWizardStep(2)}
-                    >
-                      Skip Documents
-                    </Button>
-                    <Button 
                       type="button"
-                      onClick={() => setWizardStep(2)}
-                      disabled={Object.values(processingOcr).some(p => p)}
+                      onClick={() => {
+                        // Validate all documents are uploaded
+                        const missingDocs = [];
+                        if (!docFiles.cml_copy) missingDocs.push('CML Copy');
+                        if (!docFiles.pan_card) missingDocs.push('PAN Card');
+                        if (!docFiles.cancelled_cheque) missingDocs.push('Cancelled Cheque');
+                        
+                        if (missingDocs.length > 0) {
+                          toast.error(`Please upload: ${missingDocs.join(', ')}`);
+                          return;
+                        }
+                        setWizardStep(2);
+                      }}
+                      disabled={Object.values(processingOcr).some(p => p) || !docFiles.cml_copy || !docFiles.pan_card || !docFiles.cancelled_cheque}
                     >
                       Next: Review Details
                     </Button>
