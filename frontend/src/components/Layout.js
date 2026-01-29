@@ -262,9 +262,14 @@ const Layout = ({ children }) => {
       <aside className="hidden lg:flex lg:flex-col w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 fixed h-full z-40">
         {/* Header with Logo and Status Indicator */}
         <div className="p-6 border-b border-gray-200/50 dark:border-gray-800/50">
-          <h1 className="text-2xl font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title">
-            PRIVITY
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title">
+              PRIVITY
+            </h1>
+            <span className="text-xs font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full" data-testid="app-version">
+              {getVersion()}
+            </span>
+          </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">Private Equity System</p>
           
           {/* PE Availability Indicator - Shows if ANY PE Desk/Manager is online */}
