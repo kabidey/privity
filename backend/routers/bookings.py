@@ -5,10 +5,15 @@ This router handles all booking operations with proper locking and atomic update
 to prevent race conditions during simultaneous booking requests.
 """
 from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi.responses import StreamingResponse
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
 import os
+import io
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from database import db
 from config import is_pe_level, is_pe_desk_only, ROLES
