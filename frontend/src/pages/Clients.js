@@ -931,7 +931,7 @@ const Clients = () => {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
                         <FileText className="h-4 w-4" />
-                        Cancelled Cheque
+                        Cancelled Cheque *
                         {ocrCompleted.cancelled_cheque && <Check className="h-4 w-4 text-green-500" />}
                       </CardTitle>
                     </CardHeader>
