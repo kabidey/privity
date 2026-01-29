@@ -1112,7 +1112,7 @@ async def get_pending_loss_bookings(current_user: dict = Depends(get_current_use
 
 # ============== DP Transfer Endpoints (Client Stock Transfers) ==============
 
-@router.get("/dp-ready")
+@router.get("/bookings/dp-ready")
 async def get_dp_ready_bookings(current_user: dict = Depends(get_current_user)):
     """Get all bookings with DP ready status (fully paid, ready to transfer)"""
     user_role = current_user.get("role", 6)
