@@ -813,3 +813,12 @@ rp_payments: {
   - Company DP details (CDSL DP ID, NSDL DP ID)
   - Urgent notice requesting immediate stock transfer
   - Attached company documents (NSDL CML, CDSL CML, PAN Card, Cancelled Cheque)
+
+- **DP Receivables Tracking System**: Track stock transfers from vendors with:
+  - New "DP Receivables" page accessible from sidebar (PE Desk/Manager only)
+  - When vendor payment completes, purchase marked as "DP Receivable"
+  - Two tabs: "Receivable" (pending) and "Received" (completed)
+  - Summary cards showing pending and received counts
+  - "Received" button with NSDL/CDSL selection dialog
+  - Once received, stock added to inventory automatically
+  - Audit logging for all DP receive actions
