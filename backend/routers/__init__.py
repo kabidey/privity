@@ -22,6 +22,7 @@ from .purchases import router as purchases_router
 from .reports import router as reports_router
 from .company_master import router as company_master_router
 from .contract_notes import router as contract_notes_router
+from .sohini import router as sohini_router
 
 __all__ = [
     'auth_router',
@@ -44,4 +45,5 @@ __all__ = [
     'reports_router',
     'company_master_router',
     'contract_notes_router',
+    'sohini_router',
 ]
