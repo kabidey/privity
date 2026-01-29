@@ -393,6 +393,8 @@ rp_payments: {
 | /dp-transfer | DPTransferReport | Bookings ready for DP transfer |
 | /finance | Finance | Finance dashboard with payments, refunds, RP payments |
 | /referral-partners | ReferralPartners | Referral Partner management |
+| /business-partners | BusinessPartners | Business Partner management (PE Level only) |
+| /bp-dashboard | BPDashboard | Business Partner revenue dashboard |
 
 ## Test Reports
 - `/app/test_reports/iteration_27.json` - RP Approval Workflow (100% pass)
@@ -410,6 +412,7 @@ rp_payments: {
 - `/app/test_reports/iteration_34.json` - Contract Notes Email Attachments & Auto-Generation (30/30 tests passed)
 - `/app/test_reports/iteration_35.json` - Company Logo Upload feature (11/11 tests passed)
 - `/app/test_reports/iteration_36.json` - iOS-Style UI/UX Redesign (98% frontend pass)
+- `/app/test_reports/iteration_37.json` - Business Partner Feature Enhancements (100% pass, 15/15 backend + all frontend)
 
 ## Prioritized Backlog
 
@@ -424,10 +427,14 @@ rp_payments: {
 - ✅ RP Approval/Rejection Email Notifications - Complete (Jan 28, 2026)
 - ✅ Capture RP bank details (IFSC, Account Number, Bank Name) for payouts - Complete (Jan 28, 2026)
 - ✅ Backend Modular Router Migration - Complete (Jan 28, 2026, 24/24 tests passed)
+- ✅ Business Partner (BP) Feature Enhancements - Complete (Jan 29, 2026)
+  - Revenue dashboard with stats and bookings
+  - Mandatory document uploads (PAN, Aadhaar, Cancelled Cheque)
+  - Booking form restrictions for BP users
+- [ ] Create dashboard view for Referral Partners to see their generated revenue
 - [ ] Two-factor authentication (TOTP)
 
 ### P2 (Medium Priority)
-- [ ] Create dashboard view for Referral Partners to see their generated revenue
 - ✅ Email sending history/log for auditing - Complete (Jan 28, 2026)
 - [ ] Bulk booking closure feature
 - [ ] Configurable thresholds for loss-booking auto-approval
