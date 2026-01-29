@@ -213,9 +213,9 @@ async def get_business_partners(
     current_user: dict = Depends(get_current_user),
     linked_employee_id: Optional[str] = None
 ):
-    """Get all Business Partners (PE Level only)"""
-    if not is_pe_level(current_user.get("role", 5)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view Business Partners")
+    """Get all Business Partners (PE Level or Partners Desk)"""
+    if not can_manage_business_partners(current_user.get("role", 5)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Partners Desk can view Business Partners")
     
     query = {}
     if linked_employee_id:
@@ -231,7 +231,7 @@ async def get_business_partner(
     current_user: dict = Depends(get_current_user)
 ):
     """Get a specific Business Partner"""
-    # BP can view their own profile, PE Level can view any
+    # BP can view their own profile, PE Level and Partners Desk can view any
     bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
     if not bp:
         raise HTTPException(status_code=404, detail="Business Partner not found")
@@ -240,7 +240,7 @@ async def get_business_partner(
         # BP can only view their own profile
         if bp["email"].lower() != current_user.get("email", "").lower():
             raise HTTPException(status_code=403, detail="You can only view your own profile")
-    elif not is_pe_level(current_user.get("role", 5)):
+    elif not can_manage_business_partners(current_user.get("role", 5)):
         raise HTTPException(status_code=403, detail="Access denied")
     
     return BusinessPartnerResponse(**bp)
@@ -252,9 +252,9 @@ async def update_business_partner(
     bp_data: BusinessPartnerUpdate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Update a Business Partner (PE Level only)"""
-    if not is_pe_level(current_user.get("role", 5)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update Business Partners")
+    """Update a Business Partner (PE Level or Partners Desk)"""
+    if not can_manage_business_partners(current_user.get("role", 5)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Partners Desk can update Business Partners")
     
     bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
     if not bp:
