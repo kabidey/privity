@@ -101,12 +101,26 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     when multiple users try to book the same stock simultaneously.
     """
     user_role = current_user.get("role", 5)
+    is_business_partner = user_role == 8 or current_user.get("is_bp", False)
+    bp_info = None
     
-    # Permission check
-    if user_role == 4:  # Employee
+    # Permission check - Business Partners can create bookings
+    if user_role == 4 or is_business_partner:  # Employee or Business Partner
         check_permission(current_user, "create_bookings")
     else:
         check_permission(current_user, "manage_bookings")
+    
+    # If Business Partner, get their BP profile for revenue share
+    if is_business_partner:
+        bp_id = current_user.get("user_id") or current_user.get("id")
+        bp_info = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
+        if not bp_info:
+            raise HTTPException(status_code=404, detail="Business Partner profile not found")
+        if not bp_info.get("is_active", True):
+            raise HTTPException(status_code=403, detail="Your Business Partner account is inactive")
+        # BPs cannot select RPs - clear any RP data
+        booking_data.referral_partner_id = None
+        booking_data.rp_revenue_share_percent = None
     
     # Verify client exists and is active
     client = await db.clients.find_one({"id": booking_data.client_id}, {"_id": 0})
