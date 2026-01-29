@@ -200,8 +200,11 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: LayoutDashboard, label: 'My Dashboard', path: '/bp-dashboard' });
   }
 
-  // Determine if PE level (for status indicator)
+  // Determine if current user is PE level (for styling user avatar)
   const isPELevel = user.role === 1 || user.role === 2;
+  
+  // PE availability status (from server - are any PE users online?)
+  const isPeAvailable = peStatus.pe_online;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -214,13 +217,13 @@ const Layout = ({ children }) => {
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">Private Equity System</p>
           
-          {/* Status Indicator - Glowing Green/Red Light */}
+          {/* PE Availability Indicator - Shows if ANY PE Desk/Manager is online */}
           <div className="flex items-center gap-2 mt-3">
             <div className="relative">
               {/* Glow effect */}
               <div 
                 className={`absolute inset-0 rounded-full blur-md ${
-                  isPELevel 
+                  isPeAvailable 
                     ? 'bg-green-500 animate-pulse' 
                     : 'bg-red-500 animate-pulse'
                 }`}
@@ -229,24 +232,31 @@ const Layout = ({ children }) => {
               {/* Main indicator */}
               <div 
                 className={`relative w-3 h-3 rounded-full ${
-                  isPELevel 
+                  isPeAvailable 
                     ? 'bg-green-500 shadow-lg shadow-green-500/50' 
                     : 'bg-red-500 shadow-lg shadow-red-500/50'
                 }`}
                 style={{
-                  boxShadow: isPELevel 
+                  boxShadow: isPeAvailable 
                     ? '0 0 10px #22c55e, 0 0 20px #22c55e, 0 0 30px #22c55e' 
                     : '0 0 10px #ef4444, 0 0 20px #ef4444, 0 0 30px #ef4444'
                 }}
               />
             </div>
-            <span className={`text-xs font-medium ${
-              isPELevel 
-                ? 'text-green-600 dark:text-green-400' 
-                : 'text-red-600 dark:text-red-400'
-            }`}>
-              {isPELevel ? 'PE Access Active' : 'Limited Access'}
-            </span>
+            <div className="flex flex-col">
+              <span className={`text-xs font-medium ${
+                isPeAvailable 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : 'text-red-600 dark:text-red-400'
+              }`}>
+                {peStatus.message || (isPeAvailable ? 'PE Support Available' : 'PE Support Offline')}
+              </span>
+              {isPeAvailable && peStatus.online_users?.length > 0 && (
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                  {peStatus.online_users.map(u => u.name.split(' ')[0]).join(', ')} online
+                </span>
+              )}
+            </div>
           </div>
         </div>
         
