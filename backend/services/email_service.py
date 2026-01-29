@@ -239,6 +239,28 @@ async def send_email(
             - 'content': Bytes content of the file
             - 'content_type': MIME type (default: application/pdf)
     """
+    from database import db
+    
+    # Check kill switch status - block all emails if system is frozen
+    try:
+        kill_switch = await db.system_settings.find_one({"setting": "kill_switch"}, {"_id": 0})
+        if kill_switch and kill_switch.get("is_active"):
+            logging.warning(f"Email blocked - Kill switch is active. Would have sent to: {to_email}")
+            await log_email(
+                to_email=to_email,
+                subject=subject,
+                template_key=template_key,
+                status="skipped",
+                error_message="Kill switch active - System frozen",
+                cc_email=cc_email,
+                variables=variables,
+                related_entity_type=related_entity_type,
+                related_entity_id=related_entity_id
+            )
+            return
+    except Exception as e:
+        logging.error(f"Error checking kill switch: {e}")
+    
     smtp_config = await get_smtp_config()
     
     if not smtp_config:
