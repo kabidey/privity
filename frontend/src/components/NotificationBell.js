@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Check, CheckCheck, X } from 'lucide-react';
+import { Bell, Check, CheckCheck, X, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,7 +12,7 @@ import { useNotifications } from '../context/NotificationContext';
 
 const NotificationBell = () => {
   const [open, setOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead, isConnected, hasNewNotification, setHasNewNotification } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, isConnected, hasNewNotification, setHasNewNotification, triggerTestNotification } = useNotifications();
   
   // Derive animation state directly from hasNewNotification
   const isAnimating = hasNewNotification && !open;
