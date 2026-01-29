@@ -2,7 +2,7 @@
 Stocks Router
 Handles stock management, corporate actions, and inventory
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
@@ -11,6 +11,7 @@ import io
 from database import db
 from routers.auth import get_current_user
 from models import Stock, StockCreate, CorporateAction, CorporateActionCreate, Inventory
+from services.email_service import send_templated_email
 
 router = APIRouter(tags=["Stocks"])
 
