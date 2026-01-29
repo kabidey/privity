@@ -49,6 +49,8 @@ class CompanyMasterResponse(BaseModel):
     company_bank_account: Optional[str] = None
     company_bank_ifsc: Optional[str] = None
     company_bank_branch: Optional[str] = None
+    # Logo
+    logo_url: Optional[str] = None
     # Document URLs
     cml_cdsl_url: Optional[str] = None
     cml_nsdl_url: Optional[str] = None
