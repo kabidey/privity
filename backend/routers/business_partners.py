@@ -478,7 +478,7 @@ async def get_bp_documents(
     user_role = current_user.get("role", 5)
     is_self = user_role == 8 and current_user.get("id") == bp_id
     
-    if not is_pe_level(user_role) and not is_self:
+    if not can_manage_business_partners(user_role) and not is_self:
         raise HTTPException(status_code=403, detail="Not authorized to view documents")
     
     bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
