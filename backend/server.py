@@ -344,6 +344,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ====================
+# Kill Switch Middleware
+# ====================
+
+from middleware.kill_switch import KillSwitchMiddleware
+app.add_middleware(KillSwitchMiddleware)
+
 
 # ====================
 # Health Check
