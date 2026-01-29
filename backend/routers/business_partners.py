@@ -360,7 +360,7 @@ async def request_bp_login_otp(data: BPLoginRequest, background_tasks: Backgroun
 @router.post("/auth/verify-otp")
 async def verify_bp_otp(data: BPOTPVerify):
     """Verify OTP and login Business Partner"""
-    from routers.auth import create_access_token
+    from routers.auth import create_token
     
     # Find valid OTP
     otp_record = await db.bp_otps.find_one({
@@ -397,14 +397,7 @@ async def verify_bp_otp(data: BPOTPVerify):
         raise HTTPException(status_code=403, detail="Your account has been deactivated")
     
     # Create JWT token
-    token_data = {
-        "user_id": bp["id"],
-        "email": bp["email"],
-        "name": bp["name"],
-        "role": 8,  # Business Partner role
-        "is_bp": True
-    }
-    token = create_access_token(token_data)
+    token = create_token(bp["id"], bp["email"])
     
     # Update last login
     await db.business_partners.update_one(
