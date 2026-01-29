@@ -8,7 +8,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 - **Backend**: FastAPI (Python) with async MongoDB
 - **Database**: MongoDB
 - **Authentication**: JWT-based with role-based permissions
-- **Theme**: Light/Dark mode with ThemeContext
+- **Theme**: Light/Dark mode with ThemeContext, iOS-style design
 
 ## User Personas
 1. **PE Desk (Role 1)**: Full system access + User Management + Deletion rights
@@ -32,7 +32,35 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## What's Been Implemented
 
-### Latest Updates (Jan 28, 2026)
+### Latest Updates (Jan 29, 2026)
+
+#### ✅ iOS-Style UI/UX Redesign - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **Mobile-First Responsive Design**:
+  - Fixed mobile header with PRIVITY title, notification bell, theme toggle, hamburger menu
+  - Slide-over menu from right side with backdrop blur and smooth animations
+  - User profile card in mobile menu with avatar and role
+  - FAB (Floating Action Button) for quick "New Booking" access on mobile
+  - Content no longer overlaps with navigation (original user issue fixed)
+- **iOS-Style Theme Variables** (`/app/frontend/src/index.css`):
+  - Updated CSS variables for iOS light/dark mode colors
+  - iOS blur effect (backdrop-filter: blur(20px))
+  - iOS transitions and spring animations
+  - Safe area insets for notched devices
+- **New CSS Utilities**:
+  - `.ios-glass` - Glass morphism effect
+  - `.ios-card` - iOS-style cards with hover/active states
+  - `.ios-btn-primary/secondary` - iOS-style buttons
+  - `.ios-badge-*` - iOS-style badges (success, warning, error, info)
+  - `.ios-row` - iOS list row styling
+  - `.ios-spinner` - iOS loading spinner
+  - Touch feedback utilities
+- **Desktop Sidebar** (`/app/frontend/src/components/Layout.js`):
+  - Fixed sidebar with glass morphism effect
+  - Gradient emerald active state for navigation items
+  - User info card with gradient background
+  - Theme toggle with label (Dark Mode / Light Mode)
+- **Testing**: 98% frontend pass rate (iteration_36)
 
 #### ✅ Company Logo Upload - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
@@ -48,6 +76,7 @@ Build a Share Booking System for managing client share bookings, inventory track
   - "Logo uploaded successfully" badge
 - Old logo automatically deleted when new one is uploaded
 - Logo persists across page refreshes
+- **Testing**: 11/11 backend + all frontend tests passed (iteration_35)
 - **Testing**: 11/11 backend + all frontend tests passed (iteration_35)
 
 #### ✅ Contract Notes - Email Attachments & Auto-Generation - COMPLETED (Jan 29, 2026)
