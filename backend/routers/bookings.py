@@ -785,6 +785,124 @@ async def get_dp_transferred_bookings(current_user: dict = Depends(get_current_u
     return bookings_list
 
 
+@router.get("/bookings/dp-export")
+async def export_dp_transfer_excel(
+    status: str = "all",  # "ready", "transferred", or "all"
+    current_user: dict = Depends(get_current_user)
+):
+    """Export DP transfer data to Excel"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can export DP data")
+    
+    # Build query based on status
+    query = {"approval_status": "approved"}
+    if status == "ready":
+        query["dp_status"] = "ready"
+    elif status == "transferred":
+        query["dp_status"] = "transferred"
+    else:
+        query["dp_status"] = {"$in": ["ready", "transferred"]}
+    
+    # Get bookings
+    bookings_data = await db.bookings.find(query, {"_id": 0}).to_list(10000)
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "DP Transfer"
+    
+    # Styles
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="3B82F6", end_color="3B82F6", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Headers
+    headers = [
+        "Booking #", "Client Name", "Client DP ID", "Client PAN",
+        "Stock Symbol", "Stock Name", "ISIN", "Quantity",
+        "Amount", "Status", "DP Type", "Transfer Date"
+    ]
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = thin_border
+    
+    # Data rows
+    row = 2
+    for booking in bookings_data:
+        # Get client details
+        client = await db.clients.find_one(
+            {"id": booking.get("client_id")},
+            {"_id": 0, "name": 1, "dp_id": 1, "pan": 1, "otc_ucc": 1}
+        )
+        
+        # Get stock details
+        stock = await db.stocks.find_one(
+            {"id": booking.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1, "isin": 1}
+        )
+        
+        # Calculate total amount
+        total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+        
+        # Get DP ID - use otc_ucc or dp_id
+        dp_id = ""
+        if client:
+            dp_id = client.get("otc_ucc") or client.get("dp_id") or ""
+        
+        data = [
+            booking.get("booking_number", ""),
+            client.get("name", "") if client else "",
+            dp_id,
+            client.get("pan", "") if client else "",
+            stock.get("symbol", "") if stock else "",
+            stock.get("name", "") if stock else "",
+            stock.get("isin", "") if stock else "",
+            booking.get("quantity", 0),
+            total_amount,
+            "READY" if booking.get("dp_status") == "ready" else "TRANSFERRED",
+            booking.get("dp_type", ""),
+            booking.get("dp_transferred_at", "")[:10] if booking.get("dp_transferred_at") else ""
+        ]
+        
+        for col, value in enumerate(data, 1):
+            cell = ws.cell(row=row, column=col, value=value)
+            cell.border = thin_border
+            if col in [8, 9]:  # Quantity and Amount columns
+                cell.alignment = Alignment(horizontal="right")
+        
+        row += 1
+    
+    # Adjust column widths
+    column_widths = [15, 25, 20, 15, 15, 30, 20, 12, 15, 15, 10, 15]
+    for i, width in enumerate(column_widths, 1):
+        ws.column_dimensions[chr(64 + i)].width = width
+    
+    # Save to buffer
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    filename = f"dp_transfer_{status}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 @router.get("/bookings/{booking_id}", response_model=BookingWithDetails)
 async def get_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
     """Get a specific booking by ID."""
