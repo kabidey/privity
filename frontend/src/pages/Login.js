@@ -263,6 +263,87 @@ const Login = () => {
                 </Button>
               </div>
             ) : (
+            <>
+            {/* Login Type Tabs for Login Only */}
+            {isLogin && (
+              <Tabs value={loginType} onValueChange={(v) => { setLoginType(v); setBpOtpSent(false); setBpOtp(''); }} className="mb-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="employee" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Employee
+                  </TabsTrigger>
+                  <TabsTrigger value="partner" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Business Partner
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+
+            {/* Business Partner OTP Login */}
+            {isLogin && loginType === 'partner' ? (
+              <div className="space-y-4">
+                {!bpOtpSent ? (
+                  <form onSubmit={handleBPRequestOTP} className="space-y-4">
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950 rounded-lg">
+                      <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                        <Building2 className="h-4 w-4 inline mr-1" />
+                        Business Partners login using OTP sent to their registered email.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-email">Email <span className="text-red-500">*</span></Label>
+                      <Input
+                        id="bp-email"
+                        type="email"
+                        placeholder="partner@example.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600" disabled={loading}>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
+                      {loading ? 'Sending OTP...' : 'Send OTP'}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleBPVerifyOTP} className="space-y-4">
+                    <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <p className="text-sm text-green-800 dark:text-green-200">
+                        OTP sent to <strong>{formData.email}</strong>. Valid for 10 minutes.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="bp-otp">Enter 6-Digit OTP <span className="text-red-500">*</span></Label>
+                      <Input
+                        id="bp-otp"
+                        type="text"
+                        placeholder="000000"
+                        maxLength={6}
+                        value={bpOtp}
+                        onChange={(e) => setBpOtp(e.target.value.replace(/\D/g, ''))}
+                        className="text-center text-2xl tracking-widest font-mono"
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600" disabled={loading}>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                      {loading ? 'Verifying...' : 'Verify OTP & Login'}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      className="w-full" 
+                      onClick={() => { setBpOtpSent(false); setBpOtp(''); }}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Change Email
+                    </Button>
+                  </form>
+                )}
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
                 <>
