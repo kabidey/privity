@@ -250,6 +250,10 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     is_loss_booking = booking_data.selling_price < buying_price
     loss_approval_status = "pending" if is_loss_booking else "not_required"
     
+    # Determine if BP booking - BP revenue share takes precedence
+    is_bp_booking = is_business_partner and bp_info is not None
+    bp_revenue_share = bp_info.get("revenue_share_percent", 0) if bp_info else 0
+    
     # Create booking document
     booking_doc = {
         "id": booking_id,
@@ -267,15 +271,20 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "booking_type": booking_data.booking_type,
         "insider_form_uploaded": booking_data.insider_form_uploaded,
         "insider_form_path": None,
-        # Referral Partner fields (may be zeroed if client=RP)
-        "referral_partner_id": booking_data.referral_partner_id if not rp_share_auto_zeroed else None,
-        "rp_code": rp_code if not rp_share_auto_zeroed else None,
-        "rp_name": rp_name if not rp_share_auto_zeroed else None,
-        "rp_revenue_share_percent": booking_data.rp_revenue_share_percent if not rp_share_auto_zeroed else 0,
+        # Business Partner fields (takes precedence over RP)
+        "business_partner_id": bp_info.get("id") if is_bp_booking else None,
+        "bp_name": bp_info.get("name") if is_bp_booking else None,
+        "bp_revenue_share_percent": bp_revenue_share if is_bp_booking else None,
+        "is_bp_booking": is_bp_booking,
+        # Referral Partner fields (may be zeroed if client=RP or if BP booking)
+        "referral_partner_id": None if is_bp_booking else (booking_data.referral_partner_id if not rp_share_auto_zeroed else None),
+        "rp_code": None if is_bp_booking else (rp_code if not rp_share_auto_zeroed else None),
+        "rp_name": None if is_bp_booking else (rp_name if not rp_share_auto_zeroed else None),
+        "rp_revenue_share_percent": 0 if is_bp_booking else (booking_data.rp_revenue_share_percent if not rp_share_auto_zeroed else 0),
         "rp_share_auto_zeroed": rp_share_auto_zeroed,  # Flag for audit trail
-        # Employee Revenue Share - calculated based on RP allocation
-        "base_employee_share_percent": 100.0,  # Full share before RP deduction
-        "employee_revenue_share_percent": 100.0 if rp_share_auto_zeroed else 100.0 - (booking_data.rp_revenue_share_percent or 0),
+        # Employee Revenue Share - calculated based on RP/BP allocation
+        "base_employee_share_percent": 100.0,  # Full share before deduction
+        "employee_revenue_share_percent": 100.0 - bp_revenue_share if is_bp_booking else (100.0 if rp_share_auto_zeroed else 100.0 - (booking_data.rp_revenue_share_percent or 0)),
         "employee_commission_amount": None,  # Calculated when stock transfer confirmed
         "employee_commission_status": "pending",
         # Client confirmation
@@ -287,7 +296,7 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "loss_approval_status": loss_approval_status,
         "loss_approved_by": None,
         "loss_approved_at": None,
-        "notes": f"[AUTO: RP share zeroed - Client is also an RP] {booking_data.notes or ''}" if rp_share_auto_zeroed else booking_data.notes,
+        "notes": f"[BP Booking: {bp_info.get('name')} @ {bp_revenue_share}%] {booking_data.notes or ''}" if is_bp_booking else (f"[AUTO: RP share zeroed - Client is also an RP] {booking_data.notes or ''}" if rp_share_auto_zeroed else booking_data.notes),
         "user_id": current_user["id"],
         "created_by": current_user["id"],
         "created_by_name": current_user["name"],
