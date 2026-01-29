@@ -103,7 +103,7 @@ const SohiniAssistant = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 group"
+        className="fixed bottom-20 right-6 z-[9999] group"
         data-testid="sohini-open-btn"
       >
         <div className="relative">
