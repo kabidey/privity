@@ -373,10 +373,14 @@ const CompanyMaster = () => {
               >
                 {logoUrl ? (
                   <img 
-                    src={logoUrl} 
+                    src={`${process.env.REACT_APP_BACKEND_URL}${logoUrl}`} 
                     alt="Company Logo" 
                     className="max-w-full max-h-full object-contain p-2"
                     data-testid="company-logo-preview"
+                    onError={(e) => {
+                      console.error('Logo load failed:', e.target.src);
+                      e.target.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="text-center text-gray-400">
