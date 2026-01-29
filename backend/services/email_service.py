@@ -1158,3 +1158,209 @@ async def send_stock_transfer_request_email(
             )
     
     logging.info(f"Stock transfer request email sent for purchase {purchase_number} to {vendor_email}")
+
+
+async def send_stock_transferred_email(
+    booking_id: str,
+    client: dict,
+    booking: dict,
+    stock: dict,
+    dp_type: str,
+    transfer_date: str,
+    company_master: dict,
+    cc_email: Optional[str] = None
+):
+    """
+    Send stock transfer notification email to client.
+    Informs them that stock has been transferred and will show in T+2 days.
+    
+    Args:
+        booking_id: Booking ID
+        client: Client document
+        booking: Booking document
+        stock: Stock document
+        dp_type: "NSDL" or "CDSL"
+        transfer_date: Date of transfer
+        company_master: Company master document
+        cc_email: Optional CC email
+    """
+    client_name = client.get("name", "Valued Client")
+    client_email = client.get("email")
+    
+    if not client_email:
+        logging.warning(f"Cannot send transfer notification - no email for client {client.get('id')}")
+        return
+    
+    booking_number = booking.get("booking_number", booking_id[:8].upper())
+    quantity = booking.get("quantity", 0)
+    stock_symbol = stock.get("symbol", "N/A")
+    stock_name = stock.get("name", "")
+    client_otc_ucc = client.get("otc_ucc", "")
+    
+    # Get company details
+    company_name = company_master.get("company_name", "SMIFS Capital Markets Ltd")
+    
+    # Format transfer date
+    try:
+        transfer_dt = datetime.fromisoformat(transfer_date.replace('Z', '+00:00'))
+        formatted_date = transfer_dt.strftime('%d %B %Y')
+        formatted_time = transfer_dt.strftime('%I:%M %p UTC')
+        # Calculate T+2 date (excluding weekends)
+        t2_date = transfer_dt
+        days_added = 0
+        while days_added < 2:
+            t2_date += timedelta(days=1)
+            if t2_date.weekday() < 5:  # Monday = 0, Friday = 4
+                days_added += 1
+        formatted_t2_date = t2_date.strftime('%d %B %Y')
+    except:
+        formatted_date = transfer_date
+        formatted_time = ""
+        formatted_t2_date = "within 2 business days"
+    
+    # Build email subject
+    subject = f"Stock Transfer Completed - {stock_symbol} | Booking {booking_number}"
+    
+    # Build email body
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #ffffff;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 25px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Stock Transfer Completed</h1>
+            <p style="color: #d1fae5; margin: 10px 0 0 0; font-size: 14px;">Booking Reference: {booking_number}</p>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 30px;">
+            <p style="font-size: 16px; color: #374151;">Dear <strong>{client_name}</strong>,</p>
+            
+            <p style="color: #4b5563; line-height: 1.6;">
+                We are pleased to inform you that your stock transfer has been <strong>successfully completed</strong>. 
+                The shares have been transferred to your demat account.
+            </p>
+            
+            <!-- Success Banner -->
+            <div style="background: #ecfdf5; border-radius: 12px; padding: 20px; margin: 25px 0; border: 2px solid #10b981; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 10px;">✓</div>
+                <h2 style="color: #065f46; margin: 0 0 10px 0;">Transfer Successful</h2>
+                <p style="color: #047857; margin: 0; font-size: 14px;">
+                    Your shares will reflect in your demat account by <strong>{formatted_t2_date}</strong> (T+2 settlement)
+                </p>
+            </div>
+            
+            <!-- Transfer Details -->
+            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+                <h3 style="color: #111827; margin: 0 0 15px 0; font-size: 16px; border-bottom: 2px solid #10b981; padding-bottom: 10px;">
+                    📋 Transfer Details
+                </h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280; width: 40%;">Stock:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">{stock_symbol} - {stock_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Quantity Transferred:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600; font-size: 18px;">{quantity:,} shares</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Transfer Mode:</td>
+                        <td style="padding: 10px 0;">
+                            <span style="background: {'#dbeafe' if dp_type == 'NSDL' else '#ede9fe'}; color: {'#1e40af' if dp_type == 'NSDL' else '#6d28d9'}; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 14px;">
+                                {dp_type}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Transfer Date:</td>
+                        <td style="padding: 10px 0; color: #111827;">{formatted_date} at {formatted_time}</td>
+                    </tr>
+                    {f'''<tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Your Demat Account:</td>
+                        <td style="padding: 10px 0; color: #111827; font-family: monospace;">{client_otc_ucc}</td>
+                    </tr>''' if client_otc_ucc else ''}
+                </table>
+            </div>
+            
+            <!-- Settlement Info -->
+            <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #bfdbfe;">
+                <h3 style="color: #1e40af; margin: 0 0 10px 0; font-size: 14px;">📅 Settlement Information</h3>
+                <p style="color: #1e3a8a; margin: 0; line-height: 1.6;">
+                    As per standard market settlement (T+2), your shares will be credited to your demat account by 
+                    <strong>{formatted_t2_date}</strong>. Please check your demat account after this date.
+                </p>
+            </div>
+            
+            <!-- Contact Info -->
+            <div style="background: #fefce8; border-radius: 12px; padding: 15px; margin: 25px 0; border: 1px solid #fcd34d;">
+                <p style="color: #854d0e; margin: 0; font-size: 14px;">
+                    <strong>Need Help?</strong> If you don't see the shares in your account after {formatted_t2_date}, 
+                    please contact our PE Desk with your booking reference: <strong>{booking_number}</strong>
+                </p>
+            </div>
+            
+            <p style="color: #4b5563; margin-top: 25px;">
+                Thank you for choosing {company_name} for your investment needs.
+            </p>
+            
+            <p style="color: #374151; margin-top: 20px;">
+                Best regards,<br>
+                <strong>{company_name}</strong><br>
+                <span style="color: #6b7280; font-size: 14px;">Private Equity Division</span>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: #f3f4f6; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                This is an automated message from the Private Equity System.
+            </p>
+        </div>
+    </div>
+    """
+    
+    # Get additional client emails
+    additional_emails = []
+    if client.get("secondary_email"):
+        additional_emails.append(client["secondary_email"])
+    if client.get("tertiary_email"):
+        additional_emails.append(client["tertiary_email"])
+    
+    # Send primary email
+    await send_email(
+        client_email,
+        subject,
+        body,
+        cc_email=cc_email,
+        template_key="stock_transferred",
+        variables={
+            "booking_number": booking_number,
+            "client_name": client_name,
+            "stock_symbol": stock_symbol,
+            "quantity": quantity,
+            "dp_type": dp_type,
+            "t2_date": formatted_t2_date
+        },
+        related_entity_type="booking",
+        related_entity_id=booking_id
+    )
+    
+    # Send to additional client emails
+    for email in additional_emails:
+        if email and email != client_email:
+            await send_email(
+                email,
+                subject,
+                body,
+                template_key="stock_transferred",
+                variables={
+                    "booking_number": booking_number,
+                    "client_name": client_name,
+                    "stock_symbol": stock_symbol,
+                    "quantity": quantity,
+                    "dp_type": dp_type
+                },
+                related_entity_type="booking",
+                related_entity_id=booking_id
+            )
+    
+    logging.info(f"Stock transfer notification sent for booking {booking_number} to {client_email}")
