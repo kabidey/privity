@@ -88,6 +88,10 @@ function App() {
                         <Route path="/rp-revenue" element={<RPRevenueDashboard />} />
                         <Route path="/employee-revenue" element={<EmployeeRevenueDashboard />} />
                         <Route path="/audit-trail" element={<AuditTrail />} />
+                        <Route path="/pe-dashboard" element={<PEDashboard />} />
+                        <Route path="/finance-dashboard" element={<FinanceDashboard />} />
+                        <Route path="/my-dashboard" element={<MyDashboard />} />
+                        <Route path="/client-dashboard" element={<ClientDashboard />} />
                       </Routes>
                     </Layout>
                     {/* Floating Notifications at bottom right */}
