@@ -431,3 +431,114 @@ async def mark_dp_received(
         "received_at": datetime.now(timezone.utc).isoformat()
     }
 
+
+
+@router.get("/dp-receivables/export")
+async def export_dp_receivables_excel(
+    status: str = "all",  # "receivable", "received", or "all"
+    current_user: dict = Depends(get_current_user)
+):
+    """Export DP receivables data to Excel"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can export DP data")
+    
+    # Build query based on status
+    query = {}
+    if status == "receivable":
+        query["dp_status"] = "receivable"
+    elif status == "received":
+        query["dp_status"] = "received"
+    else:
+        query["dp_status"] = {"$in": ["receivable", "received"]}
+    
+    # Get purchases
+    purchases = await db.purchases.find(query, {"_id": 0}).to_list(10000)
+    
+    # Create workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "DP Receivables"
+    
+    # Styles
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="10B981", end_color="10B981", fill_type="solid")
+    header_alignment = Alignment(horizontal="center", vertical="center")
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Headers
+    headers = [
+        "Purchase #", "Vendor Name", "Vendor DP ID", "Vendor PAN",
+        "Stock Symbol", "Stock Name", "ISIN", "Quantity",
+        "Total Amount", "Status", "DP Type", "Received Date"
+    ]
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = thin_border
+    
+    # Data rows
+    row = 2
+    for purchase in purchases:
+        # Get vendor details
+        vendor = await db.clients.find_one(
+            {"id": purchase.get("vendor_id")},
+            {"_id": 0, "name": 1, "dp_id": 1, "pan": 1}
+        )
+        
+        # Get stock details
+        stock = await db.stocks.find_one(
+            {"id": purchase.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1, "isin": 1}
+        )
+        
+        data = [
+            purchase.get("purchase_number", ""),
+            vendor.get("name", "") if vendor else "",
+            vendor.get("dp_id", "") if vendor else "",
+            vendor.get("pan", "") if vendor else "",
+            stock.get("symbol", "") if stock else "",
+            stock.get("name", "") if stock else "",
+            stock.get("isin", "") if stock else "",
+            purchase.get("quantity", 0),
+            purchase.get("total_amount", 0),
+            purchase.get("dp_status", "").upper(),
+            purchase.get("dp_type", ""),
+            purchase.get("dp_received_at", "")[:10] if purchase.get("dp_received_at") else ""
+        ]
+        
+        for col, value in enumerate(data, 1):
+            cell = ws.cell(row=row, column=col, value=value)
+            cell.border = thin_border
+            if col in [8, 9]:  # Quantity and Amount columns
+                cell.alignment = Alignment(horizontal="right")
+        
+        row += 1
+    
+    # Adjust column widths
+    column_widths = [15, 25, 20, 15, 15, 30, 20, 12, 15, 12, 10, 15]
+    for i, width in enumerate(column_widths, 1):
+        ws.column_dimensions[chr(64 + i)].width = width
+    
+    # Save to buffer
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    filename = f"dp_receivables_{status}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
