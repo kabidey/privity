@@ -89,3 +89,25 @@ async def delete_notification(notification_id: str, current_user: dict = Depends
         return {"message": "Notification not found"}
     
     return {"message": "Notification deleted"}
+
+
+
+@router.post("/test")
+async def send_test_notification(
+    title: str = Query("Test Notification"),
+    message: str = Query("This is a test notification to verify the system is working."),
+    notif_type: str = Query("info"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Send a test notification to the current user (for testing purposes)."""
+    from services.notification_service import create_notification
+    
+    notification = await create_notification(
+        user_id=current_user["id"],
+        notif_type=notif_type,
+        title=title,
+        message=message,
+        data={"test": True, "triggered_by": current_user["name"]}
+    )
+    
+    return {"message": "Test notification sent", "notification": notification}
