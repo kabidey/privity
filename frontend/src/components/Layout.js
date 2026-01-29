@@ -50,7 +50,8 @@ import {
   Upload,
   TrendingUp,
   Shield,
-  User
+  User,
+  ArrowDownToLine
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
