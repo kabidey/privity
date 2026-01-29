@@ -195,8 +195,15 @@ async def shutdown_db_client():
 
 @app.websocket("/api/ws/notifications")
 async def websocket_notifications(websocket: WebSocket, token: str = None):
-    """WebSocket endpoint for real-time notifications"""
+    """WebSocket endpoint for real-time notifications
+    
+    Note: Must accept() the WebSocket connection before any close() or send() operations.
+    This is required for proper WebSocket handshake in production Kubernetes environments.
+    """
     from utils.auth import decode_token
+    
+    # First, accept the WebSocket connection (required before any other operation)
+    await websocket.accept()
     
     if not token:
         await websocket.close(code=4001, reason="No token provided")
@@ -209,10 +216,13 @@ async def websocket_notifications(websocket: WebSocket, token: str = None):
             await websocket.close(code=4002, reason="Invalid token")
             return
     except Exception as e:
+        logger.warning(f"WebSocket token error: {str(e)}")
         await websocket.close(code=4003, reason=f"Token error: {str(e)}")
         return
     
+    # Register connection with user_id
     await ws_manager.connect(websocket, user_id)
+    
     try:
         while True:
             data = await websocket.receive_text()
@@ -222,6 +232,7 @@ async def websocket_notifications(websocket: WebSocket, token: str = None):
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket, user_id)
     except Exception as e:
+        logger.error(f"WebSocket error for user {user_id}: {str(e)}")
         ws_manager.disconnect(websocket, user_id)
 
 
