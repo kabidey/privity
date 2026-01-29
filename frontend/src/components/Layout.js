@@ -193,6 +193,7 @@ const Layout = ({ children }) => {
   // Purchases - PE Desk and PE Manager only (roles 1 & 2)
   if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
+    menuItems.push({ icon: ArrowDownToLine, label: 'DP Receivables', path: '/dp-receivables' });
   }
   
   menuItems.push(
