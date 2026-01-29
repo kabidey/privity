@@ -4278,6 +4278,7 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(email_logs_router, prefix="/api")
 app.include_router(company_master_router, prefix="/api")
 app.include_router(contract_notes_router, prefix="/api")
+app.include_router(bulk_upload_router, prefix="/api")
 
 # Include the legacy api_router (endpoints here will be overridden by modular routers)
 app.include_router(api_router)
