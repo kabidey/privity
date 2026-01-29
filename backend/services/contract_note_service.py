@@ -4,6 +4,7 @@ Generates Contract Notes (Contract cum Bill) for share transactions
 Sent to clients after DP transfer
 """
 import io
+import os
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
