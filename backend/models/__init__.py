@@ -173,11 +173,15 @@ class Stock(BaseModel):
 # ============== Corporate Actions Models ==============
 class CorporateActionCreate(BaseModel):
     stock_id: str
-    action_type: str  # stock_split, bonus
-    ratio_from: int
-    ratio_to: int
+    action_type: str  # stock_split, bonus, dividend, rights_issue, buyback
+    ratio_from: Optional[int] = None  # Not required for dividend
+    ratio_to: Optional[int] = None  # Not required for dividend
+    dividend_amount: Optional[float] = None  # Amount per share for dividend
+    dividend_type: Optional[str] = None  # interim, final, special
     new_face_value: Optional[float] = None
     record_date: str
+    ex_date: Optional[str] = None  # Ex-dividend date
+    payment_date: Optional[str] = None  # Dividend payment date
     notes: Optional[str] = None
 
 
@@ -186,14 +190,19 @@ class CorporateAction(BaseModel):
     id: str
     stock_id: str
     stock_symbol: str
-    stock_name: str
+    stock_name: Optional[str] = None
     action_type: str
-    ratio_from: int
-    ratio_to: int
+    ratio_from: Optional[int] = None
+    ratio_to: Optional[int] = None
+    dividend_amount: Optional[float] = None
+    dividend_type: Optional[str] = None
     new_face_value: Optional[float] = None
     record_date: str
-    status: str = "pending"  # pending, applied
+    ex_date: Optional[str] = None
+    payment_date: Optional[str] = None
+    status: str = "pending"  # pending, applied, notified
     applied_at: Optional[str] = None
+    notified_clients: Optional[int] = 0
     notes: Optional[str] = None
     created_at: str
     created_by: str
