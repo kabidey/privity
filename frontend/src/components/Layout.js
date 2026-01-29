@@ -134,6 +134,11 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Database, label: 'DB Backup', path: '/database-backup' });
   }
 
+  // Company Master - PE Desk only (role 1)
+  if (user.role === 1) {
+    menuItems.push({ icon: Building2, label: 'Company Master', path: '/company-master' });
+  }
+
   return (
     <div className="min-h-screen flex bg-background">
       {/* Sidebar - Desktop */}
