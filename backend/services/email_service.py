@@ -59,7 +59,8 @@ async def get_smtp_config():
     """Get SMTP configuration from database or fall back to environment variables"""
     from database import db
     
-    config = await db.email_config.find_one({"_id": "smtp_config"})
+    # Try smtp_settings collection first (new format from SMTP config UI)
+    config = await db.smtp_settings.find_one({}, {"_id": 0})
     
     if config and config.get("is_enabled") and config.get("smtp_password"):
         return {
@@ -69,9 +70,25 @@ async def get_smtp_config():
             "password": config["smtp_password"],
             "from_email": config["smtp_from_email"],
             "from_name": config.get("smtp_from_name", "SMIFS Private Equity System"),
-            "use_tls": config.get("use_tls", True),
-            "use_ssl": config.get("use_ssl", False),
+            "use_tls": config.get("smtp_use_tls", config.get("use_tls", True)),
+            "use_ssl": config.get("smtp_use_ssl", config.get("use_ssl", False)),
             "timeout": config.get("timeout", 30)
+        }
+    
+    # Try legacy email_config collection
+    legacy_config = await db.email_config.find_one({"_id": "smtp_config"})
+    
+    if legacy_config and legacy_config.get("is_enabled") and legacy_config.get("smtp_password"):
+        return {
+            "host": legacy_config["smtp_host"],
+            "port": legacy_config["smtp_port"],
+            "username": legacy_config["smtp_username"],
+            "password": legacy_config["smtp_password"],
+            "from_email": legacy_config["smtp_from_email"],
+            "from_name": legacy_config.get("smtp_from_name", "SMIFS Private Equity System"),
+            "use_tls": legacy_config.get("use_tls", True),
+            "use_ssl": legacy_config.get("use_ssl", False),
+            "timeout": legacy_config.get("timeout", 30)
         }
     
     # Fall back to environment variables
