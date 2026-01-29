@@ -539,3 +539,48 @@ code {
     transform: scale(0.97);
     transition: transform 0.1s ease-out;
 }
+
+
+/* Floating Notification Animations */
+@keyframes shrink-width {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+.animate-shrink-width {
+    animation: shrink-width linear forwards;
+}
+
+/* Notification pulse animation */
+@keyframes notification-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+}
+
+.notification-pulse {
+    animation: notification-pulse 2s infinite;
+}
+
+/* Slide in from right animation */
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.slide-in-from-right-full {
+    animation: slide-in-right 0.3s ease-out forwards;
+}
