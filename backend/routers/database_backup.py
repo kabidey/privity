@@ -83,9 +83,16 @@ async def list_backups(current_user: dict = Depends(get_current_user)):
 async def create_backup(
     name: str,
     description: Optional[str] = None,
+    include_all: bool = False,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create a new database backup (PE Level)"""
+    """Create a new database backup (PE Level)
+    
+    Args:
+        name: Name for the backup
+        description: Optional description
+        include_all: If True, backup all collections dynamically (recommended)
+    """
     if not is_pe_level(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can create database backups")
     
@@ -94,14 +101,22 @@ async def create_backup(
     record_counts = {}
     total_size = 0
     
+    # Determine which collections to backup
+    if include_all:
+        all_collections = await db.list_collection_names()
+        # Exclude database_backups from backup
+        collections_to_backup = [c for c in all_collections if c != "database_backups"]
+    else:
+        collections_to_backup = BACKUP_COLLECTIONS
+    
     # Backup each collection
-    for collection_name in BACKUP_COLLECTIONS:
+    for collection_name in collections_to_backup:
         try:
             collection = db[collection_name]
             documents = await collection.find({}, {"_id": 0}).to_list(100000)
             backup_data[collection_name] = documents
             record_counts[collection_name] = len(documents)
-            total_size += len(json.dumps(documents))
+            total_size += len(json.dumps(documents, default=str))
         except Exception as e:
             backup_data[collection_name] = []
             record_counts[collection_name] = 0
@@ -114,13 +129,32 @@ async def create_backup(
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user["id"],
         "created_by_name": current_user["name"],
-        "collections": BACKUP_COLLECTIONS,
+        "collections": collections_to_backup,
         "record_counts": record_counts,
         "size_bytes": total_size,
+        "include_all": include_all,
         "data": backup_data
     }
     
     await db.database_backups.insert_one(backup_doc)
+    
+    # Log the backup action
+    await db.audit_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "action": "DATABASE_BACKUP",
+        "entity_type": "database",
+        "entity_id": backup_id,
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "user_role": current_user.get("role", 5),
+        "details": {
+            "backup_name": name,
+            "collections_count": len(collections_to_backup),
+            "total_records": sum(record_counts.values()),
+            "size_bytes": total_size
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
     
     # Keep only last 10 backups to save space
     all_backups = await db.database_backups.find({}, {"id": 1}).sort("created_at", -1).to_list(100)
@@ -133,7 +167,9 @@ async def create_backup(
         "backup": {
             "id": backup_id,
             "name": name,
+            "collections_count": len(collections_to_backup),
             "record_counts": record_counts,
+            "total_records": sum(record_counts.values()),
             "size_bytes": total_size
         }
     }
