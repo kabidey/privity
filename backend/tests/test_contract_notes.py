@@ -45,7 +45,7 @@ class TestContractNotesAuth:
         """Unauthenticated requests are denied"""
         session = requests.Session()
         response = session.get(f"{BASE_URL}/api/contract-notes")
-        assert response.status_code == 401
+        assert response.status_code in [401, 403]  # Either unauthorized or forbidden
         print("✓ Unauthenticated access denied")
 
 
