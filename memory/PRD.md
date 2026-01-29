@@ -37,6 +37,18 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 29, 2026)
 
+#### ✅ Mobile Dialog Responsiveness Fix - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- Fixed popup dialogs (forms) being cut off on mobile screens
+- Updated `/app/frontend/src/components/ui/dialog.jsx`:
+  - Mobile: Bottom sheet style that slides up from bottom
+  - Desktop: Centered modal (unchanged behavior)
+  - Proper `max-h-[90vh]` and `overflow-y-auto` for scrollable content
+  - Full-width layout on mobile with proper padding
+- Cleaned up conflicting CSS in `/app/frontend/src/index.css`
+- All form dialogs (Stocks, Clients, Users, etc.) now properly visible on mobile
+- **Testing**: Verified via mobile screenshots on Stocks, Clients, and User Management pages
+
 #### ✅ Partners Desk Role - COMPLETED (Jan 29, 2026)
 - Added new role 9 "Partners Desk" with Employee-level rights + BP management
 - Created `/api/users/employees` endpoint for Partners Desk to fetch employees
