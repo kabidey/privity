@@ -83,6 +83,7 @@ function App() {
                         <Route path="/bp-dashboard" element={<BPDashboard />} />
                         <Route path="/rp-revenue" element={<RPRevenueDashboard />} />
                         <Route path="/employee-revenue" element={<EmployeeRevenueDashboard />} />
+                        <Route path="/audit-trail" element={<AuditTrail />} />
                       </Routes>
                     </Layout>
                     {/* Floating Notifications at bottom right */}
