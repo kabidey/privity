@@ -643,7 +643,7 @@ const BusinessPartners = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div className="flex items-start gap-2">
               <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center flex-shrink-0">1</div>
-              <p className="text-muted-foreground">Partner enters their email on the login page and selects "Business Partner Login"</p>
+              <p className="text-muted-foreground">Partner enters their email on the login page and selects &quot;Business Partner Login&quot;</p>
             </div>
             <div className="flex items-start gap-2">
               <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center flex-shrink-0">2</div>
