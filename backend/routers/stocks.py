@@ -225,6 +225,7 @@ async def get_stock_inventory(stock_id: str, current_user: dict = Depends(get_cu
 @router.post("/corporate-actions", response_model=CorporateAction)
 async def create_corporate_action(
     action_data: CorporateActionCreate,
+    background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_user)
 ):
     """Create a corporate action (PE Desk only)"""
@@ -236,23 +237,236 @@ async def create_corporate_action(
     if not stock:
         raise HTTPException(status_code=404, detail="Stock not found")
     
+    # Validate based on action type
+    if action_data.action_type in ["stock_split", "bonus", "rights_issue"]:
+        if not action_data.ratio_from or not action_data.ratio_to:
+            raise HTTPException(status_code=400, detail="Ratio is required for this action type")
+    elif action_data.action_type == "dividend":
+        if not action_data.dividend_amount:
+            raise HTTPException(status_code=400, detail="Dividend amount is required for dividend action")
+    
     action_id = str(uuid.uuid4())
     action_doc = {
         "id": action_id,
         "stock_id": action_data.stock_id,
         "stock_symbol": stock["symbol"],
+        "stock_name": stock.get("name", stock["symbol"]),
         "action_type": action_data.action_type,
         "ratio_from": action_data.ratio_from,
         "ratio_to": action_data.ratio_to,
+        "dividend_amount": action_data.dividend_amount,
+        "dividend_type": action_data.dividend_type,
+        "new_face_value": action_data.new_face_value,
         "record_date": action_data.record_date,
-        "description": action_data.description,
+        "ex_date": action_data.ex_date,
+        "payment_date": action_data.payment_date,
+        "notes": action_data.notes,
+        "status": "pending",
+        "notified_clients": 0,
         "is_applied": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user["id"]
     }
     
     await db.corporate_actions.insert_one(action_doc)
+    
+    # Log the action
+    await db.audit_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "action": "CORPORATE_ACTION_CREATED",
+        "entity_type": "corporate_action",
+        "entity_id": action_id,
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "details": {
+            "stock_symbol": stock["symbol"],
+            "action_type": action_data.action_type,
+            "record_date": action_data.record_date
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
     return CorporateAction(**action_doc)
+
+
+async def notify_clients_for_corporate_action(action_id: str):
+    """Send email notifications to clients who hold the stock"""
+    action = await db.corporate_actions.find_one({"id": action_id}, {"_id": 0})
+    if not action:
+        return 0
+    
+    stock_id = action["stock_id"]
+    stock_symbol = action["stock_symbol"]
+    stock_name = action.get("stock_name", stock_symbol)
+    
+    # Find all clients who have this stock in completed bookings
+    bookings = await db.bookings.find({
+        "stock_id": stock_id,
+        "status": {"$in": ["completed", "open", "approved"]}
+    }, {"_id": 0}).to_list(10000)
+    
+    # Get unique client IDs
+    client_ids = list(set(b["client_id"] for b in bookings))
+    
+    if not client_ids:
+        return 0
+    
+    # Get client details
+    clients = await db.clients.find({
+        "id": {"$in": client_ids},
+        "is_vendor": False
+    }, {"_id": 0}).to_list(10000)
+    
+    notified_count = 0
+    action_type_display = action["action_type"].replace("_", " ").title()
+    
+    for client in clients:
+        email = client.get("email")
+        if not email:
+            continue
+        
+        # Get client's holdings for this stock
+        client_bookings = [b for b in bookings if b["client_id"] == client["id"]]
+        total_quantity = sum(b.get("quantity", 0) for b in client_bookings)
+        
+        # Prepare email content based on action type
+        if action["action_type"] == "dividend":
+            dividend_amount = action.get("dividend_amount", 0)
+            estimated_dividend = total_quantity * dividend_amount
+            subject = f"Dividend Announcement - {stock_symbol}"
+            
+            html_content = f"""
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
+                    <h1 style="margin: 0; font-size: 24px;">💰 Dividend Announcement</h1>
+                </div>
+                <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 16px 16px;">
+                    <p style="color: #374151; font-size: 16px;">Dear <strong>{client.get('name', 'Valued Client')}</strong>,</p>
+                    
+                    <p style="color: #374151; font-size: 16px;">We are pleased to inform you about the following dividend announcement:</p>
+                    
+                    <div style="background: white; border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Stock</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{stock_name} ({stock_symbol})</td></tr>
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Dividend Type</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{action.get('dividend_type', 'Regular').title()}</td></tr>
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Dividend per Share</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">₹{dividend_amount:.2f}</td></tr>
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Record Date</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{action.get('record_date', 'TBA')}</td></tr>
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Ex-Dividend Date</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{action.get('ex_date', 'TBA')}</td></tr>
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Payment Date</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{action.get('payment_date', 'TBA')}</td></tr>
+                        </table>
+                    </div>
+                    
+                    <div style="background: #ecfdf5; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #10B981;">
+                        <p style="margin: 0; color: #065f46; font-size: 14px;"><strong>Your Holdings:</strong></p>
+                        <p style="margin: 8px 0 0 0; color: #065f46; font-size: 18px; font-weight: 600;">{total_quantity:,} shares</p>
+                        <p style="margin: 8px 0 0 0; color: #065f46; font-size: 14px;">Estimated Dividend: <strong>₹{estimated_dividend:,.2f}</strong></p>
+                    </div>
+                    
+                    {f'<p style="color: #6b7280; font-size: 14px;"><em>Note: {action.get("notes", "")}</em></p>' if action.get("notes") else ''}
+                    
+                    <p style="color: #374151; font-size: 14px; margin-top: 20px;">Please ensure your bank account details are updated to receive the dividend.</p>
+                    
+                    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">Best regards,<br/><strong>SMIFS Capital Markets Ltd</strong></p>
+                </div>
+            </div>
+            """
+        else:
+            # For stock split, bonus, rights issue, buyback
+            subject = f"{action_type_display} Announcement - {stock_symbol}"
+            
+            ratio_text = ""
+            if action.get("ratio_from") and action.get("ratio_to"):
+                ratio_text = f"{action['ratio_to']}:{action['ratio_from']}"
+            
+            html_content = f"""
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); color: white; padding: 30px; border-radius: 16px 16px 0 0; text-align: center;">
+                    <h1 style="margin: 0; font-size: 24px;">📢 {action_type_display}</h1>
+                </div>
+                <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 16px 16px;">
+                    <p style="color: #374151; font-size: 16px;">Dear <strong>{client.get('name', 'Valued Client')}</strong>,</p>
+                    
+                    <p style="color: #374151; font-size: 16px;">We would like to inform you about the following corporate action:</p>
+                    
+                    <div style="background: white; border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid #e5e7eb;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Stock</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{stock_name} ({stock_symbol})</td></tr>
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Action Type</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{action_type_display}</td></tr>
+                            {f'<tr><td style="padding: 10px 0; color: #6b7280;">Ratio</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{ratio_text}</td></tr>' if ratio_text else ''}
+                            <tr><td style="padding: 10px 0; color: #6b7280;">Record Date</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">{action.get('record_date', 'TBA')}</td></tr>
+                            {f'<tr><td style="padding: 10px 0; color: #6b7280;">New Face Value</td><td style="padding: 10px 0; font-weight: 600; text-align: right;">₹{action.get("new_face_value")}</td></tr>' if action.get('new_face_value') else ''}
+                        </table>
+                    </div>
+                    
+                    <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin: 20px 0; border-left: 4px solid #3B82F6;">
+                        <p style="margin: 0; color: #1e40af; font-size: 14px;"><strong>Your Current Holdings:</strong></p>
+                        <p style="margin: 8px 0 0 0; color: #1e40af; font-size: 18px; font-weight: 600;">{total_quantity:,} shares</p>
+                    </div>
+                    
+                    {f'<p style="color: #6b7280; font-size: 14px;"><em>Note: {action.get("notes", "")}</em></p>' if action.get("notes") else ''}
+                    
+                    <p style="color: #374151; font-size: 14px; margin-top: 20px;">The corporate action will be processed as per the record date. Your portfolio will be updated accordingly.</p>
+                    
+                    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">Best regards,<br/><strong>SMIFS Capital Markets Ltd</strong></p>
+                </div>
+            </div>
+            """
+        
+        # Send email
+        try:
+            await send_templated_email(
+                to_email=email,
+                subject=subject,
+                html_content=html_content,
+                template_key="corporate_action_notification"
+            )
+            notified_count += 1
+        except Exception as e:
+            print(f"Failed to send corporate action email to {email}: {e}")
+    
+    # Update the action with notification count
+    await db.corporate_actions.update_one(
+        {"id": action_id},
+        {"$set": {"notified_clients": notified_count, "status": "notified"}}
+    )
+    
+    return notified_count
+
+
+@router.post("/corporate-actions/{action_id}/notify")
+async def send_corporate_action_notifications(
+    action_id: str,
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(get_current_user)
+):
+    """Send email notifications to all clients holding the stock (PE Desk only)"""
+    user_role = current_user.get("role", 5)
+    if user_role != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can send notifications")
+    
+    action = await db.corporate_actions.find_one({"id": action_id}, {"_id": 0})
+    if not action:
+        raise HTTPException(status_code=404, detail="Corporate action not found")
+    
+    # Run notification in background
+    background_tasks.add_task(notify_clients_for_corporate_action, action_id)
+    
+    # Log the action
+    await db.audit_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "action": "CORPORATE_ACTION_NOTIFICATION_SENT",
+        "entity_type": "corporate_action",
+        "entity_id": action_id,
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "details": {
+            "stock_symbol": action["stock_symbol"],
+            "action_type": action["action_type"]
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"message": "Notifications are being sent to clients", "action_id": action_id}
 
 
 @router.get("/corporate-actions", response_model=List[CorporateAction])
