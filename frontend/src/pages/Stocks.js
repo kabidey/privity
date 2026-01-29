@@ -270,54 +270,116 @@ const Stocks = () => {
                     <Select value={actionFormData.action_type} onValueChange={(v) => setActionFormData({ ...actionFormData, action_type: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="stock_split"><Split className="inline h-4 w-4 mr-2" />Stock Split</SelectItem>
-                        <SelectItem value="bonus"><Gift className="inline h-4 w-4 mr-2" />Bonus Shares</SelectItem>
+                        {ACTION_TYPES.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            <div className="flex items-center">
+                              <type.icon className="h-4 w-4 mr-2" />
+                              {type.label}
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>{actionFormData.action_type === 'stock_split' ? 'Old Ratio' : 'Existing Shares'} *</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={actionFormData.ratio_from}
-                        onChange={(e) => setActionFormData({ ...actionFormData, ratio_from: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{actionFormData.action_type === 'stock_split' ? 'New Ratio' : 'Bonus Shares'} *</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={actionFormData.ratio_to}
-                        onChange={(e) => setActionFormData({ ...actionFormData, ratio_to: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
+                  {/* Dividend-specific fields */}
+                  {actionFormData.action_type === 'dividend' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Dividend per Share (₹) *</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            value={actionFormData.dividend_amount}
+                            onChange={(e) => setActionFormData({ ...actionFormData, dividend_amount: e.target.value })}
+                            placeholder="e.g., 5.00"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Dividend Type *</Label>
+                          <Select value={actionFormData.dividend_type} onValueChange={(v) => setActionFormData({ ...actionFormData, dividend_type: v })}>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {DIVIDEND_TYPES.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Ex-Dividend Date</Label>
+                          <Input
+                            type="date"
+                            value={actionFormData.ex_date}
+                            onChange={(e) => setActionFormData({ ...actionFormData, ex_date: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Payment Date</Label>
+                          <Input
+                            type="date"
+                            value={actionFormData.payment_date}
+                            onChange={(e) => setActionFormData({ ...actionFormData, payment_date: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                   
-                  <p className="text-sm text-muted-foreground">
-                    {actionFormData.action_type === 'stock_split' 
-                      ? `Split ratio: ${actionFormData.ratio_from}:${actionFormData.ratio_to} (1 share becomes ${actionFormData.ratio_to} shares)`
-                      : `Bonus ratio: ${actionFormData.ratio_from}:${actionFormData.ratio_to} (For every ${actionFormData.ratio_from} shares, get ${actionFormData.ratio_to} bonus)`
-                    }
-                  </p>
-                  
-                  {actionFormData.action_type === 'stock_split' && (
-                    <div className="space-y-2">
-                      <Label>New Face Value (₹) *</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={actionFormData.new_face_value}
-                        onChange={(e) => setActionFormData({ ...actionFormData, new_face_value: e.target.value })}
-                        required={actionFormData.action_type === 'stock_split'}
-                        placeholder="e.g., 1 or 2"
-                      />
-                    </div>
+                  {/* Split/Bonus/Rights/Buyback fields */}
+                  {actionFormData.action_type !== 'dividend' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>{actionFormData.action_type === 'stock_split' ? 'Old Ratio' : 'Existing Shares'} *</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={actionFormData.ratio_from}
+                            onChange={(e) => setActionFormData({ ...actionFormData, ratio_from: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{actionFormData.action_type === 'stock_split' ? 'New Ratio' : actionFormData.action_type === 'bonus' ? 'Bonus Shares' : 'New Shares'} *</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={actionFormData.ratio_to}
+                            onChange={(e) => setActionFormData({ ...actionFormData, ratio_to: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground">
+                        {actionFormData.action_type === 'stock_split' 
+                          ? `Split ratio: ${actionFormData.ratio_from}:${actionFormData.ratio_to} (1 share becomes ${actionFormData.ratio_to} shares)`
+                          : `Ratio: ${actionFormData.ratio_from}:${actionFormData.ratio_to} (For every ${actionFormData.ratio_from} shares, get ${actionFormData.ratio_to} new)`
+                        }
+                      </p>
+                      
+                      {actionFormData.action_type === 'stock_split' && (
+                        <div className="space-y-2">
+                          <Label>New Face Value (₹) *</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={actionFormData.new_face_value}
+                            onChange={(e) => setActionFormData({ ...actionFormData, new_face_value: e.target.value })}
+                            required
+                            placeholder="e.g., 1 or 2"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
                   )}
                   
                   <div className="space-y-2">
