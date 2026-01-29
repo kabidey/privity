@@ -62,8 +62,9 @@ const DatabaseBackup = () => {
     
     setCreating(true);
     try {
-      const response = await api.post(`/database/backups?name=${encodeURIComponent(backupName)}&description=${encodeURIComponent(backupDescription)}`);
-      toast.success('Backup created successfully');
+      // Use include_all=true to backup all collections
+      const response = await api.post(`/database/backups?name=${encodeURIComponent(backupName)}&description=${encodeURIComponent(backupDescription)}&include_all=true`);
+      toast.success(`Backup created successfully! ${response.data.backup.total_records} records from ${response.data.backup.collections_count} collections`);
       setCreateDialogOpen(false);
       setBackupName('');
       setBackupDescription('');
