@@ -37,6 +37,22 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 29, 2026)
 
+#### ✅ PE Availability Indicator - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **Real-time PE presence tracking**: Backend tracks PE Desk/Manager heartbeats in memory
+- **Heartbeat system**: PE level users send heartbeat every 30 seconds, timeout after 60 seconds
+- **New API endpoints**:
+  - `POST /api/users/heartbeat` - Records user activity (only tracks PE level users)
+  - `GET /api/users/pe-status` - Returns PE availability status for all users
+- **Glowing Status Indicator** under PRIVITY logo:
+  - 🟢 GREEN + "PE Support Available" when any PE Desk/Manager is online
+  - 🔴 RED + "PE Support Offline" when no PE users are currently active
+  - Shows names of online PE users (up to 3)
+- **All users see the same indicator** - Not based on their own role, but on PE availability
+- **Mobile support**: Indicator visible in mobile header and sidebar
+- **Files modified**: `/app/backend/routers/users.py`, `/app/frontend/src/components/Layout.js`
+- **Testing**: Verified with PE Desk (green) → logout → Employee (red after 60s timeout)
+
 #### ✅ Status Indicator & User Info Enhancement - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
 - **Glowing Status Indicator** under PRIVITY logo:
