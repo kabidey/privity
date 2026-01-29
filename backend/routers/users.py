@@ -9,7 +9,7 @@ import uuid
 import bcrypt
 
 from database import db
-from config import ROLES, is_pe_level, is_pe_desk_only
+from config import ROLES, is_pe_level, is_pe_desk_only, can_manage_business_partners
 from models import User
 from utils.auth import get_current_user, check_permission
 
@@ -32,6 +32,22 @@ class UserUpdate(BaseModel):
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+# ============== Employee Endpoints (for Partners Desk) ==============
+@router.get("/employees")
+async def get_employees(current_user: dict = Depends(get_current_user)):
+    """Get list of employees for BP linking (PE Level or Partners Desk)"""
+    if not can_manage_business_partners(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Return only employees (roles 3-7) for BP linking
+    users = await db.users.find(
+        {"role": {"$in": [3, 4, 5, 6, 7]}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+    ).to_list(1000)
+    
+    return [{"id": u["id"], "name": u["name"], "email": u["email"], "role": u.get("role", 5), "role_name": ROLES.get(u.get("role", 5), "Employee")} for u in users]
 
 
 # ============== User Endpoints ==============
