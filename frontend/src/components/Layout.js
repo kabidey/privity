@@ -56,8 +56,33 @@ const Layout = ({ children }) => {
     new_password: '',
     confirm_password: ''
   });
+  const [peStatus, setPeStatus] = useState({ pe_online: false, message: 'Checking...', online_users: [] });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const { theme, toggleTheme } = useTheme();
+
+  // Poll PE online status and send heartbeat
+  useEffect(() => {
+    const checkPeStatus = async () => {
+      try {
+        // Send heartbeat (will only track if current user is PE level)
+        await api.post('/users/heartbeat');
+        
+        // Get PE status
+        const response = await api.get('/users/pe-status');
+        setPeStatus(response.data);
+      } catch (error) {
+        console.error('Failed to check PE status:', error);
+      }
+    };
+
+    // Check immediately
+    checkPeStatus();
+    
+    // Then poll every 30 seconds
+    const interval = setInterval(checkPeStatus, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Close sidebar on route change
   useEffect(() => {
