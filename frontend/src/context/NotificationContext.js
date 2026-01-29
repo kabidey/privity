@@ -342,6 +342,41 @@ export const NotificationProvider = ({ children }) => {
     };
   }, [fetchNotifications, fetchUnreadCount, connectWebSocket, addFloatingNotification, notifications]);
 
+  // Manual test notification trigger
+  const triggerTestNotification = useCallback(async () => {
+    try {
+      const response = await api.post('/notifications/test', null, {
+        params: {
+          title: '🔔 Test Alert',
+          message: 'This is a test notification to verify the system is working correctly.',
+          notif_type: 'info'
+        }
+      });
+      
+      // Manually handle the notification since WebSocket might not be connected
+      const notification = response.data.notification;
+      if (notification) {
+        setNotifications(prev => [notification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+        addFloatingNotification(notification);
+        setLatestNotification(notification);
+        playNotificationSound();
+        setHasNewNotification(true);
+        setTimeout(() => setHasNewNotification(false), 3000);
+        
+        toast(notification.title, {
+          description: notification.message,
+          duration: 6000
+        });
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Failed to trigger test notification:', error);
+      throw error;
+    }
+  }, [addFloatingNotification]);
+
   const value = {
     notifications,
     unreadCount,
