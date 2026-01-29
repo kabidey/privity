@@ -424,18 +424,19 @@ const Layout = ({ children }) => {
             <h1 className="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title-mobile">
               PRIVITY
             </h1>
-            {/* Status Indicator for Mobile */}
+            {/* PE Availability Indicator for Mobile */}
             <div 
               className={`w-2.5 h-2.5 rounded-full ${
-                isPELevel 
+                isPeAvailable 
                   ? 'bg-green-500' 
                   : 'bg-red-500'
               }`}
               style={{
-                boxShadow: isPELevel 
+                boxShadow: isPeAvailable 
                   ? '0 0 6px #22c55e, 0 0 12px #22c55e' 
                   : '0 0 6px #ef4444, 0 0 12px #ef4444'
               }}
+              title={peStatus.message}
             />
           </div>
           <div className="flex items-center gap-1">
