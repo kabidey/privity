@@ -87,6 +87,17 @@ def can_manage_finance(role: int) -> bool:
     """Check if user can manage finance operations (update refunds etc.)"""
     return role in [1, 2, 7]
 
+
+def can_manage_business_partners(role: int) -> bool:
+    """Check if user can manage Business Partners (PE Level or Partners Desk)"""
+    return role in [1, 2, 9]
+
+
+def is_partners_desk(role: int) -> bool:
+    """Check if user is Partners Desk"""
+    return role == 9
+
+
 # Allowed email domains for registration
 ALLOWED_EMAIL_DOMAINS = ["smifs.com"]
 
