@@ -44,7 +44,8 @@ import {
   Key,
   ChevronRight,
   Upload,
-  TrendingUp
+  TrendingUp,
+  Shield
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
