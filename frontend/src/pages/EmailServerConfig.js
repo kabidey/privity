@@ -65,9 +65,10 @@ const EmailServerConfig = () => {
   const fetchPresets = async () => {
     try {
       const response = await api.get('/email-config/presets');
-      setPresets(response.data.presets || []);
+      // Backend returns array directly, not wrapped in {presets: [...]}
+      setPresets(Array.isArray(response.data) ? response.data : response.data.presets || []);
     } catch (error) {
-      console.error('Failed to load presets');
+      console.error('Failed to load presets:', error);
     }
   };
 
