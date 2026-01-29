@@ -276,10 +276,34 @@ const Layout = ({ children }) => {
             <ChevronRight className="h-4 w-4 text-gray-400" />
           </button>
           
-          {/* User Info */}
+          {/* User Info - Enhanced */}
           <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl">
-            <div className="text-sm font-semibold text-gray-900 dark:text-white" data-testid="user-name">{user.name}</div>
-            <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium" data-testid="user-role">{user.role_name}</div>
+            <div className="flex items-center gap-3">
+              {/* User Avatar */}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
+                isPELevel 
+                  ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
+                  : 'bg-gradient-to-br from-blue-500 to-indigo-600'
+              }`}>
+                {user.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-gray-900 dark:text-white truncate" data-testid="user-name">
+                  {user.name || 'User'}
+                </div>
+                <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium" data-testid="user-role">
+                  {user.role_name || 'Unknown Role'}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {user.email || ''}
+                </div>
+              </div>
+              {/* Online indicator */}
+              <div className="relative">
+                <div className={`w-2.5 h-2.5 rounded-full ${isPELevel ? 'bg-green-500' : 'bg-blue-500'}`} />
+                <div className={`absolute inset-0 w-2.5 h-2.5 rounded-full ${isPELevel ? 'bg-green-500' : 'bg-blue-500'} animate-ping opacity-75`} />
+              </div>
+            </div>
           </div>
           
           {/* Action Buttons */}
