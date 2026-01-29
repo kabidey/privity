@@ -1108,3 +1108,171 @@ async def get_pending_loss_bookings(current_user: dict = Depends(get_current_use
     
     return enriched
 
+
+
+# ============== DP Transfer Endpoints (Client Stock Transfers) ==============
+
+@router.get("/dp-ready")
+async def get_dp_ready_bookings(current_user: dict = Depends(get_current_user)):
+    """Get all bookings with DP ready status (fully paid, ready to transfer)"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can view DP ready bookings")
+    
+    # Get bookings with dp_status = "ready"
+    bookings = await db.bookings.find(
+        {"dp_status": "ready", "approval_status": "approved"},
+        {"_id": 0}
+    ).sort("dp_ready_at", -1).to_list(1000)
+    
+    # Enrich with client and stock details
+    for booking in bookings:
+        client = await db.clients.find_one(
+            {"id": booking.get("client_id")},
+            {"_id": 0, "name": 1, "email": 1, "otc_ucc": 1}
+        )
+        if client:
+            booking["client_name"] = client.get("name")
+            booking["client_email"] = client.get("email")
+            booking["client_otc_ucc"] = client.get("otc_ucc")
+        
+        stock = await db.stocks.find_one(
+            {"id": booking.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1}
+        )
+        if stock:
+            booking["stock_name"] = stock.get("name")
+            booking["stock_symbol"] = stock.get("symbol")
+        
+        # Calculate total amount
+        booking["total_amount"] = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    
+    return bookings
+
+
+@router.get("/dp-transferred")
+async def get_dp_transferred_bookings(current_user: dict = Depends(get_current_user)):
+    """Get all bookings where stock has been transferred"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can view transferred bookings")
+    
+    # Get bookings with dp_status = "transferred"
+    bookings = await db.bookings.find(
+        {"dp_status": "transferred"},
+        {"_id": 0}
+    ).sort("dp_transferred_at", -1).to_list(1000)
+    
+    # Enrich with client and stock details
+    for booking in bookings:
+        client = await db.clients.find_one(
+            {"id": booking.get("client_id")},
+            {"_id": 0, "name": 1, "email": 1, "otc_ucc": 1}
+        )
+        if client:
+            booking["client_name"] = client.get("name")
+            booking["client_email"] = client.get("email")
+            booking["client_otc_ucc"] = client.get("otc_ucc")
+        
+        stock = await db.stocks.find_one(
+            {"id": booking.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1}
+        )
+        if stock:
+            booking["stock_name"] = stock.get("name")
+            booking["stock_symbol"] = stock.get("symbol")
+        
+        booking["total_amount"] = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    
+    return bookings
+
+
+@router.put("/bookings/{booking_id}/dp-transfer")
+async def mark_dp_transferred(
+    booking_id: str,
+    dp_type: str,  # "NSDL" or "CDSL"
+    current_user: dict = Depends(get_current_user)
+):
+    """Mark a booking as DP transferred and send notification to client"""
+    from services.email_service import send_stock_transferred_email
+    
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can mark DP as transferred")
+    
+    if dp_type not in ["NSDL", "CDSL"]:
+        raise HTTPException(status_code=400, detail="dp_type must be 'NSDL' or 'CDSL'")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("dp_status") != "ready":
+        raise HTTPException(status_code=400, detail="Booking is not in DP ready status")
+    
+    transfer_time = datetime.now(timezone.utc)
+    
+    # Update booking with transferred status
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {
+            "dp_status": "transferred",
+            "dp_type": dp_type,
+            "dp_transferred_at": transfer_time.isoformat(),
+            "dp_transferred_by": current_user["id"],
+            "dp_transferred_by_name": current_user["name"]
+        }}
+    )
+    
+    # Update inventory - deduct from available stock
+    inventory = await db.inventory.find_one({"stock_id": booking.get("stock_id")}, {"_id": 0})
+    if inventory:
+        await db.inventory.update_one(
+            {"stock_id": booking.get("stock_id")},
+            {"$inc": {"available_quantity": -booking.get("quantity", 0)}}
+        )
+    
+    # Get client and stock details for email
+    client = await db.clients.find_one({"id": booking.get("client_id")}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking.get("stock_id")}, {"_id": 0})
+    company_master = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
+    
+    # Send email to client
+    if client and stock and company_master:
+        await send_stock_transferred_email(
+            booking_id=booking_id,
+            client=client,
+            booking=booking,
+            stock=stock,
+            dp_type=dp_type,
+            transfer_date=transfer_time.isoformat(),
+            company_master=company_master,
+            cc_email=current_user.get("email")
+        )
+    
+    await create_audit_log(
+        action="DP_TRANSFERRED",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        details={
+            "dp_type": dp_type,
+            "quantity": booking.get("quantity"),
+            "stock_id": booking.get("stock_id"),
+            "client_id": booking.get("client_id")
+        },
+        entity_name=booking.get("booking_number", booking_id)
+    )
+    
+    return {
+        "message": f"Stock transferred via {dp_type}. Client notified about T+2 settlement.",
+        "dp_type": dp_type,
+        "quantity": booking.get("quantity"),
+        "transferred_at": transfer_time.isoformat()
+    }
+
