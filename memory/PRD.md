@@ -37,6 +37,15 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 29, 2026)
 
+#### ✅ RP Document View Fix - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- Fixed "View" button for RP documents opening blank screen
+- Backend now stores document URLs with `/api` prefix: `/api/uploads/referral_partners/...`
+- Frontend constructs full URL with `REACT_APP_BACKEND_URL` prefix
+- Handles both old URLs (without `/api`) and new URLs (with `/api`) for backward compatibility
+- Added "No documents uploaded" message when no documents exist
+- **Testing**: Verified via screenshots - PAN card document uploaded and view button working correctly
+
 #### ✅ Mandatory Client Document Upload - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
 - Removed "Skip Documents" button from client creation wizard
