@@ -33,6 +33,10 @@ import BPDashboard from './pages/BPDashboard';
 import RPRevenueDashboard from './pages/RPRevenueDashboard';
 import EmployeeRevenueDashboard from './pages/EmployeeRevenueDashboard';
 import AuditTrail from './pages/AuditTrail';
+import PEDashboard from './pages/PEDashboard';
+import FinanceDashboard from './pages/FinanceDashboard';
+import MyDashboard from './pages/MyDashboard';
+import ClientDashboard from './pages/ClientDashboard';
 import Layout from './components/Layout';
 import './App.css';
 
