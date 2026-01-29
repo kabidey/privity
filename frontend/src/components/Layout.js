@@ -423,7 +423,7 @@ const Layout = ({ children }) => {
       </div>
 
       {/* iOS-style Floating Action Button */}
-      <div className="lg:hidden fixed bottom-6 right-4 z-40 safe-area-inset-bottom">
+      <div className="lg:hidden fixed bottom-20 right-4 z-40 safe-area-inset-bottom">
         <button
           onClick={() => navigate('/bookings?openForm=true')}
           className="flex items-center gap-2 px-5 py-3.5 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 active:scale-95 transition-all duration-200"
