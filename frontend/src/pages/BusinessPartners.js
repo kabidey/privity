@@ -379,7 +379,7 @@ const BusinessPartners = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">BP's revenue is calculated from this employee's bookings</p>
+                    <p className="text-xs text-muted-foreground">BP&apos;s revenue is calculated from this employee&apos;s bookings</p>
                   </div>
                   
                   <div className="space-y-2 col-span-2">
