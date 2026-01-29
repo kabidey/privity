@@ -596,7 +596,7 @@ const Stocks = () => {
         <Card className="border shadow-sm">
           <CardHeader>
             <CardTitle>Corporate Actions</CardTitle>
-            <CardDescription>Stock splits and bonus shares - apply on record date</CardDescription>
+            <CardDescription>Manage dividends, stock splits, bonus issues, and other corporate actions</CardDescription>
           </CardHeader>
           <CardContent>
             {corporateActions.length === 0 ? (
@@ -608,10 +608,10 @@ const Stocks = () => {
                     <TableRow>
                       <TableHead className="text-xs uppercase">Stock</TableHead>
                       <TableHead className="text-xs uppercase">Type</TableHead>
-                      <TableHead className="text-xs uppercase">Ratio</TableHead>
-                      <TableHead className="text-xs uppercase">New FV</TableHead>
+                      <TableHead className="text-xs uppercase">Details</TableHead>
                       <TableHead className="text-xs uppercase">Record Date</TableHead>
                       <TableHead className="text-xs uppercase">Status</TableHead>
+                      <TableHead className="text-xs uppercase">Notified</TableHead>
                       <TableHead className="text-xs uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -620,28 +620,86 @@ const Stocks = () => {
                       <TableRow key={action.id}>
                         <TableCell className="font-bold mono">{action.stock_symbol}</TableCell>
                         <TableCell>
-                          <Badge variant={action.action_type === 'stock_split' ? 'default' : 'secondary'}>
-                            {action.action_type === 'stock_split' ? <><Split className="h-3 w-3 mr-1" />Split</> : <><Gift className="h-3 w-3 mr-1" />Bonus</>}
+                          <Badge variant={
+                            action.action_type === 'dividend' ? 'default' : 
+                            action.action_type === 'stock_split' ? 'secondary' : 'outline'
+                          } className={action.action_type === 'dividend' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}>
+                            {action.action_type === 'dividend' && <><DollarSign className="h-3 w-3 mr-1" />Dividend</>}
+                            {action.action_type === 'stock_split' && <><Split className="h-3 w-3 mr-1" />Split</>}
+                            {action.action_type === 'bonus' && <><Gift className="h-3 w-3 mr-1" />Bonus</>}
+                            {action.action_type === 'rights_issue' && <><Plus className="h-3 w-3 mr-1" />Rights</>}
+                            {action.action_type === 'buyback' && <><Package className="h-3 w-3 mr-1" />Buyback</>}
                           </Badge>
                         </TableCell>
-                        <TableCell className="mono font-semibold">{action.ratio_from}:{action.ratio_to}</TableCell>
-                        <TableCell className="mono">{action.new_face_value ? `₹${action.new_face_value}` : '-'}</TableCell>
+                        <TableCell className="mono text-sm">
+                          {action.action_type === 'dividend' ? (
+                            <span className="text-green-600 font-semibold">₹{action.dividend_amount}/share ({action.dividend_type || 'Regular'})</span>
+                          ) : (
+                            <span>{action.ratio_from}:{action.ratio_to}{action.new_face_value ? ` (FV: ₹${action.new_face_value})` : ''}</span>
+                          )}
+                        </TableCell>
                         <TableCell className="font-medium">{action.record_date}</TableCell>
                         <TableCell>
-                          <Badge variant={action.status === 'applied' ? 'outline' : 'default'} className={action.status === 'applied' ? 'text-green-600' : 'text-orange-600'}>
-                            {action.status === 'applied' ? 'Applied' : 'Pending'}
+                          <Badge variant={
+                            action.status === 'applied' ? 'outline' : 
+                            action.status === 'notified' ? 'secondary' : 'default'
+                          } className={
+                            action.status === 'applied' ? 'text-green-600 border-green-600' : 
+                            action.status === 'notified' ? 'text-blue-600 border-blue-600' : 'text-orange-600'
+                          }>
+                            {action.status === 'applied' ? 'Applied' : action.status === 'notified' ? 'Notified' : 'Pending'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell>
+                          {action.notified_clients > 0 ? (
+                            <Badge variant="outline" className="text-blue-600">
+                              <Bell className="h-3 w-3 mr-1" />
+                              {action.notified_clients} clients
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right space-x-1">
+                          {/* Notify Clients Button */}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleSendNotification(action.id)} 
+                            title="Send email notifications to clients"
+                            className="text-blue-600"
+                            disabled={sendingNotification === action.id}
+                          >
+                            {sendingNotification === action.id ? (
+                              <div className="ios-spinner h-4 w-4" />
+                            ) : (
+                              <Send className="h-4 w-4" />
+                            )}
+                          </Button>
+                          
+                          {/* Apply Action Button (not for dividends) */}
+                          {action.status === 'pending' && action.action_type !== 'dividend' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleApplyAction(action.id)} 
+                              title="Apply corporate action"
+                              className="text-green-600"
+                            >
+                              <Play className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* Delete Button */}
                           {action.status === 'pending' && (
-                            <>
-                              <Button variant="ghost" size="sm" onClick={() => handleApplyAction(action.id)} title="Apply on record date" className="text-green-600">
-                                <Play className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteAction(action.id)} className="text-red-600">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleDeleteAction(action.id)} 
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           )}
                         </TableCell>
                       </TableRow>
