@@ -831,4 +831,11 @@ rp_payments: {
   - "Transfer" button with NSDL/CDSL selection dialog
   - Once transferred, inventory deducted and client notified via email
   - Email includes T+2 settlement date calculation (excludes weekends)
+  - **Excel Export** with Client Name, DP ID, PAN, Stock Name, ISIN
   - Audit logging for all DP transfer actions
+
+- **Excel Export for DP Pages**: Both DP Receivables and DP Transfer pages now have Excel export:
+  - Export button in page header
+  - Exports based on current tab (Receivable/Received or Ready/Transferred)
+  - Columns: Name, DP ID, PAN, Stock Symbol, Stock Name, ISIN, Quantity, Amount, Status, DP Type, Date
+  - Professional formatting with styled headers and borders
