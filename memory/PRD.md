@@ -385,6 +385,7 @@ rp_payments: {
 - `/app/test_reports/iteration_33.json` - Contract Notes Generation feature (19/19 tests passed)
 - `/app/test_reports/iteration_34.json` - Contract Notes Email Attachments & Auto-Generation (30/30 tests passed)
 - `/app/test_reports/iteration_35.json` - Company Logo Upload feature (11/11 tests passed)
+- `/app/test_reports/iteration_36.json` - iOS-Style UI/UX Redesign (98% frontend pass)
 
 ## Prioritized Backlog
 
