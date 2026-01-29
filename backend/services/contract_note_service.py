@@ -138,15 +138,32 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     
     elements = []
     
-    # ==================== HEADER ====================
+    # ==================== HEADER WITH LOGO ====================
     company_name = company.get("company_name", "SMIFS Capital Markets Ltd")
     company_address = company.get("company_address", "")
+    logo_url = company.get("logo_url")
     
-    elements.append(Paragraph(f"<b>{company_name}</b>", title_style))
+    # Create header with logo and company name side by side
+    header_content = []
+    
+    # Check if logo exists and add it
+    if logo_url:
+        logo_path = f"/app{logo_url}" if logo_url.startswith("/uploads") else logo_url
+        if os.path.exists(logo_path):
+            try:
+                logo_img = Image(logo_path, width=1.5*cm, height=1.5*cm)
+                logo_img.hAlign = 'LEFT'
+                header_content.append(logo_img)
+            except Exception as e:
+                # If logo fails to load, skip it
+                pass
+    
+    # Company name and details
+    company_info = f"<b>{company_name}</b>"
     if company_address:
-        elements.append(Paragraph(company_address, header_style))
+        company_info += f"<br/><font size='9' color='#555555'>{company_address}</font>"
     
-    # Company registration details
+    # Registration details
     reg_details = []
     if company.get("company_cin"):
         reg_details.append(f"CIN: {company.get('company_cin')}")
@@ -156,7 +173,46 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
         reg_details.append(f"GST: {company.get('company_gst')}")
     
     if reg_details:
-        elements.append(Paragraph(" | ".join(reg_details), header_style))
+        company_info += f"<br/><font size='8' color='#666666'>{' | '.join(reg_details)}</font>"
+    
+    # Create header table with logo and company info
+    if logo_url and os.path.exists(f"/app{logo_url}" if logo_url.startswith("/uploads") else logo_url):
+        try:
+            logo_path = f"/app{logo_url}" if logo_url.startswith("/uploads") else logo_url
+            logo_img = Image(logo_path, width=2*cm, height=2*cm)
+            
+            header_table_data = [[
+                logo_img,
+                Paragraph(company_info, ParagraphStyle(
+                    'CompanyHeader',
+                    parent=styles['Normal'],
+                    fontSize=12,
+                    alignment=TA_CENTER,
+                    leading=14
+                ))
+            ]]
+            
+            header_table = Table(header_table_data, colWidths=[2.5*cm, 14*cm])
+            header_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            elements.append(header_table)
+        except:
+            # Fallback to text-only header
+            elements.append(Paragraph(f"<b>{company_name}</b>", title_style))
+            if company_address:
+                elements.append(Paragraph(company_address, header_style))
+            if reg_details:
+                elements.append(Paragraph(" | ".join(reg_details), header_style))
+    else:
+        # Text-only header (no logo)
+        elements.append(Paragraph(f"<b>{company_name}</b>", title_style))
+        if company_address:
+            elements.append(Paragraph(company_address, header_style))
+        if reg_details:
+            elements.append(Paragraph(" | ".join(reg_details), header_style))
     
     elements.append(Spacer(1, 0.3*cm))
     elements.append(HRFlowable(width="100%", thickness=2, color=colors.Color(0.02, 0.3, 0.23)))
