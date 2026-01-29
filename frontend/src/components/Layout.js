@@ -145,9 +145,10 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Database, label: 'DB Backup', path: '/database-backup' });
   }
 
-  // Company Master - PE Desk only (role 1)
+  // Company Master & Bulk Upload - PE Desk only (role 1)
   if (user.role === 1) {
     menuItems.push({ icon: Building2, label: 'Company Master', path: '/company-master' });
+    menuItems.push({ icon: Upload, label: 'Bulk Upload', path: '/bulk-upload' });
   }
 
   return (
