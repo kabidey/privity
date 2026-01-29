@@ -112,13 +112,25 @@ const Layout = ({ children }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
     { icon: Users, label: 'Clients', path: '/clients' },
-    { icon: Building2, label: 'Vendors', path: '/vendors' },
-    { icon: Package, label: 'Stocks', path: '/stocks' },
-    { icon: ShoppingCart, label: 'Purchases', path: '/purchases' },
+  ];
+
+  // Vendors - PE Level only (roles 1 & 2)
+  if (user.role === 1 || user.role === 2) {
+    menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
+  }
+  
+  menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
+  
+  // Purchases - PE Desk and PE Manager only (roles 1 & 2)
+  if (user.role === 1 || user.role === 2) {
+    menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
+  }
+  
+  menuItems.push(
     { icon: Boxes, label: 'Inventory', path: '/inventory' },
     { icon: FileText, label: 'Bookings', path: '/bookings' },
-    { icon: BarChart3, label: 'Reports', path: '/reports' },
-  ];
+    { icon: BarChart3, label: 'Reports', path: '/reports' }
+  );
 
   // Add finance for Finance role or PE level
   if (user.role === 7 || user.role === 1 || user.role === 2) {
