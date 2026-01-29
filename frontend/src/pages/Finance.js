@@ -85,8 +85,7 @@ const Finance = () => {
       setSummary(summaryRes.data);
       setRefundRequests(refundsRes.data);
       setRpPayments(rpPaymentsRes.data || []);
-      setEmployeeCommissions(commissionsRes.data || []);
-      setCommissionSummary(commSummaryRes.data || []);
+      setBpPayments(bpPaymentsRes.data || []);
     } catch (error) {
       toast.error('Failed to fetch finance data');
     } finally {
