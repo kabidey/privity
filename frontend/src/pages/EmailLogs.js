@@ -532,11 +532,26 @@ const EmailLogs = () => {
                       {stats.recent_failures.map((failure) => (
                         <div key={failure.id} className="border rounded-lg p-3 bg-red-50">
                           <div className="flex justify-between items-start">
-                            <div>
+                            <div className="flex-1">
                               <p className="font-medium">{failure.to_email}</p>
                               <p className="text-sm text-gray-600">{failure.subject}</p>
                             </div>
-                            <span className="text-xs text-gray-400">{formatDate(failure.created_at)}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-400">{formatDate(failure.created_at)}</span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleResendEmail(failure)}
+                                disabled={resending === failure.id}
+                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              >
+                                {resending === failure.id ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Send className="w-3 h-3" />
+                                )}
+                              </Button>
+                            </div>
                           </div>
                           {failure.error_message && (
                             <p className="text-sm text-red-600 mt-2 bg-red-100 p-2 rounded">
