@@ -36,29 +36,49 @@ SMTP_PRESETS = {
         "name": "Microsoft 365 / Outlook",
         "smtp_host": "smtp.office365.com",
         "smtp_port": 587,
-        "smtp_use_tls": True,
-        "smtp_use_ssl": False
+        "use_tls": True,
+        "use_ssl": False,
+        "notes": "Use App Password if MFA is enabled"
     },
     "google": {
         "name": "Google Workspace / Gmail",
         "smtp_host": "smtp.gmail.com",
         "smtp_port": 587,
-        "smtp_use_tls": True,
-        "smtp_use_ssl": False
+        "use_tls": True,
+        "use_ssl": False,
+        "notes": "Enable 'Less secure apps' or use App Password"
     },
     "sendgrid": {
         "name": "SendGrid",
         "smtp_host": "smtp.sendgrid.net",
         "smtp_port": 587,
-        "smtp_use_tls": True,
-        "smtp_use_ssl": False
+        "use_tls": True,
+        "use_ssl": False,
+        "notes": "Use API key as password, 'apikey' as username"
     },
     "amazon_ses": {
         "name": "Amazon SES",
         "smtp_host": "email-smtp.us-east-1.amazonaws.com",
         "smtp_port": 587,
-        "smtp_use_tls": True,
-        "smtp_use_ssl": False
+        "use_tls": True,
+        "use_ssl": False,
+        "notes": "Use SMTP credentials from AWS Console"
+    },
+    "zoho": {
+        "name": "Zoho Mail",
+        "smtp_host": "smtp.zoho.com",
+        "smtp_port": 587,
+        "use_tls": True,
+        "use_ssl": False,
+        "notes": "Use App Password for enhanced security"
+    },
+    "mailgun": {
+        "name": "Mailgun",
+        "smtp_host": "smtp.mailgun.org",
+        "smtp_port": 587,
+        "use_tls": True,
+        "use_ssl": False,
+        "notes": "Use domain credentials from Mailgun dashboard"
     }
 }
 
