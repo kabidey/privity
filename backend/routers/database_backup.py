@@ -19,7 +19,7 @@ from config import is_pe_level, is_pe_desk_only
 
 router = APIRouter(prefix="/database", tags=["Database Management"])
 
-# Collections to backup
+# Collections to backup - comprehensive list
 BACKUP_COLLECTIONS = [
     "users",
     "clients", 
@@ -31,7 +31,19 @@ BACKUP_COLLECTIONS = [
     "notifications",
     "audit_logs",
     "email_templates",
-    "smtp_settings"
+    "email_logs",
+    "smtp_settings",
+    "referral_partners",
+    "rp_payments",
+    "business_partners",
+    "bp_otps",
+    "company_master",
+    "contract_notes",
+    "employee_commissions",
+    "counters",
+    "password_resets",
+    "refund_requests",
+    "sohini_chats",
 ]
 
 
