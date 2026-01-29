@@ -23,6 +23,7 @@ import DPTransferReport from './pages/DPTransferReport';
 import DatabaseBackup from './pages/DatabaseBackup';
 import Finance from './pages/Finance';
 import ReferralPartners from './pages/ReferralPartners';
+import CompanyMaster from './pages/CompanyMaster';
 import Layout from './components/Layout';
 import './App.css';
 
