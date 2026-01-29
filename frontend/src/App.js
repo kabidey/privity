@@ -81,6 +81,7 @@ function App() {
                         <Route path="/email-server" element={<EmailServerConfig />} />
                         <Route path="/dp-transfer" element={<DPTransferReport />} />
                         <Route path="/dp-receivables" element={<DPReceivables />} />
+                        <Route path="/dp-transfer-client" element={<DPTransferClient />} />
                         <Route path="/database-backup" element={<DatabaseBackup />} />
                         <Route path="/finance" element={<Finance />} />
                         <Route path="/referral-partners" element={<ReferralPartners />} />
