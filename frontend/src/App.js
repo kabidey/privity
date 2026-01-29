@@ -99,6 +99,8 @@ function App() {
                     <FloatingNotifications />
                     {/* Dialog for important notifications */}
                     <NotificationDialog />
+                    {/* Sohini AI Assistant */}
+                    <SohiniAssistant />
                   </NotificationProvider>
                 </PrivateRoute>
               }
