@@ -202,6 +202,26 @@ async def add_purchase_payment(
             {"id": purchase_id},
             {"$set": {"payment_status": "completed"}}
         )
+        
+        # Payment completed - send stock transfer request email to vendor
+        vendor = await db.clients.find_one(
+            {"id": purchase.get("vendor_id"), "is_vendor": True},
+            {"_id": 0}
+        )
+        stock = await db.stocks.find_one({"id": purchase.get("stock_id")}, {"_id": 0})
+        company_master = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
+        
+        if vendor and company_master:
+            await send_stock_transfer_request_email(
+                purchase_id=purchase_id,
+                vendor=vendor,
+                purchase=purchase,
+                stock=stock,
+                total_paid=new_total_paid,
+                payment_date=payment_doc["created_at"],
+                company_master=company_master,
+                cc_email=current_user.get("email")
+            )
     else:
         await db.purchases.update_one(
             {"id": purchase_id},
