@@ -158,10 +158,22 @@ const Layout = ({ children }) => {
   };
 
   // Build menu items based on user role
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: Users, label: 'Clients', path: '/clients' },
-  ];
+  const menuItems = [];
+  
+  // Role-specific dashboards as first item
+  if (user.role === 1 || user.role === 2) {
+    menuItems.push({ icon: Shield, label: 'PE Dashboard', path: '/pe-dashboard' });
+  } else if (user.role === 7) {
+    menuItems.push({ icon: Banknote, label: 'Finance Dashboard', path: '/finance-dashboard' });
+  } else if (user.role === 6) {
+    menuItems.push({ icon: Wallet, label: 'My Portfolio', path: '/client-dashboard' });
+  } else if (user.role === 3 || user.role === 4 || user.role === 5) {
+    menuItems.push({ icon: User, label: 'My Dashboard', path: '/my-dashboard' });
+  }
+  
+  // General Dashboard for all
+  menuItems.push({ icon: LayoutDashboard, label: 'Dashboard', path: '/' });
+  menuItems.push({ icon: Users, label: 'Clients', path: '/clients' });
 
   // Vendors - PE Level only (roles 1 & 2)
   if (user.role === 1 || user.role === 2) {
