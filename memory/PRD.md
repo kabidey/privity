@@ -355,6 +355,7 @@ rp_payments: {
 - `/app/test_reports/iteration_32.json` - Company Master Settings feature (13/13 tests passed)
 - `/app/test_reports/iteration_33.json` - Contract Notes Generation feature (19/19 tests passed)
 - `/app/test_reports/iteration_34.json` - Contract Notes Email Attachments & Auto-Generation (30/30 tests passed)
+- `/app/test_reports/iteration_35.json` - Company Logo Upload feature (11/11 tests passed)
 
 ## Prioritized Backlog
 
