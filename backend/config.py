@@ -47,7 +47,8 @@ ROLES = {
     5: "Employee",
     6: "Viewer",
     7: "Finance",
-    8: "Business Partner"
+    8: "Business Partner",
+    9: "Partners Desk"
 }
 
 # Role Permissions
@@ -62,7 +63,8 @@ ROLE_PERMISSIONS = {
     5: ["view_own", "create_bookings", "view_clients", "create_clients"],
     6: ["view_own"],
     7: ["view_own", "create_bookings", "view_clients", "create_clients", "view_finance", "manage_finance"],  # Finance - Employee + full Finance access
-    8: ["view_own", "create_bookings", "view_clients", "create_clients", "view_bp_dashboard", "view_bp_reports"]  # Business Partner - can create bookings and clients, view own dashboard
+    8: ["view_own", "create_bookings", "view_clients", "create_clients", "view_bp_dashboard", "view_bp_reports"],  # Business Partner - can create bookings and clients, view own dashboard
+    9: ["view_own", "create_bookings", "view_clients", "create_clients", "manage_business_partners", "view_bp_revenue", "add_business_partners"]  # Partners Desk - Employee + BP management (no delete)
 }
 
 
