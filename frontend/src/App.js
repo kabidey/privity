@@ -69,6 +69,7 @@ function App() {
                         <Route path="/finance" element={<Finance />} />
                         <Route path="/referral-partners" element={<ReferralPartners />} />
                         <Route path="/company-master" element={<CompanyMaster />} />
+                        <Route path="/contract-notes" element={<ContractNotes />} />
                       </Routes>
                     </Layout>
                   </NotificationProvider>
