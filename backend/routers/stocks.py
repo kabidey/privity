@@ -416,11 +416,13 @@ async def notify_clients_for_corporate_action(action_id: str):
         
         # Send email
         try:
-            await send_templated_email(
+            await send_email(
                 to_email=email,
                 subject=subject,
-                html_content=html_content,
-                template_key="corporate_action_notification"
+                body=html_content,
+                template_key="corporate_action_notification",
+                related_entity_type="corporate_action",
+                related_entity_id=action_id
             )
             notified_count += 1
         except Exception as e:
