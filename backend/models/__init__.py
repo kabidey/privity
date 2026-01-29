@@ -369,8 +369,8 @@ class BookingWithDetails(BaseModel):
     notes: Optional[str] = None
     profit_loss: Optional[float] = None
     created_at: str
-    created_by: str
-    created_by_name: str
+    created_by: Optional[str] = None
+    created_by_name: Optional[str] = None
     # Booking type
     booking_type: str = "client"  # "client", "team", or "own"
     insider_form_uploaded: bool = False
@@ -380,6 +380,11 @@ class BookingWithDetails(BaseModel):
     rp_code: Optional[str] = None
     rp_name: Optional[str] = None
     rp_revenue_share_percent: Optional[float] = None
+    # Business Partner
+    business_partner_id: Optional[str] = None
+    bp_name: Optional[str] = None
+    bp_revenue_share_percent: Optional[float] = None
+    is_bp_booking: bool = False
     # Employee Revenue Share (reduced by RP share when applicable)
     employee_revenue_share_percent: Optional[float] = None  # Employee's final share after RP deduction
     base_employee_share_percent: float = 100.0  # Default before any deductions
