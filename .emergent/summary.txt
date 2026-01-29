@@ -1,86 +1,73 @@
 <analysis>**original_problem_statement:**
 The user's initial goal was to restore and enhance their Privity - Share Booking System application.
 
-During this session, the user requested several new features and bug fixes:
-1.  **RP Approval/Rejection Emails**: Send an email notification to a Referral Partner (RP) when their application is approved or rejected.
-2.  **High RP Share Warning**: Display a prominent warning popup when an employee attempts to assign more than 30% revenue share to an RP in the booking form.
-3.  **Real-time Alert Enhancements**: When a new notification arrives via WebSocket, play a sound and animate the notification bell icon to attract attention.
-4.  **Capture RP Bank Details**: Add fields to capture and display RP bank details (Bank Name, IFSC Code, Account Number) during RP creation and viewing.
-5.  **Strict Entity Separation**:
-    *   A client cannot be an RP, and an RP cannot be a client. Enforce this at creation using PAN/email checks.
-    *   An employee cannot be an RP. Capture employee PAN at registration and enforce this rule.
-    *   If a booking is made for a client who is also an RP (by PAN match), automatically set the RP's revenue share to 0 for that booking.
-6.  **Passwordless Registration**: Remove the password field from the user registration form. Instead, auto-generate a password and email it to the new user. Provide a Change Password feature for logged-in users.
-7.  **Microsoft SSO**: Implement Single Sign-On using Microsoft Azure AD. New users signing in via SSO should default to the Employee role.
-8.  **Code Cleanup**: Check for and remove duplicate code in the backend, and optimize for slow responses.
-9.  **Backend Refactoring**: Migrate all remaining endpoints from the monolithic  file into modular router files.
+During the course of development, the user requested a wide range of features, including:
+*   **Core Features & Fixes:** RP approval/rejection emails, a warning popup for high RP revenue share, real-time alert enhancements (sound/animation), capturing RP bank details, enforcing strict entity separation (Client/RP/Employee), passwordless registration, and Microsoft SSO integration.
+*   **Backend Overhaul:** A major refactoring to migrate all endpoints from a monolithic  into a modular router-based architecture and remove duplicate code.
+*   **Auditing & Documentation:** An email audit log system and the generation of a comprehensive PDF documenting the system architecture and all API endpoints.
+*   **Company & Contract Management:** A Company Master settings page to store company details, logo, and legal documents. This data is used to generate and email PDF Contract Notes to clients automatically after a share transfer is completed.
+*   **UI/UX:** A fix for mobile responsiveness issues and a complete redesign of the theme to be iPhone-style.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack PRIVITY application that now includes a robust set of new features and significant backend improvements. The agent has successfully implemented:
-- Email notifications for Referral Partner (RP) status changes.
-- A dynamic, modal-based warning system for high RP revenue share in the booking form.
-- Audio and visual enhancements for real-time notifications.
-- The ability to capture and store RP bank details.
-- A comprehensive set of backend and frontend rules to enforce strict separation between Client, RP, and Employee entities based on PAN numbers.
-- A new user registration flow with auto-generated passwords sent via email, and a Change Password feature for logged-in users.
-- A complete, but currently inactive, Microsoft Azure AD SSO integration. The frontend and backend are ready; it requires the user to provide Azure credentials in the  file to activate.
-- A major code cleanup, removing over 700 lines of duplicate code from  and adding database indexes to improve query performance.
+A full-stack application with a React frontend and a fully modularized FastAPI backend. All initial user requests (RP management, entity separation, passwordless auth, etc.) have been implemented. The major backend refactoring is complete and tested.
+
+Several new, significant features were also completed in this session:
+-   **Email Audit Logging**: A new page and backend service to track all emails sent by the system.
+-   **Company Master Settings**: A PE Desk-only page to manage company information, documents, and a new company logo.
+-   **Contract Note Automation**: A complete system to automatically generate, store, and email PDF contract notes to clients upon deal completion, pulling seller data from the Company Master settings.
+-   **System Documentation**: A downloadable PDF with full architecture and API documentation has been generated.
+
+The application is currently in the middle of a major frontend UI/UX overhaul requested by the user.
 
 **Last working item**:
--   **Last item agent was working**: The agent was starting the final major refactoring task: migrating all remaining API endpoints from the monolithic  file into new, domain-specific router files. The agent has already created the empty router files (, , , , ) and was about to begin moving the code.
+-   **Last item agent was working**: Implementing a complete UI/UX overhaul to fix mobile responsiveness and apply a new iPhone-style theme. The agent replaced the main layout component () and was about to update the global CSS file () to match the new design.
 -   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: both
+-   **Which testing method agent to use?**: frontend testing agent
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: (P0) Complete the migration of endpoints from  to modular routers.
-    -   **Attempted fixes**: New router files have been created. No code has been moved yet.
+-   **Issue 1**: (P0) Complete the UI/UX overhaul for mobile responsiveness and the new theme.
+    -   **Attempted fixes**: The agent has replaced  with a new mobile-first version.
     -   **Next debug checklist**:
-        1.  Identify a logical group of endpoints in  (e.g., all  endpoints).
-        2.  Cut the endpoint functions and their dependencies from .
-        3.  Paste them into the appropriate new router file (e.g., ).
-        4.  Ensure all necessary imports (Pydantic models, helper functions, etc.) are added to the new router file.
-        5.  Include the new router in  using .
-        6.  Repeat this process for all remaining endpoints in  until it only contains core application setup logic.
-        7.  Perform a full regression test after the migration is complete.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will complete the backend modularization, making the code significantly more organized, maintainable, and easier to debug. It will eliminate the monolithic file structure.
+        1.  Modify  to add new global styles, CSS variables for the iOS-style theme, and animations for the slide-over mobile menu.
+        2.  Test the application on both desktop and mobile viewports to ensure the layout is correct and the mobile menu functions without overlapping content.
+        3.  Conduct a visual check on all pages to ensure components render correctly with the new theme.
+        4.  Run the frontend testing agent to perform a comprehensive regression test on the UI.
+    -   **Why fix this issue and what will be achieved with the fix?**: The user reported that the application is not mobile-friendly and the navigation menu overlaps content. This fix will resolve these usability issues and deliver the requested modern UI design.
     -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Should Test frontend/backend/both after fix?**: frontend
     -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   **Task 1**: (P0) Migrate all remaining endpoints from  to modular routers.
-    -   **Where to resume**: The new router files have been created in . The next step is to start moving the endpoint logic from  into these new files, starting with the authentication-related endpoints into .
-    -   **What will be achieved with this?**: A fully modular and maintainable backend architecture.
+-   **Task 1**: (P0) Complete the UI/UX Redesign
+    -   **Where to resume**: The  component has been updated. The next step is to implement the corresponding styles in .
+    -   **What will be achieved with this?**: A fully mobile-responsive application with a modern, iPhone-style theme, as requested by the user.
     -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Should Test frontend/backend/both after fix?**: frontend
     -   **Blocked on something**: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
+    -   **(P1)** Integrate the uploaded company logo into the header of the generated Contract Note PDF.
     -   **(P1)** Create a dashboard view for Referral Partners to see their generated revenue.
-    -   **(P2)** Create backend API documentation (e.g., Swagger/OpenAPI).
 -   **Future Tasks**:
-    -   **(P2)** Implement an email sending history/log for auditing.
+    -   **(P2)** Implement a Resend Email button on the Email Logs page for failed or unreceived emails.
     -   **(P2)** Implement Two-Factor Authentication (TOTP).
     -   **(P2)** Implement a bulk booking closure feature.
-    -   **(P2)** Add configurable thresholds for loss-booking auto-approval.
     -   **(P2)** Create role-specific dashboards.
+    -   **(P2)** Add configurable thresholds for loss-booking auto-approval.
 
 **Completed work in this session**
--   **Feature - RP Approval/Rejection Emails**: Implemented email notifications sent to RPs when their status is changed.
--   **Feature - High RP Share Warning**: Created a frontend warning popup in the booking form for RP revenue share > 30%.
--   **Feature - Real-time Alert Enhancements**: Added sound and animation to the notification bell for new alerts.
--   **Feature - RP Bank Details**: Added functionality to capture and display RP bank details.
--   **Feature - Strict Entity Separation**: Implemented backend and frontend logic to prevent Clients, RPs, and Employees from having overlapping identities based on PAN.
--   **Feature - Passwordless Registration**: Refactored the registration flow to use auto-generated passwords sent via email and added a Change Password feature.
--   **Feature - Microsoft SSO Integration**: Set up the complete framework for Microsoft Azure AD SSO, pending user-provided credentials.
--   **Task - Code Cleanup & Performance**: Removed ~770 lines of duplicate code from  and added database indexes for performance.
--   **Task - Backend Refactoring Verification**: Successfully completed a full regression test, confirming the stability of a major refactoring from the previous session.
+-   **Task - Backend Modularization**: Successfully migrated all remaining API endpoints from  into 18+ domain-specific router files.
+-   **Feature - Email Audit Logging**: Implemented a complete system to log and view all system-sent emails via a new frontend page.
+-   **Task - System Documentation PDF**: Generated and provided a downloadable PDF with the full system architecture, dependencies, and API documentation.
+-   **Feature - Company Master Settings**: Created a new page for PE Desk users to manage core company information, tax details, bank accounts, and legal documents.
+-   **Feature - Company Logo Upload**: Added functionality to the Company Master page to upload and display a persistent company logo.
+-   **Feature - Contract Note Automation**: Built a full lifecycle feature to generate PDF contract notes using company master data, and automatically email them with attachments upon successful deal completion.
 
 **Earlier issues found/mentioned but not fixed**
 None.
@@ -92,78 +79,87 @@ N/A
 
 
 **Key Technical Concepts**
--   **Frontend**: React.js, Tailwind CSS, Shadcn UI, Axios, MSAL-React
--   **Backend**: Python, FastAPI, Pydantic, MSAL (Python)
--   **Database**: MongoDB
--   **Authentication**: JWT, Microsoft Azure AD SSO (OAuth 2.0)
--   **Backend Refactoring**: Ongoing migration from a monolithic  to modular  files.
+-   **Frontend**: React.js, Tailwind CSS, Shadcn UI, Axios, MSAL-React.
+-   **Backend**: Python, FastAPI, Pydantic, Motor (async MongoDB).
+-   **Database**: MongoDB.
+-   **PDF Generation**:  for creating documents,  for formatting.
+-   **Authentication**: JWT & Microsoft Azure AD SSO.
+-   **Real-time**: WebSockets.
 
 **key DB schema**
--   **users**:  (new field)
--   **referral_partners**:  (new fields)
+-   **company_master**: 
+-   **email_logs**: 
+-   **contract_notes**: 
 
 **changes in tech stack**
--   Added **MSAL** ( for backend,  for frontend) for Microsoft SSO integration.
+-   : Added as a new backend dependency for PDF generation.
 
 **All files of reference**
--   : The main file being refactored. Contains endpoints that need to be moved.
--   : The destination for the refactored endpoints. The new empty files are , , , , .
--   : Contains updated Pydantic models for User and ReferralPartner.
--   : Contains the new logic for creating database indexes on startup.
--   : Contains the updated registration flow and SSO button logic.
--   : Contains the new warning popups and client-RP conflict logic.
--   : Contains the new form fields for bank details.
--   : Contains the new Change Password dialog.
+-   **/app/frontend/src/components/Layout.js**: Heavily modified for the new UI theme.
+-   **/app/frontend/src/index.css**: The next file to be modified to complete the UI theme.
+-   **/app/backend/server.py**: Final slimmed-down version.
+-   **/app/backend/routers/company_master.py**: New router for company settings.
+-   **/app/backend/routers/contract_notes.py**: New router for contract note generation.
+-   **/app/backend/routers/email_logs.py**: New router for email auditing.
+-   **/app/backend/services/contract_note_service.py**: New service for PDF generation.
+-   **/app/frontend/src/pages/CompanyMaster.js**: New frontend page for company settings.
+-   **/app/frontend/src/pages/ContractNotes.js**: New frontend page for contract notes.
+-   **/app/frontend/src/pages/EmailLogs.js**: New frontend page for email audit logs.
+-   **/app/public/PRIVITY_System_Documentation.pdf**: Generated documentation artifact.
 
 **Areas that need refactoring**:
--   ****: The file is the primary target for refactoring. The task to migrate its endpoints is currently in progress.
+-   The frontend UI is the main area currently undergoing changes. Other components may need minor style adjustments to align with the new  and  theme.
 
 **key api endpoints**
--   **New (SSO)**:
-    -   
-    -   
-    -   
--   **New (Password Management)**:
-    -   
--   **New (Conflict Check)**:
-    -   
--   **Modified (Registration)**:
-    -    (now passwordless, includes PAN)
-
-**Critical Info for New Agent**
-1.  **Resume Refactoring**: Your immediate and highest priority task is to continue the migration of endpoints from  into the newly created modular router files in . The files exist but are empty. Follow the plan outlined in the Pending Issues section.
-2.  **SSO Configuration**: The Microsoft SSO integration is fully implemented in the code but is disabled by default. It will only become active when a user provides the  and  in the  file. Inform the user about this requirement if they ask to test the SSO functionality.
-3.  **Database Indexes**: On startup, the backend now automatically creates several indexes in MongoDB to improve query performance. You can see a log message Database indexes created successfully in the backend logs to confirm this.
-
-**documents and test reports created in this job**
--    (updated multiple times)
+-   
+-   
+-   
+-   
+-   
+-   
 -   
 
+**Critical Info for New Agent**
+1.  **Complete the UI Overhaul**: Your immediate and highest priority is to complete the UI/UX redesign. The  component has been replaced. You must now implement the corresponding CSS in  to create the iPhone-style theme and fix the mobile responsiveness issues.
+2.  **Frontend Regression Testing is CRITICAL**: After implementing the CSS changes, you must perform a thorough regression test of the entire frontend. Use the  to ensure all pages are functional and visually correct with the new theme.
+3.  **Backend is Stable**: The backend has been completely refactored into a modular architecture and all new features are fully tested. You should not need to make backend changes unless they are related to a new feature request.
+
+**documents and test reports created in this job**
+-   /app/public/PRIVITY_System_Documentation.pdf
+-   /app/test_reports/iteration_30.json
+-   /app/test_reports/iteration_31.json
+-   /app/test_reports/iteration_32.json
+-   /app/test_reports/iteration_33.json
+-   /app/test_reports/iteration_34.json
+-   /app/test_reports/iteration_35.json
+
 **Last 10 User Messages and any pending HUMAN messages**
-1.   (IN PROGRESS)
-2.   (COMPLETED)
-3.   ->  (COMPLETED)
-4.   (COMPLETED)
-5.   (COMPLETED)
-6.   (COMPLETED)
-7.   (COMPLETED)
-8.   (COMPLETED)
-9.   (COMPLETED)
 10.  (COMPLETED)
+9.   (COMPLETED)
+8.   (COMPLETED)
+7.   (COMPLETED)
+6.   (COMPLETED)
+5.   (COMPLETED)
+4.   (IN PROGRESS)
+3.   (IN PROGRESS)
+2.  (No message)
+1.   (PENDING - This request)
 
 **Project Health Check:**
--   **Broken**: None
--   **Mocked**: None
+-   **Broken**: None.
+-   **Mocked**: None.
 -   **In Progress**:
-    -   Backend refactoring: Migrating endpoints from  to modular routers.
+    -   Frontend UI/UX Redesign (Mobile responsiveness and new theme).
 
 **3rd Party Integrations**
--   **OpenAI via **: Used for OCR on document uploads. Uses the Emergent LLM Key.
--   ****: Used for generating  Excel files for export.
--   **Microsoft Authentication Library (MSAL)**:  (Python) and  (JS) for Azure AD SSO. Requires User API Key.
+-   **OpenAI via **: Active for Document OCR. Uses Emergent LLM Key.
+-   **Microsoft Authentication Library (MSAL)**: Ready for Azure AD SSO. Requires User API Key.
+-   ****: For generating  files.
+-   ****: For generating PDF documents.
+-   ****: For converting numbers to words in PDFs.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES (For the major refactoring from the previous session)
+-   **Testing agent used after significant changes**: YES (used for every major feature completion)
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
 -   **Known regressions**: None
@@ -175,4 +171,4 @@ N/A
 -   **Finance**:  / 
 
 **What agent forgot to execute**
-The agent has successfully addressed all user requests from this session.</analysis>
+The agent has successfully addressed all user requests and was actively working on the latest one before this handoff. No tasks were forgotten.</analysis>
