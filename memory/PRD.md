@@ -793,5 +793,7 @@ rp_payments: {
 - [ ] Bulk booking closure feature
 - [ ] Configurable thresholds for loss-booking auto-approval
 
-## Known Issues
-- OTP and system emails require SMTP configuration (not a code bug - user must configure via Email Server Config page)
+## Known Issues Fixed
+- OTP and system emails not being sent (requires SMTP configuration via Email Server Config page)
+- SMTP Collection Mismatch (Jan 29, 2026): Fixed email service to read from `smtp_settings` collection instead of `email_config`
+- Default User Role Bug (Jan 29, 2026): Fixed new users being created as Manager (role 4) instead of Employee (role 5)
