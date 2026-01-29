@@ -101,6 +101,8 @@ const CompanyMaster = () => {
         pan_card_url: data.pan_card_url
       });
       
+      setLogoUrl(data.logo_url);
+      
       setLastUpdated({
         at: data.updated_at,
         by: data.updated_by
