@@ -200,14 +200,15 @@ const Clients = () => {
       }
     }
     
-    // Check if any comparison is below 50%
-    const failedComparisons = comparisons.filter(c => c.similarity < 50);
+    // Check if any comparison is below 30% threshold
+    const NAME_MATCH_THRESHOLD = 30;
+    const failedComparisons = comparisons.filter(c => c.similarity < NAME_MATCH_THRESHOLD);
     
     if (failedComparisons.length > 0) {
       const failed = failedComparisons[0];
       return {
         valid: false,
-        message: `Name mismatch detected! "${failed.name1}" (${failed.doc1}) vs "${failed.name2}" (${failed.doc2}) - Only ${failed.similarity}% match. Names must match at least 50%.`
+        message: `Name mismatch detected! "${failed.name1}" (${failed.doc1}) vs "${failed.name2}" (${failed.doc2}) - Only ${failed.similarity}% match. Names must match at least ${NAME_MATCH_THRESHOLD}%.`
       };
     }
     
