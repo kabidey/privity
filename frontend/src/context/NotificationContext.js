@@ -286,11 +286,18 @@ export const NotificationProvider = ({ children }) => {
     isConnected,
     hasNewNotification,
     setHasNewNotification,
+    floatingNotifications,
+    dismissFloatingNotification,
+    showNotificationDialog,
+    setShowNotificationDialog,
+    latestNotification,
     fetchNotifications,
     fetchUnreadCount,
     markAsRead,
     markAllAsRead,
-    connectWebSocket
+    connectWebSocket,
+    playNotificationSound,
+    playUrgentSound
   };
 
   return (
