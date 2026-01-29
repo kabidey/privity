@@ -467,6 +467,9 @@ const Login = () => {
             )}
             </>
             )}
+
+            {/* Toggle between Sign In / Sign Up - only for Employee login */}
+            {!registrationSuccess && loginType === 'employee' && (
             <div className="mt-4 text-center text-sm">
               <button
                 type="button"
