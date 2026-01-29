@@ -822,3 +822,13 @@ rp_payments: {
   - "Received" button with NSDL/CDSL selection dialog
   - Once received, stock added to inventory automatically
   - Audit logging for all DP receive actions
+
+- **DP Transfer (Client) System**: Transfer stocks to clients after full payment with:
+  - New "DP Transfer" page accessible from sidebar (PE Desk/Manager only)
+  - When booking payment is 100% complete, booking marked as "DP Ready"
+  - Two tabs: "DP Ready" (ready to transfer) and "Transferred" (completed)
+  - Summary cards showing ready and transferred counts
+  - "Transfer" button with NSDL/CDSL selection dialog
+  - Once transferred, inventory deducted and client notified via email
+  - Email includes T+2 settlement date calculation (excludes weekends)
+  - Audit logging for all DP transfer actions
