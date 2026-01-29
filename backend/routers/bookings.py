@@ -1151,7 +1151,7 @@ async def get_dp_ready_bookings(current_user: dict = Depends(get_current_user)):
     return bookings
 
 
-@router.get("/dp-transferred")
+@router.get("/bookings/dp-transferred")
 async def get_dp_transferred_bookings(current_user: dict = Depends(get_current_user)):
     """Get all bookings where stock has been transferred"""
     user_role = current_user.get("role", 6)
