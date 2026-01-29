@@ -719,6 +719,35 @@ rp_payments: {
   - `version:bump`: Manual version increment command
 - **Testing**: Verified via screenshot - "PRIVITY v1.0.0" displayed in top left
 
+#### ✅ Kill Switch (Emergency System Freeze) - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **Backend Router** (`/app/backend/routers/kill_switch.py`):
+  - `GET /api/kill-switch/status` - Public endpoint to check system freeze status
+  - `POST /api/kill-switch/activate` - PE Desk only, activates system freeze with 3-min cooldown
+  - `POST /api/kill-switch/deactivate` - PE Desk only, deactivates after cooldown expires
+  - 180-second (3 minute) cooldown before deactivation is allowed
+  - All actions logged to audit_logs collection
+- **Middleware** (`/app/backend/middleware/kill_switch.py`):
+  - Intercepts all API requests when kill switch is active
+  - Returns 503 error with "System is temporarily frozen" message
+  - PE Desk (role 1) is exempt and can still access all endpoints
+  - Allows essential endpoints: login, status check, kill switch management
+- **Email Service Integration** (`/app/backend/services/email_service.py`):
+  - All emails are blocked when kill switch is active
+  - Logs skipped emails with reason "Kill switch active - System frozen"
+- **Frontend Components**:
+  - `KillSwitch.js` - Control panel for PE Desk in sidebar
+    - Shows "Kill Switch" button when inactive
+    - Shows "SYSTEM FROZEN" status with countdown timer when active
+    - Shows "Deactivate Kill Switch" button when cooldown expires
+  - `SystemFrozenOverlay.js` - Full-screen overlay for all non-PE users
+    - Displays frozen message, reason, and who activated it
+    - Auto-refreshes when system is restored
+- **Testing**: Verified via API and screenshots
+  - Employee blocked with 503 error when kill switch active
+  - PE Desk can still navigate and manage system
+  - Timer countdown working correctly
+
 ## Prioritized Backlog
 
 ### P0 - Critical (Completed ✅)
