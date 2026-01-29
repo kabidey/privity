@@ -34,6 +34,20 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 28, 2026)
 
+#### ✅ Contract Notes - Email Attachments & Auto-Generation - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- Updated `/app/backend/services/email_service.py`:
+  - `send_email()` function now accepts `attachments` parameter
+  - Supports PDF and other file attachments via MIMEApplication
+- Updated `/app/backend/routers/contract_notes.py`:
+  - `POST /send-email/{note_id}` now reads PDF and attaches to email
+- Updated `/app/backend/server.py` confirm-stock-transfer endpoint:
+  - Auto-generates contract note when DP transfer is confirmed
+  - Auto-sends email with PDF attachment to client
+  - Response includes: `contract_note_generated`, `contract_note_number`, `contract_note_emailed`
+- Email audit logging tracks attachment status
+- **Testing**: 30/30 backend tests passed (iteration_34)
+
 #### ✅ Contract Notes Generation - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
 - Created `/app/backend/services/contract_note_service.py` for PDF generation
