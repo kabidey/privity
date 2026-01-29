@@ -344,6 +344,104 @@ const CompanyMaster = () => {
         </div>
       </div>
 
+      {/* Company Logo Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="w-5 h-5" />
+            Company Logo
+          </CardTitle>
+          <CardDescription>
+            Upload your company logo (PNG, JPG, SVG, WEBP - Max 5MB)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <input
+            type="file"
+            ref={logoInputRef}
+            className="hidden"
+            accept=".png,.jpg,.jpeg,.svg,.webp"
+            onChange={(e) => handleLogoUpload(e.target.files[0])}
+          />
+          
+          <div className="flex items-start gap-8">
+            {/* Logo Preview */}
+            <div className="flex-shrink-0">
+              <div 
+                className="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 overflow-hidden"
+                data-testid="logo-preview-container"
+              >
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt="Company Logo" 
+                    className="max-w-full max-h-full object-contain p-2"
+                    data-testid="company-logo-preview"
+                  />
+                ) : (
+                  <div className="text-center text-gray-400">
+                    <ImageIcon className="w-12 h-12 mx-auto mb-2" />
+                    <p className="text-sm">No logo uploaded</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Logo Actions */}
+            <div className="flex-grow space-y-4">
+              <div>
+                <h4 className="font-medium text-gray-700 mb-2">Logo Guidelines</h4>
+                <ul className="text-sm text-gray-500 space-y-1">
+                  <li>• Recommended size: 400x400 pixels or higher</li>
+                  <li>• Supported formats: PNG, JPG, SVG, WEBP</li>
+                  <li>• Maximum file size: 5MB</li>
+                  <li>• Transparent background recommended for PNG</li>
+                </ul>
+              </div>
+              
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => logoInputRef.current?.click()}
+                  disabled={uploadingLogo}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                  data-testid="upload-logo-btn"
+                >
+                  {uploadingLogo ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {logoUrl ? 'Change Logo' : 'Upload Logo'}
+                    </>
+                  )}
+                </Button>
+                
+                {logoUrl && (
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteLogo}
+                    data-testid="delete-logo-btn"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Remove Logo
+                  </Button>
+                )}
+              </div>
+              
+              {logoUrl && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  <FileCheck className="w-3 h-3 mr-1" />
+                  Logo uploaded successfully
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Company Details Form */}
       <Card>
         <CardHeader>
