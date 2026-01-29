@@ -151,8 +151,8 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Upload, label: 'Bulk Upload', path: '/bulk-upload' });
   }
 
-  // Business Partners - PE Level only (roles 1 & 2)
-  if (user.role === 1 || user.role === 2) {
+  // Business Partners - PE Level and Partners Desk (roles 1, 2 & 9)
+  if (user.role === 1 || user.role === 2 || user.role === 9) {
     menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
   }
 
