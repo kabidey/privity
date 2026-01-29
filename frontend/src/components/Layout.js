@@ -175,16 +175,54 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: LayoutDashboard, label: 'My Dashboard', path: '/bp-dashboard' });
   }
 
+  // Determine if PE level (for status indicator)
+  const isPELevel = user.role === 1 || user.role === 2;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* iOS-style Desktop Sidebar */}
       <aside className="hidden lg:flex lg:flex-col w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 fixed h-full z-40">
-        {/* Header */}
+        {/* Header with Logo and Status Indicator */}
         <div className="p-6 border-b border-gray-200/50 dark:border-gray-800/50">
           <h1 className="text-2xl font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title">
             PRIVITY
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">Private Equity System</p>
+          
+          {/* Status Indicator - Glowing Green/Red Light */}
+          <div className="flex items-center gap-2 mt-3">
+            <div className="relative">
+              {/* Glow effect */}
+              <div 
+                className={`absolute inset-0 rounded-full blur-md ${
+                  isPELevel 
+                    ? 'bg-green-500 animate-pulse' 
+                    : 'bg-red-500 animate-pulse'
+                }`}
+                style={{ opacity: 0.6 }}
+              />
+              {/* Main indicator */}
+              <div 
+                className={`relative w-3 h-3 rounded-full ${
+                  isPELevel 
+                    ? 'bg-green-500 shadow-lg shadow-green-500/50' 
+                    : 'bg-red-500 shadow-lg shadow-red-500/50'
+                }`}
+                style={{
+                  boxShadow: isPELevel 
+                    ? '0 0 10px #22c55e, 0 0 20px #22c55e, 0 0 30px #22c55e' 
+                    : '0 0 10px #ef4444, 0 0 20px #ef4444, 0 0 30px #ef4444'
+                }}
+              />
+            </div>
+            <span className={`text-xs font-medium ${
+              isPELevel 
+                ? 'text-green-600 dark:text-green-400' 
+                : 'text-red-600 dark:text-red-400'
+            }`}>
+              {isPELevel ? 'PE Access Active' : 'Limited Access'}
+            </span>
+          </div>
         </div>
         
         {/* Navigation */}
