@@ -1,73 +1,78 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to restore and enhance their Privity - Share Booking System application.
+The user's initial goal was to restore and enhance their Privity - Share Booking System application. Throughout the development, numerous features were requested and added:
 
-During the course of development, the user requested a wide range of features, including:
-*   **Core Features & Fixes:** RP approval/rejection emails, a warning popup for high RP revenue share, real-time alert enhancements (sound/animation), capturing RP bank details, enforcing strict entity separation (Client/RP/Employee), passwordless registration, and Microsoft SSO integration.
-*   **Backend Overhaul:** A major refactoring to migrate all endpoints from a monolithic  into a modular router-based architecture and remove duplicate code.
-*   **Auditing & Documentation:** An email audit log system and the generation of a comprehensive PDF documenting the system architecture and all API endpoints.
-*   **Company & Contract Management:** A Company Master settings page to store company details, logo, and legal documents. This data is used to generate and email PDF Contract Notes to clients automatically after a share transfer is completed.
-*   **UI/UX:** A fix for mobile responsiveness issues and a complete redesign of the theme to be iPhone-style.
+*   **Core Features & Fixes:** RP approval/rejection emails, a warning popup for high RP revenue share, real-time alert enhancements, capturing RP bank details, enforcing strict entity separation (Client/RP/Employee), passwordless registration, and Microsoft SSO integration.
+*   **Backend Overhaul:** A major refactoring to migrate all endpoints from a monolithic  into a modular router-based architecture.
+*   **Auditing & Documentation:** An email audit log system and a comprehensive PDF documenting the system architecture and all API endpoints.
+*   **Company & Contract Management:** A Company Master settings page to store company details, logo, and legal documents, used to generate and email PDF Contract Notes.
+*   **UI/UX:** A fix for mobile responsiveness issues and a complete redesign to an iPhone-style theme.
+*   **New Features This Session:**
+    *   A bulk upload feature (CSV) for Clients, Vendors, Stocks, Purchases, and Bookings.
+    *   Functionality to record dividends for stocks and notify clients.
+    *   A new Business Partner (BP) user role with OTP-based login, revenue sharing, and mandatory document uploads.
+    *   A dedicated revenue dashboard for Business Partners.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack application with a React frontend and a fully modularized FastAPI backend. All initial user requests (RP management, entity separation, passwordless auth, etc.) have been implemented. The major backend refactoring is complete and tested.
+A full-stack application with a React frontend and a fully modularized FastAPI backend. The application is stable, with all previously requested features implemented and tested.
 
-Several new, significant features were also completed in this session:
--   **Email Audit Logging**: A new page and backend service to track all emails sent by the system.
--   **Company Master Settings**: A PE Desk-only page to manage company information, documents, and a new company logo.
--   **Contract Note Automation**: A complete system to automatically generate, store, and email PDF contract notes to clients upon deal completion, pulling seller data from the Company Master settings.
--   **System Documentation**: A downloadable PDF with full architecture and API documentation has been generated.
-
-The application is currently in the middle of a major frontend UI/UX overhaul requested by the user.
+Major accomplishments from the last session include:
+*   A complete UI/UX overhaul to an iPhone-style, mobile-responsive design.
+*   Fixes for the email preset display and the Clear Database functionality.
+*   Integration of the company logo into generated contract note PDFs.
+*   A new, comprehensive bulk CSV upload feature for multiple data entities.
+*   A system for recording dividend corporate actions and notifying clients.
+*   The initial implementation of a new Business Partner (BP) role with OTP login and a management interface.
 
 **Last working item**:
--   **Last item agent was working**: Implementing a complete UI/UX overhaul to fix mobile responsiveness and apply a new iPhone-style theme. The agent replaced the main layout component () and was about to update the global CSS file () to match the new design.
+-   **Last item agent was working**: Implementing enhancements for the Business Partner (BP) role, specifically focusing on creating a comprehensive revenue dashboard, adding mandatory document upload capabilities, and refining permissions. The agent had just begun modifying the backend dashboard endpoint.
 -   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: frontend testing agent
+-   **Which testing method agent to use?**: both
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: (P0) Complete the UI/UX overhaul for mobile responsiveness and the new theme.
-    -   **Attempted fixes**: The agent has replaced  with a new mobile-first version.
+-   **Issue 1**: (P0) Complete the Business Partner feature enhancements.
+    -   **Attempted fixes**: The agent updated backend models and permissions and started work on the dashboard API endpoint.
     -   **Next debug checklist**:
-        1.  Modify  to add new global styles, CSS variables for the iOS-style theme, and animations for the slide-over mobile menu.
-        2.  Test the application on both desktop and mobile viewports to ensure the layout is correct and the mobile menu functions without overlapping content.
-        3.  Conduct a visual check on all pages to ensure components render correctly with the new theme.
-        4.  Run the frontend testing agent to perform a comprehensive regression test on the UI.
-    -   **Why fix this issue and what will be achieved with the fix?**: The user reported that the application is not mobile-friendly and the navigation menu overlaps content. This fix will resolve these usability issues and deliver the requested modern UI design.
+        1.  Complete the  endpoint in  to calculate and return total revenue, revenue share, and associated bookings.
+        2.  Update the frontend page  to fetch and display the comprehensive dashboard data.
+        3.  Implement the UI for mandatory document uploads (PAN, Aadhaar, Cheque) on the  page.
+        4.  Modify the booking creation form to disable the Referral Partner (RP) selection for logged-in BPs and automatically apply their predefined revenue share.
+        5.  Perform end-to-end testing of the BP flow: creation, document upload, OTP login, viewing the dashboard, and creating a booking with the correct restrictions.
+    -   **Why fix this issue and what will be achieved with the fix?**: This will deliver the complete, requested functionality for the Business Partner role, providing them with essential data insights and correct system permissions.
     -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Should Test frontend/backend/both after fix?**: both
     -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   **Task 1**: (P0) Complete the UI/UX Redesign
-    -   **Where to resume**: The  component has been updated. The next step is to implement the corresponding styles in .
-    -   **What will be achieved with this?**: A fully mobile-responsive application with a modern, iPhone-style theme, as requested by the user.
+-   **Task 1**: (P0) Implement Business Partner Enhancements
+    -   **Where to resume**: Continue building the revenue dashboard logic in , then create the corresponding frontend components in  and .
+    -   **What will be achieved with this?**: A fully functional BP role with mandatory document uploads, a detailed revenue dashboard, and appropriate booking creation rights.
     -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Should Test frontend/backend/both after fix?**: both
     -   **Blocked on something**: None
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P1)** Integrate the uploaded company logo into the header of the generated Contract Note PDF.
-    -   **(P1)** Create a dashboard view for Referral Partners to see their generated revenue.
+    -   **(P1)** Create a dashboard view for Referral Partners (RPs) to see their generated revenue.
 -   **Future Tasks**:
-    -   **(P2)** Implement a Resend Email button on the Email Logs page for failed or unreceived emails.
+    -   **(P2)** Implement a Resend Email button on the Email Logs page.
     -   **(P2)** Implement Two-Factor Authentication (TOTP).
     -   **(P2)** Implement a bulk booking closure feature.
-    -   **(P2)** Create role-specific dashboards.
+    -   **(P2)** Create additional role-specific dashboards.
     -   **(P2)** Add configurable thresholds for loss-booking auto-approval.
 
 **Completed work in this session**
--   **Task - Backend Modularization**: Successfully migrated all remaining API endpoints from  into 18+ domain-specific router files.
--   **Feature - Email Audit Logging**: Implemented a complete system to log and view all system-sent emails via a new frontend page.
--   **Task - System Documentation PDF**: Generated and provided a downloadable PDF with the full system architecture, dependencies, and API documentation.
--   **Feature - Company Master Settings**: Created a new page for PE Desk users to manage core company information, tax details, bank accounts, and legal documents.
--   **Feature - Company Logo Upload**: Added functionality to the Company Master page to upload and display a persistent company logo.
--   **Feature - Contract Note Automation**: Built a full lifecycle feature to generate PDF contract notes using company master data, and automatically email them with attachments upon successful deal completion.
+-   **UI/UX Overhaul**: Successfully implemented the iPhone-style redesign and fixed all mobile responsiveness issues.
+-   **Bug Fix - Email Presets**: Resolved an issue preventing email provider presets from displaying.
+-   **Bug Fix & Security - Clear DB**: Corrected the Clear Database function to properly clear all non-essential collections and restricted its visibility to PE Desk users only.
+-   **Feature - Logo in Contract Note**: Integrated the uploaded company logo into the header of generated PDF contract notes.
+-   **Feature - Bulk CSV Upload**: Built and tested a complete bulk upload system for Clients, Vendors, Stocks, and Bookings, with template downloads and duplicate detection.
+-   **Feature - Dividend Corporate Action**: Added support for recording dividends and notifying clients who hold the relevant stock.
+-   **Feature - Business Partner Role (V1)**: Created the new Business Partner role with OTP login, a management page, and initial dashboard structure.
 
 **Earlier issues found/mentioned but not fixed**
 None.
@@ -79,36 +84,36 @@ N/A
 
 
 **Key Technical Concepts**
--   **Frontend**: React.js, Tailwind CSS, Shadcn UI, Axios, MSAL-React.
+-   **Frontend**: React.js, Tailwind CSS, Shadcn UI, Axios.
 -   **Backend**: Python, FastAPI, Pydantic, Motor (async MongoDB).
 -   **Database**: MongoDB.
--   **PDF Generation**:  for creating documents,  for formatting.
--   **Authentication**: JWT & Microsoft Azure AD SSO.
--   **Real-time**: WebSockets.
+-   **PDF Generation**: .
+-   **Authentication**: JWT & Passwordless OTP.
 
 **key DB schema**
--   **company_master**: 
--   **email_logs**: 
--   **contract_notes**: 
+-   **business_partners**: 
+-   **corporate_actions**: (Extended with) 
 
 **changes in tech stack**
--   : Added as a new backend dependency for PDF generation.
+None.
 
 **All files of reference**
--   **/app/frontend/src/components/Layout.js**: Heavily modified for the new UI theme.
--   **/app/frontend/src/index.css**: The next file to be modified to complete the UI theme.
--   **/app/backend/server.py**: Final slimmed-down version.
--   **/app/backend/routers/company_master.py**: New router for company settings.
--   **/app/backend/routers/contract_notes.py**: New router for contract note generation.
--   **/app/backend/routers/email_logs.py**: New router for email auditing.
--   **/app/backend/services/contract_note_service.py**: New service for PDF generation.
--   **/app/frontend/src/pages/CompanyMaster.js**: New frontend page for company settings.
--   **/app/frontend/src/pages/ContractNotes.js**: New frontend page for contract notes.
--   **/app/frontend/src/pages/EmailLogs.js**: New frontend page for email audit logs.
--   **/app/public/PRIVITY_System_Documentation.pdf**: Generated documentation artifact.
+-   **/app/backend/routers/business_partners.py**: Core logic for BP management, auth, and dashboard.
+-   **/app/frontend/src/pages/BusinessPartners.js**: Frontend for PE Level users to manage BPs and document uploads.
+-   **/app/frontend/src/pages/BPDashboard.js**: Dashboard for logged-in BPs.
+-   **/app/frontend/src/pages/Login.js**: Updated with a tabbed interface for Employee and BP login.
+-   **/app/backend/config.py**: Updated with new BP role and permissions.
+-   **/app/backend/routers/stocks.py**: Logic for creating dividend corporate actions.
+-   **/app/frontend/src/pages/Stocks.js**: UI for creating and viewing dividend actions.
+-   **/app/backend/routers/bulk_upload.py**: Backend logic for CSV bulk uploads.
+-   **/app/frontend/src/pages/BulkUpload.js**: Frontend UI for the bulk upload feature.
+-   **/app/backend/services/contract_note_service.py**: Updated to include the company logo in the PDF.
+-   **/app/backend/routers/database_backup.py**: Updated  to be dynamic.
+-   **/app/frontend/src/pages/DatabaseBackup.js**: Added role-based check for the Clear Database button.
+-   **/app/frontend/src/index.css**: New global CSS for the iPhone-style theme.
 
 **Areas that need refactoring**:
--   The frontend UI is the main area currently undergoing changes. Other components may need minor style adjustments to align with the new  and  theme.
+None.
 
 **key api endpoints**
 -   
@@ -118,38 +123,36 @@ N/A
 -   
 -   
 -   
+-   
 
 **Critical Info for New Agent**
-1.  **Complete the UI Overhaul**: Your immediate and highest priority is to complete the UI/UX redesign. The  component has been replaced. You must now implement the corresponding CSS in  to create the iPhone-style theme and fix the mobile responsiveness issues.
-2.  **Frontend Regression Testing is CRITICAL**: After implementing the CSS changes, you must perform a thorough regression test of the entire frontend. Use the  to ensure all pages are functional and visually correct with the new theme.
-3.  **Backend is Stable**: The backend has been completely refactored into a modular architecture and all new features are fully tested. You should not need to make backend changes unless they are related to a new feature request.
+1.  **Focus on Business Partner Enhancements**: Your immediate priority is to complete the Business Partner (BP) feature set. This involves finishing the revenue dashboard, implementing mandatory document uploads, and adjusting permissions for booking creation.
+2.  **Resume at BP Dashboard Backend**: Start by completing the backend logic for the BP dashboard in . It needs to aggregate revenue data from bookings linked to the BP.
+3.  **Implement Frontend Components**: Once the backend is ready, build out the frontend for the BP Dashboard () and add the document upload UI to the BP management page ().
+4.  **Adjust Booking Form Permissions**: Modify the booking creation form so that when a BP user is logged in, the Referral Partner field is disabled, and their specific revenue share is used for calculations.
+5.  **Test the Full BP Flow**: Thoroughly test the end-to-end Business Partner experience: creation by a PE Desk user, document upload, OTP login, viewing the detailed revenue dashboard, and creating a booking with the correct restrictions.
 
 **documents and test reports created in this job**
--   /app/public/PRIVITY_System_Documentation.pdf
--   /app/test_reports/iteration_30.json
--   /app/test_reports/iteration_31.json
--   /app/test_reports/iteration_32.json
--   /app/test_reports/iteration_33.json
--   /app/test_reports/iteration_34.json
--   /app/test_reports/iteration_35.json
+-   /app/test_reports/iteration_36.json
+-   /app/memory/PRD.md (updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
 10.  (COMPLETED)
-9.   (COMPLETED)
-8.   (COMPLETED)
-7.   (COMPLETED)
-6.   (COMPLETED)
-5.   (COMPLETED)
-4.   (IN PROGRESS)
-3.   (IN PROGRESS)
-2.  (No message)
-1.   (PENDING - This request)
+9.  (COMPLETED)
+8.  (COMPLETED)
+7.  (COMPLETED - V1)
+6.  (IN PROGRESS)
+5.  (COMPLETED)
+4.  (User response to email config help)
+3.  (User confirming no more work needed)
+2.  (COMPLETED)
+1.  (COMPLETED)
 
 **Project Health Check:**
 -   **Broken**: None.
 -   **Mocked**: None.
 -   **In Progress**:
-    -   Frontend UI/UX Redesign (Mobile responsiveness and new theme).
+    -   Business Partner (BP) feature enhancements (Revenue Dashboard, Document Uploads, Permissions).
 
 **3rd Party Integrations**
 -   **OpenAI via **: Active for Document OCR. Uses Emergent LLM Key.
@@ -159,7 +162,7 @@ N/A
 -   ****: For converting numbers to words in PDFs.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES (used for every major feature completion)
+-   **Testing agent used after significant changes**: YES
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
 -   **Known regressions**: None
@@ -169,6 +172,7 @@ N/A
 -   **PE Manager**:  / 
 -   **Employee**:  / 
 -   **Finance**:  / 
+-   **Business Partner (Test)**:  (Login via OTP)
 
 **What agent forgot to execute**
-The agent has successfully addressed all user requests and was actively working on the latest one before this handoff. No tasks were forgotten.</analysis>
+Nothing was forgotten. The agent was actively implementing the latest user request before the session ended.</analysis>
