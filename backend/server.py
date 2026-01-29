@@ -287,6 +287,9 @@ from routers.notifications import router as notifications_router
 # Revenue Dashboards
 from routers.revenue_dashboard import router as revenue_dashboard_router
 
+# AI Assistant
+from routers.sohini import router as sohini_router
+
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
@@ -311,6 +314,7 @@ app.include_router(database_backup_router, prefix="/api")
 app.include_router(contract_notes_router, prefix="/api")
 app.include_router(bulk_upload_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
+app.include_router(sohini_router, prefix="/api")
 
 
 # ====================
