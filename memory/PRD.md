@@ -37,6 +37,16 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 29, 2026)
 
+#### ✅ Mandatory Client Document Upload - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- Removed "Skip Documents" button from client creation wizard
+- Made all 3 documents mandatory: CML Copy, PAN Card, Cancelled Cheque
+- "Next: Review Details" button is disabled until all documents are uploaded
+- Added asterisk (*) to all document labels indicating mandatory fields
+- Updated info text to clearly state "All documents are mandatory"
+- Document validation happens both on button click and via disabled state
+- **Testing**: Verified via screenshots - button disabled without docs, enabled after upload, OCR auto-fill working
+
 #### ✅ Mobile Dialog Responsiveness Fix - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
 - Fixed popup dialogs (forms) being cut off on mobile screens
