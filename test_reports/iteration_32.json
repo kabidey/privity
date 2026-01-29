@@ -1,0 +1,70 @@
+{
+  "summary": "Company Master Settings feature testing completed successfully. All 13 backend API tests passed. Frontend page renders correctly with all form fields and document upload cards. Access control working - PE Manager (role 2) gets 403 error and cannot see menu item.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "=== BACKEND API TESTS (13/13 passed) ===",
+    "test_01_pe_desk_can_get_company_master - PE Desk can GET company master with all fields",
+    "test_02_pe_manager_denied_get_company_master - PE Manager gets 403 error",
+    "test_03_pe_desk_can_update_company_master - PE Desk can PUT company master",
+    "test_04_pe_manager_denied_update_company_master - PE Manager gets 403 on PUT",
+    "test_05_unauthenticated_access_denied - Unauthenticated requests denied",
+    "test_01_pe_desk_can_upload_document - Document upload works for PE Desk",
+    "test_02_pe_manager_denied_upload_document - PE Manager gets 403 on upload",
+    "test_03_invalid_document_type_rejected - Invalid document types rejected with 400",
+    "test_04_all_document_types_accepted - All 4 document types (cml_cdsl, cml_nsdl, cancelled_cheque, pan_card) accepted",
+    "test_01_pe_desk_can_delete_document - Document delete works for PE Desk",
+    "test_02_pe_manager_denied_delete_document - PE Manager gets 403 on delete",
+    "test_03_invalid_document_type_rejected - Invalid document types rejected for delete",
+    "test_01_update_and_verify_persistence - Data persists after update (uppercase conversion verified)",
+    "",
+    "=== FRONTEND UI TESTS (All passed) ===",
+    "Company Master page loads with data-testid='company-master-page'",
+    "All 13 form fields present: company_name, company_address, company_cin, company_gst, company_pan, company_tan, cdsl_dp_id, nsdl_dp_id, bank_name, bank_branch, bank_account, bank_ifsc, save_button",
+    "4 document upload cards present: CML - CDSL, CML - NSDL, Cancelled Cheque, PAN Card",
+    "Company Master menu item visible for PE Desk (role 1)",
+    "Company Master menu item NOT visible for PE Manager (role 2)",
+    "PE Manager redirected to dashboard when trying to access /company-master directly",
+    "Save Settings button works - data persists after refresh",
+    "Success toast shown after saving"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_company_master.py",
+    "/app/test_reports/pytest/company_master_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "company_master.py router correctly implements PE Desk only access control via check_pe_desk function",
+    "CompanyMaster.js frontend page has proper data-testid attributes for all form fields",
+    "Layout.js correctly shows Company Master menu item only for role 1 (PE Desk)",
+    "Uppercase conversion for PAN, TAN, IFSC working correctly in backend",
+    "Document upload validates file types (pdf, jpg, jpeg, png) and size (10MB limit)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_company_master.py - Created new test file for company master feature"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (All UI elements verified)"
+  },
+  "seed_data_creation": "Company master data already populated via curl test by main agent",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Company Master Settings feature is fully functional. Test file test_company_master.py covers all endpoints. Frontend CompanyMaster.js page is accessible via sidebar navigation for PE Desk users only. PE Manager and other roles are correctly denied access.",
+  "features_verified": {
+    "GET /api/company-master": "WORKING - Returns all company fields and document URLs",
+    "PUT /api/company-master": "WORKING - Updates company settings with uppercase conversion for PAN/TAN/IFSC",
+    "POST /api/company-master/upload/{document_type}": "WORKING - Uploads documents (cml_cdsl, cml_nsdl, cancelled_cheque, pan_card)",
+    "DELETE /api/company-master/document/{document_type}": "WORKING - Deletes documents",
+    "Access Control": "WORKING - PE Desk (role 1) only, PE Manager (role 2) gets 403",
+    "Frontend Company Master page": "WORKING - All form fields, document cards, save functionality",
+    "Sidebar Navigation": "WORKING - Menu item visible only for PE Desk"
+  }
+}
