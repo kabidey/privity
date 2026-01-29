@@ -4285,6 +4285,12 @@ app.include_router(business_partners_router, prefix="/api")
 # Include the legacy api_router (endpoints here will be overridden by modular routers)
 app.include_router(api_router)
 
+# Mount static files for uploads (images, documents, etc.)
+from fastapi.staticfiles import StaticFiles
+UPLOADS_PATH = Path(__file__).parent / "uploads"
+UPLOADS_PATH.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_PATH)), name="uploads")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
