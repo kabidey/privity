@@ -258,18 +258,27 @@ async def get_database_stats(current_user: dict = Depends(get_current_user)):
     
     stats = {}
     
-    for collection_name in BACKUP_COLLECTIONS:
-        try:
-            collection = db[collection_name]
-            count = await collection.count_documents({})
-            stats[collection_name] = count
-        except:
-            stats[collection_name] = 0
+    # Get all collections dynamically
+    all_collections = await db.list_collection_names()
+    
+    # Exclude system and backup collections from stats
+    excluded = ["database_backups"]
+    
+    for collection_name in sorted(all_collections):
+        if collection_name not in excluded:
+            try:
+                collection = db[collection_name]
+                count = await collection.count_documents({})
+                stats[collection_name] = count
+            except:
+                stats[collection_name] = 0
     
     return {
         "collections": stats,
         "total_records": sum(stats.values()),
-        "backup_count": await db.database_backups.count_documents({})
+        "total_collections": len(stats),
+        "backup_count": await db.database_backups.count_documents({}),
+        "backed_up_collections": BACKUP_COLLECTIONS
     }
 
 
