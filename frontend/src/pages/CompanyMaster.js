@@ -373,7 +373,7 @@ const CompanyMaster = () => {
               >
                 {logoUrl ? (
                   <img 
-                    src={`${process.env.REACT_APP_BACKEND_URL}${logoUrl}`} 
+                    src={`${process.env.REACT_APP_BACKEND_URL}/api${logoUrl}`} 
                     alt="Company Logo" 
                     className="max-w-full max-h-full object-contain p-2"
                     data-testid="company-logo-preview"
