@@ -848,8 +848,22 @@ const Bookings = () => {
                   <Label className="text-purple-700 dark:text-purple-400 font-medium">Referral Partner (Optional)</Label>
                 </div>
                 
-                {/* Client is RP - RP Selection Disabled */}
-                {clientIsRpWarning ? (
+                {/* Business Partner Logged In - RP Selection Disabled */}
+                {isBusinessPartner ? (
+                  <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-300 dark:border-emerald-700">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                      <Users className="h-5 w-5" />
+                      <span className="font-medium">Business Partner Booking</span>
+                    </div>
+                    <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2">
+                      You are logged in as a Business Partner. Your revenue share of <strong>{currentUser.revenue_share_percent || 0}%</strong> will be automatically applied to this booking.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Referral Partner selection is disabled for Business Partners.
+                    </p>
+                  </div>
+                ) : clientIsRpWarning ? (
+                  /* Client is RP - RP Selection Disabled */
                   <div className="p-4 rounded-lg bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600">
                     <div className="flex items-center gap-2 text-gray-500">
                       <Users className="h-5 w-5" />
