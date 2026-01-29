@@ -264,9 +264,9 @@ async def get_database_stats(current_user: dict = Depends(get_current_user)):
 # ============== Clear Database Endpoint ==============
 @router.delete("/clear")
 async def clear_database(current_user: dict = Depends(get_current_user)):
-    """Clear all database collections except users (PE Desk only - deletion restricted)
+    """Clear all database collections except users and database_backups (PE Desk only)
     
-    WARNING: This permanently deletes all data except user accounts!
+    WARNING: This permanently deletes all data except user accounts and backups!
     """
     if not is_pe_desk_only(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can clear the database")
@@ -274,15 +274,22 @@ async def clear_database(current_user: dict = Depends(get_current_user)):
     cleared_counts = {}
     errors = []
     
-    # Collections to clear (everything except users and database_backups)
-    collections_to_clear = [c for c in BACKUP_COLLECTIONS if c != "users"]
+    # Get all collections dynamically from the database
+    all_collections = await db.list_collection_names()
+    
+    # Collections to preserve (users for authentication, database_backups for recovery)
+    protected_collections = ["users", "database_backups"]
+    
+    # Clear all collections except protected ones
+    collections_to_clear = [c for c in all_collections if c not in protected_collections]
     
     for collection_name in collections_to_clear:
         try:
             collection = db[collection_name]
             count_before = await collection.count_documents({})
-            await collection.delete_many({})
-            cleared_counts[collection_name] = count_before
+            if count_before > 0:
+                await collection.delete_many({})
+                cleared_counts[collection_name] = count_before
         except Exception as e:
             errors.append(f"Error clearing {collection_name}: {str(e)}")
     
@@ -298,6 +305,7 @@ async def clear_database(current_user: dict = Depends(get_current_user)):
         "details": {
             "collections_cleared": list(cleared_counts.keys()),
             "record_counts_deleted": cleared_counts,
+            "protected_collections": protected_collections,
             "errors": errors
         },
         "timestamp": datetime.now(timezone.utc).isoformat()
@@ -307,6 +315,8 @@ async def clear_database(current_user: dict = Depends(get_current_user)):
         "message": "Database cleared successfully" if not errors else "Database cleared with some errors",
         "cleared_counts": cleared_counts,
         "total_deleted": sum(cleared_counts.values()),
+        "collections_cleared": len(cleared_counts),
+        "protected_collections": protected_collections,
         "errors": errors
     }
 
