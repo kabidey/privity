@@ -59,8 +59,10 @@
   },
   "scripts": {
     "start": "craco start",
+    "prebuild": "node scripts/increment-version.js",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "version:bump": "node scripts/increment-version.js"
   },
   "browserslist": {
     "production": [
