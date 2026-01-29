@@ -268,6 +268,68 @@ export const NotificationProvider = ({ children }) => {
       fetchNotifications();
       fetchUnreadCount();
       connectWebSocket();
+      
+      // Polling fallback for when WebSocket is not available
+      // Poll every 10 seconds for new notifications
+      const pollInterval = setInterval(async () => {
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+          try {
+            const response = await api.get('/notifications?limit=5');
+            const newNotifications = response.data;
+            
+            // Check for new notifications
+            if (newNotifications.length > 0) {
+              const latestFromServer = newNotifications[0];
+              const currentLatest = notifications[0];
+              
+              // If there's a new notification we haven't seen
+              if (!currentLatest || latestFromServer.id !== currentLatest.id) {
+                // Check if this is actually new (not in our current list)
+                const isNew = !notifications.find(n => n.id === latestFromServer.id);
+                if (isNew && !latestFromServer.read) {
+                  setNotifications(prev => {
+                    // Only add if not already present
+                    if (!prev.find(n => n.id === latestFromServer.id)) {
+                      return [latestFromServer, ...prev];
+                    }
+                    return prev;
+                  });
+                  setUnreadCount(prev => prev + 1);
+                  
+                  // Play sound and show floating notification
+                  const urgentTypes = ['booking_rejected', 'loss_booking', 'approval_needed', 'payment_overdue'];
+                  const isUrgent = urgentTypes.some(t => latestFromServer.type?.includes(t));
+                  
+                  if (isUrgent) {
+                    playUrgentSound();
+                  } else {
+                    playNotificationSound();
+                  }
+                  
+                  addFloatingNotification(latestFromServer);
+                  setLatestNotification(latestFromServer);
+                  setHasNewNotification(true);
+                  setTimeout(() => setHasNewNotification(false), 3000);
+                  
+                  // Show toast
+                  toast(latestFromServer.title, {
+                    description: latestFromServer.message,
+                    duration: 6000
+                  });
+                }
+              }
+            }
+            
+            // Update unread count
+            const countResponse = await api.get('/notifications/unread-count');
+            setUnreadCount(countResponse.data.count);
+          } catch (error) {
+            // Silent fail for polling
+          }
+        }
+      }, 10000); // Poll every 10 seconds
+      
+      return () => clearInterval(pollInterval);
     }
 
     return () => {
@@ -278,7 +340,7 @@ export const NotificationProvider = ({ children }) => {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [fetchNotifications, fetchUnreadCount, connectWebSocket]);
+  }, [fetchNotifications, fetchUnreadCount, connectWebSocket, addFloatingNotification, notifications]);
 
   const value = {
     notifications,
