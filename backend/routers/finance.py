@@ -534,6 +534,174 @@ async def mark_commission_paid(
     return {"message": "Commission marked as paid"}
 
 
+# ============== BP Payments Endpoints ==============
+class BPPaymentUpdate(BaseModel):
+    status: str  # processing, paid
+    payment_reference: Optional[str] = None
+    notes: Optional[str] = None
+    payment_date: Optional[str] = None
+
+
+@router.get("/finance/bp-payments")
+async def get_bp_payments(
+    status: Optional[str] = None,
+    bp_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all Business Partner payments for finance dashboard."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access BP payments")
+    
+    # Get all bookings with BP revenue share
+    query = {
+        "is_bp_booking": True,
+        "status": "completed"
+    }
+    if bp_id:
+        query["business_partner_id"] = bp_id
+    
+    bookings = await db.bookings.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    
+    # Get BP payments from dedicated collection
+    bp_payments_query = {}
+    if status:
+        bp_payments_query["status"] = status
+    if bp_id:
+        bp_payments_query["business_partner_id"] = bp_id
+    
+    existing_payments = await db.bp_payments.find(bp_payments_query, {"_id": 0}).to_list(10000)
+    existing_booking_ids = {p.get("booking_id") for p in existing_payments}
+    
+    # Get BP names
+    bp_ids = list(set(b.get("business_partner_id") for b in bookings if b.get("business_partner_id")))
+    bps = await db.business_partners.find({"id": {"$in": bp_ids}}, {"_id": 0, "id": 1, "name": 1, "email": 1, "pan_number": 1, "bank_details": 1}).to_list(1000)
+    bp_map = {bp["id"]: bp for bp in bps}
+    
+    # Get client and stock names
+    client_ids = list(set(b.get("client_id") for b in bookings if b.get("client_id")))
+    stock_ids = list(set(b.get("stock_id") for b in bookings if b.get("stock_id")))
+    
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0, "id": 1, "symbol": 1}).to_list(1000)
+    
+    client_map = {c["id"]: c for c in clients}
+    stock_map = {s["id"]: s for s in stocks}
+    
+    # Create payment records for new bookings
+    payments_to_create = []
+    for booking in bookings:
+        if booking.get("id") not in existing_booking_ids:
+            profit = (booking.get("selling_price", 0) - booking.get("buying_price", 0)) * booking.get("quantity", 0)
+            bp_share = booking.get("bp_revenue_share_percent", 0)
+            payment_amount = profit * (bp_share / 100)
+            
+            if payment_amount > 0:
+                bp_info = bp_map.get(booking.get("business_partner_id"), {})
+                payment_record = {
+                    "id": str(uuid.uuid4()),
+                    "booking_id": booking.get("id"),
+                    "booking_number": booking.get("booking_number"),
+                    "business_partner_id": booking.get("business_partner_id"),
+                    "bp_name": bp_info.get("name", booking.get("bp_name", "Unknown")),
+                    "bp_email": bp_info.get("email"),
+                    "bp_pan": bp_info.get("pan_number"),
+                    "client_name": client_map.get(booking.get("client_id"), {}).get("name", "Unknown"),
+                    "stock_symbol": stock_map.get(booking.get("stock_id"), {}).get("symbol", "Unknown"),
+                    "quantity": booking.get("quantity", 0),
+                    "profit": round(profit, 2),
+                    "bp_share_percent": bp_share,
+                    "payment_amount": round(payment_amount, 2),
+                    "status": "pending",
+                    "payment_reference": None,
+                    "payment_date": None,
+                    "notes": None,
+                    "bank_details": bp_info.get("bank_details"),
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                payments_to_create.append(payment_record)
+    
+    # Insert new payment records
+    if payments_to_create:
+        await db.bp_payments.insert_many(payments_to_create)
+    
+    # Fetch all BP payments again with status filter
+    final_query = {}
+    if status:
+        final_query["status"] = status
+    if bp_id:
+        final_query["business_partner_id"] = bp_id
+    
+    all_payments = await db.bp_payments.find(final_query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    return all_payments
+
+
+@router.get("/finance/bp-payments/summary")
+async def get_bp_payments_summary(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get BP payments summary statistics."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access BP payments")
+    
+    all_payments = await db.bp_payments.find({}, {"_id": 0}).to_list(10000)
+    
+    pending = [p for p in all_payments if p.get("status") == "pending"]
+    processing = [p for p in all_payments if p.get("status") == "processing"]
+    paid = [p for p in all_payments if p.get("status") == "paid"]
+    
+    return {
+        "pending_count": len(pending),
+        "pending_amount": round(sum(p.get("payment_amount", 0) for p in pending), 2),
+        "processing_count": len(processing),
+        "processing_amount": round(sum(p.get("payment_amount", 0) for p in processing), 2),
+        "paid_count": len(paid),
+        "paid_amount": round(sum(p.get("payment_amount", 0) for p in paid), 2),
+        "total_count": len(all_payments),
+        "total_amount": round(sum(p.get("payment_amount", 0) for p in all_payments), 2)
+    }
+
+
+@router.put("/finance/bp-payments/{payment_id}")
+async def update_bp_payment(
+    payment_id: str,
+    update_data: BPPaymentUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a BP payment status."""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or Finance can update BP payments")
+    
+    payment = await db.bp_payments.find_one({"id": payment_id}, {"_id": 0})
+    if not payment:
+        raise HTTPException(status_code=404, detail="BP payment not found")
+    
+    update_fields = {
+        "status": update_data.status,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user["id"]
+    }
+    
+    if update_data.payment_reference:
+        update_fields["payment_reference"] = update_data.payment_reference
+    if update_data.notes:
+        update_fields["notes"] = update_data.notes
+    if update_data.payment_date:
+        update_fields["payment_date"] = update_data.payment_date
+    elif update_data.status == "paid":
+        update_fields["payment_date"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.bp_payments.update_one({"id": payment_id}, {"$set": update_fields})
+    
+    # Also update the booking's BP payment status
+    if payment.get("booking_id"):
+        await db.bookings.update_one(
+            {"id": payment["booking_id"]},
+            {"$set": {"bp_payment_status": update_data.status}}
+        )
+    
+    return {"message": f"BP payment updated to {update_data.status}"}
+
+
 @router.get("/finance/export/excel")
 async def export_finance_excel(
     payment_type: Optional[str] = None,
