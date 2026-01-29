@@ -260,7 +260,7 @@ export const NotificationProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
     }
-  }, [markAsRead]);
+  }, [markAsRead, addFloatingNotification]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
