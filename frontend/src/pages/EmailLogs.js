@@ -116,6 +116,35 @@ const EmailLogs = () => {
     setDetailOpen(true);
   };
 
+  const handleResendEmail = async (log) => {
+    if (!log.template_key) {
+      toast.error('Cannot resend non-template emails');
+      return;
+    }
+    
+    if (log.status === 'sent') {
+      toast.error('This email was already sent successfully');
+      return;
+    }
+    
+    if (!window.confirm(`Are you sure you want to resend this email to ${log.to_email}?`)) {
+      return;
+    }
+    
+    setResending(log.id);
+    try {
+      const response = await api.post(`/email-logs/${log.id}/resend`);
+      toast.success(response.data.message);
+      fetchLogs();
+      fetchStats();
+      setDetailOpen(false);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to resend email');
+    } finally {
+      setResending(null);
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'sent':
