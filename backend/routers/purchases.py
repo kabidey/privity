@@ -271,3 +271,158 @@ async def delete_purchase(
     )
     
     return {"message": "Purchase deleted successfully"}
+
+
+# ============== DP Receivable Endpoints ==============
+
+@router.get("/dp-receivables")
+async def get_dp_receivables(current_user: dict = Depends(get_current_user)):
+    """Get all purchases with DP receivable status (PE Level only)"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can view DP receivables")
+    
+    # Get purchases with dp_status = "receivable"
+    purchases = await db.purchases.find(
+        {"dp_status": "receivable"},
+        {"_id": 0}
+    ).sort("dp_receivable_at", -1).to_list(1000)
+    
+    # Enrich with vendor and stock details
+    for purchase in purchases:
+        vendor = await db.clients.find_one(
+            {"id": purchase.get("vendor_id")},
+            {"_id": 0, "name": 1, "email": 1}
+        )
+        if vendor:
+            purchase["vendor_name"] = vendor.get("name")
+            purchase["vendor_email"] = vendor.get("email")
+        
+        stock = await db.stocks.find_one(
+            {"id": purchase.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1}
+        )
+        if stock:
+            purchase["stock_name"] = stock.get("name")
+            purchase["stock_symbol"] = stock.get("symbol")
+    
+    return purchases
+
+
+@router.get("/dp-received")
+async def get_dp_received(current_user: dict = Depends(get_current_user)):
+    """Get all purchases with DP received status (PE Level only)"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can view DP received records")
+    
+    # Get purchases with dp_status = "received"
+    purchases = await db.purchases.find(
+        {"dp_status": "received"},
+        {"_id": 0}
+    ).sort("dp_received_at", -1).to_list(1000)
+    
+    # Enrich with vendor and stock details
+    for purchase in purchases:
+        vendor = await db.clients.find_one(
+            {"id": purchase.get("vendor_id")},
+            {"_id": 0, "name": 1, "email": 1}
+        )
+        if vendor:
+            purchase["vendor_name"] = vendor.get("name")
+            purchase["vendor_email"] = vendor.get("email")
+        
+        stock = await db.stocks.find_one(
+            {"id": purchase.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1}
+        )
+        if stock:
+            purchase["stock_name"] = stock.get("name")
+            purchase["stock_symbol"] = stock.get("symbol")
+    
+    return purchases
+
+
+@router.put("/{purchase_id}/mark-dp-received")
+async def mark_dp_received(
+    purchase_id: str,
+    dp_type: str,  # "NSDL" or "CDSL"
+    current_user: dict = Depends(get_current_user)
+):
+    """Mark a purchase as DP received (PE Level only)
+    
+    Args:
+        purchase_id: Purchase ID
+        dp_type: Either "NSDL" or "CDSL"
+    """
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can mark DP as received")
+    
+    if dp_type not in ["NSDL", "CDSL"]:
+        raise HTTPException(status_code=400, detail="dp_type must be 'NSDL' or 'CDSL'")
+    
+    purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
+    if not purchase:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    
+    if purchase.get("dp_status") != "receivable":
+        raise HTTPException(status_code=400, detail="Purchase is not in receivable status")
+    
+    # Update purchase with received status
+    await db.purchases.update_one(
+        {"id": purchase_id},
+        {"$set": {
+            "dp_status": "received",
+            "dp_type": dp_type,
+            "dp_received_at": datetime.now(timezone.utc).isoformat(),
+            "dp_received_by": current_user["id"],
+            "dp_received_by_name": current_user["name"]
+        }}
+    )
+    
+    # Update inventory - add received quantity to available stock
+    stock = await db.stocks.find_one({"id": purchase.get("stock_id")}, {"_id": 0})
+    if stock:
+        # Update inventory with received quantity
+        inventory = await db.inventory.find_one({"stock_id": purchase.get("stock_id")}, {"_id": 0})
+        if inventory:
+            await db.inventory.update_one(
+                {"stock_id": purchase.get("stock_id")},
+                {"$inc": {"available_quantity": purchase.get("quantity", 0)}}
+            )
+        else:
+            # Create new inventory record
+            await db.inventory.insert_one({
+                "id": str(uuid.uuid4()),
+                "stock_id": purchase.get("stock_id"),
+                "available_quantity": purchase.get("quantity", 0),
+                "blocked_quantity": 0,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+    
+    await create_audit_log(
+        action="DP_RECEIVED",
+        entity_type="purchase",
+        entity_id=purchase_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        details={
+            "dp_type": dp_type,
+            "quantity": purchase.get("quantity"),
+            "stock_id": purchase.get("stock_id")
+        },
+        entity_name=purchase.get("purchase_number", purchase_id)
+    )
+    
+    return {
+        "message": f"Stock received via {dp_type} and inventory updated",
+        "dp_type": dp_type,
+        "quantity": purchase.get("quantity"),
+        "received_at": datetime.now(timezone.utc).isoformat()
+    }
+
