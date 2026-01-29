@@ -877,3 +877,284 @@ async def send_payment_request_email(
             )
     
     logging.info(f"Payment request email sent for booking {booking_number} to {client_email}")
+
+
+async def send_stock_transfer_request_email(
+    purchase_id: str,
+    vendor: dict,
+    purchase: dict,
+    stock: dict,
+    total_paid: float,
+    payment_date: str,
+    company_master: dict,
+    cc_email: Optional[str] = None
+):
+    """
+    Send stock transfer request email to vendor when full payment is completed.
+    Includes payment details and attaches all company documents.
+    
+    Args:
+        purchase_id: Purchase ID
+        vendor: Vendor document (from clients collection with is_vendor=True)
+        purchase: Purchase document
+        stock: Stock document
+        total_paid: Total amount paid to vendor
+        payment_date: Date of final payment
+        company_master: Company master document with documents
+        cc_email: Optional CC email
+    """
+    import aiohttp
+    import aiofiles
+    
+    vendor_name = vendor.get("name", "Valued Vendor")
+    vendor_email = vendor.get("email")
+    
+    if not vendor_email:
+        logging.warning(f"Cannot send stock transfer request - no email for vendor {vendor.get('id')}")
+        return
+    
+    purchase_number = purchase.get("purchase_number", purchase_id[:8].upper())
+    quantity = purchase.get("quantity", 0)
+    stock_symbol = stock.get("symbol", "N/A") if stock else purchase.get("stock_symbol", "N/A")
+    stock_name = stock.get("name", "") if stock else ""
+    
+    # Get company details
+    company_name = company_master.get("company_name", "SMIFS Capital Markets Ltd")
+    cdsl_dp_id = company_master.get("cdsl_dp_id", "")
+    nsdl_dp_id = company_master.get("nsdl_dp_id", "")
+    
+    # Get document URLs
+    nsdl_cml_url = company_master.get("cml_nsdl_url")
+    cdsl_cml_url = company_master.get("cml_cdsl_url")
+    pan_card_url = company_master.get("pan_card_url")
+    cancelled_cheque_url = company_master.get("cancelled_cheque_url")
+    logo_url = company_master.get("logo_url")
+    
+    # Build attachments list
+    attachments = []
+    
+    async def load_document(url: str, filename: str) -> Optional[dict]:
+        """Load document from URL or local path"""
+        if not url:
+            return None
+        try:
+            if url.startswith("/uploads/"):
+                local_path = f"/app{url}"
+                if os.path.exists(local_path):
+                    async with aiofiles.open(local_path, 'rb') as f:
+                        content = await f.read()
+                    ext = url.split('.')[-1].lower() if '.' in url else 'pdf'
+                    content_type = 'application/pdf' if ext == 'pdf' else f'image/{ext}'
+                    return {
+                        'filename': filename,
+                        'content': content,
+                        'content_type': content_type
+                    }
+            elif url.startswith("http"):
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        if response.status == 200:
+                            content = await response.read()
+                            return {
+                                'filename': filename,
+                                'content': content,
+                                'content_type': 'application/pdf'
+                            }
+        except Exception as e:
+            logging.error(f"Failed to load document {url}: {e}")
+        return None
+    
+    # Load all company documents as attachments
+    if nsdl_cml_url:
+        doc = await load_document(nsdl_cml_url, "NSDL_CML.pdf")
+        if doc:
+            attachments.append(doc)
+    
+    if cdsl_cml_url:
+        doc = await load_document(cdsl_cml_url, "CDSL_CML.pdf")
+        if doc:
+            attachments.append(doc)
+    
+    if pan_card_url:
+        ext = pan_card_url.split('.')[-1].lower() if '.' in pan_card_url else 'pdf'
+        doc = await load_document(pan_card_url, f"Company_PAN_Card.{ext}")
+        if doc:
+            attachments.append(doc)
+    
+    if cancelled_cheque_url:
+        ext = cancelled_cheque_url.split('.')[-1].lower() if '.' in cancelled_cheque_url else 'pdf'
+        doc = await load_document(cancelled_cheque_url, f"Cancelled_Cheque.{ext}")
+        if doc:
+            attachments.append(doc)
+    
+    # Format payment date
+    try:
+        payment_dt = datetime.fromisoformat(payment_date.replace('Z', '+00:00'))
+        formatted_date = payment_dt.strftime('%d %B %Y')
+        formatted_time = payment_dt.strftime('%I:%M %p UTC')
+    except:
+        formatted_date = payment_date
+        formatted_time = ""
+    
+    # Build email subject
+    subject = f"Stock Transfer Request - {stock_symbol} | {purchase_number}"
+    
+    # Build email body
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #ffffff;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 25px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Stock Transfer Request</h1>
+            <p style="color: #bfdbfe; margin: 10px 0 0 0; font-size: 14px;">Purchase Reference: {purchase_number}</p>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 30px;">
+            <p style="font-size: 16px; color: #374151;">Dear <strong>{vendor_name}</strong>,</p>
+            
+            <p style="color: #4b5563; line-height: 1.6;">
+                We are pleased to inform you that the <strong>full payment</strong> for your stock purchase order has been completed. 
+                We kindly request you to <strong>initiate the stock transfer immediately</strong>.
+            </p>
+            
+            <!-- Payment Confirmation -->
+            <div style="background: #ecfdf5; border-radius: 12px; padding: 20px; margin: 25px 0; border: 2px solid #10b981;">
+                <h3 style="color: #065f46; margin: 0 0 15px 0; font-size: 16px;">
+                    ✓ Payment Confirmation
+                </h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280; width: 40%;">Total Amount Paid:</td>
+                        <td style="padding: 10px 0; color: #065f46; font-weight: bold; font-size: 20px;">₹ {total_paid:,.2f}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Payment Date:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">{formatted_date}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Payment Time:</td>
+                        <td style="padding: 10px 0; color: #111827;">{formatted_time}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Stock Details -->
+            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+                <h3 style="color: #111827; margin: 0 0 15px 0; font-size: 16px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
+                    📋 Stock Transfer Details
+                </h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280; width: 40%;">Stock:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">{stock_symbol} - {stock_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Quantity to Transfer:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600; font-size: 18px;">{quantity:,} shares</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- DP Details -->
+            <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #bfdbfe;">
+                <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 16px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
+                    🏦 Transfer To (Our DP Details)
+                </h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280; width: 40%;">Beneficiary:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">{company_name}</td>
+                    </tr>
+                    {f'''<tr>
+                        <td style="padding: 10px 0; color: #6b7280;">CDSL DP ID:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600; font-family: monospace;">{cdsl_dp_id}</td>
+                    </tr>''' if cdsl_dp_id else ''}
+                    {f'''<tr>
+                        <td style="padding: 10px 0; color: #6b7280;">NSDL DP ID:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600; font-family: monospace;">{nsdl_dp_id}</td>
+                    </tr>''' if nsdl_dp_id else ''}
+                </table>
+            </div>
+            
+            <!-- Urgent Notice -->
+            <div style="background: #fef2f2; border-radius: 12px; padding: 20px; margin: 25px 0; border: 2px solid #ef4444;">
+                <h3 style="color: #991b1b; margin: 0 0 10px 0; font-size: 16px;">⚠️ Immediate Action Required</h3>
+                <p style="color: #7f1d1d; margin: 0; line-height: 1.6;">
+                    As the full payment has been completed, we kindly request you to <strong>initiate the stock transfer immediately</strong>. 
+                    Please use the DP details provided above and ensure the transfer is completed at the earliest.
+                </p>
+            </div>
+            
+            <!-- Attachments Note -->
+            <div style="background: #fefce8; border-radius: 12px; padding: 15px; margin: 25px 0; border: 1px solid #fcd34d;">
+                <p style="color: #854d0e; margin: 0; font-size: 14px;">
+                    <strong>📎 Attached Documents:</strong> NSDL CML, CDSL CML, Company PAN Card, and Cancelled Cheque for your reference.
+                </p>
+            </div>
+            
+            <p style="color: #4b5563; margin-top: 25px;">
+                For any queries or assistance with the transfer, please contact our PE Desk.
+            </p>
+            
+            <p style="color: #374151; margin-top: 20px;">
+                Best regards,<br>
+                <strong>{company_name}</strong><br>
+                <span style="color: #6b7280; font-size: 14px;">Private Equity Division</span>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: #f3f4f6; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                This is an automated message from the Private Equity System.
+            </p>
+        </div>
+    </div>
+    """
+    
+    # Get additional vendor emails
+    additional_emails = []
+    if vendor.get("secondary_email"):
+        additional_emails.append(vendor["secondary_email"])
+    if vendor.get("tertiary_email"):
+        additional_emails.append(vendor["tertiary_email"])
+    
+    # Send primary email with attachments
+    await send_email(
+        vendor_email,
+        subject,
+        body,
+        cc_email=cc_email,
+        template_key="stock_transfer_request",
+        variables={
+            "purchase_number": purchase_number,
+            "vendor_name": vendor_name,
+            "stock_symbol": stock_symbol,
+            "total_paid": total_paid,
+            "quantity": quantity
+        },
+        related_entity_type="purchase",
+        related_entity_id=purchase_id,
+        attachments=attachments if attachments else None
+    )
+    
+    # Send to additional vendor emails (without attachments)
+    for email in additional_emails:
+        if email and email != vendor_email:
+            await send_email(
+                email,
+                subject,
+                body,
+                template_key="stock_transfer_request",
+                variables={
+                    "purchase_number": purchase_number,
+                    "vendor_name": vendor_name,
+                    "stock_symbol": stock_symbol,
+                    "total_paid": total_paid,
+                    "quantity": quantity
+                },
+                related_entity_type="purchase",
+                related_entity_id=purchase_id
+            )
+    
+    logging.info(f"Stock transfer request email sent for purchase {purchase_number} to {vendor_email}")
