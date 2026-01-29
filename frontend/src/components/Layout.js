@@ -151,6 +151,18 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Upload, label: 'Bulk Upload', path: '/bulk-upload' });
   }
 
+  // Business Partners - PE Level only (roles 1 & 2)
+  if (user.role === 1 || user.role === 2) {
+    menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
+  }
+
+  // BP Dashboard - for Business Partners only (role 8)
+  if (user.role === 8) {
+    // BP has their own limited menu
+    menuItems.length = 0; // Clear existing menu
+    menuItems.push({ icon: LayoutDashboard, label: 'My Dashboard', path: '/bp-dashboard' });
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* iOS-style Desktop Sidebar */}
