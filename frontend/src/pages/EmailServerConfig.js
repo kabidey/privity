@@ -93,8 +93,12 @@ const EmailServerConfig = () => {
     
     setTesting(true);
     try {
-      await api.post('/email-config/test', { test_email: testEmail });
-      toast.success(`Test email sent successfully to ${testEmail}`);
+      const response = await api.post('/email-config/test', { test_email: testEmail });
+      if (response.data.success) {
+        toast.success(response.data.message || `Test email sent successfully to ${testEmail}`);
+      } else {
+        toast.error(response.data.message || 'Failed to send test email');
+      }
       setTestDialog({ open: false });
       fetchConfig();
     } catch (error) {
