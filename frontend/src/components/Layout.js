@@ -215,6 +215,17 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
   }
 
+  // Revenue Dashboards - visible based on hierarchy
+  // RP Revenue: Employee, Manager, Zonal Manager, and PE Level
+  if (user.role >= 1 && user.role <= 5) {
+    menuItems.push({ icon: TrendingUp, label: 'RP Revenue', path: '/rp-revenue' });
+  }
+  
+  // Employee Revenue: Manager, Zonal Manager, and PE Level
+  if (user.role >= 1 && user.role <= 4) {
+    menuItems.push({ icon: Users, label: 'Team Revenue', path: '/employee-revenue' });
+  }
+
   // BP Dashboard - for Business Partners only (role 8)
   if (user.role === 8) {
     // BP has their own limited menu
