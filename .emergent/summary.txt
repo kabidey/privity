@@ -12,74 +12,79 @@ The user's initial goal was to restore and enhance their Privity - Share Booking
     *   A new Business Partner (BP) user role with OTP-based login, revenue sharing, and mandatory document uploads.
     *   A dedicated revenue dashboard for Business Partners.
     *   A new Partners Desk user role with specific permissions to manage BPs.
-    *   Multiple bug fixes related to permissions, data loading, UI display, and mobile responsiveness.
+    *   Make client document uploads mandatory, removing the option to skip.
+    *   Fix the view button for documents uploaded by Referral Partners (RPs).
+    *   Refactor the main  file to improve modularity.
+    *   Enhance the WebSocket notification system to be faster, play a louder chime, and show floating alerts.
+    *   Add a glowing indicator (green/red) to show if a PE Desk/Manager is online, visible to all users.
+    *   Configure the PE status indicator to use WebSockets for real-time updates.
+    *   Create revenue dashboards for RPs and Employees with hierarchical view access.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack application with a React frontend and a FastAPI backend using a modular router architecture. The application is largely stable, with major features like Business Partner (BP) management, bulk CSV uploads, and dividend recording fully implemented and tested. A new Partners Desk role has been added with specific permissions. Most recently, a series of bug fixes and permission adjustments have been completed, including fixing the logo preview, replacing the Commissions tab with BP Payments on the Finance page, and correcting data loading issues on several pages.
+A full-stack application with a React frontend and a heavily refactored FastAPI backend. The backend now uses a clean, modular router architecture, with the monolithic  having been reduced in size by over 90%.
+
+Key features implemented in this session include:
+- A fix for all mobile dialogs, which now render correctly as bottom sheets.
+- A mandatory document upload workflow for new clients, with the skip option removed.
+- A fix for viewing documents uploaded by Referral Partners (RPs).
+- An enhanced real-time notification system using WebSockets (with a polling fallback) that provides floating alerts, toast notifications, and a louder chime.
+- A global, real-time PE (PE Desk/Manager) availability indicator, visible to all users, showing a green light when PE support is online and red when offline.
+- The foundational backend and frontend for new RP and Employee revenue dashboards have been created. The API endpoints are functional, and the RP Dashboard UI has been verified.
 
 **Last working item**:
--   **Last item agent was working**: Fixing the mobile responsiveness of all popup forms (dialogs) throughout the application. The agent observed that dialogs were cut off on mobile screens. An initial fix was applied to  and , but it was insufficient. A more comprehensive fix was then applied to the styling within  to make the dialogs full-width and scrollable on small screens.
+-   **Last item agent was working**: Building the UI for the RP and Employee revenue dashboards. The agent successfully created the backend endpoints, frontend pages, and API logic. The UI for the RP Revenue Dashboard was verified via a screenshot. The agent was about to verify the Employee Revenue Dashboard UI when the last session ended.
 -   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: screenshot tool. The agent should take mobile-view screenshots of pages with dialogs (e.g., Stocks, Clients, Users) to verify the fix.
+-   **Which testing method agent to use?**: screenshot tool
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: (P0) Verify the fix for non-responsive popup forms on mobile.
-    -   **Attempted fixes**:
-        1.  Initial modifications to  and . This was only partially effective.
-        2.  A second, more targeted fix was applied to the  component in , adding classes for better mobile handling (, , ).
+-   **Issue 1**: (P0) Hierarchical view logic for revenue dashboards is incomplete.
+    -   **Attempted fixes**: The agent built the API endpoints with a recursive function to fetch subordinates. However, the  collection in the database lacks a  field, so the hierarchy cannot be established.
     -   **Next debug checklist**:
-        1.  Use the  tool with mobile emulation to open a dialog on the , , and  pages.
-        2.  Confirm that the entire dialog, including its title and content, is visible and fits within the mobile viewport.
-        3.  Verify that long forms within the dialog are scrollable.
-        4.  If issues persist, re-examine the CSS in  and .
-    -   **Why fix this issue and what will be achieved with the fix?**: This will resolve the user's final reported issue, making the entire application, including all forms, fully usable and professional on mobile devices.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: frontend
-    -   **Blocked on other issue**: None
+        1.  Modify the  model in  to include an optional .
+        2.  Update the User Management page () to allow PE Desk/Managers to assign a manager to other users.
+        3.  Update the backend endpoint for user creation/updates in  to handle the new  field.
+        4.  Once the data model is fixed, thoroughly test the hierarchical view on both the RP and Employee revenue dashboards.
+    -   **Why fix this issue and what will be achieved with the fix?**: This is a blocker for completing the revenue dashboard feature. Fixing it will enable correct, role-based data visibility as requested by the user (e.g., managers seeing their team's revenue).
+    -   **Status**: BLOCKED
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on other issue**: This issue blocks the completion of In progress Task 1.
 
 **In progress Task List**:
--   **Task 1**: (P0) Verify and finalize mobile responsiveness for all dialogs.
-    -   **Where to resume**: Take mobile screenshots of various pages that use dialogs to confirm the latest CSS changes in  have resolved the responsiveness issue.
-    -   **What will be achieved with this?**: A complete, mobile-ready application as per the user's request.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: frontend
-    -   **Blocked on something**: None
+-   **Task 1**: (P0) Complete and verify the RP and Employee Revenue Dashboards.
+    -   **Where to resume**: First, implement the  hierarchy as described in Issue 1. After that, take a screenshot of the Employee Revenue Dashboard page () to verify its UI.
+    -   **What will be achieved with this?**: Two new dashboards providing revenue insights with correct hierarchical access control.
+    -   **Status**: BLOCKED
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on something**: Blocked by Issue 1: Hierarchical view logic is incomplete.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   (P1) Create a dashboard view for Referral Partners (RPs) to see their generated revenue.
+    -   (P1) Add a UI notification for admins if the SMTP email service is not configured.
 -   **Future Tasks**:
-    -   (P2) Add a UI notification for admins if the SMTP email service is not configured, as this currently prevents OTPs and other emails from being sent.
     -   (P2) Implement a Resend Email button on the Email Logs page.
     -   (P2) Implement Two-Factor Authentication (TOTP).
     -   (P2) Implement a bulk booking closure feature.
     -   (P2) Create additional role-specific dashboards.
     -   (P2) Add configurable thresholds for loss-booking auto-approval.
-    -   (P2) Complete the refactoring of  by migrating all remaining legacy API endpoints to modular routers.
 
 **Completed work in this session**
--   **BP Feature Enhancements**: Completed the Business Partner feature with a document upload UI, booking form restrictions, and an updated dashboard.
--   **BP Login Error Message**: Added a clear error message for unregistered BPs trying to log in via OTP.
--   **Finance Page Update**: Replaced the Commissions tab with a BP Payments tab, including full backend and frontend implementation.
--   **Bug Fix - Logo Preview**: Fixed a critical bug where the company logo preview was not working due to a missing static file mount in the backend.
--   **New Role - Partners Desk**: Created the Partners Desk role, configured its specific permissions (manage BPs without deletion rights), and fixed data access issues for this role.
--   **Bug Fix - Mobile Sync & Data Loading**: Resolved data loading failures on the Bookings and Clients pages by making Pydantic models backward compatible with older database entries.
--   **Bug Fix - Reports Page**: Fixed a blank screen on the Reports page caused by frontend errors.
--   **Feature - Client Name Match Threshold**: Adjusted the client name similarity check from 50% to 30% on the Clients page.
--   **Bug Fix - Client Creation**: Resolved an internal server error that was blocking client creation.
--   **Permissions Update - Purchases**: Restricted access to the Purchases page to PE Desk/Manager roles only.
--   **Permissions Update - Employee**: Granted Employees the ability to create and manage Referral Partners.
--   **Bug Fix - Stock Editing**: Fixed a bug that prevented stocks from being edited after creation.
+-   **Mobile Responsiveness Fix**: All popup dialogs across the app were fixed to be fully responsive on mobile devices, rendering as iOS-style bottom sheets.
+-   **Mandatory Client Documents**: The client creation flow was updated to make document uploads (PAN, CML, Cheque) mandatory, removing the Skip button.
+-   **RP Document View Fix**: Corrected a URL path issue that prevented users from viewing documents uploaded for Referral Partners.
+-   **Server.py Refactoring**: The main backend file () was drastically refactored, reducing its line count from over 4,300 to just 332 by migrating endpoints to modular routers. The refactoring was verified by the testing agent.
+-   **Enhanced Notification System**: Implemented a new system with floating notifications, toast messages, and a louder chime. The system uses WebSockets with a polling fallback.
+-   **PE Availability Indicator**: Added a global, real-time indicator (green/red light) visible to all users, showing whether PE Desk/Manager support is currently online. This feature uses WebSockets for instant updates.
+-   **Revenue Dashboards (Foundation)**: Created the backend and frontend foundations for the RP and Employee revenue dashboards.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1**: OTP and other system emails are not being sent.
-    -   **Debug checklist**: The agent correctly identified that the SMTP service is not configured in the environment. The application code correctly skips sending emails without raising an error.
-    -   **Why to solve this issue and what will be achieved with this?**: This is an environmental setup issue, not a code bug. The user needs to configure the SMTP settings via the Email Server Config page for emails to work. A potential enhancement is to add a warning in the UI if SMTP is not configured.
+    -   **Debug checklist**: The issue is due to the SMTP service not being configured in the environment. This is an environmental setup task for the user, not a code bug.
+    -   **Why to solve this issue and what will be achieved with this?**: The user needs to configure their SMTP settings via the Email Server Config page for emails to function. A future task is to add a UI warning if the configuration is missing.
     -   **Should Test frontend/backend/both after fix**: backend
     -   **Is recurring issue?**: Y
 
@@ -91,66 +96,64 @@ N/A
 
 **Key Technical Concepts**
 -   **Frontend**: React.js, Tailwind CSS, Shadcn UI, Axios.
--   **Backend**: Python, FastAPI, Pydantic, Motor (async MongoDB).
+-   **Backend**: Python, FastAPI, Pydantic, Motor (async MongoDB), WebSockets.
 -   **Database**: MongoDB.
 -   **Authentication**: JWT & Passwordless OTP.
 
 **key DB schema**
--   **users**: Now includes role .
--   **bookings**: Now includes  and  for bookings created by BPs.
+-   **users**: No schema changes were made, but this collection is missing a  field, which is required to implement the hierarchical dashboard views.
 
 **changes in tech stack**
 None.
 
 **All files of reference**
--   **/app/frontend/src/components/ui/dialog.jsx**: Key file for the current mobile responsiveness fix.
--   **/app/frontend/src/pages/Finance.js**: Heavily modified to implement BP Payments.
--   **/app/backend/routers/finance.py**: New endpoints for BP Payments.
--   **/app/backend/config.py**: Defines the new Partners Desk role and its permissions.
--   **/app/frontend/src/components/Layout.js**: Logic for showing/hiding menu items based on user role.
--   **/app/backend/server.py**: Modified to add a static file mount, which fixed the logo preview.
--   **/app/frontend/src/pages/CompanyMaster.js**: Modified to correctly construct the logo URL.
--   **/app/backend/routers/clients.py**: Fixed a critical bug preventing client creation.
--   **/app/backend/models/__init__.py**: Fixed data loading issues by making fields optional.
+-   **/app/backend/routers/revenue_dashboard.py**: New file containing the API logic for both revenue dashboards.
+-   **/app/frontend/src/pages/RPRevenueDashboard.js**: New frontend page for the RP revenue dashboard.
+-   **/app/frontend/src/pages/EmployeeRevenueDashboard.js**: New frontend page for the employee revenue dashboard.
+-   **/app/frontend/src/components/Layout.js**: Heavily modified to include the real-time PE availability indicator and detailed user info.
+-   **/app/frontend/src/context/NotificationContext.js**: Significantly updated to handle floating notifications and WebSocket-driven PE status updates.
+-   **/app/backend/server.py**: Fully refactored to be a lightweight application entry point.
+-   **/app/backend/routers/users.py**: Updated with endpoints for the PE availability feature (, ).
+-   **/app/frontend/src/pages/Clients.js**: Modified to enforce mandatory document uploads.
+-   **/app/frontend/src/components/ui/dialog.jsx**: Modified to fix mobile responsiveness.
 
 **Areas that need refactoring**:
--   **/app/backend/server.py**: This file is still over 4000 lines long and contains many legacy API endpoints that are duplicated in the modular routers. A full refactoring was deferred. The next agent should prioritize migrating the remaining unique endpoints from  into their respective routers to complete the modularization effort.
+-   The user data model needs to be updated to support manager hierarchies. This involves adding a  to the user schema and providing a UI for admins to set this relationship.
 
 **key api endpoints**
--   : Manages payments for Business Partners.
--   : Updates the status of a BP payment.
--   : A new, permission-friendly endpoint for fetching a list of employees.
--   : (Fixed) Now correctly updates stock information.
--   : (Fixed) Now correctly creates new clients.
--   : (Fixed) Now returns data correctly consumed by the frontend.
--   : The new static path for serving uploaded files like the company logo.
+-   : Gets revenue data for Referral Partners with hierarchical filtering.
+-   : Gets revenue data for employees with hierarchical filtering.
+-   : Endpoint for PE Desk/Manager roles to signal they are online.
+-   : Public endpoint to check if any PE support is currently available.
+-   : (Fixed) Now stores document URLs with the correct  prefix.
+-   : (Enhanced) Now broadcasts  events in real-time.
 
 **Critical Info for New Agent**
-1.  **Immediate Task**: Your first priority is to verify the fix for mobile dialog responsiveness. Use the screenshot tool in mobile mode on pages like Stocks, Clients, and User Management to ensure all popup forms render correctly.
-2.  **SMTP Not Configured**: The user has reported that OTP emails are not being sent. This is because the SMTP server is not configured. This is an environment setup issue, not a code bug. You should inform the user that they need to set up their email server via the Email Server Config page. Consider adding a UI warning for admins if the configuration is missing.
-3.  ** Refactoring**: Be aware that  is a large legacy file. A full refactoring was deferred. Avoid adding new endpoints to it; instead, use the modular routers in .
+1.  **Immediate Blocker**: You cannot complete the revenue dashboards without implementing manager hierarchy. Your first task is to add a  field to the user model and create a UI in the User Management page for admins to assign managers to users.
+2.  **Resume Dashboard Work**: After implementing the manager hierarchy, you can resume work on the revenue dashboards. Verify the Employee Revenue Dashboard UI and then thoroughly test the hierarchical access controls for both dashboards by logging in as different roles (PE Manager, regular manager, employee).
+3.  **WebSocket Status**: The real-time PE status indicator and notification system rely on WebSockets. While a polling fallback is in place, be aware that any new real-time features should leverage the existing WebSocket connection managed in .
 
 **documents and test reports created in this job**
--   /app/test_reports/iteration_37.json
--   /app/memory/PRD.md (updated)
+-   /app/test_reports/iteration_38.json
+-   /app/memory/PRD.md (updated multiple times)
 
 **Last 10 User Messages and any pending HUMAN messages**
 10.  (COMPLETED)
-9.   (IN PROGRESS - Mobile responsiveness fix is pending verification; refactoring was deferred)
-8.   (COMPLETED - All listed bugs were fixed, OTP issue identified as config problem)
+9.   (COMPLETED)
+8.   (COMPLETED)
 7.   (COMPLETED)
 6.   (COMPLETED)
-5.   (COMPLETED)
-4.   (COMPLETED)
-3.   (IN PROGRESS)
-2.   (User instruction to proceed)
-1.   (User acknowledging a completed task)
+5.   (IN PROGRESS)
+4.   (User instruction to proceed with refactoring)
+3.   (COMPLETED)
+2.   (COMPLETED)
+1.   (User acknowledging a prior completed task)
 
 **Project Health Check:**
 -   **Broken**: None.
 -   **Mocked**: None.
 -   **In Progress**:
-    -   Mobile responsiveness of popup dialogs.
+    -   RP & Employee Revenue Dashboards (blocked on implementing user hierarchy).
 
 **3rd Party Integrations**
 -   **OpenAI via **: Active for Document OCR. Uses Emergent LLM Key.
@@ -160,7 +163,7 @@ None.
 -   ****: For converting numbers to words in PDFs.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES
+-   **Testing agent used after significant changes**: YES (after  refactoring)
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
 -   **Known regressions**: None
@@ -174,4 +177,4 @@ None.
 -   **Business Partner (Test)**:  (Login via OTP)
 
 **What agent forgot to execute**
-The full refactoring of  was intentionally deferred to prioritize user-reported bugs and UI fixes, which was the correct decision. The agent could have proactively suggested adding a UI warning for the unconfigured SMTP service but did not.</analysis>
+The agent did not implement the underlying data model ( on the user) required for the hierarchical view of the revenue dashboards. While the API was written to support it, the data and the means to create it are missing, making the feature incomplete. This needs to be addressed before the dashboards can be considered finished.</analysis>
