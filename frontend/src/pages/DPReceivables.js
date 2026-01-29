@@ -19,7 +19,8 @@ import {
   Clock,
   User,
   IndianRupee,
-  Loader2
+  Loader2,
+  Download
 } from 'lucide-react';
 
 const DPReceivables = () => {
@@ -28,6 +29,7 @@ const DPReceivables = () => {
   const [received, setReceived] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('receivable');
+  const [exporting, setExporting] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, purchase: null });
   const [selectedDPType, setSelectedDPType] = useState('');
   const [confirming, setConfirming] = useState(false);
