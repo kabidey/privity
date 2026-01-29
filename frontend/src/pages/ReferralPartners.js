@@ -1086,27 +1086,30 @@ const ReferralPartners = () => {
               
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Documents</p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {selectedRp.pan_card_url && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={selectedRp.pan_card_url} target="_blank" rel="noopener noreferrer">
+                      <a href={selectedRp.pan_card_url.startsWith('/api') ? `${process.env.REACT_APP_BACKEND_URL}${selectedRp.pan_card_url}` : `${process.env.REACT_APP_BACKEND_URL}/api${selectedRp.pan_card_url}`} target="_blank" rel="noopener noreferrer">
                         View PAN Card
                       </a>
                     </Button>
                   )}
                   {selectedRp.aadhar_card_url && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={selectedRp.aadhar_card_url} target="_blank" rel="noopener noreferrer">
+                      <a href={selectedRp.aadhar_card_url.startsWith('/api') ? `${process.env.REACT_APP_BACKEND_URL}${selectedRp.aadhar_card_url}` : `${process.env.REACT_APP_BACKEND_URL}/api${selectedRp.aadhar_card_url}`} target="_blank" rel="noopener noreferrer">
                         View Aadhar
                       </a>
                     </Button>
                   )}
                   {selectedRp.cancelled_cheque_url && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={selectedRp.cancelled_cheque_url} target="_blank" rel="noopener noreferrer">
+                      <a href={selectedRp.cancelled_cheque_url.startsWith('/api') ? `${process.env.REACT_APP_BACKEND_URL}${selectedRp.cancelled_cheque_url}` : `${process.env.REACT_APP_BACKEND_URL}/api${selectedRp.cancelled_cheque_url}`} target="_blank" rel="noopener noreferrer">
                         View Cheque
                       </a>
                     </Button>
+                  )}
+                  {!selectedRp.pan_card_url && !selectedRp.aadhar_card_url && !selectedRp.cancelled_cheque_url && (
+                    <p className="text-sm text-muted-foreground italic">No documents uploaded</p>
                   )}
                 </div>
               </div>
