@@ -20,6 +20,7 @@ from .dashboard import router as dashboard_router
 from .inventory import router as inventory_router
 from .purchases import router as purchases_router
 from .reports import router as reports_router
+from .company_master import router as company_master_router
 
 __all__ = [
     'auth_router',
@@ -40,4 +41,5 @@ __all__ = [
     'inventory_router',
     'purchases_router',
     'reports_router',
+    'company_master_router',
 ]
