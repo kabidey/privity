@@ -41,7 +41,8 @@ import {
   Wallet,
   UserPlus,
   Key,
-  ChevronRight
+  ChevronRight,
+  Upload
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
