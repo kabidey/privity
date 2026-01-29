@@ -219,9 +219,26 @@ async def send_email(
     template_key: Optional[str] = None,
     variables: Optional[Dict[str, Any]] = None,
     related_entity_type: Optional[str] = None,
-    related_entity_id: Optional[str] = None
+    related_entity_id: Optional[str] = None,
+    attachments: Optional[List[Dict[str, Any]]] = None
 ):
-    """Send email via SMTP with optional CC - uses database config or env vars"""
+    """
+    Send email via SMTP with optional CC and attachments
+    
+    Args:
+        to_email: Recipient email
+        subject: Email subject
+        body: HTML body
+        cc_email: Optional CC email
+        template_key: Template identifier for logging
+        variables: Template variables for logging
+        related_entity_type: Entity type for logging
+        related_entity_id: Entity ID for logging
+        attachments: List of attachments, each with:
+            - 'filename': Name of the file
+            - 'content': Bytes content of the file
+            - 'content_type': MIME type (default: application/pdf)
+    """
     smtp_config = await get_smtp_config()
     
     if not smtp_config:
@@ -248,7 +265,21 @@ async def send_email(
             msg['Cc'] = cc_email
         msg['Subject'] = subject
         
+        # Attach HTML body
         msg.attach(MIMEText(body, 'html'))
+        
+        # Attach files if provided
+        if attachments:
+            for attachment in attachments:
+                filename = attachment.get('filename', 'attachment.pdf')
+                content = attachment.get('content')
+                content_type = attachment.get('content_type', 'application/pdf')
+                
+                if content:
+                    # Create attachment part
+                    part = MIMEApplication(content, Name=filename)
+                    part['Content-Disposition'] = f'attachment; filename="{filename}"'
+                    msg.attach(part)
         
         recipients = [to_email]
         if cc_email:
@@ -274,7 +305,7 @@ async def send_email(
         server.sendmail(smtp_config['from_email'], recipients, msg.as_string())
         server.quit()
         
-        logging.info(f"Email sent successfully to {to_email}")
+        logging.info(f"Email sent successfully to {to_email}" + (f" with {len(attachments)} attachment(s)" if attachments else ""))
         
         # Log successful email
         await log_email(
