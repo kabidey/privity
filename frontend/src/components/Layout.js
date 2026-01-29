@@ -43,7 +43,8 @@ import {
   UserPlus,
   Key,
   ChevronRight,
-  Upload
+  Upload,
+  TrendingUp
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
