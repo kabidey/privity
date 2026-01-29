@@ -19,7 +19,8 @@ import {
   Landmark,
   FileCheck,
   Eye,
-  RefreshCw
+  RefreshCw,
+  ImageIcon
 } from 'lucide-react';
 
 const CompanyMaster = () => {
@@ -27,6 +28,8 @@ const CompanyMaster = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState({});
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(null);
   const [formData, setFormData] = useState({
     company_name: '',
     company_address: '',
@@ -50,6 +53,7 @@ const CompanyMaster = () => {
   const [lastUpdated, setLastUpdated] = useState({ at: null, by: null });
 
   // File input refs
+  const logoInputRef = useRef(null);
   const fileInputRefs = {
     cml_cdsl: useRef(null),
     cml_nsdl: useRef(null),
