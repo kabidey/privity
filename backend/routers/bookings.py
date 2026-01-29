@@ -16,7 +16,7 @@ from models import BookingCreate, Booking, BookingWithDetails
 from utils.auth import get_current_user, check_permission
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
-from services.email_service import send_templated_email
+from services.email_service import send_templated_email, send_payment_request_email
 from services.inventory_service import (
     update_inventory,
     check_and_reserve_inventory,
