@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Mail, Search, Filter, Eye, RefreshCw, Trash2, CheckCircle, XCircle, AlertCircle, BarChart3 } from 'lucide-react';
+import { Mail, Search, Filter, Eye, RefreshCw, Trash2, CheckCircle, XCircle, AlertCircle, BarChart3, Send } from 'lucide-react';
 
 const EmailLogs = () => {
   const navigate = useNavigate();
