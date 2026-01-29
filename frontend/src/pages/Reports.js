@@ -365,10 +365,10 @@ const Reports = () => {
                       <TableCell className="mono">
                         {item.selling_price ? `₹${item.selling_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
                       </TableCell>
-                      <TableCell className="text-sm">{new Date(item.booking_date).toLocaleDateString('en-IN')}</TableCell>
+                      <TableCell className="text-sm">{item.booking_date ? new Date(item.booking_date).toLocaleDateString('en-IN') : '-'}</TableCell>
                       <TableCell>
                         <Badge variant={item.status === 'open' ? 'default' : 'secondary'}>
-                          {item.status.toUpperCase()}
+                          {(item.status || 'unknown').toUpperCase()}
                         </Badge>
                       </TableCell>
                       <TableCell className="mono font-semibold">
