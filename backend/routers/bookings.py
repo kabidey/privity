@@ -721,3 +721,372 @@ async def get_booking(booking_id: str, current_user: dict = Depends(get_current_
         "total_paid": total_paid,
         "payment_status": "paid" if total_paid >= total_amount else ("partial" if total_paid > 0 else "pending")
     })
+
+
+# Additional Booking Endpoints
+
+@router.get("/bookings/pending-approval", response_model=List[BookingWithDetails])
+async def get_pending_bookings(current_user: dict = Depends(get_current_user)):
+    """Get bookings pending approval (PE Level only)."""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view pending bookings")
+    
+    bookings = await db.bookings.find(
+        {"approval_status": "pending"},
+        {"_id": 0, "user_id": 0}
+    ).to_list(1000)
+    
+    if not bookings:
+        return []
+    
+    # Enrich with client and stock details
+    client_ids = list(set(b["client_id"] for b in bookings))
+    stock_ids = list(set(b["stock_id"] for b in bookings))
+    
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    
+    client_map = {c["id"]: c for c in clients}
+    stock_map = {s["id"]: s for s in stocks}
+    
+    enriched = []
+    for b in bookings:
+        client = client_map.get(b["client_id"], {})
+        stock = stock_map.get(b["stock_id"], {})
+        enriched.append(BookingWithDetails(
+            **b,
+            client_name=client.get("name", "Unknown"),
+            stock_symbol=stock.get("symbol", "Unknown"),
+            stock_name=stock.get("name", "Unknown")
+        ))
+    
+    return enriched
+
+
+@router.put("/bookings/{booking_id}", response_model=Booking)
+async def update_booking(booking_id: str, booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
+    """Update a booking."""
+    user_role = current_user.get("role", 5)
+    check_permission(current_user, "manage_bookings")
+    
+    old_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not old_booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    client = await db.clients.find_one({"id": booking_data.client_id}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking_data.stock_id}, {"_id": 0})
+    
+    result = await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": booking_data.model_dump()}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    await update_inventory(booking_data.stock_id)
+    
+    await create_audit_log(
+        action="BOOKING_UPDATE",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=f"{stock['symbol'] if stock else 'Unknown'} - {client['name'] if client else 'Unknown'}"
+    )
+    
+    updated_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "user_id": 0})
+    return updated_booking
+
+
+@router.delete("/bookings/{booking_id}")
+async def delete_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a booking (PE Desk only)."""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_desk_only(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete bookings")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("stock_transferred"):
+        raise HTTPException(status_code=400, detail="Cannot delete a booking where stock has already been transferred")
+    
+    stock_id = booking["stock_id"]
+    
+    result = await db.bookings.delete_one({"id": booking_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    await update_inventory(stock_id)
+    
+    await create_audit_log(
+        action="BOOKING_DELETE",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=booking.get("booking_number", booking_id[:8])
+    )
+    
+    return {"message": "Booking deleted successfully"}
+
+
+@router.post("/bookings/{booking_id}/payments")
+async def add_payment_tranche(
+    booking_id: str,
+    amount: float = Query(...),
+    payment_mode: str = Query("bank_transfer"),
+    reference_number: str = Query(None),
+    notes: str = Query(None),
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a payment tranche to a booking."""
+    user_role = current_user.get("role", 6)
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    payments = booking.get("payments", [])
+    total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    current_paid = sum(p.get("amount", 0) for p in payments)
+    remaining = total_amount - current_paid
+    
+    if amount > remaining + 0.01:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Payment amount ({amount}) exceeds remaining balance ({remaining:.2f})"
+        )
+    
+    tranche_number = len(payments) + 1
+    payment = {
+        "tranche_number": tranche_number,
+        "amount": amount,
+        "payment_mode": payment_mode,
+        "reference_number": reference_number,
+        "notes": notes,
+        "recorded_by": current_user["id"],
+        "recorded_by_name": current_user["name"],
+        "recorded_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    new_total_paid = current_paid + amount
+    is_complete = abs(new_total_paid - total_amount) < 0.01
+    
+    update_data = {
+        "$push": {"payments": payment},
+        "$set": {
+            "total_paid": new_total_paid,
+            "payment_complete": is_complete
+        }
+    }
+    
+    await db.bookings.update_one({"id": booking_id}, update_data)
+    
+    return {
+        "message": f"Payment of ₹{amount:,.2f} recorded successfully",
+        "tranche_number": tranche_number,
+        "total_paid": new_total_paid,
+        "remaining": remaining - amount,
+        "payment_complete": is_complete
+    }
+
+
+@router.get("/bookings/{booking_id}/payments")
+async def get_booking_payments(
+    booking_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all payment tranches for a booking."""
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    payments = booking.get("payments", [])
+    total_paid = sum(p.get("amount", 0) for p in payments)
+    
+    return {
+        "booking_id": booking_id,
+        "booking_number": booking.get("booking_number"),
+        "total_amount": total_amount,
+        "total_paid": total_paid,
+        "remaining": total_amount - total_paid,
+        "payment_complete": booking.get("payment_complete", False),
+        "payments": payments
+    }
+
+
+@router.delete("/bookings/{booking_id}/payments/{tranche_number}")
+async def delete_payment_tranche(
+    booking_id: str,
+    tranche_number: int,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a payment tranche (PE Desk only)."""
+    if not is_pe_desk_only(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk can delete payments")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    payments = booking.get("payments", [])
+    payment_to_delete = None
+    
+    for p in payments:
+        if p.get("tranche_number") == tranche_number:
+            payment_to_delete = p
+            break
+    
+    if not payment_to_delete:
+        raise HTTPException(status_code=404, detail="Payment tranche not found")
+    
+    new_payments = [p for p in payments if p.get("tranche_number") != tranche_number]
+    new_total_paid = sum(p.get("amount", 0) for p in new_payments)
+    total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {
+            "payments": new_payments,
+            "total_paid": new_total_paid,
+            "payment_complete": abs(new_total_paid - total_amount) < 0.01
+        }}
+    )
+    
+    return {"message": f"Payment tranche {tranche_number} deleted successfully"}
+
+
+@router.put("/bookings/{booking_id}/confirm-transfer")
+async def confirm_stock_transfer(
+    booking_id: str,
+    dp_receipt_number: str = Query(None),
+    notes: str = Query(None),
+    current_user: dict = Depends(get_current_user)
+):
+    """Confirm DP stock transfer (PE Level only)."""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can confirm transfers")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("approval_status") != "approved":
+        raise HTTPException(status_code=400, detail="Booking must be approved before transfer")
+    
+    if booking.get("stock_transferred"):
+        raise HTTPException(status_code=400, detail="Stock already transferred")
+    
+    update_data = {
+        "stock_transferred": True,
+        "dp_receipt_number": dp_receipt_number,
+        "transfer_notes": notes,
+        "transfer_date": datetime.now(timezone.utc).isoformat(),
+        "transferred_by": current_user["id"],
+        "transferred_by_name": current_user["name"],
+        "status": "completed"
+    }
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Update inventory
+    await update_inventory(booking["stock_id"])
+    
+    # Audit log
+    await create_audit_log(
+        action="BOOKING_TRANSFER",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 1),
+        entity_name=booking.get("booking_number", booking_id[:8])
+    )
+    
+    return {
+        "message": "Stock transfer confirmed successfully",
+        "booking_id": booking_id,
+        "dp_receipt_number": dp_receipt_number
+    }
+
+
+@router.put("/bookings/{booking_id}/approve-loss")
+async def approve_loss_booking(
+    booking_id: str,
+    approve: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Approve or reject a loss booking (PE Level only)."""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can approve loss bookings")
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("is_loss_booking", False):
+        raise HTTPException(status_code=400, detail="This is not a loss booking")
+    
+    if booking.get("loss_approval_status") != "pending":
+        raise HTTPException(status_code=400, detail="Loss booking already processed")
+    
+    update_data = {
+        "loss_approval_status": "approved" if approve else "rejected",
+        "loss_approved_by": current_user["id"],
+        "loss_approved_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if not approve:
+        update_data["status"] = "rejected"
+        update_data["rejection_reason"] = "Loss booking rejected by PE"
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    return {"message": f"Loss booking {'approved' if approve else 'rejected'} successfully"}
+
+
+@router.get("/bookings/pending-loss-approval", response_model=List[BookingWithDetails])
+async def get_pending_loss_bookings(current_user: dict = Depends(get_current_user)):
+    """Get loss bookings pending approval (PE Level only)."""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view pending loss bookings")
+    
+    bookings = await db.bookings.find(
+        {"is_loss_booking": True, "loss_approval_status": "pending"},
+        {"_id": 0, "user_id": 0}
+    ).to_list(1000)
+    
+    if not bookings:
+        return []
+    
+    client_ids = list(set(b["client_id"] for b in bookings))
+    stock_ids = list(set(b["stock_id"] for b in bookings))
+    
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    
+    client_map = {c["id"]: c for c in clients}
+    stock_map = {s["id"]: s for s in stocks}
+    
+    enriched = []
+    for b in bookings:
+        client = client_map.get(b["client_id"], {})
+        stock = stock_map.get(b["stock_id"], {})
+        enriched.append(BookingWithDetails(
+            **b,
+            client_name=client.get("name", "Unknown"),
+            stock_symbol=stock.get("symbol", "Unknown"),
+            stock_name=stock.get("name", "Unknown")
+        ))
+    
+    return enriched
+
