@@ -161,6 +161,54 @@ const CompanyMaster = () => {
     }
   };
 
+  const handleLogoUpload = async (file) => {
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload PNG, JPG, SVG, or WEBP files.');
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error('Logo file size must be less than 5MB.');
+      return;
+    }
+
+    setUploadingLogo(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await api.post('/company-master/upload-logo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success(response.data.message);
+      setLogoUrl(response.data.url);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload logo');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleDeleteLogo = async () => {
+    if (!window.confirm('Are you sure you want to delete the company logo?')) {
+      return;
+    }
+
+    try {
+      await api.delete('/company-master/logo');
+      toast.success('Logo deleted successfully');
+      setLogoUrl(null);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete logo');
+    }
+  };
+
   const handleDeleteDocument = async (documentType) => {
     if (!window.confirm(`Are you sure you want to delete this document?`)) {
       return;
