@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Pencil, Trash2, Package, Split, Gift, Play, AlertCircle, Lock } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, Split, Gift, Play, AlertCircle, Lock, Bell, DollarSign, Send } from 'lucide-react';
 
 const SECTORS = [
   'Banking', 'IT', 'Pharma', 'FMCG', 'Auto', 'Realty', 'Energy', 'Metals', 
@@ -19,6 +19,20 @@ const SECTORS = [
 ];
 
 const PRODUCTS = ['Equity', 'Preference', 'Debenture', 'Warrant', 'Others'];
+
+const ACTION_TYPES = [
+  { value: 'dividend', label: 'Dividend', icon: DollarSign },
+  { value: 'stock_split', label: 'Stock Split', icon: Split },
+  { value: 'bonus', label: 'Bonus Issue', icon: Gift },
+  { value: 'rights_issue', label: 'Rights Issue', icon: Plus },
+  { value: 'buyback', label: 'Buyback', icon: Package },
+];
+
+const DIVIDEND_TYPES = [
+  { value: 'interim', label: 'Interim Dividend' },
+  { value: 'final', label: 'Final Dividend' },
+  { value: 'special', label: 'Special Dividend' },
+];
 
 const Stocks = () => {
   const [stocks, setStocks] = useState([]);
@@ -28,6 +42,7 @@ const Stocks = () => {
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
   const [activeTab, setActiveTab] = useState('stocks');
+  const [sendingNotification, setSendingNotification] = useState(null);
   
   const [formData, setFormData] = useState({
     symbol: '',
@@ -41,11 +56,15 @@ const Stocks = () => {
   
   const [actionFormData, setActionFormData] = useState({
     stock_id: '',
-    action_type: 'stock_split',
+    action_type: 'dividend',
     ratio_from: '1',
     ratio_to: '2',
+    dividend_amount: '',
+    dividend_type: 'interim',
     new_face_value: '',
     record_date: '',
+    ex_date: '',
+    payment_date: '',
     notes: '',
   });
 
