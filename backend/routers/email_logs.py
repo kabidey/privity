@@ -199,6 +199,78 @@ async def get_emails_by_entity(
     }
 
 
+@router.post("/{log_id}/resend")
+async def resend_email(
+    log_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Resend a failed or skipped email (PE Level only)
+    
+    This will attempt to resend the email using the original template and variables.
+    Only emails with status 'failed' or 'skipped' can be resent.
+    """
+    from services.email_service import send_templated_email, send_email, get_email_template, render_template
+    
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can resend emails")
+    
+    # Get the original email log
+    log = await db.email_logs.find_one({"id": log_id}, {"_id": 0})
+    if not log:
+        raise HTTPException(status_code=404, detail="Email log not found")
+    
+    # Check if the email can be resent
+    if log.get("status") == "sent":
+        raise HTTPException(status_code=400, detail="This email was already sent successfully. Cannot resend.")
+    
+    to_email = log.get("to_email")
+    template_key = log.get("template_key")
+    variables = log.get("variables", {})
+    cc_email = log.get("cc_email")
+    related_entity_type = log.get("related_entity_type")
+    related_entity_id = log.get("related_entity_id")
+    
+    if not to_email:
+        raise HTTPException(status_code=400, detail="No recipient email found in log")
+    
+    try:
+        if template_key:
+            # Resend using template
+            template = await get_email_template(template_key)
+            if not template:
+                raise HTTPException(status_code=400, detail=f"Template '{template_key}' not found. Cannot resend.")
+            
+            subject, body = render_template(template, variables)
+            await send_email(
+                to_email=to_email,
+                subject=subject,
+                body=body,
+                cc_email=cc_email,
+                template_key=template_key,
+                variables=variables,
+                related_entity_type=related_entity_type,
+                related_entity_id=related_entity_id
+            )
+        else:
+            # For non-template emails, we can't resend without the original body
+            raise HTTPException(status_code=400, detail="Cannot resend non-template emails. Original content not stored.")
+        
+        return {
+            "message": f"Email resent successfully to {to_email}",
+            "to_email": to_email,
+            "template_key": template_key,
+            "resent_by": current_user.get("name"),
+            "resent_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to resend email: {str(e)}")
+
+
 @router.delete("/cleanup")
 async def cleanup_old_email_logs(
     days_to_keep: int = Query(90, ge=30, le=365),
