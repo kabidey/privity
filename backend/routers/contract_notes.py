@@ -328,7 +328,25 @@ async def send_contract_note_email(
     </div>
     """
     
-    # Send email (TODO: Add PDF attachment support)
+    # Read PDF file for attachment
+    pdf_path = f"/app{note.get('pdf_url', '')}"
+    pdf_content = None
+    
+    if os.path.exists(pdf_path):
+        with open(pdf_path, 'rb') as f:
+            pdf_content = f.read()
+    
+    # Prepare attachment
+    attachments = None
+    if pdf_content:
+        cn_number = note.get('contract_note_number', 'CN').replace('/', '_')
+        attachments = [{
+            'filename': f"Contract_Note_{cn_number}.pdf",
+            'content': pdf_content,
+            'content_type': 'application/pdf'
+        }]
+    
+    # Send email with PDF attachment
     try:
         await send_email(
             to_email=client.get("email"),
@@ -336,7 +354,8 @@ async def send_contract_note_email(
             body=body,
             template_key="contract_note",
             related_entity_type="contract_note",
-            related_entity_id=note_id
+            related_entity_id=note_id,
+            attachments=attachments
         )
         
         # Update contract note
