@@ -4,26 +4,27 @@ import api from '../utils/api';
 
 const NotificationContext = createContext();
 
-// Create audio context for notification sound
+// Create a LOUD notification chime with multiple harmonics
 const playNotificationSound = () => {
   try {
-    // Create AudioContext
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const masterGain = audioContext.createGain();
+    masterGain.connect(audioContext.destination);
+    masterGain.gain.value = 0.8; // Louder master volume
     
-    // Create a pleasant chime sound with multiple oscillators
-    const playChime = (frequency, startTime, duration) => {
+    const playTone = (frequency, startTime, duration, type = 'sine', volume = 0.5) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
       oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+      gainNode.connect(masterGain);
       
       oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
+      oscillator.type = type;
       
-      // Attack and decay envelope
+      // Sharp attack for attention-grabbing sound
       gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.02);
+      gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
       gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
       
       oscillator.start(startTime);
@@ -32,17 +33,64 @@ const playNotificationSound = () => {
     
     const now = audioContext.currentTime;
     
-    // Play a pleasant two-tone chime (like a doorbell)
-    playChime(880, now, 0.3);        // A5
-    playChime(1108.73, now + 0.1, 0.4);  // C#6
-    playChime(1318.51, now + 0.2, 0.5);  // E6
+    // Create a loud, attention-grabbing notification sound
+    // First chime - ascending
+    playTone(523.25, now, 0.15, 'sine', 0.6);        // C5
+    playTone(659.25, now + 0.05, 0.15, 'sine', 0.5); // E5
+    playTone(783.99, now + 0.1, 0.2, 'sine', 0.6);   // G5
+    playTone(1046.50, now + 0.15, 0.3, 'sine', 0.7); // C6
     
-    // Close audio context after sound plays
-    setTimeout(() => {
-      audioContext.close();
-    }, 1000);
+    // Add harmonics for richness
+    playTone(1046.50 * 2, now + 0.15, 0.25, 'triangle', 0.3);
+    
+    // Second chime - emphasis
+    playTone(1318.51, now + 0.35, 0.4, 'sine', 0.5); // E6
+    playTone(1567.98, now + 0.4, 0.35, 'sine', 0.4); // G6
+    
+    setTimeout(() => audioContext.close(), 1500);
   } catch (error) {
     console.error('Failed to play notification sound:', error);
+  }
+};
+
+// Play urgent alert sound for critical notifications
+const playUrgentSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const masterGain = audioContext.createGain();
+    masterGain.connect(audioContext.destination);
+    masterGain.gain.value = 1.0; // Maximum volume for urgent
+    
+    const playTone = (frequency, startTime, duration) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(masterGain);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'square';
+      
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.01);
+      gainNode.gain.linearRampToValueAtTime(0.4, startTime + duration - 0.01);
+      gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    
+    const now = audioContext.currentTime;
+    
+    // Urgent beep pattern (like hospital alert)
+    for (let i = 0; i < 3; i++) {
+      playTone(880, now + i * 0.25, 0.1);
+      playTone(1760, now + i * 0.25 + 0.1, 0.1);
+    }
+    
+    setTimeout(() => audioContext.close(), 1500);
+  } catch (error) {
+    console.error('Failed to play urgent sound:', error);
   }
 };
 
