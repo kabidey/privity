@@ -265,7 +265,7 @@ const BusinessPartners = () => {
     return matchesSearch && matchesEmployee;
   });
 
-  if (!isPELevel) return null;
+  if (!canAccessBP) return null;
 
   if (loading) {
     return (
