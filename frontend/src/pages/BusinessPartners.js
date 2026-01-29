@@ -656,6 +656,122 @@ const BusinessPartners = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Document Upload Dialog */}
+      <Dialog open={docDialogOpen} onOpenChange={setDocDialogOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-emerald-500" />
+              Document Upload - {selectedPartnerForDocs?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedPartnerForDocs && (
+            <div className="space-y-4">
+              {/* Document Status */}
+              <div className={`p-4 rounded-xl ${selectedPartnerForDocs.documents_verified 
+                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+                : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'}`}>
+                <div className="flex items-center gap-2">
+                  {selectedPartnerForDocs.documents_verified ? (
+                    <FileCheck className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <FileX className="h-5 w-5 text-amber-600" />
+                  )}
+                  <span className={`font-medium ${selectedPartnerForDocs.documents_verified ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                    {selectedPartnerForDocs.documents_verified 
+                      ? 'All mandatory documents uploaded' 
+                      : `${3 - (selectedPartnerForDocs.documents?.length || 0)} document(s) pending`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Document Upload Cards */}
+              {['pan_card', 'aadhaar_card', 'cancelled_cheque'].map((docType) => {
+                const existingDoc = getDocumentByType(selectedPartnerForDocs.documents, docType);
+                const isUploading = uploadingDoc === docType;
+                
+                return (
+                  <div 
+                    key={docType} 
+                    className={`p-4 rounded-xl border ${existingDoc 
+                      ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800' 
+                      : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'}`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        {existingDoc ? (
+                          <FileCheck className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <FileX className="h-5 w-5 text-gray-400" />
+                        )}
+                        <span className="font-medium">{getDocTypeLabel(docType)}</span>
+                        {!existingDoc && <Badge variant="outline" className="text-amber-600 border-amber-300">Required</Badge>}
+                      </div>
+                      
+                      {existingDoc && (
+                        <a 
+                          href={`${process.env.REACT_APP_BACKEND_URL}${existingDoc.file_url}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-sm text-emerald-600 hover:underline"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View
+                        </a>
+                      )}
+                    </div>
+                    
+                    {existingDoc && (
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Uploaded: {new Date(existingDoc.uploaded_at).toLocaleDateString()} - {existingDoc.file_name}
+                      </p>
+                    )}
+                    
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={fileInputRefs[docType]}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className="text-sm file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 dark:file:bg-emerald-900/30 dark:file:text-emerald-400 flex-1"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() => handleDocUpload(docType)}
+                        disabled={isUploading}
+                        className="bg-emerald-500 hover:bg-emerald-600"
+                      >
+                        {isUploading ? (
+                          <>
+                            <div className="ios-spinner w-4 h-4 mr-2" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-1" />
+                            {existingDoc ? 'Replace' : 'Upload'}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              <p className="text-xs text-muted-foreground text-center">
+                Accepted formats: PDF, JPG, PNG • Max file size: 5MB
+              </p>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDocDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
