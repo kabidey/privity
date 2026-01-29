@@ -207,7 +207,27 @@ export const NotificationProvider = ({ children }) => {
       wsRef.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.event === 'notification') {
+          
+          // Handle PE status change event
+          if (data.event === 'pe_status_change') {
+            console.log('PE Status changed via WebSocket:', data.data);
+            updatePeStatus(data.data);
+            
+            // Show toast for PE status change
+            if (data.data.pe_online) {
+              toast.success('PE Support is now available', {
+                description: data.data.online_users?.map(u => u.name).join(', ') + ' online',
+                duration: 4000
+              });
+            } else {
+              toast.warning('PE Support is now offline', {
+                duration: 4000
+              });
+            }
+          }
+          
+          // Handle notification event
+          else if (data.event === 'notification') {
             const notification = data.data;
             setNotifications(prev => [notification, ...prev]);
             setUnreadCount(prev => prev + 1);
