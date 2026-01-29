@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { 
@@ -13,7 +14,9 @@ import {
   Clock,
   Building2,
   UserCheck,
-  Percent
+  Percent,
+  AlertTriangle,
+  FileCheck
 } from 'lucide-react';
 
 const BPDashboard = () => {
