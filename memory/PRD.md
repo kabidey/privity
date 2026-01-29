@@ -697,9 +697,9 @@ rp_payments: {
 - [ ] UI notification for admins if SMTP email service is not configured
 
 ### P2 - Nice to Have
+- [x] Role-specific dashboards - COMPLETED (Jan 29, 2026)
 - [ ] Two-Factor Authentication (TOTP)
 - [ ] Bulk booking closure feature
-- [ ] Additional role-specific dashboards
 - [ ] Configurable thresholds for loss-booking auto-approval
 
 ## Known Issues
