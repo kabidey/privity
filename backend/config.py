@@ -768,5 +768,347 @@ DEFAULT_EMAIL_TEMPLATES = {
         """,
         "variables": ["rp_name", "rp_code", "pan_number", "rejection_reason"],
         "is_active": True
+    },
+    "corporate_action_notification": {
+        "key": "corporate_action_notification",
+        "name": "Corporate Action Notification",
+        "subject": "Corporate Action Notice - {{action_type}} for {{stock_symbol}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #064E3B;">Corporate Action Notification</h2>
+            <p>Dear {{client_name}},</p>
+            <p>We would like to inform you about an upcoming corporate action on one of your holdings:</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
+                <tr style="background-color: #064E3B; color: white;">
+                    <th colspan="2" style="padding: 12px; text-align: left;">Corporate Action Details</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Stock Symbol</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{stock_symbol}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock Name</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{stock_name}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Action Type</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><span style="color: #059669; font-weight: bold;">{{action_type}}</span></td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Record Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{record_date}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Ex Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{ex_date}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Your Holdings</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>{{quantity}} shares</strong></td>
+                </tr>
+            </table>
+            
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #92400e;"><strong>Details:</strong> {{description}}</p>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px;">The corporate action will be processed as per the record date. Your portfolio will be updated accordingly.</p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """,
+        "variables": ["client_name", "stock_symbol", "stock_name", "action_type", "record_date", "ex_date", "quantity", "description"],
+        "is_active": True
+    },
+    "contract_note": {
+        "key": "contract_note",
+        "name": "Contract Note Email",
+        "subject": "Contract Note - {{contract_note_number}} | {{stock_symbol}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #064E3B;">Contract Note</h2>
+            <p>Dear {{client_name}},</p>
+            <p>Please find attached your Contract Note for the following transaction:</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
+                <tr style="background-color: #064E3B; color: white;">
+                    <th colspan="2" style="padding: 12px; text-align: left;">Transaction Details</th>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Contract Note Number</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; font-family: monospace;">{{contract_note_number}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Booking Reference</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{booking_number}}</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{stock_symbol}} - {{stock_name}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{quantity}} shares</td>
+                </tr>
+                <tr style="background-color: #f3f4f6;">
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Trade Date</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">{{trade_date}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Amount</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong style="color: #059669;">₹{{total_amount}}</strong></td>
+                </tr>
+            </table>
+            
+            <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #065f46;">📎 <strong>The Contract Note PDF is attached to this email.</strong></p>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px;">Please keep this document for your records. If you have any queries, please contact our PE Desk.</p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """,
+        "variables": ["client_name", "contract_note_number", "booking_number", "stock_symbol", "stock_name", "quantity", "trade_date", "total_amount"],
+        "is_active": True
+    },
+    "bp_login_otp": {
+        "key": "bp_login_otp",
+        "name": "Business Partner Login OTP",
+        "subject": "Your Privity Login OTP",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #064E3B;">Login Verification Code</h2>
+            <p>Dear {{bp_name}},</p>
+            <p>Your one-time password (OTP) for logging into the Privity Business Partner Portal is:</p>
+            <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; text-align: center; margin: 20px 0; border-radius: 12px;">
+                <h1 style="color: white; letter-spacing: 10px; margin: 0; font-size: 36px;">{{otp}}</h1>
+            </div>
+            <p><strong>This OTP is valid for {{expiry_minutes}} minutes.</strong></p>
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0;">
+                <p style="margin: 0; color: #92400e;"><strong>Security Notice:</strong> Do not share this OTP with anyone. SMIFS staff will never ask for your OTP.</p>
+            </div>
+            <p style="color: #6b7280; font-size: 14px;">If you didn't request this OTP, please ignore this email.</p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """,
+        "variables": ["bp_name", "otp", "expiry_minutes"],
+        "is_active": True
+    },
+    "payment_request": {
+        "key": "payment_request",
+        "name": "Payment Request (Booking Approved)",
+        "subject": "Payment Request - Booking {{booking_number}} | {{stock_symbol}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #ffffff;">
+            <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 25px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">Payment Request</h1>
+                <p style="color: #d1fae5; margin: 10px 0 0 0; font-size: 14px;">Booking Reference: {{booking_number}}</p>
+            </div>
+            
+            <div style="padding: 30px;">
+                <p style="font-size: 16px; color: #374151;">Dear <strong>{{client_name}}</strong>,</p>
+                
+                <p style="color: #4b5563; line-height: 1.6;">
+                    Your booking has been approved by our PE Desk. Please find below the payment details for completing your investment.
+                </p>
+                
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+                    <h3 style="color: #111827; margin: 0 0 15px 0; font-size: 16px;">📋 Booking Summary</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; width: 40%;">Stock:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{stock_symbol}} - {{stock_name}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Quantity:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{quantity}} shares</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Price per Share:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">₹{{price_per_share}}</td>
+                        </tr>
+                        <tr style="background: #ecfdf5;">
+                            <td style="padding: 15px 10px; color: #065f46; font-weight: bold; font-size: 18px;">Total Amount Payable:</td>
+                            <td style="padding: 15px 10px; color: #065f46; font-weight: bold; font-size: 22px;">₹{{total_amount}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #bfdbfe;">
+                    <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 16px;">🏦 Bank Account Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; width: 40%;">Beneficiary Name:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{company_name}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Bank Name:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{bank_name}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Account Number:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600; font-family: monospace;">{{bank_account}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">IFSC Code:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600; font-family: monospace;">{{bank_ifsc}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #fef3c7; border-radius: 12px; padding: 15px; margin: 25px 0; border: 1px solid #fcd34d;">
+                    <p style="color: #92400e; margin: 0; font-size: 14px;"><strong>⚠️ Important:</strong> Please mention Booking Reference <strong>{{booking_number}}</strong> in the payment remarks.</p>
+                </div>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["client_name", "booking_number", "stock_symbol", "stock_name", "quantity", "price_per_share", "total_amount", "company_name", "bank_name", "bank_account", "bank_ifsc"],
+        "is_active": True
+    },
+    "stock_transfer_request": {
+        "key": "stock_transfer_request",
+        "name": "Stock Transfer Request (Vendor)",
+        "subject": "Stock Transfer Request - {{stock_symbol}} | {{purchase_number}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #ffffff;">
+            <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 25px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">Stock Transfer Request</h1>
+                <p style="color: #bfdbfe; margin: 10px 0 0 0; font-size: 14px;">Purchase Reference: {{purchase_number}}</p>
+            </div>
+            
+            <div style="padding: 30px;">
+                <p style="font-size: 16px; color: #374151;">Dear <strong>{{vendor_name}}</strong>,</p>
+                
+                <p style="color: #4b5563; line-height: 1.6;">
+                    We are pleased to inform you that the <strong>full payment</strong> for your stock purchase order has been completed. 
+                    We kindly request you to <strong>initiate the stock transfer immediately</strong>.
+                </p>
+                
+                <div style="background: #ecfdf5; border-radius: 12px; padding: 20px; margin: 25px 0; border: 2px solid #10b981;">
+                    <h3 style="color: #065f46; margin: 0 0 15px 0; font-size: 16px;">✓ Payment Confirmation</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; width: 40%;">Total Amount Paid:</td>
+                            <td style="padding: 10px 0; color: #065f46; font-weight: bold; font-size: 20px;">₹{{total_paid}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Payment Date:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{payment_date}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+                    <h3 style="color: #111827; margin: 0 0 15px 0; font-size: 16px;">📋 Stock Transfer Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; width: 40%;">Stock:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{stock_symbol}} - {{stock_name}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Quantity to Transfer:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600; font-size: 18px;">{{quantity}} shares</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #bfdbfe;">
+                    <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 16px;">🏦 Transfer To (Our DP Details)</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; width: 40%;">Beneficiary:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{company_name}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">CDSL DP ID:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600; font-family: monospace;">{{cdsl_dp_id}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">NSDL DP ID:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600; font-family: monospace;">{{nsdl_dp_id}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #fef2f2; border-radius: 12px; padding: 20px; margin: 25px 0; border: 2px solid #ef4444;">
+                    <h3 style="color: #991b1b; margin: 0 0 10px 0; font-size: 16px;">⚠️ Immediate Action Required</h3>
+                    <p style="color: #7f1d1d; margin: 0; line-height: 1.6;">
+                        As the full payment has been completed, we kindly request you to <strong>initiate the stock transfer immediately</strong>.
+                    </p>
+                </div>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["vendor_name", "purchase_number", "stock_symbol", "stock_name", "quantity", "total_paid", "payment_date", "company_name", "cdsl_dp_id", "nsdl_dp_id"],
+        "is_active": True
+    },
+    "stock_transferred": {
+        "key": "stock_transferred",
+        "name": "Stock Transfer Completed (Client)",
+        "subject": "Stock Transfer Completed - {{stock_symbol}} | Booking {{booking_number}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #ffffff;">
+            <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 25px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">Stock Transfer Completed</h1>
+                <p style="color: #d1fae5; margin: 10px 0 0 0; font-size: 14px;">Booking Reference: {{booking_number}}</p>
+            </div>
+            
+            <div style="padding: 30px;">
+                <p style="font-size: 16px; color: #374151;">Dear <strong>{{client_name}}</strong>,</p>
+                
+                <p style="color: #4b5563; line-height: 1.6;">
+                    We are pleased to inform you that your stock transfer has been <strong>successfully completed</strong>. 
+                    The shares have been transferred to your demat account.
+                </p>
+                
+                <div style="background: #ecfdf5; border-radius: 12px; padding: 20px; margin: 25px 0; border: 2px solid #10b981; text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">✓</div>
+                    <h2 style="color: #065f46; margin: 0 0 10px 0;">Transfer Successful</h2>
+                    <p style="color: #047857; margin: 0; font-size: 14px;">
+                        Your shares will reflect in your demat account by <strong>{{t2_date}}</strong> (T+2 settlement)
+                    </p>
+                </div>
+                
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+                    <h3 style="color: #111827; margin: 0 0 15px 0; font-size: 16px;">📋 Transfer Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; width: 40%;">Stock:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{stock_symbol}} - {{stock_name}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Quantity Transferred:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600; font-size: 18px;">{{quantity}} shares</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Transfer Mode:</td>
+                            <td style="padding: 10px 0;">
+                                <span style="background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 14px;">{{dp_type}}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Transfer Date:</td>
+                            <td style="padding: 10px 0; color: #111827;">{{transfer_date}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #fefce8; border-radius: 12px; padding: 15px; margin: 25px 0; border: 1px solid #fcd34d;">
+                    <p style="color: #854d0e; margin: 0; font-size: 14px;">
+                        <strong>Need Help?</strong> If you don't see the shares in your account after {{t2_date}}, 
+                        please contact our PE Desk with your booking reference: <strong>{{booking_number}}</strong>
+                    </p>
+                </div>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["client_name", "booking_number", "stock_symbol", "stock_name", "quantity", "dp_type", "transfer_date", "t2_date"],
+        "is_active": True
     }
 }
