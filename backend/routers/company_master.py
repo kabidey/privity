@@ -95,6 +95,7 @@ async def get_company_master(current_user: dict = Depends(get_current_user)):
             "company_bank_account": "",
             "company_bank_ifsc": "",
             "company_bank_branch": "",
+            "logo_url": None,
             "cml_cdsl_url": None,
             "cml_nsdl_url": None,
             "cancelled_cheque_url": None,
