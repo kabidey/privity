@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useTheme } from '../context/ThemeContext';
+import { useNotifications } from '../context/NotificationContext';
 import NotificationBell from './NotificationBell';
 import { toast } from 'sonner';
 import api from '../utils/api';
