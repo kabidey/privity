@@ -626,36 +626,60 @@ async def get_bp_dashboard_stats(current_user: dict = Depends(get_current_user))
     if not bp:
         raise HTTPException(status_code=404, detail="Business Partner not found")
     
-    # Get linked employee's bookings
+    # Get linked employee's bookings AND bookings directly made by this BP
     linked_employee_id = bp.get("linked_employee_id")
     
-    # Get bookings created by the linked employee
+    # Query bookings: created by linked employee OR created by BP OR where BP is tagged
     bookings = await db.bookings.find({
-        "created_by": linked_employee_id
+        "$or": [
+            {"created_by": linked_employee_id},
+            {"business_partner_id": bp_id},
+            {"created_by": bp_id}
+        ]
     }, {"_id": 0}).to_list(10000)
+    
+    # Remove duplicates (by booking id)
+    seen_ids = set()
+    unique_bookings = []
+    for b in bookings:
+        if b.get("id") not in seen_ids:
+            seen_ids.add(b.get("id"))
+            unique_bookings.append(b)
+    bookings = unique_bookings
     
     # Calculate statistics
     total_bookings = len(bookings)
     completed_bookings = len([b for b in bookings if b.get("status") == "completed"])
     
-    total_revenue = sum(
-        (b.get("selling_price", 0) - b.get("buying_price", 0)) * b.get("quantity", 0)
-        for b in bookings if b.get("status") == "completed"
-    )
+    # For BP bookings, use the bp_revenue_share_percent from the booking itself
+    # For linked employee bookings, use BP's default share
+    total_revenue = 0
+    bp_share_total = 0
     
-    revenue_share_percent = bp.get("revenue_share_percent", 0)
-    bp_share = total_revenue * (revenue_share_percent / 100)
-    smifs_share = total_revenue - bp_share
+    for b in bookings:
+        if b.get("status") == "completed":
+            profit = (b.get("selling_price", 0) - b.get("buying_price", 0)) * b.get("quantity", 0)
+            total_revenue += profit
+            
+            # Check if this is a direct BP booking
+            if b.get("is_bp_booking") and b.get("business_partner_id") == bp_id:
+                bp_share_total += profit * (b.get("bp_revenue_share_percent", 0) / 100)
+            else:
+                # Use default BP share for linked employee bookings
+                bp_share_total += profit * (bp.get("revenue_share_percent", 0) / 100)
+    
+    smifs_share = total_revenue - bp_share_total
     
     return {
         "bp_name": bp["name"],
         "linked_employee_name": bp.get("linked_employee_name"),
-        "revenue_share_percent": revenue_share_percent,
+        "revenue_share_percent": bp.get("revenue_share_percent", 0),
         "total_bookings": total_bookings,
         "completed_bookings": completed_bookings,
         "total_revenue": round(total_revenue, 2),
-        "bp_share": round(bp_share, 2),
-        "smifs_share": round(smifs_share, 2)
+        "bp_share": round(bp_share_total, 2),
+        "smifs_share": round(smifs_share, 2),
+        "documents_verified": bp.get("documents_verified", False)
     }
 
 
@@ -665,7 +689,7 @@ async def get_bp_bookings(
     status: Optional[str] = None,
     limit: int = 50
 ):
-    """Get bookings for Business Partner's linked employee"""
+    """Get bookings for Business Partner's linked employee and direct BP bookings"""
     if current_user.get("role") != 8:
         raise HTTPException(status_code=403, detail="Access denied")
     
@@ -675,24 +699,61 @@ async def get_bp_bookings(
     if not bp:
         raise HTTPException(status_code=404, detail="Business Partner not found")
     
-    query = {"created_by": bp.get("linked_employee_id")}
+    linked_employee_id = bp.get("linked_employee_id")
+    
+    # Query: created by linked employee OR created by BP OR where BP is tagged
+    query = {
+        "$or": [
+            {"created_by": linked_employee_id},
+            {"business_partner_id": bp_id},
+            {"created_by": bp_id}
+        ]
+    }
     if status:
         query["status"] = status
     
-    bookings = await db.bookings.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    bookings = await db.bookings.find(query, {"_id": 0}).sort("created_at", -1).limit(limit * 2).to_list(limit * 2)
+    
+    # Remove duplicates and limit
+    seen_ids = set()
+    unique_bookings = []
+    for b in bookings:
+        if b.get("id") not in seen_ids:
+            seen_ids.add(b.get("id"))
+            unique_bookings.append(b)
+            if len(unique_bookings) >= limit:
+                break
     
     # Calculate BP share for each booking
-    revenue_share_percent = bp.get("revenue_share_percent", 0)
-    
     result = []
-    for b in bookings:
+    for b in unique_bookings:
         profit = (b.get("selling_price", 0) - b.get("buying_price", 0)) * b.get("quantity", 0)
-        bp_share = profit * (revenue_share_percent / 100) if b.get("status") == "completed" else 0
+        
+        # Determine BP share based on booking type
+        if b.get("is_bp_booking") and b.get("business_partner_id") == bp_id:
+            bp_share = profit * (b.get("bp_revenue_share_percent", 0) / 100) if b.get("status") == "completed" else 0
+        else:
+            bp_share = profit * (bp.get("revenue_share_percent", 0) / 100) if b.get("status") == "completed" else 0
+        
+        # Get client and stock names if not present
+        client_name = b.get("client_name")
+        stock_symbol = b.get("stock_symbol")
+        
+        if not client_name:
+            client = await db.clients.find_one({"id": b.get("client_id")}, {"_id": 0, "name": 1})
+            client_name = client.get("name") if client else "Unknown"
+        
+        if not stock_symbol:
+            stock = await db.stocks.find_one({"id": b.get("stock_id")}, {"_id": 0, "symbol": 1})
+            stock_symbol = stock.get("symbol") if stock else "Unknown"
         
         result.append({
             **b,
+            "client_name": client_name,
+            "stock_symbol": stock_symbol,
             "profit": round(profit, 2),
-            "bp_share": round(bp_share, 2)
+            "bp_share": round(bp_share, 2),
+            "is_direct_bp_booking": b.get("is_bp_booking", False) and b.get("business_partner_id") == bp_id
         })
     
     return result
