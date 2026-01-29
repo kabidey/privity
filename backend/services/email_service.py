@@ -617,3 +617,263 @@ async def send_loss_approval_email(
     </div>
     """
     await send_email(client_email, subject, body, cc_email)
+
+
+async def send_payment_request_email(
+    booking_id: str,
+    client: dict,
+    stock: dict,
+    booking: dict,
+    company_master: dict,
+    approved_by: str,
+    cc_email: Optional[str] = None
+):
+    """
+    Send payment request email to client when booking is approved.
+    Includes bank details from company master and attaches company documents.
+    
+    Args:
+        booking_id: Booking ID
+        client: Client document
+        stock: Stock document
+        booking: Booking document
+        company_master: Company master document with bank details and document URLs
+        approved_by: Name of the user who approved
+        cc_email: Optional CC email (usually the booking creator)
+    """
+    import aiohttp
+    import aiofiles
+    
+    client_name = client.get("name", "Valued Client")
+    client_email = client.get("email")
+    
+    if not client_email:
+        logging.warning(f"Cannot send payment request - no email for client {client.get('id')}")
+        return
+    
+    # Calculate payment details
+    quantity = booking.get("quantity", 0)
+    buying_price = booking.get("buying_price", 0)
+    total_amount = quantity * buying_price
+    booking_number = booking.get("booking_number", booking_id[:8].upper())
+    
+    # Get bank details from company master
+    company_name = company_master.get("company_name", "SMIFS Capital Markets Ltd")
+    bank_name = company_master.get("company_bank_name", "")
+    bank_account = company_master.get("company_bank_account", "")
+    bank_ifsc = company_master.get("company_bank_ifsc", "")
+    bank_branch = company_master.get("company_bank_branch", "")
+    company_pan = company_master.get("company_pan", "")
+    
+    # Get document URLs
+    nsdl_cml_url = company_master.get("cml_nsdl_url")
+    cdsl_cml_url = company_master.get("cml_cdsl_url")
+    pan_card_url = company_master.get("pan_card_url")
+    
+    # Build attachments list
+    attachments = []
+    
+    async def load_document(url: str, filename: str) -> Optional[dict]:
+        """Load document from URL or local path"""
+        if not url:
+            return None
+        try:
+            # Check if it's a local file path
+            if url.startswith("/uploads/"):
+                local_path = f"/app{url}"
+                if os.path.exists(local_path):
+                    async with aiofiles.open(local_path, 'rb') as f:
+                        content = await f.read()
+                    return {
+                        'filename': filename,
+                        'content': content,
+                        'content_type': 'application/pdf' if filename.endswith('.pdf') else 'image/png'
+                    }
+            # Handle external URLs
+            elif url.startswith("http"):
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        if response.status == 200:
+                            content = await response.read()
+                            return {
+                                'filename': filename,
+                                'content': content,
+                                'content_type': 'application/pdf'
+                            }
+        except Exception as e:
+            logging.error(f"Failed to load document {url}: {e}")
+        return None
+    
+    # Load company documents as attachments
+    if nsdl_cml_url:
+        doc = await load_document(nsdl_cml_url, "NSDL_CML.pdf")
+        if doc:
+            attachments.append(doc)
+    
+    if cdsl_cml_url:
+        doc = await load_document(cdsl_cml_url, "CDSL_CML.pdf")
+        if doc:
+            attachments.append(doc)
+    
+    if pan_card_url:
+        ext = pan_card_url.split('.')[-1].lower() if '.' in pan_card_url else 'pdf'
+        doc = await load_document(pan_card_url, f"Company_PAN_Card.{ext}")
+        if doc:
+            attachments.append(doc)
+    
+    # Build email subject
+    subject = f"Payment Request - Booking {booking_number} | {stock.get('symbol', 'N/A')}"
+    
+    # Build email body
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #ffffff;">
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 25px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Payment Request</h1>
+            <p style="color: #d1fae5; margin: 10px 0 0 0; font-size: 14px;">Booking Reference: {booking_number}</p>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 30px;">
+            <p style="font-size: 16px; color: #374151;">Dear <strong>{client_name}</strong>,</p>
+            
+            <p style="color: #4b5563; line-height: 1.6;">
+                Your booking has been approved by our PE Desk. Please find below the payment details for completing your investment.
+            </p>
+            
+            <!-- Booking Summary -->
+            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e5e7eb;">
+                <h3 style="color: #111827; margin: 0 0 15px 0; font-size: 16px; border-bottom: 2px solid #10b981; padding-bottom: 10px;">
+                    📋 Booking Summary
+                </h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280; width: 40%;">Stock:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">{stock.get('symbol', 'N/A')} - {stock.get('name', '')}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Quantity:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">{quantity:,} shares</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Price per Share:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">₹ {buying_price:,.2f}</td>
+                    </tr>
+                    <tr style="background: #ecfdf5;">
+                        <td style="padding: 15px 10px; color: #065f46; font-weight: bold; font-size: 18px;">Total Amount Payable:</td>
+                        <td style="padding: 15px 10px; color: #065f46; font-weight: bold; font-size: 22px;">₹ {total_amount:,.2f}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Bank Details -->
+            <div style="background: #eff6ff; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #bfdbfe;">
+                <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 16px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
+                    🏦 Bank Account Details for Payment
+                </h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280; width: 40%;">Beneficiary Name:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">{company_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Bank Name:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">{bank_name or 'Please contact PE Desk'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Account Number:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600; font-family: monospace; font-size: 16px;">{bank_account or 'Please contact PE Desk'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">IFSC Code:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600; font-family: monospace;">{bank_ifsc or 'Please contact PE Desk'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 0; color: #6b7280;">Branch:</td>
+                        <td style="padding: 10px 0; color: #111827;">{bank_branch or '-'}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Important Notes -->
+            <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #fcd34d;">
+                <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 14px;">⚠️ Important Notes:</h3>
+                <ul style="color: #78350f; margin: 0; padding-left: 20px; line-height: 1.8;">
+                    <li>Please mention your <strong>Booking Reference ({booking_number})</strong> in the payment remarks</li>
+                    <li>Attached are our company documents (NSDL CML, CDSL CML, PAN Card) for your reference</li>
+                    <li>After making the payment, please share the payment confirmation with your relationship manager</li>
+                    <li>Stock transfer will be initiated within 2-3 business days after payment confirmation</li>
+                </ul>
+            </div>
+            
+            <!-- Approved By -->
+            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                <em>Approved by: {approved_by}</em><br>
+                <em>Date: {datetime.now(timezone.utc).strftime('%d %B %Y, %I:%M %p')} UTC</em>
+            </p>
+            
+            <p style="color: #4b5563; margin-top: 25px;">
+                For any queries, please contact your relationship manager or reach out to our PE Desk.
+            </p>
+            
+            <p style="color: #374151; margin-top: 20px;">
+                Best regards,<br>
+                <strong>{company_name}</strong><br>
+                <span style="color: #6b7280; font-size: 14px;">Private Equity Division</span>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background: #f3f4f6; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                This is an automated message from the Private Equity System.<br>
+                Company PAN: {company_pan or 'N/A'}
+            </p>
+        </div>
+    </div>
+    """
+    
+    # Get additional client emails
+    additional_emails = []
+    if client.get("secondary_email"):
+        additional_emails.append(client["secondary_email"])
+    if client.get("tertiary_email"):
+        additional_emails.append(client["tertiary_email"])
+    
+    # Send primary email with attachments
+    await send_email(
+        client_email,
+        subject,
+        body,
+        cc_email=cc_email,
+        template_key="payment_request",
+        variables={
+            "booking_number": booking_number,
+            "client_name": client_name,
+            "stock_symbol": stock.get("symbol"),
+            "total_amount": total_amount
+        },
+        related_entity_type="booking",
+        related_entity_id=booking_id,
+        attachments=attachments if attachments else None
+    )
+    
+    # Send to additional client emails (without attachments to save bandwidth)
+    for email in additional_emails:
+        if email and email != client_email:
+            await send_email(
+                email,
+                subject,
+                body,
+                template_key="payment_request",
+                variables={
+                    "booking_number": booking_number,
+                    "client_name": client_name,
+                    "stock_symbol": stock.get("symbol"),
+                    "total_amount": total_amount
+                },
+                related_entity_type="booking",
+                related_entity_id=booking_id
+            )
+    
+    logging.info(f"Payment request email sent for booking {booking_number} to {client_email}")
