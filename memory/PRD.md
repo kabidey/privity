@@ -34,6 +34,22 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 28, 2026)
 
+#### ✅ Company Logo Upload - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- Added `/app/backend/routers/company_master.py` endpoints:
+  - `POST /upload-logo` - Upload company logo (PNG, JPG, SVG, WEBP, max 5MB)
+  - `DELETE /logo` - Delete company logo
+- Updated CompanyMasterResponse model to include `logo_url` field
+- Added logo preview section to Company Master frontend page:
+  - 192x192 preview container with placeholder when no logo
+  - Logo Guidelines section
+  - Upload/Change Logo button
+  - Remove Logo button (when logo exists)
+  - "Logo uploaded successfully" badge
+- Old logo automatically deleted when new one is uploaded
+- Logo persists across page refreshes
+- **Testing**: 11/11 backend + all frontend tests passed (iteration_35)
+
 #### ✅ Contract Notes - Email Attachments & Auto-Generation - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
 - Updated `/app/backend/services/email_service.py`:
