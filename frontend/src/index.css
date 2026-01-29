@@ -377,13 +377,6 @@ code {
     
     /* Mobile Dialog Responsiveness */
     @media (max-width: 640px) {
-        [role="dialog"] {
-            width: calc(100% - 1rem) !important;
-            max-width: calc(100% - 1rem) !important;
-            margin: 0.5rem;
-            padding: 1rem;
-        }
-        
         [role="dialog"] .grid-cols-2 {
             grid-template-columns: 1fr !important;
         }
