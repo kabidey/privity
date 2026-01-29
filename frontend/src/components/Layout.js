@@ -14,6 +14,8 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useNotifications } from '../context/NotificationContext';
 import NotificationBell from './NotificationBell';
+import KillSwitch from './KillSwitch';
+import SystemFrozenOverlay from './SystemFrozenOverlay';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { getVersion } from '../version';
