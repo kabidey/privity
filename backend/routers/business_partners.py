@@ -2,13 +2,15 @@
 Business Partner Router
 Handles Business Partner management, OTP login, and revenue sharing
 """
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, UploadFile, File
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime, timezone, timedelta
 import uuid
 import secrets
 import string
+import os
+import shutil
 
 from database import db
 from routers.auth import get_current_user, create_audit_log
@@ -20,6 +22,15 @@ router = APIRouter(prefix="/business-partners", tags=["Business Partners"])
 # OTP settings
 BP_OTP_EXPIRY_MINUTES = 10
 BP_OTP_MAX_ATTEMPTS = 5
+
+# Upload settings
+BP_UPLOAD_DIR = "/app/uploads/bp_documents"
+ALLOWED_DOC_TYPES = ["pan_card", "aadhaar_card", "cancelled_cheque"]
+ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png"}
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+
+# Ensure upload directory exists
+os.makedirs(BP_UPLOAD_DIR, exist_ok=True)
 
 
 # ============== Models ==============
@@ -46,6 +57,13 @@ class BusinessPartnerUpdate(BaseModel):
     linked_employee_id: Optional[str] = None
     notes: Optional[str] = None
     is_active: Optional[bool] = None
+
+
+class BPDocument(BaseModel):
+    doc_type: str  # pan_card, aadhaar_card, cancelled_cheque
+    file_name: str
+    file_url: str
+    uploaded_at: str
 
 
 class BusinessPartnerResponse(BaseModel):
