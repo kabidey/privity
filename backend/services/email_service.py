@@ -756,8 +756,8 @@ async def send_payment_request_email(
                         <td style="padding: 10px 0; color: #111827; font-weight: 600;">{quantity:,} shares</td>
                     </tr>
                     <tr>
-                        <td style="padding: 10px 0; color: #6b7280;">Price per Share:</td>
-                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">₹ {buying_price:,.2f}</td>
+                        <td style="padding: 10px 0; color: #6b7280;">Sell Price per Share:</td>
+                        <td style="padding: 10px 0; color: #111827; font-weight: 600;">₹ {selling_price:,.2f}</td>
                     </tr>
                     <tr style="background: #ecfdf5;">
                         <td style="padding: 15px 10px; color: #065f46; font-weight: bold; font-size: 18px;">Total Amount Payable:</td>
