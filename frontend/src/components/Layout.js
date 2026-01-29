@@ -60,17 +60,38 @@ const Layout = ({ children }) => {
   const [peStatus, setPeStatus] = useState({ pe_online: false, message: 'Checking...', online_users: [] });
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const { theme, toggleTheme } = useTheme();
+  
+  // Get notification context for WebSocket PE status updates
+  const { peStatus: wsPeStatus, onPeStatusChange, isConnected } = useNotifications();
 
-  // Poll PE online status and send heartbeat
+  // Subscribe to WebSocket PE status updates
+  useEffect(() => {
+    // Register callback to receive PE status updates via WebSocket
+    onPeStatusChange((status) => {
+      console.log('PE Status update received via WebSocket:', status);
+      setPeStatus(status);
+    });
+  }, [onPeStatusChange]);
+
+  // Update from WebSocket PE status when it changes
+  useEffect(() => {
+    if (wsPeStatus && wsPeStatus.message !== 'Checking...') {
+      setPeStatus(wsPeStatus);
+    }
+  }, [wsPeStatus]);
+
+  // Poll PE online status and send heartbeat (fallback when WebSocket is not connected)
   useEffect(() => {
     const checkPeStatus = async () => {
       try {
         // Send heartbeat (will only track if current user is PE level)
         await api.post('/users/heartbeat');
         
-        // Get PE status
-        const response = await api.get('/users/pe-status');
-        setPeStatus(response.data);
+        // Get PE status (only if WebSocket is not connected or as initial fetch)
+        if (!isConnected) {
+          const response = await api.get('/users/pe-status');
+          setPeStatus(response.data);
+        }
       } catch (error) {
         console.error('Failed to check PE status:', error);
       }
@@ -79,11 +100,11 @@ const Layout = ({ children }) => {
     // Check immediately
     checkPeStatus();
     
-    // Then poll every 30 seconds
+    // Then poll every 30 seconds (heartbeat) - status updates come via WebSocket when connected
     const interval = setInterval(checkPeStatus, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [isConnected]);
 
   // Close sidebar on route change
   useEffect(() => {
