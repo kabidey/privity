@@ -140,7 +140,7 @@ class Client(BaseModel):
     suspended_at: Optional[str] = None
     documents: List[ClientDocument] = []
     created_at: str
-    created_by: str
+    created_by: Optional[str] = None
     created_by_role: int = 5
     mapped_employee_id: Optional[str] = None
     mapped_employee_name: Optional[str] = None
