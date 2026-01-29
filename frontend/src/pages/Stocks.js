@@ -125,19 +125,45 @@ const Stocks = () => {
     e.preventDefault();
     try {
       const payload = {
-        ...actionFormData,
-        ratio_from: parseInt(actionFormData.ratio_from),
-        ratio_to: parseInt(actionFormData.ratio_to),
-        new_face_value: actionFormData.new_face_value ? parseFloat(actionFormData.new_face_value) : null,
+        stock_id: actionFormData.stock_id,
+        action_type: actionFormData.action_type,
+        record_date: actionFormData.record_date,
+        notes: actionFormData.notes || null,
       };
 
+      // Add fields based on action type
+      if (actionFormData.action_type === 'dividend') {
+        payload.dividend_amount = parseFloat(actionFormData.dividend_amount);
+        payload.dividend_type = actionFormData.dividend_type;
+        payload.ex_date = actionFormData.ex_date || null;
+        payload.payment_date = actionFormData.payment_date || null;
+      } else {
+        payload.ratio_from = parseInt(actionFormData.ratio_from);
+        payload.ratio_to = parseInt(actionFormData.ratio_to);
+        payload.new_face_value = actionFormData.new_face_value ? parseFloat(actionFormData.new_face_value) : null;
+      }
+
       await api.post('/corporate-actions', payload);
-      toast.success('Corporate action created - will be applied on record date');
+      toast.success('Corporate action created successfully');
       setActionDialogOpen(false);
       resetActionForm();
       fetchCorporateActions();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'An error occurred');
+    }
+  };
+
+  const handleSendNotification = async (actionId) => {
+    if (!window.confirm('Send email notifications to all clients holding this stock?')) return;
+    setSendingNotification(actionId);
+    try {
+      await api.post(`/corporate-actions/${actionId}/notify`);
+      toast.success('Notifications are being sent to clients');
+      fetchCorporateActions();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send notifications');
+    } finally {
+      setSendingNotification(null);
     }
   };
 
