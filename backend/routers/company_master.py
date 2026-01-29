@@ -253,6 +253,137 @@ async def upload_company_document(
     }
 
 
+@router.post("/upload-logo")
+async def upload_company_logo(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Upload company logo (PE Desk only)
+    Supports PNG, JPG, JPEG, SVG, WEBP formats
+    """
+    check_pe_desk(current_user)
+    
+    # Validate file type - images only
+    allowed_extensions = [".png", ".jpg", ".jpeg", ".svg", ".webp"]
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(allowed_extensions)}"
+        )
+    
+    # Validate file size (max 5MB for logo)
+    file_content = await file.read()
+    if len(file_content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Logo file size must be less than 5MB")
+    
+    # Get current logo to delete old file
+    master = await db.company_master.find_one({"_id": "company_settings"})
+    if master and master.get("logo_url"):
+        old_logo_path = f"/app{master.get('logo_url')}"
+        if os.path.exists(old_logo_path):
+            try:
+                os.remove(old_logo_path)
+            except Exception:
+                pass
+    
+    # Generate unique filename
+    filename = f"company_logo_{uuid.uuid4().hex[:8]}{file_ext}"
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    
+    # Save file
+    try:
+        with open(file_path, "wb") as buffer:
+            buffer.write(file_content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save logo: {str(e)}")
+    
+    # Generate URL
+    file_url = f"/uploads/company/{filename}"
+    
+    # Update database
+    await db.company_master.update_one(
+        {"_id": "company_settings"},
+        {
+            "$set": {
+                "logo_url": file_url,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_by": current_user["name"]
+            }
+        },
+        upsert=True
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="COMPANY_LOGO_UPLOAD",
+        entity_type="company_master",
+        entity_id="company_settings",
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 1),
+        entity_name="Company Master Settings",
+        details={"filename": filename}
+    )
+    
+    return {
+        "message": "Company logo uploaded successfully",
+        "url": file_url,
+        "filename": filename
+    }
+
+
+@router.delete("/logo")
+async def delete_company_logo(
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete company logo (PE Desk only)"""
+    check_pe_desk(current_user)
+    
+    # Get current logo
+    master = await db.company_master.find_one({"_id": "company_settings"})
+    if not master:
+        raise HTTPException(status_code=404, detail="Company master not found")
+    
+    current_logo = master.get("logo_url")
+    
+    if current_logo:
+        # Try to delete the file
+        file_path = f"/app{current_logo}"
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
+    
+    # Clear the URL in database
+    await db.company_master.update_one(
+        {"_id": "company_settings"},
+        {
+            "$set": {
+                "logo_url": None,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_by": current_user["name"]
+            }
+        }
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="COMPANY_LOGO_DELETE",
+        entity_type="company_master",
+        entity_id="company_settings",
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 1),
+        entity_name="Company Master Settings",
+        details={}
+    )
+    
+    return {"message": "Company logo deleted successfully"}
+
+
 @router.delete("/document/{document_type}")
 async def delete_company_document(
     document_type: str,
