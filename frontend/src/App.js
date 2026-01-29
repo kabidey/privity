@@ -30,6 +30,8 @@ import ContractNotes from './pages/ContractNotes';
 import BulkUpload from './pages/BulkUpload';
 import BusinessPartners from './pages/BusinessPartners';
 import BPDashboard from './pages/BPDashboard';
+import RPRevenueDashboard from './pages/RPRevenueDashboard';
+import EmployeeRevenueDashboard from './pages/EmployeeRevenueDashboard';
 import Layout from './components/Layout';
 import './App.css';
 
