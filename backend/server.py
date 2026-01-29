@@ -90,6 +90,7 @@ from routers import (
     finance_router,
     referral_partners_router
 )
+from routers.bulk_upload import router as bulk_upload_router
 
 # Import get_all_payments from finance router for export endpoint
 from routers.finance import get_all_payments
