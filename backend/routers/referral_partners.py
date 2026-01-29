@@ -372,7 +372,7 @@ async def upload_rp_documents(
     
     # Update database
     url_field = f"{document_type}_url"
-    relative_path = f"/uploads/referral_partners/{rp_id}/{filename}"
+    relative_path = f"/api/uploads/referral_partners/{rp_id}/{filename}"
     
     await db.referral_partners.update_one(
         {"id": rp_id},
