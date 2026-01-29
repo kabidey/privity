@@ -142,8 +142,8 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
   }
 
-  // Add Referral Partners for PE level and Employees
-  if (user.role === 1 || user.role === 2 || user.role === 4) {
+  // Add Referral Partners for PE level, Manager, and Employees
+  if (user.role === 1 || user.role === 2 || user.role === 4 || user.role === 5) {
     menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
   }
 
