@@ -11,7 +11,7 @@ import io
 from database import db
 from routers.auth import get_current_user
 from models import Stock, StockCreate, CorporateAction, CorporateActionCreate, Inventory
-from services.email_service import send_templated_email
+from services.email_service import send_email
 
 router = APIRouter(tags=["Stocks"])
 
