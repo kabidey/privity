@@ -74,6 +74,8 @@ function App() {
                         <Route path="/company-master" element={<CompanyMaster />} />
                         <Route path="/contract-notes" element={<ContractNotes />} />
                         <Route path="/bulk-upload" element={<BulkUpload />} />
+                        <Route path="/business-partners" element={<BusinessPartners />} />
+                        <Route path="/bp-dashboard" element={<BPDashboard />} />
                       </Routes>
                     </Layout>
                   </NotificationProvider>
