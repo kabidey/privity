@@ -197,16 +197,36 @@ export const NotificationProvider = ({ children }) => {
             setNotifications(prev => [notification, ...prev]);
             setUnreadCount(prev => prev + 1);
             
-            // Play notification chime sound
-            playNotificationSound();
+            // Store latest notification for dialog
+            setLatestNotification(notification);
+            
+            // Check if urgent notification type
+            const urgentTypes = ['booking_rejected', 'loss_booking', 'approval_needed', 'payment_overdue'];
+            const isUrgent = urgentTypes.some(t => notification.type?.includes(t));
+            
+            // Play appropriate sound - LOUD
+            if (isUrgent) {
+              playUrgentSound();
+            } else {
+              playNotificationSound();
+            }
             
             // Trigger animation state
             setHasNewNotification(true);
             setTimeout(() => setHasNewNotification(false), 3000);
             
-            // Show toast notification
+            // Add to floating notifications (bottom of page)
+            addFloatingNotification(notification);
+            
+            // Show dialog for important notifications
+            if (isUrgent || notification.type?.includes('booking') || notification.type?.includes('approval')) {
+              setShowNotificationDialog(true);
+            }
+            
+            // Show toast notification as well
             toast(notification.title, {
               description: notification.message,
+              duration: 6000,
               action: {
                 label: 'View',
                 onClick: () => markAsRead(notification.id)
