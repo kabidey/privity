@@ -623,3 +623,83 @@ rp_payments: {
 ## 3rd Party Integrations
 - **OpenAI via `emergentintegrations`**: Used for OCR on document uploads. Uses the Emergent LLM Key.
 - **`openpyxl`**: Used for generating `.xlsx` Excel files for export.
+
+---
+
+## Latest Updates (Jan 29, 2026 - Session 2)
+
+#### ✅ User Hierarchy & Manager Assignment System - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **Manager Assignment System**: Employees (role 5) can be assigned to Managers (role 4), Managers can be assigned to Zonal Managers (role 3)
+- **Backend Endpoints** (`/app/backend/routers/users.py`):
+  - `GET /api/users/hierarchy` - Returns all users with `manager_id` and `manager_name`
+  - `PUT /api/users/{user_id}/assign-manager` - Assigns a manager to user with validation
+  - `GET /api/users/managers-list?role={role}` - Returns available managers for dropdown
+  - `GET /api/users/{user_id}/subordinates` - Gets direct and indirect subordinates
+- **Frontend User Management** (`/app/frontend/src/pages/UserManagement.js`):
+  - "All Users" tab with "Reports To" column showing manager assignments
+  - "Team Hierarchy" tab showing organizational structure visually
+  - Assign Manager dialog with manager dropdown
+  - Sections: PE Level Users, Zonal Managers & Teams, Unassigned Managers, Unassigned Employees
+- **Validation Rules**:
+  - Employee (5) → can only report to Manager (4)
+  - Manager (4) → can only report to Zonal Manager (3)
+  - Zonal Manager (3) → cannot be assigned to anyone (top of hierarchy)
+  - PE Desk/Manager (1,2) → cannot be assigned
+- **Testing**: 13/13 backend tests passed, all frontend UI verified (iteration_39)
+
+#### ✅ RP Revenue Dashboard - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **New Dashboard** at `/rp-revenue` route
+- **Backend Endpoint** (`/app/backend/routers/revenue_dashboard.py`):
+  - `GET /api/rp-revenue` - Returns RP revenue data with hierarchical filtering
+  - `GET /api/rp-revenue/{rp_id}/bookings` - Detailed bookings for specific RP
+- **Frontend** (`/app/frontend/src/pages/RPRevenueDashboard.js`):
+  - Summary cards: Total RPs, Total Revenue, Total Commission, Total Bookings
+  - Date range filter with Apply button
+  - Search by RP name, code, or employee
+  - RP Performance table with View button for detailed bookings
+  - Bookings dialog showing client, stock, quantity, value, commission, status
+- **Hierarchical Access Control**:
+  - PE Level: Can see all RPs
+  - Manager: Can see RPs mapped to their employees
+  - Employee: Can see RPs mapped to themselves
+
+#### ✅ Employee Revenue Dashboard - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **New Dashboard** at `/employee-revenue` route
+- **Backend Endpoints** (`/app/backend/routers/revenue_dashboard.py`):
+  - `GET /api/employee-revenue` - Returns team revenue data with hierarchical filtering
+  - `GET /api/employee-revenue/{employee_id}/bookings` - Detailed bookings for specific employee
+  - `GET /api/my-team` - Returns team members based on hierarchy
+- **Frontend** (`/app/frontend/src/pages/EmployeeRevenueDashboard.js`):
+  - Current user info card with team size
+  - Summary cards: Team Members, Total Revenue, Total Commission, Total Bookings
+  - Date range filter with Apply button
+  - Team Performance table with role badges and View button
+  - Bookings dialog showing client, stock, value, commission, RP, status
+- **Hierarchical Access Control**:
+  - PE Level: Can see all employees
+  - Zonal Manager: Can see their Managers and those Managers' Employees
+  - Manager: Can see their Employees
+  - Employee: Can see only themselves
+
+## Prioritized Backlog
+
+### P0 - Critical (Completed ✅)
+- [x] User Hierarchy System for Manager Assignments
+- [x] RP Revenue Dashboard with hierarchical access
+- [x] Employee Revenue Dashboard with hierarchical access
+
+### P1 - Important
+- [ ] UI notification for admins if SMTP email service is not configured
+
+### P2 - Nice to Have
+- [ ] "Resend Email" button on Email Logs page
+- [ ] Two-Factor Authentication (TOTP)
+- [ ] Bulk booking closure feature
+- [ ] Additional role-specific dashboards
+- [ ] Configurable thresholds for loss-booking auto-approval
+
+## Known Issues
+- OTP and system emails require SMTP configuration (not a code bug - user must configure via Email Server Config page)
