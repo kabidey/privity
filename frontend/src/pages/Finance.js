@@ -22,8 +22,7 @@ const Finance = () => {
   const [payments, setPayments] = useState([]);
   const [refundRequests, setRefundRequests] = useState([]);
   const [rpPayments, setRpPayments] = useState([]);
-  const [employeeCommissions, setEmployeeCommissions] = useState([]);
-  const [commissionSummary, setCommissionSummary] = useState([]);
+  const [bpPayments, setBpPayments] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -42,6 +41,14 @@ const Finance = () => {
   const [rpPaymentDialogOpen, setRpPaymentDialogOpen] = useState(false);
   const [selectedRpPayment, setSelectedRpPayment] = useState(null);
   const [rpPaymentForm, setRpPaymentForm] = useState({
+    status: '',
+    notes: '',
+    payment_reference: '',
+    payment_date: ''
+  });
+  const [bpPaymentDialogOpen, setBpPaymentDialogOpen] = useState(false);
+  const [selectedBpPayment, setSelectedBpPayment] = useState(null);
+  const [bpPaymentForm, setBpPaymentForm] = useState({
     status: '',
     notes: '',
     payment_reference: '',
