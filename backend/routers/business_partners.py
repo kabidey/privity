@@ -79,6 +79,8 @@ class BusinessPartnerResponse(BaseModel):
     linked_employee_name: Optional[str] = None
     notes: Optional[str] = None
     is_active: bool = True
+    documents: Optional[List[Dict]] = []
+    documents_verified: bool = False
     created_at: str
     created_by: str
     created_by_name: Optional[str] = None
@@ -98,6 +100,12 @@ class BPOTPVerify(BaseModel):
 def generate_bp_otp() -> str:
     """Generate a 6-digit OTP"""
     return ''.join(secrets.choice(string.digits) for _ in range(6))
+
+
+def check_bp_documents_complete(documents: List[Dict]) -> bool:
+    """Check if all required documents are uploaded"""
+    uploaded_types = {doc.get("doc_type") for doc in documents}
+    return all(doc_type in uploaded_types for doc_type in ALLOWED_DOC_TYPES)
 
 
 async def send_bp_otp_email(email: str, otp: str, bp_name: str):
