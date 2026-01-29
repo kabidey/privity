@@ -545,6 +545,7 @@ const BusinessPartners = () => {
                     <TableHead>Contact</TableHead>
                     <TableHead>Revenue Share</TableHead>
                     <TableHead>Linked Employee</TableHead>
+                    <TableHead>Documents</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -585,6 +586,22 @@ const BusinessPartners = () => {
                           <UserCheck className="h-4 w-4 text-muted-foreground" />
                           <span>{partner.linked_employee_name || 'Not Set'}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDocDialog(partner)}
+                          className={partner.documents_verified ? 'text-green-600' : 'text-amber-600'}
+                          data-testid="bp-docs-btn"
+                        >
+                          {partner.documents_verified ? (
+                            <FileCheck className="h-4 w-4 mr-1" />
+                          ) : (
+                            <FileX className="h-4 w-4 mr-1" />
+                          )}
+                          {partner.documents?.length || 0}/3
+                        </Button>
                       </TableCell>
                       <TableCell>
                         <Badge variant={partner.is_active !== false ? 'default' : 'secondary'}>
