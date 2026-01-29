@@ -505,15 +505,20 @@ const Layout = ({ children }) => {
                 <div className="text-sm text-emerald-600 dark:text-emerald-400">{user.role_name}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</div>
               </div>
-              {/* Status indicator */}
+              {/* PE Availability indicator */}
               <div 
-                className={`w-3 h-3 rounded-full ${isPELevel ? 'bg-green-500' : 'bg-red-500'}`}
+                className={`w-3 h-3 rounded-full ${isPeAvailable ? 'bg-green-500' : 'bg-red-500'}`}
                 style={{
-                  boxShadow: isPELevel 
+                  boxShadow: isPeAvailable 
                     ? '0 0 8px #22c55e, 0 0 16px #22c55e' 
                     : '0 0 8px #ef4444, 0 0 16px #ef4444'
                 }}
+                title={peStatus.message}
               />
+            </div>
+            {/* PE Status Message */}
+            <div className={`mt-2 text-xs text-center ${isPeAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              {peStatus.message}
             </div>
           </div>
           
