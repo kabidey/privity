@@ -296,7 +296,7 @@ const Layout = ({ children }) => {
 
       {/* iOS-style Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50">
-        <div className="h-14 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 flex items-center justify-between px-4 safe-area-inset-top">
+        <div className="h-14 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-4 safe-area-inset-top">
           <h1 className="text-lg font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title-mobile">
             PRIVITY
           </h1>
