@@ -700,6 +700,86 @@ async def get_bookings(
     return result
 
 
+# ============== DP Transfer Endpoints (Client Stock Transfers) ==============
+# NOTE: These routes MUST be defined before /bookings/{booking_id} to avoid path conflicts
+
+@router.get("/bookings/dp-ready")
+async def get_dp_ready_bookings(current_user: dict = Depends(get_current_user)):
+    """Get all bookings with DP ready status (fully paid, ready to transfer)"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can view DP ready bookings")
+    
+    # Get bookings with dp_status = "ready"
+    bookings_list = await db.bookings.find(
+        {"dp_status": "ready", "approval_status": "approved"},
+        {"_id": 0}
+    ).sort("dp_ready_at", -1).to_list(1000)
+    
+    # Enrich with client and stock details
+    for booking in bookings_list:
+        client = await db.clients.find_one(
+            {"id": booking.get("client_id")},
+            {"_id": 0, "name": 1, "email": 1, "otc_ucc": 1}
+        )
+        if client:
+            booking["client_name"] = client.get("name")
+            booking["client_email"] = client.get("email")
+            booking["client_otc_ucc"] = client.get("otc_ucc")
+        
+        stock = await db.stocks.find_one(
+            {"id": booking.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1}
+        )
+        if stock:
+            booking["stock_name"] = stock.get("name")
+            booking["stock_symbol"] = stock.get("symbol")
+        
+        # Calculate total amount
+        booking["total_amount"] = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    
+    return bookings_list
+
+
+@router.get("/bookings/dp-transferred")
+async def get_dp_transferred_bookings(current_user: dict = Depends(get_current_user)):
+    """Get all bookings where stock has been transferred"""
+    user_role = current_user.get("role", 6)
+    
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE level can view transferred bookings")
+    
+    # Get bookings with dp_status = "transferred"
+    bookings_list = await db.bookings.find(
+        {"dp_status": "transferred"},
+        {"_id": 0}
+    ).sort("dp_transferred_at", -1).to_list(1000)
+    
+    # Enrich with client and stock details
+    for booking in bookings_list:
+        client = await db.clients.find_one(
+            {"id": booking.get("client_id")},
+            {"_id": 0, "name": 1, "email": 1, "otc_ucc": 1}
+        )
+        if client:
+            booking["client_name"] = client.get("name")
+            booking["client_email"] = client.get("email")
+            booking["client_otc_ucc"] = client.get("otc_ucc")
+        
+        stock = await db.stocks.find_one(
+            {"id": booking.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1}
+        )
+        if stock:
+            booking["stock_name"] = stock.get("name")
+            booking["stock_symbol"] = stock.get("symbol")
+        
+        booking["total_amount"] = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    
+    return bookings_list
+
+
 @router.get("/bookings/{booking_id}", response_model=BookingWithDetails)
 async def get_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
     """Get a specific booking by ID."""
