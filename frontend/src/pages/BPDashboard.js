@@ -81,8 +81,27 @@ const BPDashboard = () => {
             <Percent className="h-4 w-4" />
             <span>Revenue Share: {stats?.revenue_share_percent || 0}%</span>
           </div>
+          <div className={`flex items-center gap-2 rounded-lg px-3 py-1 ${stats?.documents_verified ? 'bg-green-500/30' : 'bg-amber-500/30'}`}>
+            {stats?.documents_verified ? (
+              <FileCheck className="h-4 w-4" />
+            ) : (
+              <AlertTriangle className="h-4 w-4" />
+            )}
+            <span>{stats?.documents_verified ? 'Documents Verified' : 'Documents Pending'}</span>
+          </div>
         </div>
       </div>
+
+      {/* Document Warning Alert */}
+      {stats && !stats.documents_verified && (
+        <Alert variant="destructive" className="border-amber-500 bg-amber-50 dark:bg-amber-900/20">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800 dark:text-amber-300">Document Upload Required</AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-400">
+            Please contact your PE Desk representative to complete the mandatory document uploads (PAN Card, Aadhaar Card, Cancelled Cheque). Your account features may be limited until documents are verified.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
