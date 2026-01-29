@@ -698,6 +698,7 @@ rp_payments: {
 
 ### P2 - Nice to Have
 - [x] Role-specific dashboards - COMPLETED (Jan 29, 2026)
+- [x] Sohini AI Assistant - COMPLETED (Jan 29, 2026)
 - [ ] Two-Factor Authentication (TOTP)
 - [ ] Bulk booking closure feature
 - [ ] Configurable thresholds for loss-booking auto-approval
