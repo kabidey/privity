@@ -340,6 +340,158 @@ async def delete_business_partner(
     return {"message": "Business Partner deleted successfully"}
 
 
+# ============== Document Upload Endpoints ==============
+
+@router.post("/{bp_id}/documents/{doc_type}")
+async def upload_bp_document(
+    bp_id: str,
+    doc_type: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a document for Business Partner (PE Level or self)"""
+    # Check authorization - PE Level can upload for any BP, BP can upload for self
+    user_role = current_user.get("role", 5)
+    is_self = user_role == 8 and current_user.get("id") == bp_id
+    
+    if not is_pe_level(user_role) and not is_self:
+        raise HTTPException(status_code=403, detail="Not authorized to upload documents")
+    
+    if doc_type not in ALLOWED_DOC_TYPES:
+        raise HTTPException(status_code=400, detail=f"Invalid document type. Allowed: {', '.join(ALLOWED_DOC_TYPES)}")
+    
+    # Check file extension
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
+    
+    # Check file size
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File size exceeds 5MB limit")
+    
+    # Get BP
+    bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
+    if not bp:
+        raise HTTPException(status_code=404, detail="Business Partner not found")
+    
+    # Create unique filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    new_filename = f"{bp_id}_{doc_type}_{timestamp}{file_ext}"
+    file_path = os.path.join(BP_UPLOAD_DIR, new_filename)
+    
+    # Delete old file if exists
+    existing_docs = bp.get("documents", [])
+    for doc in existing_docs:
+        if doc.get("doc_type") == doc_type:
+            old_path = f"/app{doc.get('file_url', '')}"
+            if os.path.exists(old_path):
+                os.remove(old_path)
+    
+    # Save new file
+    with open(file_path, "wb") as f:
+        f.write(content)
+    
+    # Update documents array
+    file_url = f"/uploads/bp_documents/{new_filename}"
+    new_doc = {
+        "doc_type": doc_type,
+        "file_name": file.filename,
+        "file_url": file_url,
+        "uploaded_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Remove old entry for this doc_type and add new one
+    updated_docs = [d for d in existing_docs if d.get("doc_type") != doc_type]
+    updated_docs.append(new_doc)
+    
+    # Check if all documents are now uploaded
+    documents_verified = check_bp_documents_complete(updated_docs)
+    
+    await db.business_partners.update_one(
+        {"id": bp_id},
+        {"$set": {
+            "documents": updated_docs,
+            "documents_verified": documents_verified
+        }}
+    )
+    
+    return {
+        "message": f"{doc_type.replace('_', ' ').title()} uploaded successfully",
+        "document": new_doc,
+        "documents_verified": documents_verified,
+        "all_documents": updated_docs
+    }
+
+
+@router.delete("/{bp_id}/documents/{doc_type}")
+async def delete_bp_document(
+    bp_id: str,
+    doc_type: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a document for Business Partner (PE Level only)"""
+    if not is_pe_level(current_user.get("role", 5)):
+        raise HTTPException(status_code=403, detail="Only PE Level can delete documents")
+    
+    bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
+    if not bp:
+        raise HTTPException(status_code=404, detail="Business Partner not found")
+    
+    existing_docs = bp.get("documents", [])
+    doc_to_delete = None
+    
+    for doc in existing_docs:
+        if doc.get("doc_type") == doc_type:
+            doc_to_delete = doc
+            break
+    
+    if not doc_to_delete:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Delete file
+    file_path = f"/app{doc_to_delete.get('file_url', '')}"
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    
+    # Update documents array
+    updated_docs = [d for d in existing_docs if d.get("doc_type") != doc_type]
+    documents_verified = check_bp_documents_complete(updated_docs)
+    
+    await db.business_partners.update_one(
+        {"id": bp_id},
+        {"$set": {
+            "documents": updated_docs,
+            "documents_verified": documents_verified
+        }}
+    )
+    
+    return {"message": "Document deleted successfully", "documents_verified": documents_verified}
+
+
+@router.get("/{bp_id}/documents")
+async def get_bp_documents(
+    bp_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all documents for a Business Partner"""
+    user_role = current_user.get("role", 5)
+    is_self = user_role == 8 and current_user.get("id") == bp_id
+    
+    if not is_pe_level(user_role) and not is_self:
+        raise HTTPException(status_code=403, detail="Not authorized to view documents")
+    
+    bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
+    if not bp:
+        raise HTTPException(status_code=404, detail="Business Partner not found")
+    
+    return {
+        "documents": bp.get("documents", []),
+        "documents_verified": bp.get("documents_verified", False),
+        "required_documents": ALLOWED_DOC_TYPES
+    }
+
+
 # ============== Business Partner OTP Login ==============
 
 @router.post("/auth/request-otp")
