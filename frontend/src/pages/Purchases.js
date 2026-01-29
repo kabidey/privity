@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +14,7 @@ import api from '../utils/api';
 import { Plus, ShoppingCart, TrendingUp, CreditCard, CheckCircle, Clock, Trash2, RefreshCw } from 'lucide-react';
 
 const Purchases = () => {
+  const navigate = useNavigate();
   const [purchases, setPurchases] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [stocks, setStocks] = useState([]);
@@ -43,8 +45,15 @@ const Purchases = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
+  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
 
   useEffect(() => {
+    // Only PE Desk and PE Manager can access Purchases
+    if (!isPELevel) {
+      toast.error('Access denied. Only PE Desk and PE Manager can access Purchases.');
+      navigate('/');
+      return;
+    }
     fetchData();
   }, []);
 
