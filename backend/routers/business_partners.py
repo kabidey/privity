@@ -349,12 +349,12 @@ async def upload_bp_document(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload a document for Business Partner (PE Level or self)"""
-    # Check authorization - PE Level can upload for any BP, BP can upload for self
+    """Upload a document for Business Partner (PE Level, Partners Desk, or self)"""
+    # Check authorization - PE Level/Partners Desk can upload for any BP, BP can upload for self
     user_role = current_user.get("role", 5)
     is_self = user_role == 8 and current_user.get("id") == bp_id
     
-    if not is_pe_level(user_role) and not is_self:
+    if not can_manage_business_partners(user_role) and not is_self:
         raise HTTPException(status_code=403, detail="Not authorized to upload documents")
     
     if doc_type not in ALLOWED_DOC_TYPES:
