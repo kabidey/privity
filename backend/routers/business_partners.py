@@ -179,6 +179,8 @@ async def create_business_partner(
         "linked_employee_name": employee.get("name"),
         "notes": bp_data.notes,
         "is_active": True,
+        "documents": [],  # Will be uploaded separately
+        "documents_verified": False,
         "role": 8,  # Business Partner role
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user["id"],
