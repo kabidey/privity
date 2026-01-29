@@ -57,27 +57,42 @@ const Reports = () => {
 
       const response = await api.get(`/reports/pnl?${params.toString()}`);
       const data = response.data;
-      setReportData(data);
+      
+      // Handle both array response and object with items
+      const items = Array.isArray(data) ? data : (data.items || []);
+      const summaryFromApi = !Array.isArray(data) ? data.summary : null;
+      
+      setReportData(items);
 
-      // Calculate stats
-      let totalProfit = 0;
-      let totalLoss = 0;
-      data.forEach((item) => {
-        if (item.profit_loss) {
-          if (item.profit_loss > 0) {
-            totalProfit += item.profit_loss;
-          } else {
-            totalLoss += Math.abs(item.profit_loss);
+      // Use summary from API if available, otherwise calculate
+      if (summaryFromApi) {
+        setStats({
+          totalProfit: summaryFromApi.total_profit || 0,
+          totalLoss: summaryFromApi.total_loss || 0,
+          netPL: summaryFromApi.net_pl || 0,
+          totalTransactions: items.length,
+        });
+      } else {
+        // Calculate stats
+        let totalProfit = 0;
+        let totalLoss = 0;
+        items.forEach((item) => {
+          if (item.profit_loss) {
+            if (item.profit_loss > 0) {
+              totalProfit += item.profit_loss;
+            } else {
+              totalLoss += Math.abs(item.profit_loss);
+            }
           }
-        }
-      });
+        });
 
-      setStats({
-        totalProfit,
-        totalLoss,
-        netPL: totalProfit - totalLoss,
-        totalTransactions: data.length,
-      });
+        setStats({
+          totalProfit,
+          totalLoss,
+          netPL: totalProfit - totalLoss,
+          totalTransactions: items.length,
+        });
+      }
     } catch (error) {
       toast.error('Failed to load report');
     } finally {
