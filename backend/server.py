@@ -4267,7 +4267,8 @@ from routers import (
     auth_router,
     email_logs_router,
     company_master_router,
-    contract_notes_router
+    contract_notes_router,
+    notifications_router
 )
 app.include_router(analytics_router, prefix="/api")
 app.include_router(audit_logs_router, prefix="/api")
@@ -4281,6 +4282,7 @@ app.include_router(company_master_router, prefix="/api")
 app.include_router(contract_notes_router, prefix="/api")
 app.include_router(bulk_upload_router, prefix="/api")
 app.include_router(business_partners_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
 
 # Include the legacy api_router (endpoints here will be overridden by modular routers)
 app.include_router(api_router)
