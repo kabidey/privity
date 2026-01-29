@@ -40,6 +40,16 @@ const BusinessPartners = () => {
   const [editingPartner, setEditingPartner] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEmployee, setFilterEmployee] = useState('');
+  
+  // Document upload state
+  const [docDialogOpen, setDocDialogOpen] = useState(false);
+  const [selectedPartnerForDocs, setSelectedPartnerForDocs] = useState(null);
+  const [uploadingDoc, setUploadingDoc] = useState(null);
+  const fileInputRefs = {
+    pan_card: useRef(null),
+    aadhaar_card: useRef(null),
+    cancelled_cheque: useRef(null)
+  };
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
