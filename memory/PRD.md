@@ -34,6 +34,20 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Jan 28, 2026)
 
+#### ✅ Company Master Settings - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- Created `/app/backend/routers/company_master.py` with PE Desk only access control
+- Endpoints:
+  - `GET /company-master` - Get company settings
+  - `PUT /company-master` - Update company settings
+  - `POST /company-master/upload/{document_type}` - Upload documents
+  - `DELETE /company-master/document/{document_type}` - Delete documents
+- Fields: Company Name, Address, CIN, GST, PAN, CDSL DP ID, NSDL DP ID, TAN, Bank Details
+- Document uploads: CML CDSL, CML NSDL, Cancelled Cheque, PAN Card
+- Created `/app/frontend/src/pages/CompanyMaster.js` with form and document upload cards
+- Updated Layout.js to show menu item only for PE Desk (role 1)
+- **Testing**: 13/13 tests passed (iteration_32)
+
 #### ✅ Email Audit Logging - COMPLETED (Jan 28, 2026)
 **Implementation Details:**
 - Updated `/app/backend/services/email_service.py` with `log_email()` function
