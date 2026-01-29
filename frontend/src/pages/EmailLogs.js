@@ -626,6 +626,32 @@ const EmailLogs = () => {
                   </pre>
                 </div>
               )}
+
+              {/* Resend Button */}
+              {(selectedLog.status === 'failed' || selectedLog.status === 'skipped') && selectedLog.template_key && (
+                <div className="pt-4 border-t">
+                  <Button
+                    onClick={() => handleResendEmail(selectedLog)}
+                    disabled={resending === selectedLog.id}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {resending === selectedLog.id ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Resending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Resend Email
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    This will attempt to resend the email using the original template and variables.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
