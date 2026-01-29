@@ -4287,7 +4287,7 @@ app.include_router(api_router)
 
 # Mount static files for uploads (images, documents, etc.)
 from fastapi.staticfiles import StaticFiles
-UPLOADS_PATH = Path(__file__).parent.parent / "uploads"
+UPLOADS_PATH = Path("/app/uploads")
 UPLOADS_PATH.mkdir(exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(UPLOADS_PATH)), name="uploads")
 
