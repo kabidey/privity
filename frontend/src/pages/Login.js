@@ -465,7 +465,8 @@ const Login = () => {
               )}
             </form>
             )}
-            {!registrationSuccess && (
+            </>
+            )}
             <div className="mt-4 text-center text-sm">
               <button
                 type="button"
