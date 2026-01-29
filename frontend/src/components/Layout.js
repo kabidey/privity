@@ -16,6 +16,7 @@ import { useNotifications } from '../context/NotificationContext';
 import NotificationBell from './NotificationBell';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { getVersion } from '../version';
 import { 
   LayoutDashboard, 
   Users, 
