@@ -11,7 +11,7 @@ import smtplib
 from database import db
 from routers.auth import get_current_user
 
-router = APIRouter(prefix="/smtp-config", tags=["SMTP Configuration"])
+router = APIRouter(prefix="/email-config", tags=["Email Configuration"])
 
 
 # ============== Pydantic Models ==============
