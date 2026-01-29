@@ -167,6 +167,83 @@ const BusinessPartners = () => {
     }
   };
 
+  // Document upload functions
+  const openDocDialog = (partner) => {
+    setSelectedPartnerForDocs(partner);
+    setDocDialogOpen(true);
+  };
+
+  const handleDocUpload = async (docType) => {
+    const file = fileInputRefs[docType].current?.files[0];
+    if (!file) {
+      toast.error('Please select a file');
+      return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only PDF, JPG, and PNG files are allowed');
+      return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+    
+    setUploadingDoc(docType);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await api.post(
+        `/business-partners/${selectedPartnerForDocs.id}/documents/${docType}`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      
+      toast.success(`${docType.replace(/_/g, ' ')} uploaded successfully`);
+      
+      // Update local state with new documents
+      setSelectedPartnerForDocs(prev => ({
+        ...prev,
+        documents: response.data.all_documents,
+        documents_verified: response.data.documents_verified
+      }));
+      
+      // Update partners list
+      setPartners(prev => prev.map(p => 
+        p.id === selectedPartnerForDocs.id 
+          ? { ...p, documents: response.data.all_documents, documents_verified: response.data.documents_verified }
+          : p
+      ));
+      
+      // Clear file input
+      if (fileInputRefs[docType].current) {
+        fileInputRefs[docType].current.value = '';
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Upload failed');
+    } finally {
+      setUploadingDoc(null);
+    }
+  };
+
+  const getDocumentByType = (documents, docType) => {
+    return documents?.find(d => d.doc_type === docType);
+  };
+
+  const getDocTypeLabel = (docType) => {
+    const labels = {
+      pan_card: 'PAN Card',
+      aadhaar_card: 'Aadhaar Card',
+      cancelled_cheque: 'Cancelled Cheque'
+    };
+    return labels[docType] || docType;
+  };
+
   const filteredPartners = partners.filter(p => {
     const matchesSearch = !searchTerm || 
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
