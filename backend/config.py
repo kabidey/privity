@@ -46,7 +46,8 @@ ROLES = {
     4: "Manager",
     5: "Employee",
     6: "Viewer",
-    7: "Finance"
+    7: "Finance",
+    8: "Business Partner"
 }
 
 # Role Permissions
@@ -60,7 +61,8 @@ ROLE_PERMISSIONS = {
     4: ["view_all", "manage_clients", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
     5: ["view_own", "create_bookings", "view_clients", "create_clients"],
     6: ["view_own"],
-    7: ["view_own", "create_bookings", "view_clients", "create_clients", "view_finance", "manage_finance"]  # Finance - Employee + full Finance access
+    7: ["view_own", "create_bookings", "view_clients", "create_clients", "view_finance", "manage_finance"],  # Finance - Employee + full Finance access
+    8: ["view_own", "view_bp_dashboard", "view_bp_reports"]  # Business Partner - limited access to own data
 }
 
 
