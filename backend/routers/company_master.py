@@ -119,6 +119,7 @@ async def get_company_master(current_user: dict = Depends(get_current_user)):
         company_bank_account=master.get("company_bank_account"),
         company_bank_ifsc=master.get("company_bank_ifsc"),
         company_bank_branch=master.get("company_bank_branch"),
+        logo_url=master.get("logo_url"),
         cml_cdsl_url=master.get("cml_cdsl_url"),
         cml_nsdl_url=master.get("cml_nsdl_url"),
         cancelled_cheque_url=master.get("cancelled_cheque_url"),
