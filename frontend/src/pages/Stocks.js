@@ -224,7 +224,7 @@ const Stocks = () => {
 
   const resetActionForm = () => {
     setActionFormData({
-      stock_id: '', action_type: 'stock_split', ratio_from: '1', ratio_to: '2', new_face_value: '', record_date: '', notes: '',
+      stock_id: '', action_type: 'dividend', ratio_from: '1', ratio_to: '2', dividend_amount: '', dividend_type: 'interim', new_face_value: '', record_date: '', ex_date: '', payment_date: '', notes: '',
     });
   };
 
