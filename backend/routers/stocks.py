@@ -130,9 +130,11 @@ async def update_stock(stock_id: str, stock_data: StockCreate, current_user: dic
     update_data = {
         "symbol": stock_data.symbol.upper(),
         "name": stock_data.name,
+        "exchange": stock_data.exchange,
         "isin_number": stock_data.isin_number,
-        "bse_code": stock_data.bse_code,
-        "nse_code": stock_data.nse_code
+        "sector": stock_data.sector,
+        "product": stock_data.product,
+        "face_value": stock_data.face_value
     }
     
     await db.stocks.update_one({"id": stock_id}, {"$set": update_data})
