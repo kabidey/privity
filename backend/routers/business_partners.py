@@ -501,8 +501,11 @@ async def request_bp_login_otp(data: BPLoginRequest, background_tasks: Backgroun
     bp = await db.business_partners.find_one({"email": data.email.lower()}, {"_id": 0})
     
     if not bp:
-        # Don't reveal if email exists
-        return {"message": "If this email is registered as a Business Partner, an OTP has been sent"}
+        # Return clear error message for unregistered users
+        raise HTTPException(
+            status_code=404, 
+            detail="You are not registered with SMSL, please write to partnersdesk@smifs.com for more query"
+        )
     
     if not bp.get("is_active", True):
         raise HTTPException(status_code=403, detail="Your account has been deactivated. Please contact support.")
@@ -534,7 +537,7 @@ async def request_bp_login_otp(data: BPLoginRequest, background_tasks: Backgroun
     # Send email in background
     background_tasks.add_task(send_bp_otp_email, data.email.lower(), otp, bp["name"])
     
-    return {"message": "If this email is registered as a Business Partner, an OTP has been sent"}
+    return {"message": f"OTP sent to {data.email}. Valid for {BP_OTP_EXPIRY_MINUTES} minutes."}
 
 
 @router.post("/auth/verify-otp")
