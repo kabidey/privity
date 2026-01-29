@@ -18,6 +18,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 5. **Employee (Role 5)**: Create bookings, view clients
 6. **Viewer (Role 6)**: Read-only access
 7. **Finance (Role 7)**: Employee rights + Full Finance page access (payments, refunds, RP payments)
+8. **Business Partner (Role 8)**: External partners with OTP login, can create bookings, view own dashboard
 
 ## Core Requirements (Static)
 - User authentication (register/login)
@@ -29,10 +30,33 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Booking management with inventory validation
 - P&L reporting with filtering and export
 - Referral Partner management and commission tracking
+- Business Partner management and revenue sharing
 
 ## What's Been Implemented
 
 ### Latest Updates (Jan 29, 2026)
+
+#### ✅ Business Partner (BP) Feature Enhancements - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **BP Revenue Dashboard** (`/app/frontend/src/pages/BPDashboard.js`):
+  - Stats cards showing total bookings, completed bookings, total revenue, BP share
+  - Revenue breakdown with visual indicators
+  - Document verification status alert
+  - Recent bookings table with profit and BP share calculations
+- **Mandatory Document Uploads** (`/app/frontend/src/pages/BusinessPartners.js`):
+  - New "Documents" column in BP table (0/3, 1/3, etc.)
+  - Document upload dialog with PAN Card, Aadhaar Card, Cancelled Cheque
+  - Document verification status tracking (documents_verified field)
+  - View and Replace options for existing documents
+- **Backend Enhancements** (`/app/backend/routers/business_partners.py`):
+  - `GET /api/business-partners/dashboard/stats` - Comprehensive stats including document status
+  - `GET /api/business-partners/dashboard/bookings` - Bookings with client/stock names and BP share
+  - `POST /api/business-partners/{id}/documents/{doc_type}` - Document upload API
+- **Booking Form BP Restrictions** (`/app/backend/routers/bookings.py`, `/app/frontend/src/pages/Bookings.js`):
+  - BP users see "Business Partner Booking" message instead of RP selection
+  - BP revenue share auto-applied from BP profile
+  - New booking fields: business_partner_id, bp_name, bp_revenue_share_percent, is_bp_booking
+- **Testing**: 100% pass rate (15/15 backend tests, all frontend verified)
 
 #### ✅ iOS-Style UI/UX Redesign - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
