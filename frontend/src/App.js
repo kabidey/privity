@@ -80,6 +80,8 @@ function App() {
                         <Route path="/bulk-upload" element={<BulkUpload />} />
                         <Route path="/business-partners" element={<BusinessPartners />} />
                         <Route path="/bp-dashboard" element={<BPDashboard />} />
+                        <Route path="/rp-revenue" element={<RPRevenueDashboard />} />
+                        <Route path="/employee-revenue" element={<EmployeeRevenueDashboard />} />
                       </Routes>
                     </Layout>
                     {/* Floating Notifications at bottom right */}
