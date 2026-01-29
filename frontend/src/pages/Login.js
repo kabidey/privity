@@ -104,6 +104,53 @@ const Login = () => {
 
   const isSuperAdmin = formData.email.toLowerCase() === 'pedesk@smifs.com';
 
+  // Business Partner OTP request
+  const handleBPRequestOTP = async (e) => {
+    e.preventDefault();
+    if (!formData.email) {
+      toast.error('Please enter your email');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      await api.post('/business-partners/auth/request-otp', { email: formData.email });
+      setBpOtpSent(true);
+      toast.success('OTP sent to your email');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Business Partner OTP verification
+  const handleBPVerifyOTP = async (e) => {
+    e.preventDefault();
+    if (!bpOtp || bpOtp.length !== 6) {
+      toast.error('Please enter the 6-digit OTP');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await api.post('/business-partners/auth/verify-otp', { 
+        email: formData.email,
+        otp: bpOtp 
+      });
+      
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      toast.success('Logged in successfully');
+      navigate('/bp-dashboard');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Invalid OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
