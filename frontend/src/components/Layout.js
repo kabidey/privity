@@ -128,6 +128,7 @@ const Layout = ({ children }) => {
   // Add Analytics and Email Templates for PE Level (roles 1 and 2)
   if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
+    menuItems.push({ icon: FileText, label: 'Contract Notes', path: '/contract-notes' });
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
     menuItems.push({ icon: MailCheck, label: 'Email Logs', path: '/email-logs' });
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
