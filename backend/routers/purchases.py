@@ -200,7 +200,11 @@ async def add_purchase_payment(
     if new_total_paid >= purchase.get("total_amount", 0):
         await db.purchases.update_one(
             {"id": purchase_id},
-            {"$set": {"payment_status": "completed"}}
+            {"$set": {
+                "payment_status": "completed",
+                "dp_status": "receivable",
+                "dp_receivable_at": datetime.now(timezone.utc).isoformat()
+            }}
         )
         
         # Payment completed - send stock transfer request email to vendor
