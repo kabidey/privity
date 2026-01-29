@@ -19,7 +19,8 @@ import {
   Clock,
   IndianRupee,
   Loader2,
-  ArrowUpFromLine
+  ArrowUpFromLine,
+  Download
 } from 'lucide-react';
 
 const DPTransfer = () => {
@@ -28,6 +29,7 @@ const DPTransfer = () => {
   const [transferred, setTransferred] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ready');
+  const [exporting, setExporting] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState({ open: false, booking: null });
   const [selectedDPType, setSelectedDPType] = useState('');
   const [transferring, setTransferring] = useState(false);
