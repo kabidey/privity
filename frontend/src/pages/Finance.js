@@ -720,102 +720,71 @@ const Finance = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="commissions">
+        <TabsContent value="bp-payments">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Employee Commissions
+                <Building className="h-5 w-5" />
+                Business Partner Payments
               </CardTitle>
               <CardDescription>
-                Track employee revenue share from confirmed bookings (reduced by RP allocations)
+                Track revenue share payments for Business Partners
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0 md:p-6">
-              {/* Commission Summary */}
-              {commissionSummary.length > 0 && (
-                <div className="mb-6 overflow-x-auto">
-                  <h4 className="font-medium mb-2 px-4 md:px-0">Summary by Employee</h4>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Employee</TableHead>
-                        <TableHead className="text-right">Total Profit</TableHead>
-                        <TableHead className="text-right">RP Share</TableHead>
-                        <TableHead className="text-right">Total Commission</TableHead>
-                        <TableHead className="text-right">Pending</TableHead>
-                        <TableHead className="text-right">Paid</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {commissionSummary.slice(0, 5).map((emp) => (
-                        <TableRow key={emp.employee_id}>
-                          <TableCell className="font-medium">{emp.employee_name}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(emp.total_profit)}</TableCell>
-                          <TableCell className="text-right text-pink-600">{formatCurrency(emp.total_rp_share)}</TableCell>
-                          <TableCell className="text-right font-bold text-green-600">{formatCurrency(emp.total_commission)}</TableCell>
-                          <TableCell className="text-right text-yellow-600">{formatCurrency(emp.pending_commission + emp.calculated_commission)}</TableCell>
-                          <TableCell className="text-right text-green-600">{formatCurrency(emp.paid_commission)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {/* Commission Details */}
-              <h4 className="font-medium mb-2 px-4 md:px-0">Commission Details</h4>
-              {employeeCommissions.length === 0 ? (
-                <p className="text-center py-8 text-muted-foreground">No employee commissions found.</p>
+              {bpPayments.length === 0 ? (
+                <p className="text-center py-8 text-muted-foreground">No BP payments found.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Booking #</TableHead>
-                        <TableHead>Employee</TableHead>
+                        <TableHead>Business Partner</TableHead>
                         <TableHead>Client</TableHead>
                         <TableHead>Stock</TableHead>
                         <TableHead className="text-right">Profit</TableHead>
-                        <TableHead className="text-right">RP Share</TableHead>
-                        <TableHead className="text-right">Emp Share</TableHead>
-                        <TableHead className="text-right">Commission</TableHead>
+                        <TableHead className="text-right">BP Share</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Ref #</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {employeeCommissions.map((comm) => (
-                        <TableRow key={comm.booking_id} data-testid={`commission-row-${comm.booking_id}`}>
-                          <TableCell className="font-mono text-sm">{comm.booking_number}</TableCell>
-                          <TableCell className="font-medium">{comm.employee_name}</TableCell>
-                          <TableCell>{comm.client_name}</TableCell>
-                          <TableCell className="font-mono">{comm.stock_symbol}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(comm.profit)}</TableCell>
-                          <TableCell className="text-right text-pink-600">
-                            {comm.rp_share_percent > 0 ? (
-                              <span>{comm.rp_share_percent}% ({formatCurrency(comm.rp_payment_amount)})</span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">{comm.employee_share_percent}%</TableCell>
-                          <TableCell className="text-right font-bold text-green-600">
-                            {formatCurrency(comm.employee_commission_amount)}
-                          </TableCell>
-                          <TableCell>{getCommissionStatusBadge(comm.status)}</TableCell>
+                      {bpPayments.map((payment) => (
+                        <TableRow key={payment.id} data-testid={`bp-payment-row-${payment.id}`}>
+                          <TableCell className="font-mono text-sm">{payment.booking_number}</TableCell>
                           <TableCell>
-                            {comm.status !== 'paid' && currentUser.role === 1 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleMarkCommissionPaid(comm.booking_id)}
-                                data-testid={`mark-paid-${comm.booking_id}`}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Mark Paid
-                              </Button>
+                            <div>
+                              <p className="font-medium">{payment.bp_name}</p>
+                              {payment.bp_pan && <p className="text-xs text-muted-foreground">{payment.bp_pan}</p>}
+                            </div>
+                          </TableCell>
+                          <TableCell>{payment.client_name}</TableCell>
+                          <TableCell className="font-mono">{payment.stock_symbol}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(payment.profit)}</TableCell>
+                          <TableCell className="text-right text-purple-600">{payment.bp_share_percent}%</TableCell>
+                          <TableCell className="text-right font-bold text-purple-600">
+                            {formatCurrency(payment.payment_amount)}
+                          </TableCell>
+                          <TableCell>{getBpPaymentStatusBadge(payment.status)}</TableCell>
+                          <TableCell>
+                            {payment.payment_reference ? (
+                              <span className="font-mono text-sm">{payment.payment_reference}</span>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">—</span>
                             )}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openBpPaymentDialog(payment)}
+                              data-testid={`update-bp-payment-${payment.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
