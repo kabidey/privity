@@ -182,9 +182,9 @@ async def test_smtp_connection(
 
 @router.get("/presets")
 async def get_smtp_presets(current_user: dict = Depends(get_current_user)):
-    """Get common SMTP provider presets (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access SMTP presets")
+    """Get common SMTP provider presets (PE Level only)"""
+    if current_user.get("role", 5) not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Only PE Level users can access SMTP presets")
     
     return [
         {"key": key, **value}
