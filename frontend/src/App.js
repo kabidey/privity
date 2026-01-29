@@ -71,6 +71,7 @@ function App() {
                         <Route path="/referral-partners" element={<ReferralPartners />} />
                         <Route path="/company-master" element={<CompanyMaster />} />
                         <Route path="/contract-notes" element={<ContractNotes />} />
+                        <Route path="/bulk-upload" element={<BulkUpload />} />
                       </Routes>
                     </Layout>
                   </NotificationProvider>
