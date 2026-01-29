@@ -679,6 +679,12 @@ const Layout = ({ children }) => {
           </div>
         </div>
       </main>
+
+      {/* Changelog Modal */}
+      <ChangelogModal 
+        isOpen={showChangelog} 
+        onClose={() => setShowChangelog(false)} 
+      />
     </div>
   );
 };
