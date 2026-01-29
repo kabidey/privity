@@ -144,8 +144,25 @@ const DPReceivables = () => {
           </p>
         </div>
         
-        {/* Summary Cards */}
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
+          {/* Export Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={exporting || (receivables.length === 0 && received.length === 0)}
+            className="border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+            data-testid="export-btn"
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            Export Excel
+          </Button>
+          
+          {/* Summary Cards */}
           <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
             <CardContent className="p-3 flex items-center gap-2">
               <Clock className="h-5 w-5 text-amber-600" />
