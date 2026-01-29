@@ -127,6 +127,54 @@ code {
         border-width: 0;
     }
     
+    /* iOS Glass Morphism */
+    .ios-glass {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(var(--ios-blur));
+        -webkit-backdrop-filter: blur(var(--ios-blur));
+    }
+    
+    .dark .ios-glass {
+        background: rgba(28, 28, 30, 0.8);
+    }
+    
+    /* iOS Card Style */
+    .ios-card {
+        @apply bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-800/50;
+        transition: transform var(--ios-transition), box-shadow var(--ios-transition);
+    }
+    
+    .ios-card:hover {
+        @apply shadow-md;
+    }
+    
+    .ios-card:active {
+        transform: scale(0.98);
+    }
+    
+    /* iOS Button Styles */
+    .ios-btn {
+        @apply rounded-xl font-medium transition-all duration-200 active:scale-95;
+    }
+    
+    .ios-btn-primary {
+        @apply ios-btn bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/25;
+    }
+    
+    .ios-btn-secondary {
+        @apply ios-btn bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700;
+    }
+    
+    /* iOS List Row */
+    .ios-row {
+        @apply flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 last:border-b-0;
+        transition: background-color var(--ios-transition);
+    }
+    
+    .ios-row:active {
+        @apply bg-gray-100 dark:bg-gray-800;
+    }
+    
     /* Notification bell ring animation */
     @keyframes bellRing {
         0%, 100% { transform: rotate(0deg); }
@@ -159,6 +207,7 @@ code {
         animation: glowPulse 0.5s ease-in-out infinite;
     }
     
+    /* iOS Page Transition */
     .page-enter {
         animation: pageEnter 0.3s ease-out;
     }
@@ -174,17 +223,156 @@ code {
         }
     }
     
+    /* iOS Slide-over Animation */
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+        }
+        to {
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(100%);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+    .slide-in-right {
+        animation: slideInRight var(--ios-transition);
+    }
+    
+    .slide-out-right {
+        animation: slideOutRight var(--ios-transition);
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.2s ease-out;
+    }
+    
+    .fade-out {
+        animation: fadeOut 0.2s ease-out;
+    }
+    
+    /* iOS Stat Card */
     .stat-card {
+        @apply ios-card p-4;
         transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
     }
     
     .stat-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        @apply shadow-lg;
     }
     
+    /* iOS Table Row */
     .table-row {
         transition: background-color 0.15s ease-out;
+    }
+    
+    .table-row:hover {
+        @apply bg-gray-50 dark:bg-gray-800/50;
+    }
+    
+    /* iOS Input Focus */
+    input:focus, textarea:focus, select:focus {
+        @apply ring-2 ring-emerald-500/50 border-emerald-500;
+        outline: none;
+    }
+    
+    /* iOS Toggle/Switch */
+    .ios-toggle {
+        @apply relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200;
+    }
+    
+    .ios-toggle[data-state="checked"] {
+        @apply bg-emerald-500;
+    }
+    
+    .ios-toggle[data-state="unchecked"] {
+        @apply bg-gray-300 dark:bg-gray-600;
+    }
+    
+    /* iOS Segmented Control */
+    .ios-segment {
+        @apply inline-flex rounded-xl bg-gray-100 dark:bg-gray-800 p-1;
+    }
+    
+    .ios-segment-item {
+        @apply px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+    }
+    
+    .ios-segment-item[data-state="active"] {
+        @apply bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-white;
+    }
+    
+    .ios-segment-item[data-state="inactive"] {
+        @apply text-gray-500 hover:text-gray-700 dark:hover:text-gray-300;
+    }
+    
+    /* iOS Badge */
+    .ios-badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    
+    .ios-badge-success {
+        @apply ios-badge bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400;
+    }
+    
+    .ios-badge-warning {
+        @apply ios-badge bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400;
+    }
+    
+    .ios-badge-error {
+        @apply ios-badge bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400;
+    }
+    
+    .ios-badge-info {
+        @apply ios-badge bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400;
+    }
+    
+    /* Smooth scrolling */
+    .smooth-scroll {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Hide scrollbar but keep functionality */
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* iOS Pull to Refresh indicator */
+    .pull-indicator {
+        @apply flex items-center justify-center h-12 text-gray-400;
+    }
+    
+    /* Touch feedback */
+    .touch-feedback {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .touch-feedback:active {
+        @apply bg-gray-100 dark:bg-gray-800;
     }
 }
 
