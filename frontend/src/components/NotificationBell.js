@@ -98,17 +98,28 @@ const NotificationBell = () => {
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-3 border-b">
           <h4 className="font-semibold">Notifications</h4>
-          {unreadCount > 0 && (
+          <div className="flex items-center gap-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={markAllAsRead}
+              onClick={() => triggerTestNotification()}
               className="text-xs"
+              title="Test notification sound"
             >
-              <CheckCheck className="h-4 w-4 mr-1" />
-              Mark all read
+              <Volume2 className="h-4 w-4" />
             </Button>
-          )}
+            {unreadCount > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={markAllAsRead}
+                className="text-xs"
+              >
+                <CheckCheck className="h-4 w-4 mr-1" />
+                Mark all read
+              </Button>
+            )}
+          </div>
         </div>
         <ScrollArea className="h-[300px]">
           {notifications.length === 0 ? (
