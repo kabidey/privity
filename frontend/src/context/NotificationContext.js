@@ -394,7 +394,8 @@ export const NotificationProvider = ({ children }) => {
     markAllAsRead,
     connectWebSocket,
     playNotificationSound,
-    playUrgentSound
+    playUrgentSound,
+    triggerTestNotification
   };
 
   return (
