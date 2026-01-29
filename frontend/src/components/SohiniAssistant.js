@@ -141,7 +141,7 @@ const SohiniAssistant = () => {
   // Chat window
   return (
     <div 
-      className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
+      className={`fixed bottom-20 right-6 z-[9999] transition-all duration-300 ${
         isMinimized ? 'w-72' : 'w-96'
       }`}
       data-testid="sohini-chat-window"
