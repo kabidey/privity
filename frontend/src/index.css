@@ -374,6 +374,50 @@ code {
     .touch-feedback:active {
         @apply bg-gray-100 dark:bg-gray-800;
     }
+    
+    /* Mobile Dialog Responsiveness */
+    @media (max-width: 640px) {
+        [role="dialog"] {
+            width: calc(100% - 1rem) !important;
+            max-width: calc(100% - 1rem) !important;
+            margin: 0.5rem;
+            padding: 1rem;
+        }
+        
+        [role="dialog"] .grid-cols-2 {
+            grid-template-columns: 1fr !important;
+        }
+        
+        [role="dialog"] .grid-cols-3 {
+            grid-template-columns: 1fr !important;
+        }
+        
+        [role="dialog"] .grid-cols-4 {
+            grid-template-columns: 1fr 1fr !important;
+        }
+        
+        [role="dialog"] input,
+        [role="dialog"] select,
+        [role="dialog"] textarea {
+            font-size: 16px !important; /* Prevents iOS zoom on focus */
+        }
+        
+        [role="dialog"] button {
+            min-height: 44px; /* iOS touch target */
+        }
+        
+        /* Stack dialog footer buttons on mobile */
+        [role="dialog"] [class*="DialogFooter"],
+        [role="dialog"] .flex.justify-end {
+            flex-direction: column !important;
+            gap: 0.5rem;
+        }
+        
+        [role="dialog"] [class*="DialogFooter"] button,
+        [role="dialog"] .flex.justify-end button {
+            width: 100%;
+        }
+    }
 }
 
 @layer base {
