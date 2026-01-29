@@ -26,6 +26,8 @@ import ReferralPartners from './pages/ReferralPartners';
 import CompanyMaster from './pages/CompanyMaster';
 import ContractNotes from './pages/ContractNotes';
 import BulkUpload from './pages/BulkUpload';
+import BusinessPartners from './pages/BusinessPartners';
+import BPDashboard from './pages/BPDashboard';
 import Layout from './components/Layout';
 import './App.css';
 
