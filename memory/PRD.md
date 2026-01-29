@@ -699,6 +699,26 @@ rp_payments: {
 - **Testing**: Verified via API - backup creates successfully with 23 collections and 289 records
 - **Note**: Feature was already working correctly; frontend was previously updated
 
+#### ✅ Version Control System - COMPLETED (Jan 29, 2026)
+**Implementation Details:**
+- **Version File** (`/app/frontend/src/version.js`):
+  - Auto-generated version file with major, minor, patch, and build numbers
+  - Exports `getVersion()`, `getFullVersion()`, and `getVersionDetails()` functions
+  - Format: `v{major}.{minor}.{patch}` (e.g., v1.0.0)
+- **Auto-Increment Script** (`/app/frontend/scripts/increment-version.js`):
+  - Runs automatically before each build via `prebuild` npm script
+  - Increments build number on each deployment
+  - Auto-rolls patch when build reaches 100, minor when patch reaches 100
+  - Updates timestamp for each version bump
+- **UI Display** (`/app/frontend/src/components/Layout.js`):
+  - Version badge displayed next to "PRIVITY" title in sidebar
+  - Styled as a gray pill-shaped badge (desktop and mobile)
+  - Visible on both desktop sidebar and mobile header
+- **Package.json Scripts**:
+  - `prebuild`: Runs increment-version.js before build
+  - `version:bump`: Manual version increment command
+- **Testing**: Verified via screenshot - "PRIVITY v1.0.0" displayed in top left
+
 ## Prioritized Backlog
 
 ### P0 - Critical (Completed ✅)
