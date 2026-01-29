@@ -80,6 +80,10 @@ function App() {
                         <Route path="/bp-dashboard" element={<BPDashboard />} />
                       </Routes>
                     </Layout>
+                    {/* Floating Notifications at bottom right */}
+                    <FloatingNotifications />
+                    {/* Dialog for important notifications */}
+                    <NotificationDialog />
                   </NotificationProvider>
                 </PrivateRoute>
               }
