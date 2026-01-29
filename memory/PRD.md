@@ -696,7 +696,6 @@ rp_payments: {
 - [ ] UI notification for admins if SMTP email service is not configured
 
 ### P2 - Nice to Have
-- [ ] "Resend Email" button on Email Logs page
 - [ ] Two-Factor Authentication (TOTP)
 - [ ] Bulk booking closure feature
 - [ ] Additional role-specific dashboards
