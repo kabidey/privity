@@ -901,6 +901,11 @@ async def add_payment_tranche(
         }
     }
     
+    # If payment is complete, mark as DP Ready for transfer
+    if is_complete:
+        update_data["$set"]["dp_status"] = "ready"
+        update_data["$set"]["dp_ready_at"] = datetime.now(timezone.utc).isoformat()
+    
     await db.bookings.update_one({"id": booking_id}, update_data)
     
     return {
