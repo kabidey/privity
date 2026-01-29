@@ -110,8 +110,23 @@ export const NotificationProvider = ({ children }) => {
   const [floatingNotifications, setFloatingNotifications] = useState([]); // For floating display
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const [latestNotification, setLatestNotification] = useState(null);
+  const [peStatus, setPeStatus] = useState({ pe_online: false, message: 'Checking...', online_users: [] }); // PE availability status
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const peStatusCallbackRef = useRef(null); // Callback for external PE status updates
+
+  // Register callback for PE status updates (used by Layout component)
+  const onPeStatusChange = useCallback((callback) => {
+    peStatusCallbackRef.current = callback;
+  }, []);
+
+  // Update PE status and notify callback
+  const updatePeStatus = useCallback((status) => {
+    setPeStatus(status);
+    if (peStatusCallbackRef.current) {
+      peStatusCallbackRef.current(status);
+    }
+  }, []);
 
   // Add floating notification
   const addFloatingNotification = useCallback((notification) => {
