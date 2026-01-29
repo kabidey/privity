@@ -5,7 +5,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## Architecture
 - **Frontend**: React.js with Tailwind CSS, Shadcn UI components, Recharts
-- **Backend**: FastAPI (Python) with async MongoDB
+- **Backend**: FastAPI (Python) with async MongoDB (modular router architecture)
 - **Database**: MongoDB
 - **Authentication**: JWT-based with role-based permissions
 - **Theme**: Light/Dark mode with ThemeContext, iOS-style design
@@ -19,6 +19,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 6. **Viewer (Role 6)**: Read-only access
 7. **Finance (Role 7)**: Employee rights + Full Finance page access (payments, refunds, RP payments)
 8. **Business Partner (Role 8)**: External partners with OTP login, can create bookings, view own dashboard
+9. **Partners Desk (Role 9)**: Employee rights + BP management (no delete rights)
 
 ## Core Requirements (Static)
 - User authentication (register/login)
@@ -35,6 +36,29 @@ Build a Share Booking System for managing client share bookings, inventory track
 ## What's Been Implemented
 
 ### Latest Updates (Jan 29, 2026)
+
+#### ✅ Partners Desk Role - COMPLETED (Jan 29, 2026)
+- Added new role 9 "Partners Desk" with Employee-level rights + BP management
+- Created `/api/users/employees` endpoint for Partners Desk to fetch employees
+- Partners Desk can: view BPs, add BPs, edit BPs, upload documents
+- Partners Desk cannot: delete BPs (PE Desk only)
+- Test account: partnersdesk@test.com / Test@123
+
+#### ✅ Mobile Responsiveness & Data Model Fixes - COMPLETED (Jan 29, 2026)
+- Fixed `Client` model: made `created_by` optional for backward compatibility
+- Fixed `BookingWithDetails` model: made `created_by`, `created_by_name` optional
+- Added Business Partner fields to BookingWithDetails model
+- All pages now mobile-responsive and loading data correctly
+- Added notifications router to server.py
+
+#### ✅ Finance BP Payments Tab - COMPLETED (Jan 29, 2026)
+- Replaced "Commissions" tab with "BP Payments" tab
+- Added `/api/finance/bp-payments` endpoints for BP payment tracking
+- BP payments auto-generated from completed BP bookings
+
+#### ✅ Logo Preview Fix - COMPLETED (Jan 29, 2026)
+- Added static files mount at `/api/uploads` for serving uploaded files
+- Logo preview now works correctly in Company Master page
 
 #### ✅ Business Partner (BP) Feature Enhancements - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
