@@ -290,6 +290,9 @@ from routers.revenue_dashboard import router as revenue_dashboard_router
 # AI Assistant
 from routers.sohini import router as sohini_router
 
+# Kill Switch
+from routers.kill_switch import router as kill_switch_router
+
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
