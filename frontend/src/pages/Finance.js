@@ -175,6 +175,34 @@ const Finance = () => {
     }
   };
 
+  const openBpPaymentDialog = (payment) => {
+    setSelectedBpPayment(payment);
+    setBpPaymentForm({
+      status: payment.status,
+      notes: payment.notes || '',
+      payment_reference: payment.payment_reference || '',
+      payment_date: payment.payment_date ? payment.payment_date.split('T')[0] : new Date().toISOString().split('T')[0]
+    });
+    setBpPaymentDialogOpen(true);
+  };
+
+  const handleUpdateBpPayment = async () => {
+    if (!selectedBpPayment) return;
+    try {
+      await api.put(`/finance/bp-payments/${selectedBpPayment.id}`, {
+        status: bpPaymentForm.status,
+        notes: bpPaymentForm.notes || null,
+        payment_reference: bpPaymentForm.payment_reference || null,
+        payment_date: bpPaymentForm.payment_date || null
+      });
+      toast.success('BP payment updated');
+      setBpPaymentDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update BP payment');
+    }
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
