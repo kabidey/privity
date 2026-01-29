@@ -273,6 +273,9 @@ from routers.bulk_upload import router as bulk_upload_router
 # Notifications
 from routers.notifications import router as notifications_router
 
+# Revenue Dashboards
+from routers.revenue_dashboard import router as revenue_dashboard_router
+
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
@@ -287,6 +290,7 @@ app.include_router(finance_router, prefix="/api")
 app.include_router(reports_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
+app.include_router(revenue_dashboard_router, prefix="/api")
 app.include_router(audit_logs_router, prefix="/api")
 app.include_router(email_logs_router, prefix="/api")
 app.include_router(email_templates_router, prefix="/api")
