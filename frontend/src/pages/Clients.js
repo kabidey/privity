@@ -898,7 +898,7 @@ const Clients = () => {
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
                         <CreditCard className="h-4 w-4" />
-                        PAN Card
+                        PAN Card *
                         {ocrCompleted.pan_card && <Check className="h-4 w-4 text-green-500" />}
                       </CardTitle>
                     </CardHeader>
