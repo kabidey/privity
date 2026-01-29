@@ -2741,6 +2741,135 @@ async def confirm_stock_transfer(
                         }
                     )
     
+    # ============== Auto-generate Contract Note ==============
+    contract_note_generated = False
+    contract_note_number = None
+    contract_note_emailed = False
+    
+    try:
+        from services.contract_note_service import create_and_save_contract_note, generate_contract_note_pdf
+        from services.email_service import send_email as send_email_with_attachment
+        
+        # Generate contract note
+        cn_doc = await create_and_save_contract_note(
+            booking_id=booking_id,
+            user_id=current_user["id"],
+            user_name=current_user["name"]
+        )
+        contract_note_generated = True
+        contract_note_number = cn_doc["contract_note_number"]
+        
+        # Create audit log for contract note
+        await create_audit_log(
+            action="CONTRACT_NOTE_AUTO_GENERATED",
+            entity_type="contract_note",
+            entity_id=cn_doc["id"],
+            user_id=current_user["id"],
+            user_name=current_user["name"],
+            user_role=user_role,
+            entity_name=cn_doc["contract_note_number"],
+            details={
+                "booking_id": booking_id,
+                "booking_number": booking_number,
+                "trigger": "dp_transfer_completion"
+            }
+        )
+        
+        # Send contract note to client with PDF attachment
+        if client and client.get("email"):
+            # Get company master for email
+            company = await db.company_master.find_one({"_id": "company_settings"})
+            company_name = company.get("company_name", "SMIFS Capital Markets") if company else "SMIFS Capital Markets"
+            
+            # Read PDF file
+            pdf_path = f"/app{cn_doc.get('pdf_url', '')}"
+            pdf_content = None
+            if os.path.exists(pdf_path):
+                with open(pdf_path, 'rb') as f:
+                    pdf_content = f.read()
+            
+            # Prepare email
+            cn_subject = f"Contract Note - {cn_doc['contract_note_number']} | {stock['symbol'] if stock else 'N/A'}"
+            cn_body = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #064E3B;">Contract Note - Transaction Complete</h2>
+                <p>Dear {client.get('name', 'Client')},</p>
+                <p>Your share purchase transaction has been completed successfully. Please find the Contract Note attached to this email.</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #f9fafb; border-radius: 8px;">
+                    <tr style="background-color: #064E3B; color: white;">
+                        <td colspan="2" style="padding: 12px; font-weight: bold; border-radius: 8px 8px 0 0;">Transaction Summary</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Contract Note No.</strong></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{cn_doc['contract_note_number']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Booking No.</strong></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{booking_number}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Stock</strong></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{stock['symbol'] if stock else 'N/A'} - {stock['name'] if stock else 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{cn_doc['quantity']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px;"><strong>Net Amount</strong></td>
+                        <td style="padding: 10px; font-weight: bold; color: #064E3B;">₹ {cn_doc['net_amount']:,.2f}</td>
+                    </tr>
+                </table>
+                
+                <p style="color: #6b7280; font-size: 14px;">
+                    In case of any discrepancy, please report within 3 working days from the receipt of this document.
+                </p>
+                
+                <p>Thank you for your business.</p>
+                
+                <p>Best regards,<br><strong>{company_name}</strong></p>
+            </div>
+            """
+            
+            # Prepare attachment
+            attachments = None
+            if pdf_content:
+                cn_num_formatted = cn_doc['contract_note_number'].replace('/', '_')
+                attachments = [{
+                    'filename': f"Contract_Note_{cn_num_formatted}.pdf",
+                    'content': pdf_content,
+                    'content_type': 'application/pdf'
+                }]
+            
+            await send_email_with_attachment(
+                to_email=client.get("email"),
+                subject=cn_subject,
+                body=cn_body,
+                template_key="contract_note_auto",
+                related_entity_type="contract_note",
+                related_entity_id=cn_doc["id"],
+                attachments=attachments
+            )
+            
+            # Update contract note as emailed
+            await db.contract_notes.update_one(
+                {"id": cn_doc["id"]},
+                {
+                    "$set": {
+                        "email_sent": True,
+                        "email_sent_at": datetime.now(timezone.utc).isoformat(),
+                        "email_sent_by": "Auto (DP Transfer)"
+                    }
+                }
+            )
+            contract_note_emailed = True
+            
+    except Exception as e:
+        # Log error but don't fail the transfer
+        import logging
+        logging.error(f"Failed to auto-generate contract note for booking {booking_id}: {str(e)}")
+    
     return {
         "message": "Stock transfer confirmed and client notified",
         "booking_id": booking_id,
@@ -2748,7 +2877,10 @@ async def confirm_stock_transfer(
         "client_email": client.get("email") if client else None,
         "rp_payment_created": rp_payment_created,
         "rp_payment_amount": rp_payment_amount if rp_payment_created else None,
-        "employee_commission_amount": employee_commission_amount
+        "employee_commission_amount": employee_commission_amount,
+        "contract_note_generated": contract_note_generated,
+        "contract_note_number": contract_note_number,
+        "contract_note_emailed": contract_note_emailed
     }
 
 
