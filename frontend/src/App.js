@@ -32,6 +32,7 @@ import BusinessPartners from './pages/BusinessPartners';
 import BPDashboard from './pages/BPDashboard';
 import RPRevenueDashboard from './pages/RPRevenueDashboard';
 import EmployeeRevenueDashboard from './pages/EmployeeRevenueDashboard';
+import AuditTrail from './pages/AuditTrail';
 import Layout from './components/Layout';
 import './App.css';
 
