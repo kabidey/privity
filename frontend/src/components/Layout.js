@@ -195,6 +195,7 @@ const Layout = ({ children }) => {
   if (user.role === 1 || user.role === 2) {
     menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
     menuItems.push({ icon: ArrowDownToLine, label: 'DP Receivables', path: '/dp-receivables' });
+    menuItems.push({ icon: Send, label: 'DP Transfer', path: '/dp-transfer-client' });
   }
   
   menuItems.push(
