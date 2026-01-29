@@ -18,7 +18,10 @@ class ConnectionManager:
         self.pe_online_users: Dict[str, dict] = {}  # Track PE users online status
     
     async def connect(self, websocket: WebSocket, user_id: str):
-        await websocket.accept()
+        """Register a WebSocket connection for a user.
+        
+        Note: The WebSocket should already be accepted before calling this method.
+        """
         if user_id not in self.active_connections:
             self.active_connections[user_id] = []
         self.active_connections[user_id].append(websocket)
