@@ -71,18 +71,24 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
     # PE Desk/Manager created clients are auto-approved
     approval_status = "approved" if is_pe_level(user_role) else "pending"
     
+    # Generate OTC UCC
+    otc_ucc = await generate_otc_ucc()
+    
     client_doc = {
         "id": client_id,
+        "otc_ucc": otc_ucc,
         "name": client_data.name,
         "email": client_data.email,
-        "secondary_email": client_data.secondary_email,
-        "tertiary_email": client_data.tertiary_email,
+        "email_secondary": client_data.email_secondary,
+        "email_tertiary": client_data.email_tertiary,
         "phone": client_data.phone,
+        "mobile": client_data.mobile,
         "pan_number": client_data.pan_number.upper(),
-        "aadhar_number": client_data.aadhar_number,
         "dp_id": client_data.dp_id,
-        "otc_ucc": client_data.otc_ucc,
+        "dp_type": client_data.dp_type,
+        "trading_ucc": client_data.trading_ucc,
         "address": client_data.address,
+        "pin_code": client_data.pin_code,
         "is_vendor": client_data.is_vendor,
         "bank_accounts": [acc.model_dump() for acc in client_data.bank_accounts] if client_data.bank_accounts else [],
         "documents": [],
@@ -94,8 +100,10 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
         "suspension_reason": None,
         "suspended_at": None,
         "suspended_by": None,
-        "mapped_employee_id": client_data.mapped_employee_id or current_user["id"],
+        "mapped_employee_id": current_user["id"] if user_role in [4, 5, 7] else None,
+        "mapped_employee_name": current_user["name"] if user_role in [4, 5, 7] else None,
         "created_by": current_user["id"],
+        "created_by_role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
