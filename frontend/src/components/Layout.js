@@ -68,6 +68,9 @@ const Layout = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const { theme, toggleTheme } = useTheme();
   
+  // Changelog modal hook
+  const { showChangelog, setShowChangelog, openChangelog } = useChangelogModal();
+  
   // Get notification context for WebSocket PE status updates
   const { peStatus: wsPeStatus, onPeStatusChange, isConnected } = useNotifications();
 
