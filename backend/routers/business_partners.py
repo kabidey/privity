@@ -147,9 +147,9 @@ async def create_business_partner(
     bp_data: BusinessPartnerCreate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create a new Business Partner (PE Level only)"""
-    if not is_pe_level(current_user.get("role", 5)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can create Business Partners")
+    """Create a new Business Partner (PE Level or Partners Desk)"""
+    if not can_manage_business_partners(current_user.get("role", 5)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Partners Desk can create Business Partners")
     
     # Check if email already exists
     existing = await db.business_partners.find_one({"email": bp_data.email.lower()})
