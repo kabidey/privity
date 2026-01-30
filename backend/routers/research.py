@@ -265,15 +265,16 @@ Guidelines:
 Remember: This is for informational purposes only and should not be considered as financial advice."""
 
     try:
+        # Generate unique session ID for this query
+        session_id = f"research_{current_user['id']}_{uuid.uuid4().hex[:8]}"
+        
         llm = LlmChat(
             api_key=os.environ.get("EMERGENT_LLM_KEY"),
-            model="gpt-4o-mini"
+            session_id=session_id,
+            system_message=system_prompt
         )
         
-        response = llm.chat(
-            system_prompt=system_prompt,
-            user_message=query
-        )
+        response = llm.chat(query)
         
         # Log the research query
         await db.audit_logs.insert_one({
