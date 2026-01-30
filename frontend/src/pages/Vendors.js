@@ -102,11 +102,21 @@ const Vendors = () => {
           
           // Auto-fill form based on OCR data
           if (docType === 'pan_card' && extracted.pan_number) {
-            setFormData(prev => ({
-              ...prev,
-              pan_number: extracted.pan_number || prev.pan_number,
-              name: extracted.name || prev.name,
-            }));
+            const extractedName = extracted.name || '';
+            setOcrExtractedName(extractedName);
+            
+            setFormData(prev => {
+              // Check for name mismatch if name was already entered
+              if (prev.name && extractedName && prev.name.toLowerCase().trim() !== extractedName.toLowerCase().trim()) {
+                setNameMismatchDetected(true);
+                setProprietorDialogOpen(true);
+              }
+              return {
+                ...prev,
+                pan_number: extracted.pan_number || prev.pan_number,
+                name: prev.name || extractedName, // Don't overwrite if already entered
+              };
+            });
             toast.success('PAN card data extracted');
           } else if (docType === 'cancelled_cheque') {
             setFormData(prev => ({
@@ -117,14 +127,23 @@ const Vendors = () => {
             }));
             toast.success('Bank details extracted from cheque');
           } else if (docType === 'cml_copy') {
-            setFormData(prev => ({
-              ...prev,
-              dp_id: extracted.full_dp_client_id || extracted.dp_id || prev.dp_id,
-              pan_number: extracted.pan_number || prev.pan_number,
-              name: extracted.client_name || prev.name,
-              email: extracted.email || prev.email,
-              phone: extracted.mobile || prev.phone,
-            }));
+            const extractedName = extracted.client_name || '';
+            
+            setFormData(prev => {
+              // Check for name mismatch with OCR extracted name from PAN
+              if (ocrExtractedName && extractedName && ocrExtractedName.toLowerCase().trim() !== extractedName.toLowerCase().trim()) {
+                setNameMismatchDetected(true);
+                setProprietorDialogOpen(true);
+              }
+              return {
+                ...prev,
+                dp_id: extracted.full_dp_client_id || extracted.dp_id || prev.dp_id,
+                pan_number: extracted.pan_number || prev.pan_number,
+                name: prev.name || extractedName,
+                email: extracted.email || prev.email,
+                phone: extracted.mobile || prev.phone,
+              };
+            });
             toast.success('CML data extracted');
           }
         }
@@ -133,6 +152,35 @@ const Vendors = () => {
       } finally {
         setProcessingOcr(prev => ({ ...prev, [docType]: false }));
       }
+    }
+  };
+  
+  // Check name mismatch when user manually changes the name
+  const handleNameChange = (newName) => {
+    setFormData(prev => ({ ...prev, name: newName }));
+    
+    // Check against OCR extracted name
+    if (ocrExtractedName && newName && ocrExtractedName.toLowerCase().trim() !== newName.toLowerCase().trim()) {
+      if (!nameMismatchDetected) {
+        setNameMismatchDetected(true);
+        setProprietorDialogOpen(true);
+      }
+    } else {
+      // Names match now, reset proprietor state
+      setNameMismatchDetected(false);
+      setIsProprietor(null);
+    }
+  };
+  
+  // Handle proprietor confirmation
+  const handleProprietorResponse = (response) => {
+    setIsProprietor(response);
+    setProprietorDialogOpen(false);
+    
+    if (response) {
+      toast.info('Please upload the Bank Declaration document to proceed.');
+    } else {
+      toast.warning('Please ensure the vendor name matches the PAN card name, or confirm as proprietor.');
     }
   };
 
