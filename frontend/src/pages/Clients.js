@@ -828,7 +828,7 @@ const Clients = () => {
               Add Client
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="client-dialog-desc">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:max-w-[95vw] md:max-w-4xl" aria-describedby="client-dialog-desc">
             <DialogHeader>
               <DialogTitle>{editingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
               {!editingClient && (
