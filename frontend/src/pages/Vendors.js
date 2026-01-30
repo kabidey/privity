@@ -389,6 +389,7 @@ const Vendors = () => {
       case 'pan_card': return <CreditCard className="h-5 w-5 text-blue-600" />;
       case 'cml_copy': return <FileCheck className="h-5 w-5 text-green-600" />;
       case 'cancelled_cheque': return <FileText className="h-5 w-5 text-orange-600" />;
+      case 'bank_declaration': return <FileText className="h-5 w-5 text-purple-600" />;
       default: return <FileText className="h-5 w-5" />;
     }
   };
