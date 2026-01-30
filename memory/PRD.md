@@ -880,6 +880,19 @@ rp_payments: {
   - Professional formatting with styled headers and borders
 
 
+#### ✅ Proprietorship Name Mismatch Workflow - COMPLETED (Jan 30, 2026)
+**Implementation Details:**
+- **Feature**: When creating a vendor/client, if there's a name mismatch between the entered name and OCR-extracted PAN card name:
+  1. A dialog asks if the entity is a Proprietorship
+  2. If YES → User must upload a Bank Declaration document before creation can proceed
+  3. If NO → User must correct the name to match the PAN card
+- **Updated files**:
+  - `/app/frontend/src/pages/Vendors.js` - Full workflow implementation
+  - `/app/frontend/src/pages/Clients.js` - Full workflow implementation
+- **New states added**: `nameMismatchDetected`, `isProprietor`, `proprietorDialogOpen`, `ocrExtractedName`
+- **New document type**: `bank_declaration` added to docFiles
+- **UI components**: Name mismatch warning banner, Proprietor confirmation dialog, Bank Declaration upload card
+
 #### ✅ PE Manager Vendor Creation Rights - COMPLETED (Jan 30, 2026)
 **Implementation Details:**
 - **Updated frontend** (`/app/frontend/src/pages/Vendors.js`):
