@@ -217,7 +217,7 @@ const Login = () => {
             <img 
               src="https://customer-assets.emergentagent.com/job_8c5c41a7-4474-44d9-8a72-5476f60329b4/artifacts/eineo77y_SMIFS%20%26%20PRIVITY%20Logo.png" 
               alt="SMIFS & Privity Logo" 
-              className="h-14 w-auto"
+              className="h-14 w-auto brightness-0 invert"
               data-testid="smifs-privity-logo"
             />
           </div>
