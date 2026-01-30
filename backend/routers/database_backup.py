@@ -64,6 +64,9 @@ class BackupMetadata(BaseModel):
     collections: List[str]
     record_counts: dict
     size_bytes: int
+    includes_files: bool = False
+    files_count: int = 0
+    files_size_bytes: int = 0
 
 
 class RestoreRequest(BaseModel):
