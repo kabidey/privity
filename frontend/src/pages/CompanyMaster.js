@@ -393,6 +393,13 @@ const CompanyMaster = () => {
           <div className="flex items-start gap-8">
             {/* Logo Preview */}
             <div className="flex-shrink-0">
+              {/* 
+                CRITICAL FIX - DO NOT MODIFY the img tag below
+                - key={logoKey} forces React re-render when logo changes
+                - getFullUrl() constructs proper API URL
+                - ?t=${logoKey} cache-busting prevents browser caching
+                Fixed: Jan 30, 2026
+              */}
               <div 
                 className="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 overflow-hidden"
                 data-testid="logo-preview-container"
