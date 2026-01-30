@@ -79,7 +79,7 @@ function App() {
                         <Route path="/email-templates" element={<EmailTemplates />} />
                         <Route path="/email-logs" element={<EmailLogs />} />
                         <Route path="/email-server" element={<EmailServerConfig />} />
-                        <Route path="/dp-transfer" element={<DPTransferReport />} />
+                        <Route path="/dp-transfer" element={<DPTransferClient />} />
                         <Route path="/dp-receivables" element={<DPReceivables />} />
                         <Route path="/dp-transfer-client" element={<DPTransferClient />} />
                         <Route path="/database-backup" element={<DatabaseBackup />} />
