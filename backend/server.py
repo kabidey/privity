@@ -360,6 +360,11 @@ app.add_middleware(KillSwitchMiddleware)
 # Health Check
 # ====================
 
+@app.get("/health")
+async def health_check_root():
+    """Root health check endpoint for Kubernetes liveness/readiness probes"""
+    return {"status": "healthy", "version": "2.0.0"}
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
