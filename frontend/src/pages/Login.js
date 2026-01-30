@@ -213,12 +213,11 @@ const Login = () => {
       >
         <div className="absolute inset-0 bg-primary/80 flex flex-col">
           {/* Top Left Logo */}
-          <div className="absolute top-6 left-6">
+          <div className="absolute top-6 left-6 bg-white/95 rounded-lg p-3 shadow-lg">
             <img 
               src="https://customer-assets.emergentagent.com/job_8c5c41a7-4474-44d9-8a72-5476f60329b4/artifacts/eineo77y_SMIFS%20%26%20PRIVITY%20Logo.png" 
               alt="SMIFS & Privity Logo" 
-              className="h-14 w-auto drop-shadow-lg"
-              style={{ filter: 'brightness(0) invert(1)' }}
+              className="h-10 w-auto"
               data-testid="smifs-privity-logo"
             />
           </div>
