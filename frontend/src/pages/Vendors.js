@@ -712,7 +712,7 @@ const Vendors = () => {
                       </div>
                       <p className="text-xs text-purple-700 dark:text-purple-300 mt-2">
                         Required for proprietorship entities where the business name differs from the PAN card name.
-                        This declaration confirms the business operates under the proprietor's PAN.
+                        This declaration confirms the business operates under the proprietor&apos;s PAN.
                       </p>
                     </div>
                   )}
