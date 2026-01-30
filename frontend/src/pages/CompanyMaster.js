@@ -382,13 +382,16 @@ const CompanyMaster = () => {
               >
                 {logoUrl ? (
                   <img 
-                    src={`${process.env.REACT_APP_BACKEND_URL}/api${logoUrl}`} 
+                    src={`${getFullUrl(logoUrl)}?t=${Date.now()}`} 
                     alt="Company Logo" 
                     className="max-w-full max-h-full object-contain p-2"
                     data-testid="company-logo-preview"
                     onError={(e) => {
                       console.error('Logo load failed:', e.target.src);
-                      e.target.style.display = 'none';
+                      // Try without cache-busting as fallback
+                      if (e.target.src.includes('?t=')) {
+                        e.target.src = getFullUrl(logoUrl);
+                      }
                     }}
                   />
                 ) : (
