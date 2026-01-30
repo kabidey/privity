@@ -859,25 +859,29 @@ const Clients = () => {
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* CML Copy Upload */}
                   <Card className={`border-2 ${ocrCompleted.cml_copy ? 'border-green-500' : docFiles.cml_copy ? 'border-blue-500' : 'border-dashed'}`}>
-                    <CardHeader className="pb-2">
+                    <CardHeader className="pb-2 px-3">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <FileCheck className="h-4 w-4" />
+                        <FileCheck className="h-4 w-4 flex-shrink-0" />
                         CML Copy *
-                        {ocrCompleted.cml_copy && <Check className="h-4 w-4 text-green-500" />}
+                        {ocrCompleted.cml_copy && <Check className="h-4 w-4 text-green-500 flex-shrink-0" />}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="px-3 pb-3">
                       <div className="space-y-2">
-                        <Input
-                          type="file"
-                          accept="image/*,.pdf"
-                          onChange={(e) => handleFileChange('cml_copy', e.target.files?.[0])}
-                          disabled={processingOcr.cml_copy}
-                          className="text-xs"
-                        />
+                        <label className="flex items-center justify-center w-full px-3 py-2 text-xs font-medium text-center border rounded-md cursor-pointer bg-secondary hover:bg-secondary/80 transition-colors">
+                          <Upload className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">{docFiles.cml_copy ? docFiles.cml_copy.name : 'Choose File'}</span>
+                          <Input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => handleFileChange('cml_copy', e.target.files?.[0])}
+                            disabled={processingOcr.cml_copy}
+                            className="hidden"
+                          />
+                        </label>
                         {processingOcr.cml_copy && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Loader2 className="h-3 w-3 animate-spin" />
