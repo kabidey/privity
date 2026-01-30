@@ -677,6 +677,39 @@ const Vendors = () => {
                     <p className="text-xs text-muted-foreground mt-2">Upload cancelled cheque image. OCR will extract bank account details.</p>
                   </div>
 
+                  {/* Bank Declaration Upload - Required for Proprietorship with Name Mismatch */}
+                  {nameMismatchDetected && isProprietor === true && (
+                    <div className="border-2 border-purple-300 dark:border-purple-700 rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-purple-600" />
+                          <span className="font-medium text-purple-800 dark:text-purple-200">
+                            Bank Declaration <span className="text-red-500">*</span>
+                          </span>
+                        </div>
+                        {docFiles.bank_declaration && (
+                          <Badge variant="outline" className="text-green-600 border-green-600">
+                            ✓ {docFiles.bank_declaration.name}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={(e) => setDocFiles(prev => ({ ...prev, bank_declaration: e.target.files[0] }))}
+                          className="flex-1"
+                          data-testid="vendor-bank-declaration-upload"
+                        />
+                        <Upload className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <p className="text-xs text-purple-700 dark:text-purple-300 mt-2">
+                        Required for proprietorship entities where the business name differs from the PAN card name.
+                        This declaration confirms the business operates under the proprietor's PAN.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="flex justify-end gap-2 pt-4">
                     <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                       Cancel
@@ -693,6 +726,51 @@ const Vendors = () => {
                 </div>
               </TabsContent>
             </Tabs>
+          </DialogContent>
+        </Dialog>
+
+        {/* Proprietor Confirmation Dialog */}
+        <Dialog open={proprietorDialogOpen} onOpenChange={setProprietorDialogOpen}>
+          <DialogContent className="max-w-md" aria-describedby="proprietor-dialog-desc">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-500" />
+                Name Mismatch Detected
+              </DialogTitle>
+            </DialogHeader>
+            <p id="proprietor-dialog-desc" className="sr-only">Confirm if this is a proprietorship entity</p>
+            
+            <div className="space-y-4">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  The vendor name "<strong>{formData.name}</strong>" does not match 
+                  the PAN card name "<strong>{ocrExtractedName}</strong>".
+                </p>
+              </div>
+              
+              <p className="text-sm text-muted-foreground">
+                Is this vendor a <strong>Proprietorship</strong> entity where the business operates 
+                under the proprietor's personal PAN?
+              </p>
+              
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  onClick={() => handleProprietorResponse(true)}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                  data-testid="confirm-proprietor-yes"
+                >
+                  Yes, Proprietorship
+                </Button>
+                <Button 
+                  onClick={() => handleProprietorResponse(false)}
+                  variant="outline"
+                  className="flex-1"
+                  data-testid="confirm-proprietor-no"
+                >
+                  No, Correct Name
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
