@@ -19,12 +19,40 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
+      // Load from cache first for faster initial render
+      const cachedStats = localStorage.getItem('privity_cache_dashboard_stats');
+      const cachedAnalytics = localStorage.getItem('privity_cache_dashboard_analytics');
+      
+      if (cachedStats) {
+        try {
+          const { data, expiry } = JSON.parse(cachedStats);
+          if (Date.now() < expiry) setStats(data);
+        } catch (e) {}
+      }
+      if (cachedAnalytics) {
+        try {
+          const { data, expiry } = JSON.parse(cachedAnalytics);
+          if (Date.now() < expiry) setAnalytics(data);
+        } catch (e) {}
+      }
+      
       const [statsRes, analyticsRes] = await Promise.all([
         api.get('/dashboard/stats'),
         api.get('/dashboard/analytics'),
       ]);
       setStats(statsRes.data);
       setAnalytics(analyticsRes.data);
+      
+      // Cache for 5 minutes
+      const ttl = 5 * 60 * 1000;
+      localStorage.setItem('privity_cache_dashboard_stats', JSON.stringify({
+        data: statsRes.data,
+        expiry: Date.now() + ttl
+      }));
+      localStorage.setItem('privity_cache_dashboard_analytics', JSON.stringify({
+        data: analyticsRes.data,
+        expiry: Date.now() + ttl
+      }));
     } catch (error) {
       toast.error('Failed to load dashboard data');
     } finally {
@@ -32,7 +60,7 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading && !stats) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-muted-foreground">Loading dashboard...</div>
