@@ -195,7 +195,8 @@ const CompanyMaster = () => {
       
       toast.success(response.data.message);
       setLogoUrl(response.data.url);
-      setLogoKey(Date.now()); // Force re-render of logo
+      // CRITICAL: Update logoKey to force image re-render with new URL
+      setLogoKey(Date.now());
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to upload logo');
     } finally {
