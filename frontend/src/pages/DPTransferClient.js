@@ -222,42 +222,54 @@ const DPTransfer = () => {
                       <TableRow>
                         <TableHead>Booking #</TableHead>
                         <TableHead>Client</TableHead>
+                        <TableHead>PAN No</TableHead>
+                        <TableHead>DP ID</TableHead>
                         <TableHead>Stock</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                        <TableHead className="text-right">Amount Paid</TableHead>
-                        <TableHead>Payment Date</TableHead>
+                        <TableHead className="text-right">Qty</TableHead>
+                        <TableHead className="text-right">Sell Rate</TableHead>
+                        <TableHead className="text-right">Amount Received</TableHead>
                         <TableHead className="text-center">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {ready.map((booking) => (
                         <TableRow key={booking.id}>
-                          <TableCell className="font-mono font-medium">
+                          <TableCell className="font-mono font-medium text-sm">
                             {booking.booking_number}
                           </TableCell>
                           <TableCell>
                             <div>
                               <p className="font-medium">{booking.client_name}</p>
                               <p className="text-xs text-gray-500">{booking.client_email}</p>
-                              {booking.client_otc_ucc && (
-                                <p className="text-xs text-blue-600 font-mono">{booking.client_otc_ucc}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {booking.client_pan || '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-mono text-sm">{booking.client_dp_id || '-'}</p>
+                              {booking.client_depository && (
+                                <Badge variant="outline" className="text-xs mt-1">
+                                  {booking.client_depository}
+                                </Badge>
                               )}
                             </div>
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{booking.stock_symbol}</p>
+                              <p className="font-medium">{booking.stock_symbol || '-'}</p>
                               <p className="text-xs text-gray-500">{booking.stock_name}</p>
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-medium">
                             {booking.quantity?.toLocaleString()}
                           </TableCell>
-                          <TableCell className="text-right font-medium text-emerald-600">
-                            {formatCurrency(booking.total_amount)}
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(booking.selling_price || 0)}
                           </TableCell>
-                          <TableCell className="text-sm">
-                            {formatDate(booking.dp_ready_at)}
+                          <TableCell className="text-right font-medium text-emerald-600">
+                            {formatCurrency(booking.total_paid || booking.total_amount)}
                           </TableCell>
                           <TableCell className="text-center">
                             <Button
