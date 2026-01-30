@@ -203,8 +203,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Image */}
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left Side - Image (hidden on mobile) */}
       <div
         className="hidden lg:block lg:w-1/2 bg-cover bg-center relative"
         style={{
@@ -221,11 +221,21 @@ const Login = () => {
       </div>
 
       {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 min-h-screen lg:min-h-0">
+        {/* Logo - shown on both mobile and desktop */}
+        <div className="mb-6 lg:mb-8 flex justify-center">
+          <img 
+            src="https://customer-assets.emergentagent.com/job_8c5c41a7-4474-44d9-8a72-5476f60329b4/artifacts/vbv5ybri_privity.png" 
+            alt="Privity Logo" 
+            className="h-12 sm:h-14 lg:h-16 w-auto"
+            data-testid="privity-logo"
+          />
+        </div>
+        
         <Card className="w-full max-w-md border shadow-sm" data-testid="login-card">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-3xl font-bold">{isLogin ? 'Welcome back' : 'Create account'}</CardTitle>
-            <CardDescription className="text-base">
+          <CardHeader className="space-y-1 px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="text-2xl sm:text-3xl font-bold text-center lg:text-left">{isLogin ? 'Welcome back' : 'Create account'}</CardTitle>
+            <CardDescription className="text-sm sm:text-base text-center lg:text-left">
               {isLogin ? 'Enter your credentials to access your account' : 'Fill in the details to get started'}
             </CardDescription>
           </CardHeader>
