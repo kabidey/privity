@@ -123,7 +123,7 @@ class Client(BaseModel):
     phone: Optional[str] = None
     mobile: Optional[str] = None
     pan_number: str
-    dp_id: str
+    dp_id: Optional[str] = None  # Optional for vendors
     dp_type: str = "outside"  # "smifs" or "outside"
     trading_ucc: Optional[str] = None  # Required if dp_type is "smifs"
     address: Optional[str] = None
