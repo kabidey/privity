@@ -80,8 +80,23 @@ const Stocks = () => {
 
   const fetchStocks = async () => {
     try {
+      // Load from cache first
+      const cached = localStorage.getItem('privity_cache_stocks');
+      if (cached) {
+        try {
+          const { data, expiry } = JSON.parse(cached);
+          if (Date.now() < expiry) setStocks(data);
+        } catch (e) {}
+      }
+      
       const response = await api.get('/stocks');
       setStocks(response.data);
+      
+      // Cache for 10 minutes
+      localStorage.setItem('privity_cache_stocks', JSON.stringify({
+        data: response.data,
+        expiry: Date.now() + 10 * 60 * 1000
+      }));
     } catch (error) {
       toast.error('Failed to load stocks');
     } finally {
