@@ -269,8 +269,13 @@ export const NotificationProvider = ({ children }) => {
       wsRef.current.onclose = () => {
         setIsConnected(false);
         console.log('WebSocket disconnected');
-        // Reconnect after 5 seconds
-        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+        // Reconnect after 5 seconds - use window.location.reload as fallback
+        reconnectTimeoutRef.current = setTimeout(() => {
+          const token = localStorage.getItem('token');
+          if (token) {
+            window.location.reload();
+          }
+        }, 5000);
       };
 
       wsRef.current.onerror = (error) => {
@@ -288,7 +293,7 @@ export const NotificationProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
     }
-  }, [markAsRead, addFloatingNotification]);
+  }, [markAsRead, addFloatingNotification, updatePeStatus]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
