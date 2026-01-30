@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { toast } from 'sonner';
-import api from '../services/api';
+import api from '../utils/api';
 import { 
   Upload, FileText, Search, Trash2, Eye, Download, 
   Bot, Send, Loader2, FileSpreadsheet, FileCheck,
