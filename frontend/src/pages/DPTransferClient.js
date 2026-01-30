@@ -317,17 +317,20 @@ const DPTransfer = () => {
                       <TableRow>
                         <TableHead>Booking #</TableHead>
                         <TableHead>Client</TableHead>
+                        <TableHead>PAN No</TableHead>
+                        <TableHead>DP ID</TableHead>
                         <TableHead>Stock</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
+                        <TableHead className="text-right">Qty</TableHead>
+                        <TableHead className="text-right">Sell Rate</TableHead>
+                        <TableHead className="text-right">Amount Received</TableHead>
                         <TableHead className="text-center">DP Type</TableHead>
-                        <TableHead>Transferred By</TableHead>
                         <TableHead>Transferred At</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {transferred.map((booking) => (
                         <TableRow key={booking.id}>
-                          <TableCell className="font-mono font-medium">
+                          <TableCell className="font-mono font-medium text-sm">
                             {booking.booking_number}
                           </TableCell>
                           <TableCell>
@@ -336,14 +339,33 @@ const DPTransfer = () => {
                               <p className="text-xs text-gray-500">{booking.client_email}</p>
                             </div>
                           </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {booking.client_pan || '-'}
+                          </TableCell>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{booking.stock_symbol}</p>
+                              <p className="font-mono text-sm">{booking.client_dp_id || '-'}</p>
+                              {booking.client_depository && (
+                                <Badge variant="outline" className="text-xs mt-1">
+                                  {booking.client_depository}
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{booking.stock_symbol || '-'}</p>
                               <p className="text-xs text-gray-500">{booking.stock_name}</p>
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-medium">
                             {booking.quantity?.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(booking.selling_price || 0)}
+                          </TableCell>
+                          <TableCell className="text-right font-medium text-emerald-600">
+                            {formatCurrency(booking.total_paid || booking.total_amount)}
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge 
@@ -356,12 +378,6 @@ const DPTransfer = () => {
                             >
                               {booking.dp_type}
                             </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <User className="h-3 w-3 text-gray-400" />
-                              <span className="text-sm">{booking.dp_transferred_by_name}</span>
-                            </div>
                           </TableCell>
                           <TableCell className="text-sm">
                             {formatDate(booking.dp_transferred_at)}
