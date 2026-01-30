@@ -832,6 +832,10 @@ rp_payments: {
 - SMTP Collection Mismatch (Jan 29, 2026): Fixed email service to read from `smtp_settings` collection instead of `email_config`
 - Default User Role Bug (Jan 29, 2026): Fixed new users being created as Manager (role 4) instead of Employee (role 5)
 - Email Template Bug (Jan 29, 2026): Fixed `send_templated_email` wrong function calls in stocks.py and business_partners.py
+- **⚠️ CRITICAL: Company Master Logo & Document View (Jan 30, 2026)**: 
+  - Fixed logo not displaying after upload (cache-busting with `logoKey`)
+  - Fixed document View button returning blank screen (`getFullUrl()` helper)
+  - **DO NOT MODIFY**: `/app/frontend/src/pages/CompanyMaster.js` - `logoKey`, `getFullUrl()`, and cache-busting logic
 
 ## Recent Features Added (Jan 29, 2026)
 - **Payment Request Email on Booking Approval**: When PE Desk/Manager approves a booking, an automatic email is sent to the client with:
