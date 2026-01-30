@@ -878,3 +878,26 @@ rp_payments: {
   - Exports based on current tab (Receivable/Received or Ready/Transferred)
   - Columns: Name, DP ID, PAN, Stock Symbol, Stock Name, ISIN, Quantity, Amount, Status, DP Type, Date
   - Professional formatting with styled headers and borders
+
+
+#### ✅ Research Center Feature - COMPLETED (Jan 30, 2026)
+**Implementation Details:**
+- **New Research Center page** at `/research` route with 3 tabs
+- **Backend Router** (`/app/backend/routers/research.py`):
+  - `POST /api/research/reports` - Upload research report (PE Level only)
+  - `GET /api/research/reports` - List all reports with stock/type filters
+  - `GET /api/research/reports/stock/{stock_id}` - Get reports for specific stock
+  - `DELETE /api/research/reports/{report_id}` - Delete report (PE Level only)
+  - `POST /api/research/ai-research` - AI-powered stock research assistant
+  - `GET /api/research/stats` - Research section statistics
+- **Frontend Page** (`/app/frontend/src/pages/Research.js`):
+  - **Research Reports Tab**: Browse all reports with stock and type filters, view/download/delete actions
+  - **AI Research Assistant Tab**: Chat interface with stock context, sample questions, analysis responses
+  - **Upload Report Tab** (PE Level only): Stock selection, title, type, description, file upload (drag & drop)
+- **Role-Based Access**:
+  - All users: Can view reports and use AI assistant
+  - PE Level (role 1, 2): Can upload and delete reports
+- **File Support**: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV (max 50MB)
+- **AI Integration**: Uses `emergentintegrations` LlmChat with Emergent LLM Key
+- **Code Cleanup**: Deleted unused `/app/frontend/src/pages/DPTransferReport.js` and removed import from App.js
+- **Testing**: 15/17 backend tests passed (88%), 100% frontend verification
