@@ -458,7 +458,7 @@ const Research = () => {
                       <SelectValue placeholder="General research or select a stock" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">General Research</SelectItem>
+                      <SelectItem value="general">General Research</SelectItem>
                       {stocks.map(stock => (
                         <SelectItem key={stock.id} value={stock.id}>
                           {stock.symbol} - {stock.name}
