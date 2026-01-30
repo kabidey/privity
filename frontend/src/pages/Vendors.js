@@ -435,8 +435,8 @@ const Vendors = () => {
                         <div className="flex-1">
                           <p className="font-medium text-amber-800 dark:text-amber-200">Name Mismatch Detected</p>
                           <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                            The vendor name "<span className="font-semibold">{formData.name}</span>" does not match 
-                            the PAN card name "<span className="font-semibold">{ocrExtractedName}</span>".
+                            The vendor name &ldquo;<span className="font-semibold">{formData.name}</span>&rdquo; does not match 
+                            the PAN card name &ldquo;<span className="font-semibold">{ocrExtractedName}</span>&rdquo;.
                           </p>
                           {isProprietor === true && (
                             <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-2 flex items-center gap-1">
