@@ -899,22 +899,26 @@ const Clients = () => {
 
                   {/* PAN Card Upload */}
                   <Card className={`border-2 ${ocrCompleted.pan_card ? 'border-green-500' : docFiles.pan_card ? 'border-blue-500' : 'border-dashed'}`}>
-                    <CardHeader className="pb-2">
+                    <CardHeader className="pb-2 px-3">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <CreditCard className="h-4 w-4" />
+                        <CreditCard className="h-4 w-4 flex-shrink-0" />
                         PAN Card *
-                        {ocrCompleted.pan_card && <Check className="h-4 w-4 text-green-500" />}
+                        {ocrCompleted.pan_card && <Check className="h-4 w-4 text-green-500 flex-shrink-0" />}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="px-3 pb-3">
                       <div className="space-y-2">
-                        <Input
-                          type="file"
-                          accept="image/*,.pdf"
-                          onChange={(e) => handleFileChange('pan_card', e.target.files?.[0])}
-                          disabled={processingOcr.pan_card}
-                          className="text-xs"
-                        />
+                        <label className="flex items-center justify-center w-full px-3 py-2 text-xs font-medium text-center border rounded-md cursor-pointer bg-secondary hover:bg-secondary/80 transition-colors">
+                          <Upload className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">{docFiles.pan_card ? docFiles.pan_card.name : 'Choose File'}</span>
+                          <Input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => handleFileChange('pan_card', e.target.files?.[0])}
+                            disabled={processingOcr.pan_card}
+                            className="hidden"
+                          />
+                        </label>
                         {processingOcr.pan_card && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Loader2 className="h-3 w-3 animate-spin" />
@@ -932,22 +936,26 @@ const Clients = () => {
 
                   {/* Cancelled Cheque Upload */}
                   <Card className={`border-2 ${ocrCompleted.cancelled_cheque ? 'border-green-500' : docFiles.cancelled_cheque ? 'border-blue-500' : 'border-dashed'}`}>
-                    <CardHeader className="pb-2">
+                    <CardHeader className="pb-2 px-3">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
+                        <FileText className="h-4 w-4 flex-shrink-0" />
                         Cancelled Cheque *
-                        {ocrCompleted.cancelled_cheque && <Check className="h-4 w-4 text-green-500" />}
+                        {ocrCompleted.cancelled_cheque && <Check className="h-4 w-4 text-green-500 flex-shrink-0" />}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="px-3 pb-3">
                       <div className="space-y-2">
-                        <Input
-                          type="file"
-                          accept="image/*,.pdf"
-                          onChange={(e) => handleFileChange('cancelled_cheque', e.target.files?.[0])}
-                          disabled={processingOcr.cancelled_cheque}
-                          className="text-xs"
-                        />
+                        <label className="flex items-center justify-center w-full px-3 py-2 text-xs font-medium text-center border rounded-md cursor-pointer bg-secondary hover:bg-secondary/80 transition-colors">
+                          <Upload className="h-4 w-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">{docFiles.cancelled_cheque ? docFiles.cancelled_cheque.name : 'Choose File'}</span>
+                          <Input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => handleFileChange('cancelled_cheque', e.target.files?.[0])}
+                            disabled={processingOcr.cancelled_cheque}
+                            className="hidden"
+                          />
+                        </label>
                         {processingOcr.cancelled_cheque && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Loader2 className="h-3 w-3 animate-spin" />
