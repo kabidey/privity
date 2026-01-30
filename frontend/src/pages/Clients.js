@@ -764,6 +764,7 @@ const Clients = () => {
       case 'pan_card': return <CreditCard className="h-4 w-4" />;
       case 'cml_copy': return <FileCheck className="h-4 w-4" />;
       case 'cancelled_cheque': return <FileText className="h-4 w-4" />;
+      case 'bank_declaration': return <FileText className="h-4 w-4 text-purple-600" />;
       default: return <FileText className="h-4 w-4" />;
     }
   };
