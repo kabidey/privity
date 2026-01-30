@@ -579,7 +579,14 @@ const Vendors = () => {
                       <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-amber-800 dark:text-amber-200">All documents are mandatory</p>
-                        <p className="text-xs text-amber-700 dark:text-amber-300">Please upload PAN Card, CML Copy, and Cancelled Cheque to create a vendor.</p>
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          Please upload PAN Card, CML Copy, and Cancelled Cheque to create a vendor.
+                          {nameMismatchDetected && isProprietor === true && (
+                            <span className="block mt-1 text-purple-700 dark:text-purple-300 font-medium">
+                              + Bank Declaration (required for proprietorship with name mismatch)
+                            </span>
+                          )}
+                        </p>
                       </div>
                     </div>
                   )}
