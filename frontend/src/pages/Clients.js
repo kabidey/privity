@@ -1268,7 +1268,32 @@ const Clients = () => {
                       <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-amber-800 dark:text-amber-200">All documents are mandatory</p>
-                        <p className="text-xs text-amber-700 dark:text-amber-300">Please upload PAN Card, CML Copy, and Cancelled Cheque to create a client.</p>
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          Please upload PAN Card, CML Copy, and Cancelled Cheque to create a client.
+                          {nameMismatchDetected && isProprietor === true && (
+                            <span className="block mt-1 text-purple-700 dark:text-purple-300 font-medium">
+                              + Bank Declaration (required for proprietorship with name mismatch)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Name Mismatch Warning */}
+                  {nameMismatchDetected && (
+                    <div className="flex items-start gap-2 p-3 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg">
+                      <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Name Mismatch Detected</p>
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          The client name &ldquo;{formData.name}&rdquo; does not match the PAN card name &ldquo;{extractedNames.pan_card}&rdquo;.
+                        </p>
+                        {isProprietor === true && (
+                          <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1 flex items-center gap-1">
+                            <FileCheck className="h-3 w-3" /> Proprietorship confirmed - Bank Declaration required
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
