@@ -494,11 +494,16 @@ async def download_backup(
 @router.post("/restore-from-file")
 async def restore_from_file(
     file: UploadFile = File(...),
+    restore_files: bool = True,
     current_user: dict = Depends(get_current_user)
 ):
     """Restore database from an uploaded ZIP backup file (PE Desk only - restore restricted)
     
-    WARNING: This will replace existing data in the selected collections!
+    Args:
+        file: The ZIP backup file to restore from
+        restore_files: If True, also restore uploaded files (documents, logos, etc.)
+    
+    WARNING: This will replace existing data in the selected collections and uploaded files!
     """
     if not is_pe_desk_only(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can restore database")
@@ -515,6 +520,8 @@ async def restore_from_file(
         # Extract and validate ZIP contents
         backup_data = {}
         metadata = None
+        files_restored = 0
+        files_errors = []
         
         with zipfile.ZipFile(zip_buffer, 'r') as zip_file:
             # Read metadata
@@ -528,9 +535,29 @@ async def restore_from_file(
             for filename in zip_file.namelist():
                 if filename.startswith("collections/") and filename.endswith(".json"):
                     collection_name = filename.replace("collections/", "").replace(".json", "")
-                    if collection_name in BACKUP_COLLECTIONS:
-                        collection_content = zip_file.read(filename)
-                        backup_data[collection_name] = json.loads(collection_content)
+                    collection_content = zip_file.read(filename)
+                    backup_data[collection_name] = json.loads(collection_content)
+            
+            # Restore uploaded files if present and requested
+            if restore_files:
+                for filename in zip_file.namelist():
+                    if filename.startswith("uploads/") and not filename.endswith("/"):
+                        try:
+                            # Get the relative path after "uploads/"
+                            rel_path = filename[8:]  # Remove "uploads/" prefix
+                            target_path = os.path.join(UPLOADS_DIR, rel_path)
+                            
+                            # Create directory if it doesn't exist
+                            target_dir = os.path.dirname(target_path)
+                            os.makedirs(target_dir, exist_ok=True)
+                            
+                            # Extract file
+                            with zip_file.open(filename) as src:
+                                with open(target_path, 'wb') as dst:
+                                    dst.write(src.read())
+                            files_restored += 1
+                        except Exception as e:
+                            files_errors.append(f"Error restoring file {filename}: {str(e)}")
         
         if not backup_data:
             raise HTTPException(status_code=400, detail="Invalid backup file: no valid collection data found")
@@ -540,6 +567,10 @@ async def restore_from_file(
         errors = []
         
         for collection_name, documents in backup_data.items():
+            if collection_name == "database_backups":
+                # Skip restoring backups collection
+                continue
+            
             if collection_name == "users":
                 # Special handling for users - preserve super admin
                 await db.users.delete_many({"email": {"$ne": "pedesk@smifs.com"}})
@@ -571,20 +602,25 @@ async def restore_from_file(
                 "original_backup_date": metadata.get("created_at"),
                 "collections_restored": list(restored_counts.keys()),
                 "record_counts": restored_counts,
-                "errors": errors
+                "files_restored": files_restored,
+                "errors": errors + files_errors
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
+        all_errors = errors + files_errors
+        
         return {
-            "message": "Database restored from file successfully" if not errors else "Database restored with some errors",
+            "message": "Database restored from file successfully" if not all_errors else "Database restored with some errors",
             "backup_info": {
                 "name": metadata.get("name"),
                 "original_date": metadata.get("created_at"),
-                "original_creator": metadata.get("created_by_name")
+                "original_creator": metadata.get("created_by_name"),
+                "includes_files": metadata.get("includes_files", False)
             },
             "restored_counts": restored_counts,
-            "errors": errors
+            "files_restored": files_restored,
+            "errors": all_errors
         }
         
     except zipfile.BadZipFile:
