@@ -35,26 +35,36 @@ const getNotificationColor = (type) => {
 export default function FloatingNotifications() {
   const { floatingNotifications, dismissFloatingNotification, markAsRead } = useNotifications();
 
-  if (floatingNotifications.length === 0) return null;
+  // Only show critical notifications (loss, rejection, urgent)
+  const criticalNotifications = floatingNotifications.filter(n => 
+    n.type?.includes('loss') || 
+    n.type?.includes('rejected') || 
+    n.type?.includes('urgent') ||
+    n.type?.includes('error')
+  );
+
+  // Limit to max 2 notifications at a time
+  const visibleNotifications = criticalNotifications.slice(0, 2);
+
+  if (visibleNotifications.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-3 max-w-md w-full pointer-events-none">
-      {floatingNotifications.map((notification, index) => (
+    <div className="fixed top-20 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full sm:max-w-md pointer-events-none">
+      {visibleNotifications.map((notification, index) => (
         <div
           key={notification.floatingId}
           className={cn(
-            "pointer-events-auto rounded-lg border-l-4 p-4 shadow-2xl",
+            "pointer-events-auto rounded-lg border-l-4 p-3 shadow-lg",
             "animate-in slide-in-from-right-full duration-300",
             "backdrop-blur-sm",
             getNotificationColor(notification.type)
           )}
           style={{
             animationDelay: `${index * 100}ms`,
-            boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
           }}
         >
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-0.5">
+          <div className="flex items-start gap-2">
+            <div className="flex-shrink-0">
               {getNotificationIcon(notification.type)}
             </div>
             <div className="flex-1 min-w-0">
@@ -65,40 +75,16 @@ export default function FloatingNotifications() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 hover:bg-black/10"
+                  className="h-6 w-6 p-0 hover:bg-black/10 flex-shrink-0"
                   onClick={() => dismissFloatingNotification(notification.floatingId)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                 {notification.message}
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => {
-                    markAsRead(notification.id);
-                    dismissFloatingNotification(notification.floatingId);
-                  }}
-                >
-                  Mark as Read
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(notification.created_at).toLocaleTimeString()}
-                </span>
-              </div>
             </div>
-          </div>
-          
-          {/* Progress bar for auto-dismiss */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/10 rounded-b-lg overflow-hidden">
-            <div 
-              className="h-full bg-primary/50 animate-shrink-width"
-              style={{ animationDuration: '8s' }}
-            />
           </div>
         </div>
       ))}
