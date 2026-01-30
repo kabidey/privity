@@ -879,6 +879,19 @@ rp_payments: {
   - Columns: Name, DP ID, PAN, Stock Symbol, Stock Name, ISIN, Quantity, Amount, Status, DP Type, Date
   - Professional formatting with styled headers and borders
 
+#### ✅ Critical Bug Fix: Route Order in Bookings - COMPLETED (Jan 30, 2026)
+**Issue**: FastAPI was matching `/bookings/pending-approval` and `/bookings/pending-loss-approval` as `{booking_id}` because dynamic routes were defined before static routes.
+
+**Fix Applied**:
+- Moved static routes (`pending-approval`, `pending-loss-approval`) BEFORE dynamic route `{booking_id}` in `/app/backend/routers/bookings.py`
+- Added comment explaining route order requirement
+- Removed duplicate route definitions
+
+**Test Results**:
+- `/api/bookings/pending-approval` - HTTP 200 ✅
+- `/api/bookings/pending-loss-approval` - HTTP 200 ✅
+- All 10 key API endpoints verified working
+
 #### ✅ Code Refactoring - COMPLETED (Jan 30, 2026)
 **Backend Refactoring:**
 - **Extracted email templates** to separate file:
