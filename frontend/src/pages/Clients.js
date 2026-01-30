@@ -62,6 +62,11 @@ const Clients = () => {
   const [fieldsFromOcr, setFieldsFromOcr] = useState({}); // Track which fields came from OCR
   const [extractedNames, setExtractedNames] = useState({ pan_card: '', cml_copy: '', cancelled_cheque: '' }); // Track names from each document
   
+  // Name mismatch and proprietor workflow states
+  const [nameMismatchDetected, setNameMismatchDetected] = useState(false);
+  const [isProprietor, setIsProprietor] = useState(null); // null = not asked, true/false = answered
+  const [proprietorDialogOpen, setProprietorDialogOpen] = useState(false);
+  
   const [newBankAccount, setNewBankAccount] = useState({
     bank_name: '',
     account_number: '',
@@ -74,6 +79,7 @@ const Clients = () => {
     pan_card: null,
     cml_copy: null,
     cancelled_cheque: null,
+    bank_declaration: null,  // Required if proprietor with name mismatch
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
