@@ -274,7 +274,7 @@ Remember: This is for informational purposes only and should not be considered a
             system_message=system_prompt
         )
         
-        response = llm.chat(query)
+        response = llm.send_message(query)
         
         # Log the research query
         await db.audit_logs.insert_one({
