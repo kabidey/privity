@@ -352,7 +352,8 @@ const Vendors = () => {
     const labels = {
       'pan_card': 'PAN Card',
       'cml_copy': 'CML Copy',
-      'cancelled_cheque': 'Cancelled Cheque'
+      'cancelled_cheque': 'Cancelled Cheque',
+      'bank_declaration': 'Bank Declaration'
     };
     return labels[docType] || docType;
   };
@@ -371,8 +372,12 @@ const Vendors = () => {
       ifsc_code: '',
       is_vendor: true,
     });
-    setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
+    setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null, bank_declaration: null });
     setEditingVendor(null);
+    // Reset name mismatch states
+    setOcrExtractedName('');
+    setNameMismatchDetected(false);
+    setIsProprietor(null);
   };
 
   const getDocIcon = (docType) => {
