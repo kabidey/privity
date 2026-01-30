@@ -241,7 +241,7 @@ const DatabaseBackup = () => {
 
       {/* Database Stats */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -284,6 +284,20 @@ const DatabaseBackup = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
+                <div className="p-3 bg-amber-100 dark:bg-amber-900 rounded-full">
+                  <Upload className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Uploaded Files</p>
+                  <p className="text-2xl font-bold">{stats.uploaded_files?.total_count || 0}</p>
+                  <p className="text-xs text-muted-foreground">{stats.uploaded_files?.total_size_mb || 0} MB</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
                 <div className="p-3 bg-orange-100 dark:bg-orange-900 rounded-full">
                   <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
@@ -297,6 +311,30 @@ const DatabaseBackup = () => {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* Uploaded Files Stats */}
+      {stats?.uploaded_files?.by_category && Object.keys(stats.uploaded_files.by_category).length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5" />
+              Uploaded Files by Category
+            </CardTitle>
+            <CardDescription>Documents, logos, and other uploaded files that will be included in backups</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {Object.entries(stats.uploaded_files.by_category).map(([name, data]) => (
+                <div key={name} className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <p className="text-xs text-muted-foreground capitalize">{name.replace(/_/g, ' ')}</p>
+                  <p className="text-lg font-semibold">{data.count} files</p>
+                  <p className="text-xs text-muted-foreground">{data.size_mb} MB</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Collection Stats */}
