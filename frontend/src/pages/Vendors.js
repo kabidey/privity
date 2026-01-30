@@ -293,7 +293,11 @@ const Vendors = () => {
       ifsc_code: vendor.ifsc_code || '',
       is_vendor: true,
     });
-    setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
+    setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null, bank_declaration: null });
+    // Reset name mismatch states for edit mode
+    setOcrExtractedName('');
+    setNameMismatchDetected(false);
+    setIsProprietor(null);
     setDialogOpen(true);
   };
 
