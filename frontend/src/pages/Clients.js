@@ -471,6 +471,33 @@ const Clients = () => {
       if (!docFiles.cml_copy) missingDocs.push('CML Copy');
       if (!docFiles.cancelled_cheque) missingDocs.push('Cancelled Cheque');
       
+      // Check for name mismatch between form and OCR extracted names
+      const panName = extractedNames.pan_card?.toLowerCase().trim();
+      const formName = formData.name?.toLowerCase().trim();
+      if (panName && formName && panName !== formName) {
+        setNameMismatchDetected(true);
+        
+        // If name mismatch detected, require proprietor confirmation
+        if (isProprietor === null) {
+          toast.error('Name mismatch detected. Please confirm if this is a proprietorship entity.');
+          setProprietorDialogOpen(true);
+          setIsSubmitting(false);
+          return;
+        }
+        
+        // If proprietor with name mismatch, require bank declaration
+        if (isProprietor === true && !docFiles.bank_declaration) {
+          missingDocs.push('Bank Declaration (required for proprietorship)');
+        }
+        
+        // If not a proprietor but name mismatch exists, block creation
+        if (isProprietor === false) {
+          toast.error('Name mismatch detected. Please correct the client name to match the PAN card or confirm as proprietorship.');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
       if (missingDocs.length > 0) {
         toast.error(`Please upload: ${missingDocs.join(', ')}`);
         setIsSubmitting(false);
