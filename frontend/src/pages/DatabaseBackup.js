@@ -129,10 +129,10 @@ const DatabaseBackup = () => {
     }
   };
 
-  const handleDownloadBackup = async (backup) => {
+  const handleDownloadBackup = async (backup, includeFiles = true) => {
     try {
-      toast.info('Preparing download...');
-      const response = await api.get(`/database/backups/${backup.id}/download`, {
+      toast.info(includeFiles ? 'Preparing download with files...' : 'Preparing download...');
+      const response = await api.get(`/database/backups/${backup.id}/download?include_files=${includeFiles}`, {
         responseType: 'blob'
       });
       
@@ -141,12 +141,13 @@ const DatabaseBackup = () => {
       const link = document.createElement('a');
       link.href = url;
       const safeName = backup.name.replace(/[^a-zA-Z0-9-_]/g, '_');
-      link.setAttribute('download', `backup_${safeName}_${backup.created_at.slice(0, 10)}.zip`);
+      const fileSuffix = includeFiles ? '_with_files' : '';
+      link.setAttribute('download', `backup_${safeName}${fileSuffix}_${backup.created_at.slice(0, 10)}.zip`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success('Backup downloaded successfully');
+      toast.success(includeFiles ? 'Backup with files downloaded successfully' : 'Backup downloaded successfully');
     } catch (error) {
       toast.error('Failed to download backup');
     }
