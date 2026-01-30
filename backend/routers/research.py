@@ -230,7 +230,7 @@ async def ai_stock_research(
     current_user: dict = Depends(get_current_user)
 ):
     """AI-powered stock research assistant"""
-    from emergentintegrations.llm.chat import ChatLLM
+    from emergentintegrations.llm.chat import LlmChat
     
     # Get stock context if provided
     stock_context = ""
@@ -265,12 +265,12 @@ Guidelines:
 Remember: This is for informational purposes only and should not be considered as financial advice."""
 
     try:
-        llm = ChatLLM(
+        llm = LlmChat(
             api_key=os.environ.get("EMERGENT_LLM_KEY"),
             model="gpt-4o-mini"
         )
         
-        response = await llm.chat_async(
+        response = llm.chat(
             system_prompt=system_prompt,
             user_message=query
         )
