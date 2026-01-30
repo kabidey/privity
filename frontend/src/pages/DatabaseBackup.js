@@ -406,11 +406,21 @@ const DatabaseBackup = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDownloadBackup(backup)}
-                          title="Download backup as ZIP"
+                          onClick={() => handleDownloadBackup(backup, true)}
+                          title="Download backup with files"
                           data-testid={`download-backup-${backup.id}`}
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-4 w-4 mr-1" />
+                          <span className="hidden md:inline text-xs">+ Files</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadBackup(backup, false)}
+                          title="Download database only (no files)"
+                          className="text-muted-foreground"
+                        >
+                          <Database className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
