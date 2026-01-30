@@ -1,6 +1,7 @@
 """
 Database Backup and Restore Router
 Handles database backup creation, listing, and restoration (PE Desk only)
+Includes support for backing up uploaded files
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -12,12 +13,17 @@ import json
 import os
 import io
 import zipfile
+import shutil
+import base64
 
 from database import db
 from routers.auth import get_current_user
 from config import is_pe_level, is_pe_desk_only
 
 router = APIRouter(prefix="/database", tags=["Database Management"])
+
+# Upload directory path
+UPLOADS_DIR = "/app/uploads"
 
 # Collections to backup - comprehensive list
 BACKUP_COLLECTIONS = [
@@ -44,6 +50,7 @@ BACKUP_COLLECTIONS = [
     "password_resets",
     "refund_requests",
     "sohini_chats",
+    "system_settings",
 ]
 
 
