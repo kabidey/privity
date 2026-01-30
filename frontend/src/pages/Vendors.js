@@ -750,14 +750,14 @@ const Vendors = () => {
             <div className="space-y-4">
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
                 <p className="text-sm text-amber-800 dark:text-amber-200">
-                  The vendor name "<strong>{formData.name}</strong>" does not match 
-                  the PAN card name "<strong>{ocrExtractedName}</strong>".
+                  The vendor name &ldquo;<strong>{formData.name}</strong>&rdquo; does not match 
+                  the PAN card name &ldquo;<strong>{ocrExtractedName}</strong>&rdquo;.
                 </p>
               </div>
               
               <p className="text-sm text-muted-foreground">
                 Is this vendor a <strong>Proprietorship</strong> entity where the business operates 
-                under the proprietor's personal PAN?
+                under the proprietor&apos;s personal PAN?
               </p>
               
               <div className="flex gap-3 pt-2">
