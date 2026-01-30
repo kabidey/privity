@@ -221,14 +221,17 @@ async def update_client(client_id: str, client_data: ClientCreate, current_user:
     update_data = {
         "name": client_data.name,
         "email": client_data.email,
-        "secondary_email": client_data.secondary_email,
-        "tertiary_email": client_data.tertiary_email,
+        "email_secondary": client_data.email_secondary,
+        "email_tertiary": client_data.email_tertiary,
         "phone": client_data.phone,
+        "mobile": client_data.mobile,
         "pan_number": client_data.pan_number.upper(),
-        "aadhar_number": client_data.aadhar_number,
         "dp_id": client_data.dp_id,
-        "otc_ucc": client_data.otc_ucc,
+        "dp_type": client_data.dp_type,
+        "trading_ucc": client_data.trading_ucc,
         "address": client_data.address,
+        "pin_code": client_data.pin_code,
+        "is_vendor": client_data.is_vendor,
         "bank_accounts": [acc.model_dump() for acc in client_data.bank_accounts] if client_data.bank_accounts else existing.get("bank_accounts", []),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
