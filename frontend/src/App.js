@@ -38,6 +38,7 @@ import AuditTrail from './pages/AuditTrail';
 import PEDashboard from './pages/PEDashboard';
 import FinanceDashboard from './pages/FinanceDashboard';
 import MyDashboard from './pages/MyDashboard';
+import Research from './pages/Research';
 import ClientDashboard from './pages/ClientDashboard';
 import Layout from './components/Layout';
 import SohiniAssistant from './components/SohiniAssistant';
