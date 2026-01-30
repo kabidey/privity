@@ -21,7 +21,6 @@ import Analytics from './pages/Analytics';
 import EmailTemplates from './pages/EmailTemplates';
 import EmailLogs from './pages/EmailLogs';
 import EmailServerConfig from './pages/EmailServerConfig';
-import DPTransferReport from './pages/DPTransferReport';
 import DPReceivables from './pages/DPReceivables';
 import DPTransferClient from './pages/DPTransferClient';
 import DatabaseBackup from './pages/DatabaseBackup';
