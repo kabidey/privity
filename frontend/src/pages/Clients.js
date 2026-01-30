@@ -746,7 +746,7 @@ const Clients = () => {
       dp_type: 'outside', trading_ucc: '',
       address: '', pin_code: '', bank_accounts: [],
     });
-    setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
+    setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null, bank_declaration: null });
     setOcrResults({});
     setOcrCompleted({ pan_card: false, cml_copy: false, cancelled_cheque: false });
     setFieldsFromOcr({});
@@ -754,6 +754,9 @@ const Clients = () => {
     setWizardStep(1);
     setEditingClient(null);
     setIsSubmitting(false);
+    // Reset name mismatch states
+    setNameMismatchDetected(false);
+    setIsProprietor(null);
   };
 
   const getDocIcon = (docType) => {
