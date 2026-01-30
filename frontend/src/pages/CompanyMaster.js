@@ -30,7 +30,13 @@ const CompanyMaster = () => {
   const [uploading, setUploading] = useState({});
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoUrl, setLogoUrl] = useState(null);
-  const [logoKey, setLogoKey] = useState(Date.now()); // Force re-render on logo change
+  /**
+   * CRITICAL FIX - DO NOT MODIFY
+   * logoKey is used for cache-busting to force logo refresh after upload.
+   * Without this, uploaded logos won't display until page hard-refresh.
+   * Fixed: Jan 30, 2026
+   */
+  const [logoKey, setLogoKey] = useState(Date.now());
   const [formData, setFormData] = useState({
     company_name: '',
     company_address: '',
