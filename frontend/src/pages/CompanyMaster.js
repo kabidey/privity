@@ -240,6 +240,14 @@ const CompanyMaster = () => {
     });
   };
 
+  /**
+   * CRITICAL FIX - DO NOT MODIFY
+   * This helper function constructs full URLs for uploaded files.
+   * Without this, document View buttons will show blank screens.
+   * Fixed: Jan 30, 2026
+   * @param {string} url - Relative URL like "/uploads/company/file.pdf"
+   * @returns {string} Full URL with API base
+   */
   const getFullUrl = (url) => {
     if (!url) return null;
     // If URL already starts with http, return as is
