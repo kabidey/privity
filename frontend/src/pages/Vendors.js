@@ -26,6 +26,12 @@ const Vendors = () => {
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [selectedOcrData, setSelectedOcrData] = useState(null);
   
+  // Name mismatch and proprietor workflow states
+  const [ocrExtractedName, setOcrExtractedName] = useState('');
+  const [nameMismatchDetected, setNameMismatchDetected] = useState(false);
+  const [isProprietor, setIsProprietor] = useState(null); // null = not asked, true/false = answered
+  const [proprietorDialogOpen, setProprietorDialogOpen] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',  // Primary email
@@ -44,6 +50,7 @@ const Vendors = () => {
     pan_card: null,
     cml_copy: null,
     cancelled_cheque: null,
+    bank_declaration: null,  // Required if proprietor with name mismatch
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
