@@ -427,6 +427,32 @@ const Vendors = () => {
               
               <TabsContent value="details">
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name Mismatch Warning */}
+                  {nameMismatchDetected && (
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-medium text-amber-800 dark:text-amber-200">Name Mismatch Detected</p>
+                          <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                            The vendor name "<span className="font-semibold">{formData.name}</span>" does not match 
+                            the PAN card name "<span className="font-semibold">{ocrExtractedName}</span>".
+                          </p>
+                          {isProprietor === true && (
+                            <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-2 flex items-center gap-1">
+                              <FileCheck className="h-4 w-4" /> Proprietorship confirmed - Bank Declaration required
+                            </p>
+                          )}
+                          {isProprietor === false && (
+                            <p className="text-sm text-red-700 dark:text-red-300 mt-2">
+                              Please correct the name or confirm as proprietorship to proceed.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Company/Vendor Name *</Label>
@@ -434,7 +460,7 @@ const Vendors = () => {
                         id="name"
                         data-testid="vendor-name-input"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) => handleNameChange(e.target.value)}
                         required
                       />
                     </div>
