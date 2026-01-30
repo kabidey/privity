@@ -350,10 +350,14 @@ async def get_employee_revenue_dashboard(
     client_to_employee = {c["id"]: c.get("mapped_employee_id") for c in clients}
     
     # Calculate revenue per employee
+    # Note: We use two methods to attribute bookings to employees:
+    # 1. Client's mapped_employee_id (preferred - the employee responsible for the client)
+    # 2. Booking's created_by (fallback - who actually created the booking)
     employee_revenue_map = {}
     for booking in all_bookings:
         client_id = booking.get("client_id")
-        employee_id = client_to_employee.get(client_id)
+        # First try client mapping, then fall back to booking creator
+        employee_id = client_to_employee.get(client_id) or booking.get("created_by")
         
         if not employee_id or employee_id not in user_ids:
             continue
