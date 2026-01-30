@@ -784,6 +784,10 @@ rp_payments: {
 - [x] Version Control System with auto-increment - COMPLETED (Jan 29, 2026)
 - [x] Kill Switch (Emergency System Freeze) - COMPLETED (Jan 29, 2026)
 - [x] Version Changelog Modal - COMPLETED (Jan 29, 2026)
+- [x] Email Template Review & Enhancement - COMPLETED (Jan 29, 2026)
+  - Added 6 missing templates: corporate_action_notification, contract_note, bp_login_otp, payment_request, stock_transfer_request, stock_transferred
+  - Fixed broken function calls in stocks.py and business_partners.py
+  - Total 23 email templates now available
 - [ ] UI notification for admins if SMTP email service is not configured
 
 ### P2 - Nice to Have
@@ -797,6 +801,7 @@ rp_payments: {
 - OTP and system emails not being sent (requires SMTP configuration via Email Server Config page)
 - SMTP Collection Mismatch (Jan 29, 2026): Fixed email service to read from `smtp_settings` collection instead of `email_config`
 - Default User Role Bug (Jan 29, 2026): Fixed new users being created as Manager (role 4) instead of Employee (role 5)
+- Email Template Bug (Jan 29, 2026): Fixed `send_templated_email` wrong function calls in stocks.py and business_partners.py
 
 ## Recent Features Added (Jan 29, 2026)
 - **Payment Request Email on Booking Approval**: When PE Desk/Manager approves a booking, an automatic email is sent to the client with:
