@@ -118,8 +118,23 @@ const Clients = () => {
 
   const fetchClients = async () => {
     try {
+      // Load from cache first
+      const cached = localStorage.getItem('privity_cache_clients');
+      if (cached) {
+        try {
+          const { data, expiry } = JSON.parse(cached);
+          if (Date.now() < expiry) setClients(data);
+        } catch (e) {}
+      }
+      
       const response = await api.get('/clients?is_vendor=false');
       setClients(response.data);
+      
+      // Cache for 5 minutes
+      localStorage.setItem('privity_cache_clients', JSON.stringify({
+        data: response.data,
+        expiry: Date.now() + 5 * 60 * 1000
+      }));
     } catch (error) {
       toast.error('Failed to load clients');
     } finally {
