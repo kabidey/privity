@@ -389,9 +389,43 @@ async def clear_database(current_user: dict = Depends(get_current_user)):
 
 
 # ============== Download Backup as ZIP ==============
+def get_all_files_in_directory(directory: str) -> List[tuple]:
+    """Get all files in a directory recursively with their relative paths"""
+    files = []
+    if os.path.exists(directory):
+        for root, dirs, filenames in os.walk(directory):
+            for filename in filenames:
+                full_path = os.path.join(root, filename)
+                rel_path = os.path.relpath(full_path, directory)
+                files.append((full_path, rel_path))
+    return files
+
+
+def get_files_stats(directory: str) -> tuple:
+    """Get count and total size of files in directory"""
+    count = 0
+    total_size = 0
+    if os.path.exists(directory):
+        for root, dirs, filenames in os.walk(directory):
+            for filename in filenames:
+                full_path = os.path.join(root, filename)
+                count += 1
+                total_size += os.path.getsize(full_path)
+    return count, total_size
+
+
 @router.get("/backups/{backup_id}/download")
-async def download_backup(backup_id: str, current_user: dict = Depends(get_current_user)):
-    """Download a backup as a ZIP file (PE Level)"""
+async def download_backup(
+    backup_id: str, 
+    include_files: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Download a backup as a ZIP file (PE Level)
+    
+    Args:
+        backup_id: ID of the backup to download
+        include_files: If True, include all uploaded files (documents, logos, etc.)
+    """
     if not is_pe_level(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can download backups")
     
@@ -402,6 +436,9 @@ async def download_backup(backup_id: str, current_user: dict = Depends(get_curre
         raise HTTPException(status_code=404, detail="Backup not found")
     
     backup_data = backup.get("data", {})
+    
+    # Get file stats
+    files_count, files_size = get_files_stats(UPLOADS_DIR) if include_files else (0, 0)
     
     # Create ZIP file in memory
     zip_buffer = io.BytesIO()
@@ -417,7 +454,11 @@ async def download_backup(backup_id: str, current_user: dict = Depends(get_curre
             "created_by_name": backup["created_by_name"],
             "collections": backup["collections"],
             "record_counts": backup["record_counts"],
-            "size_bytes": backup["size_bytes"]
+            "size_bytes": backup["size_bytes"],
+            "includes_files": include_files,
+            "files_count": files_count,
+            "files_size_bytes": files_size,
+            "backup_version": "2.0"  # Version to identify new format with files
         }
         zip_file.writestr("metadata.json", json.dumps(metadata, indent=2))
         
@@ -425,12 +466,22 @@ async def download_backup(backup_id: str, current_user: dict = Depends(get_curre
         for collection_name, documents in backup_data.items():
             json_content = json.dumps(documents, indent=2, default=str)
             zip_file.writestr(f"collections/{collection_name}.json", json_content)
+        
+        # Add uploaded files if requested
+        if include_files and os.path.exists(UPLOADS_DIR):
+            all_files = get_all_files_in_directory(UPLOADS_DIR)
+            for full_path, rel_path in all_files:
+                try:
+                    zip_file.write(full_path, f"uploads/{rel_path}")
+                except Exception as e:
+                    print(f"Error adding file {full_path}: {e}")
     
     zip_buffer.seek(0)
     
     # Generate filename
     safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in backup["name"])
-    filename = f"backup_{safe_name}_{backup['created_at'][:10]}.zip"
+    file_suffix = "_with_files" if include_files else ""
+    filename = f"backup_{safe_name}{file_suffix}_{backup['created_at'][:10]}.zip"
     
     return StreamingResponse(
         zip_buffer,
