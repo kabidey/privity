@@ -52,7 +52,8 @@ import {
   Shield,
   User,
   ArrowDownToLine,
-  Send
+  Send,
+  BookOpen
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
