@@ -768,12 +768,15 @@ async def get_dp_transferred_bookings(current_user: dict = Depends(get_current_u
     for booking in bookings_list:
         client = await db.clients.find_one(
             {"id": booking.get("client_id")},
-            {"_id": 0, "name": 1, "email": 1, "otc_ucc": 1}
+            {"_id": 0, "name": 1, "email": 1, "otc_ucc": 1, "pan_number": 1, "dp_id": 1, "depository": 1}
         )
         if client:
             booking["client_name"] = client.get("name")
             booking["client_email"] = client.get("email")
             booking["client_otc_ucc"] = client.get("otc_ucc")
+            booking["client_pan"] = client.get("pan_number")
+            booking["client_dp_id"] = client.get("dp_id")
+            booking["client_depository"] = client.get("depository")
         
         stock = await db.stocks.find_one(
             {"id": booking.get("stock_id")},
