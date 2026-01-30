@@ -60,6 +60,18 @@ const Research = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      
+      // Try to load from cache first for faster initial render
+      const cachedStocks = localStorage.getItem('privity_cache_stocks');
+      if (cachedStocks) {
+        try {
+          const { data, expiry } = JSON.parse(cachedStocks);
+          if (Date.now() < expiry) {
+            setStocks(data);
+          }
+        } catch (e) {}
+      }
+      
       const [reportsRes, stocksRes, statsRes] = await Promise.all([
         api.get('/research/reports'),
         api.get('/stocks'),
@@ -68,6 +80,12 @@ const Research = () => {
       setReports(reportsRes.data);
       setStocks(stocksRes.data);
       setStats(statsRes.data);
+      
+      // Cache stocks for 10 minutes
+      localStorage.setItem('privity_cache_stocks', JSON.stringify({
+        data: stocksRes.data,
+        expiry: Date.now() + 10 * 60 * 1000
+      }));
     } catch (error) {
       toast.error('Failed to load research data');
     } finally {
