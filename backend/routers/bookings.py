@@ -1025,48 +1025,6 @@ async def get_booking(booking_id: str, current_user: dict = Depends(get_current_
     })
 
 
-# Additional Booking Endpoints
-
-@router.get("/bookings/pending-approval", response_model=List[BookingWithDetails])
-async def get_pending_bookings(current_user: dict = Depends(get_current_user)):
-    """Get bookings pending approval (PE Level only)."""
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view pending bookings")
-    
-    bookings = await db.bookings.find(
-        {"approval_status": "pending"},
-        {"_id": 0, "user_id": 0}
-    ).to_list(1000)
-    
-    if not bookings:
-        return []
-    
-    # Enrich with client and stock details
-    client_ids = list(set(b["client_id"] for b in bookings))
-    stock_ids = list(set(b["stock_id"] for b in bookings))
-    
-    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
-    stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
-    
-    client_map = {c["id"]: c for c in clients}
-    stock_map = {s["id"]: s for s in stocks}
-    
-    enriched = []
-    for b in bookings:
-        client = client_map.get(b["client_id"], {})
-        stock = stock_map.get(b["stock_id"], {})
-        enriched.append(BookingWithDetails(
-            **b,
-            client_name=client.get("name", "Unknown"),
-            stock_symbol=stock.get("symbol", "Unknown"),
-            stock_name=stock.get("name", "Unknown")
-        ))
-    
-    return enriched
-
-
 @router.put("/bookings/{booking_id}", response_model=Booking)
 async def update_booking(booking_id: str, booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
     """Update a booking."""
