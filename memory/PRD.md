@@ -119,6 +119,36 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Added "No documents uploaded" message when no documents exist
 - **Testing**: Verified via screenshots - PAN card document uploaded and view button working correctly
 
+#### ✅ Company Master Logo & Document View Fix - COMPLETED (Jan 30, 2026)
+**⚠️ CRITICAL FIX - DO NOT MODIFY**
+**File**: `/app/frontend/src/pages/CompanyMaster.js`
+
+**Bug 1: Logo Not Showing After Update**
+- **Root Cause**: Browser caching prevented new logo from displaying
+- **Fix**: Added `logoKey` state with cache-busting query parameter
+- **Critical Code**:
+  ```javascript
+  const [logoKey, setLogoKey] = useState(Date.now());
+  // On upload success:
+  setLogoKey(Date.now());
+  // In img tag:
+  <img key={logoKey} src={`${getFullUrl(logoUrl)}?t=${logoKey}`} />
+  ```
+
+**Bug 2: Document View Returns Blank Screen**
+- **Root Cause**: View button used relative URL instead of full API URL
+- **Fix**: Added `getFullUrl()` helper function
+- **Critical Code**:
+  ```javascript
+  const getFullUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${process.env.REACT_APP_BACKEND_URL}/api${url}`;
+  };
+  ```
+
+**⚠️ WARNING**: Do not remove or modify `logoKey`, `getFullUrl()`, or the cache-busting logic. These fixes are critical for proper file display.
+
 #### ✅ Mandatory Client Document Upload - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
 - Removed "Skip Documents" button from client creation wizard
