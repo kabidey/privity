@@ -384,7 +384,8 @@ const CompanyMaster = () => {
               >
                 {logoUrl ? (
                   <img 
-                    src={`${getFullUrl(logoUrl)}?t=${Date.now()}`} 
+                    key={logoKey}
+                    src={`${getFullUrl(logoUrl)}?t=${logoKey}`} 
                     alt="Company Logo" 
                     className="max-w-full max-h-full object-contain p-2"
                     data-testid="company-logo-preview"
