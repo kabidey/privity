@@ -2,54 +2,126 @@
 The user's initial goal was to restore and enhance their Privity - Share Booking System application.
 
 In this session, the user requested the following features and bug fixes:
-*   Implement a version control system that automatically updates on each deployment and displays the version number in the application's header.
-*   Create a kill switch feature, exclusively for the PE Desk role, to halt all user activities and freeze the entire system. This switch should have a 3-minute cooldown period before it can be deactivated.
-*   Implement a version changelog modal that automatically appears for users on their first visit after a new version is deployed.
-*   Fix two critical bugs:
-    1.  Emails sent via templates were failing because the SMTP configuration was not being read correctly.
-    2.  New users were defaulting to the Manager role instead of the Employee role.
-*   When a booking is approved, trigger a Payment Request email to the client, including payment calculations and attaching all company documents (NSDL CML, CDSL CML, PAN Card) as PDFs.
-*   When a vendor's payment is fully settled, trigger a Stock Transfer Request email to the vendor, acknowledging the payment and requesting immediate stock transfer, with company documents attached.
-*   Create a DP Receivable page to track when the stock transfer email is triggered. This page should show pending receivables and allow marking them as Received in the depository (NSDL/CDSL).
-*   Create a DP Transfer page for client-side transfers. When a client's booking is fully paid, it should appear here with a Transfer button. Clicking it should mark the stock as Transferred and email the client that their stock will reflect in T+2 days.
-*   Add an Excel export function to both the DP Receivable and DP Transfer pages.
-*   Conduct a rigorous stress test of the entire application.
-*   Review all email endpoints and create appropriate, well-formatted email templates.
+*   Review and enhance all email templates.
+*   Verify that all document upload functionalities are working correctly.
+*   Update the login page to include the company logo and be mobile-responsive.
+*   Add a second logo to the top-left of the login page, visible only on desktop.
+*   Fix the color scheme of the new logo and update the text of a floating badge.
+*   Fix a bug where the Add New Client screen was not stretched correctly.
+*   Fix a bug where fully paid bookings were not appearing on the DP Transfer page.
+*   Add the fields Pan no, DP id, Sell rate, and Amount received to the DP Transfer page table.
+*   Enhance the backup/restore functionality to include all uploaded files.
+*   Fix two persistent bugs on the Company Master page: the company logo not displaying after an update, and the View document button opening a blank screen.
+*   Lock the fixed code in Company Master with comments to prevent future accidental changes.
+*   Fix a bug on the Team Revenue page where the View button for employee bookings was not working.
+*   Update the website's favicon and title to use the Privity logo and name.
+*   Create a new Research section with a feature to upload research reports and an AI-powered screen for stock research.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A feature-rich, full-stack application with a React frontend and a FastAPI backend on MongoDB. The application has been significantly enhanced and stabilized in this session.
+A full-stack Privity - Share Booking System with a React frontend, FastAPI backend, and MongoDB. The application is stable, with numerous features and bug fixes implemented in this session.
 
-Key features implemented in this session include:
--   **Versioning System**: The app now displays a version number (e.g., ) in the header, which is automatically updated.
--   **Emergency Kill Switch**: A feature for PE Desk admins to freeze all application activity. It displays a system-wide overlay for users and provides a control panel with a timer for the admin.
--   **Version Changelog Modal**: A modal that automatically displays release notes to users when they first access a new version.
--   **DP Workflow Management**:
-    -   **DP Receivables**: A complete system for tracking stock receivables from vendors, including a dedicated page with Receivable and Received tabs.
-    -   **DP Transfer (Client)**: A system for managing stock transfers to clients once their payment is complete, with a dedicated page and status tracking.
--   **Automated Email Notifications**: New emails are triggered for client payment requests and vendor stock transfer requests, complete with PDF attachments.
--   **Excel Exports**: Both DP management pages now include a feature to export the data to an Excel file.
--   **Critical Bug Fixes**: Resolved major issues related to SMTP configuration, preventing email failures, and corrected the default role for new user creation.
--   **Comprehensive Testing**: The application underwent a full stress test, verifying the stability of all core features.
+Key accomplishments include:
+-   **Login Page Redesign**: The login page has been updated with new logos, is fully mobile-responsive, and has a corrected floating badge.
+-   **Enhanced Backup System**: The backup feature now creates a comprehensive  archive containing both the full database dump and all user-uploaded files from the  directory. The UI has been updated to reflect this.
+-   **Critical Bug Fixes**:
+    -   **DP Transfer Workflow**: Resolved a data-level bug where bookings were not being correctly marked as , and fixed a routing issue that was pointing to an old, non-functional component.
+    -   **Company Master**: Fixed two persistent, critical bugs related to the company logo not updating on the frontend and document View links being broken. Protective comments have been added to the code to prevent regressions.
+    -   **Team Revenue**: Corrected the backend logic for revenue attribution, which resolved an issue where View buttons were incorrectly disabled.
+    -   **UI/UX Fixes**: Corrected styling for the client addition modal and fixed incorrect API calls for email templates.
+-   **Feature Enhancements**:
+    -   Added PAN No, DP ID, Sell Rate, and Amount Received to the DP Transfer page.
+    -   Completed a full review of email templates, adding missing ones and fixing broken API calls.
+-   **New Feature (In Progress)**: Scaffolding for a new Research Center is complete, including backend routes, a frontend page with tabs, and a functional (after debugging) AI research assistant API endpoint.
 
 **Last working item**:
--   **Last item agent was working**: The user requested a review of all email endpoints and the creation of appropriate email templates. The agent began by identifying the files related to email template definition () and usage (, , etc.). The task is to ensure all system emails are professional, informative, and use a consistent format.
--   **Status**: NOT STARTED
+-   **Last item agent was working**: The agent was creating a new Research section as requested by the user. This involved creating the backend router () for file uploads and AI queries, the frontend page (), and integrating it into the main application. The agent successfully implemented and debugged the backend API for the AI research assistant, which was failing due to incorrect library usage.
+-   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: backend testing agent
+-   **Which testing method agent to use?**: both
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-There are no outstanding blocking issues. The only pending item is the new task requested by the user.
+-   **Issue 1**: (P2) OCR processing fails for client document uploads with the error .
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: Y
+-   **Issue 2**: (P1) OTP and other system emails are not sent in environments without valid SMTP credentials.
+    -   **Status**: BLOCKED (on user configuration)
+    -   **Is recurring issue?**: Y
+
+**Issues Detail**:
+-   **Issue 1**: OCR processing fails for client document uploads.
+    -   **Attempted fixes**: None. The issue was identified during testing of another feature.
+    -   **Next debug checklist**: This is an environment issue. The  package needs to be installed. The agent can run Hit:1 http://deb.debian.org/debian bookworm InRelease
+Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+Get:4 https://deb.nodesource.com/node_20.x nodistro InRelease [12.1 kB]
+Get:5 https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 InRelease [3005 B]
+Get:6 http://deb.debian.org/debian-security bookworm-security/main arm64 Packages [288 kB]
+Get:7 https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0/multiverse amd64 Packages [102 kB]
+Get:8 https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0/multiverse arm64 Packages [101 kB]
+Fetched 611 kB in 2s (298 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  liblcms2-2 libopenjp2-7 libpoppler126 poppler-data
+Suggested packages:
+  liblcms2-utils ghostscript fonts-japanese-mincho | fonts-ipafont-mincho
+  fonts-arphic-ukai fonts-arphic-uming fonts-nanum
+The following NEW packages will be installed:
+  liblcms2-2 libopenjp2-7 libpoppler126 poppler-data poppler-utils
+0 upgraded, 5 newly installed, 0 to remove and 11 not upgraded.
+Need to get 3850 kB of archives.
+After this operation, 20.1 MB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian bookworm/main arm64 poppler-data all 0.4.12-1 [1601 kB]
+Get:2 http://deb.debian.org/debian bookworm/main arm64 liblcms2-2 arm64 2.14-2 [143 kB]
+Get:3 http://deb.debian.org/debian bookworm/main arm64 libopenjp2-7 arm64 2.5.0-2+deb12u2 [176 kB]
+Get:4 http://deb.debian.org/debian bookworm/main arm64 libpoppler126 arm64 22.12.0-2+deb12u1 [1753 kB]
+Get:5 http://deb.debian.org/debian bookworm/main arm64 poppler-utils arm64 22.12.0-2+deb12u1 [177 kB]
+Fetched 3850 kB in 0s (24.0 MB/s)
+Selecting previously unselected package poppler-data.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 38194 files and directories currently installed.)
+Preparing to unpack .../poppler-data_0.4.12-1_all.deb ...
+Unpacking poppler-data (0.4.12-1) ...
+Selecting previously unselected package liblcms2-2:arm64.
+Preparing to unpack .../liblcms2-2_2.14-2_arm64.deb ...
+Unpacking liblcms2-2:arm64 (2.14-2) ...
+Selecting previously unselected package libopenjp2-7:arm64.
+Preparing to unpack .../libopenjp2-7_2.5.0-2+deb12u2_arm64.deb ...
+Unpacking libopenjp2-7:arm64 (2.5.0-2+deb12u2) ...
+Selecting previously unselected package libpoppler126:arm64.
+Preparing to unpack .../libpoppler126_22.12.0-2+deb12u1_arm64.deb ...
+Unpacking libpoppler126:arm64 (22.12.0-2+deb12u1) ...
+Selecting previously unselected package poppler-utils.
+Preparing to unpack .../poppler-utils_22.12.0-2+deb12u1_arm64.deb ...
+Unpacking poppler-utils (22.12.0-2+deb12u1) ...
+Setting up liblcms2-2:arm64 (2.14-2) ...
+Setting up poppler-data (0.4.12-1) ...
+Setting up libopenjp2-7:arm64 (2.5.0-2+deb12u2) ...
+Setting up libpoppler126:arm64 (22.12.0-2+deb12u1) ...
+Setting up poppler-utils (22.12.0-2+deb12u1) ...
+Processing triggers for libc-bin (2.36-9+deb12u13) ...
+Processing triggers for fontconfig (2.14.1-4) ....
+    -   **Why fix this issue and what will be achieved with the fix?**: This will enable the automatic data extraction feature from uploaded client documents (like PAN cards), streamlining the client onboarding process.
+    -   **Should Test frontend/backend/both after fix?**: backend
+-   **Issue 2**: Emails not sent without SMTP config.
+    -   **Attempted fixes**: The underlying code bug was fixed in a previous session. This is now purely a configuration requirement.
+    -   **Next debug checklist**: The user must navigate to the Email Server Config page in the UI and enter valid SMTP credentials for emails to work.
+    -   **Why fix this issue and what will be achieved with the fix?**: It will enable all email-dependent features, such as OTP, booking confirmations, and payment requests. An upcoming task is to add a UI warning if this is not configured.
+    -   **Should Test frontend/backend/both after fix?**: backend
 
 **In progress Task List**:
--   **Task 1**: (P0) Review and Enhance Email Templates
-    -   **Where to resume**: The agent has located where templates are defined () and used. The next step is to analyze the content of existing templates (, , , etc.), identify missing ones, and create/update them. This can be done by updating the default templates in  and creating a script to populate/update them in the database on startup.
-    -   **What will be achieved with this?**: A complete and professional set of email templates for all system notifications, improving communication with clients and vendors.
-    -   **Status**: NOT STARTED
-    -   **Should Test frontend/backend/both after fix?**: backend
-    -   **Blocked on something**: No.
+-   **Task 1**: (P0) Complete the Research Section
+    -   **Where to resume**: The backend AI research API in  is functional. The frontend  exists but needs to be completed.
+        1.  **Upload Reports**: Implement the file upload logic on the Upload Report tab. This involves creating the frontend form in  and connecting it to the  backend endpoint (which also needs its implementation to be completed).
+        2.  **AI Assistant UI**: Build out the chat interface on the AI Research Assistant tab in . It should call the now-working  endpoint and display the response.
+        3.  **List Reports**: Implement the main Research Reports tab to fetch and display a list of uploaded reports from the backend, including filtering and download/view links.
+    -   **What will be achieved with this?**: A complete, functional research portal for all users, with role-based upload permissions.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: both
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
@@ -60,24 +132,39 @@ There are no outstanding blocking issues. The only pending item is the new task 
     -   (P2) Add configurable thresholds for loss-booking auto-approval.
 
 **Completed work in this session**
--   **DP Receivables & DP Transfer Systems**: Implemented two full features for tracking stock receivables from vendors and transfers to clients, including dedicated pages, backend logic, email triggers, and Excel export functionality.
--   **Kill Switch (Emergency System Freeze)**: Implemented a backend middleware and frontend UI for PE Desk users to freeze/unfreeze the entire application.
--   **Versioning & Changelog**: Created an automated versioning script and a version changelog modal that appears on updates.
--   **Email Notification Features**:
-    -   Implemented a payment request email with attachments sent upon booking approval.
-    -   Implemented a stock transfer request email sent to vendors upon full payment.
--   **Bug Fixes**:
-    -   **Email Configuration**: Fixed a critical bug where the SMTP configuration was being saved to one collection () but read from another (), preventing emails from being sent.
-    -   **Default User Role**: Fixed a bug in  that incorrectly assigned the Manager role to new users instead of Employee.
--   **Comprehensive Testing**: Conducted a full application stress test using the testing agent, which passed with a 93% success rate on the backend and 100% on the frontend.
--   **Database Backup Verification**: Confirmed that the Backup All feature was already fully implemented and working, closing out the task from the previous session.
+-   **Feature: Backup with Files**: Enhanced the backup system to include all uploaded files.
+    -   , 
+-   **Critical Bug Fix: Company Master Logo & Docs**: Resolved persistent issues with the logo not updating and View document links being broken.
+    -   
+-   **Bug Fix: DP Transfer Page**: Fixed data and routing issues preventing fully paid bookings from appearing.
+    -   One-time data fix script, 
+-   **Enhancement: DP Transfer Fields**: Added PAN, DP ID, Sell Rate, and Amount Received to the table.
+    -   , 
+-   **Bug Fix: Team Revenue**: Corrected revenue attribution logic to fix the disabled View button.
+    -   
+-   **UI/UX: Login Page & Favicon**: Redesigned the login page for mobile and updated the site's branding.
+    -   , , 
+-   **Enhancement: Email Templates**: Added missing templates and fixed incorrect API calls.
+    -   , , 
+-   **New Feature Scaffolding: Research Center**: Created the initial backend and frontend files and fixed critical bugs in the AI integration.
+    -   , 
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1**: OTP and other system emails are not being sent.
-    -   **Debug checklist**: This is an environmental setup issue, not a code bug. The user must configure their SMTP settings with **valid credentials** on the Email Server Config page. The code logic for sending emails is now correct after the recent bug fix.
-    -   **Why to solve this issue and what will be achieved with this?**: All email-related features will become functional. An upcoming task is to add a UI warning if the configuration is missing or invalid.
+-   **Issue 1**: OCR processing fails for client document uploads due to missing  dependency.
+    -   **Debug checklist**: Run Hit:1 http://deb.debian.org/debian bookworm InRelease
+Hit:2 http://deb.debian.org/debian bookworm-updates InRelease
+Hit:3 http://deb.debian.org/debian-security bookworm-security InRelease
+Hit:4 https://deb.nodesource.com/node_20.x nodistro InRelease
+Hit:5 https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 InRelease
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+poppler-utils is already the newest version (22.12.0-2+deb12u1).
+0 upgraded, 0 newly installed, 0 to remove and 11 not upgraded..
+    -   **Why to solve this issue and what will be achieved with this?**: Enables automatic data extraction from client documents, a key feature.
     -   **Should Test frontend/backend/both after fix**: backend
-    -   **Is recurring issue?**: Y (This is a configuration issue, not a code bug. It will recur in any environment where valid SMTP credentials are not provided).
+    -   **Is recurring issue?**: Y
 
 **Known issue recurrence from previous fork**
 N/A
@@ -86,50 +173,41 @@ N/A
 
 
 **Key Technical Concepts**
--   **Frontend**: React.js, Tailwind CSS, Shadcn UI, Axios.
--   **Backend**: Python, FastAPI, Pydantic, Motor (async MongoDB).
--   **New Concepts**: FastAPI Middleware (for kill switch),  for Excel generation,  for async file operations, Node.js scripting for versioning.
--   **Database**: MongoDB.
--   **Authentication**: JWT & Passwordless OTP.
+-   **Frontend**: React.js, Tailwind CSS, Shadcn UI.
+-   **Backend**: Python, FastAPI, Motor (async MongoDB).
+-   **File Handling**: Using Python's  and  for creating backup archives.
+-   **LLM Integration**: Using  library () for AI-powered features.
 
 **key DB schema**
--   **settings**: Stores global settings like .
--   **purchases**: Updated with  (, ) to track stock from vendors.
--   **bookings**: Updated with  (, ) to track stock transfers to clients.
--   **email_templates**: Collection for storing customizable email templates. The next task is to populate and refine these.
+-   **research_reports** (New/Anticipated): A new collection will store metadata for uploaded research reports. Expected schema: .
 
 **changes in tech stack**
--   ****: Added to the backend to handle asynchronous file reading for email attachments.
+-   Usage of  for LLM capabilities.
 
 **All files of reference**
-*    & : Core logic for the emergency freeze feature.
-*    & : Backend and frontend for the DP Receivables workflow.
-*    & : Backend and frontend for the DP Transfer workflow.
-*   , , : Files comprising the new versioning and changelog system.
-*   : Heavily modified to include new email generation functions with attachments.
-*    & : Files where critical bugs were fixed.
+*   : (New) Core backend logic for the new Research Center.
+*   : (New) Frontend implementation for the Research Center.
+*   : (Modified) Contains the new logic for zipping uploaded files into the backup.
+*   : (Modified) Contains the critical fixes for the logo and document view bugs, along with protective comments.
+*   : (Modified) Contains the corrected logic for attributing bookings to employees.
 
 **Areas that need refactoring**:
-None.
+-    is an old, unused component that makes a call to a non-existent API. It can be safely deleted.
 
 **key api endpoints**
--   : Freezes the system.
--   : Unfreezes the system.
--   : Fetches purchases awaiting stock delivery.
--   : Marks a purchase's stock as received.
--   : Exports DP receivable data to Excel.
--   : Fetches client bookings ready for stock transfer.
--   : Marks a client's stock as transferred.
--   : Exports DP transfer data to Excel.
+-   : (New) Uploads a new research report.
+-   : (New) Fetches a list of all research reports.
+-   : (New) Sends a query to the AI research assistant.
+-   : (Modified) Now accepts a query parameter .
 
 **Critical Info for New Agent**
-1.  **Immediate Task**: Your first priority is to review and enhance the application's email templates. Analyze  for default templates and inspect where  is used across the backend. Your goal is to create/update templates for features like , , and  to ensure they are professional and contain all necessary information.
-2.  **SMTP Configuration is Key**: A recurring theme is email failure due to missing or invalid SMTP credentials. The code now correctly reads the configuration from the  collection, but for testing or production, **valid credentials must be entered** in the Email Server Config UI. Be mindful of this when testing any email-related feature.
-3.  **New DP Workflows**: Two major, interconnected workflows were added: DP Receivables (tracking stock from vendors) and DP Transfer (transferring stock to clients). These are central to the application's stock movement logic and have their own dedicated pages, APIs, and email notifications.
+1.  **Priority Task**: Your main goal is to complete the Research Center feature. The backend AI part has been debugged; focus on implementing the file upload mechanism ( and ), the report listing UI, and the frontend chat interface.
+2.  **Persistent Bug Fixes**: Several critical bugs (Company Master logo/view, DP Transfer list, Team Revenue) were fixed in this session. Be mindful of the changes made in  (which has protective comments), , and the data migration for  to avoid regressions.
+3.  **Backup System Changes**: The backup system is now file-aware. The core logic in  creates a  archive. Any further modifications to this feature must account for this file-handling layer.
+4.  **Environment Dependency**: The OCR feature for client documents will not work until the  package is installed in the environment. This is a known, recurring issue.
 
 **documents and test reports created in this job**
--    (Comprehensive stress test report)
--    (Updated with all completed tasks)
+-    (Updated with completed tasks and documentation for the critical Company Master fix)
 
 **Last 10 User Messages and any pending HUMAN messages**
 -   10.  (IN PROGRESS)
@@ -144,19 +222,19 @@ None.
 -   1.  (COMPLETED)
 
 **Project Health Check:**
--   **Broken**: None. The application is stable and key bugs have been resolved.
+-   **Broken**: None.
 -   **Mocked**: None.
--   **In Progress**: Email Template Enhancement.
+-   **In Progress**: Research Center feature.
 
 **3rd Party Integrations**
--   **OpenAI via **: For Sohini AI Assistant. (Uses Emergent LLM Key)
--   ****: For generating  Excel files for DP reports.
--   **Microsoft Authentication Library (MSAL)**: Integrated for Azure AD SSO. (Requires User API Key)
+-   **OpenAI via **: For Sohini AI Assistant and the new Research assistant. (Uses Emergent LLM Key)
+-   ****: For generating  Excel files.
+-   **Microsoft Authentication Library (MSAL)**: For Azure AD SSO. (Requires User API Key)
 -   ****: For generating PDF documents.
 -   ****: For converting numbers to words in PDFs.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES. A comprehensive stress test was performed, and the report is at .
+-   **Testing agent used after significant changes**: NO
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
 -   **Known regressions**: None
@@ -168,4 +246,5 @@ None.
 -   **Finance**:  / 
 
 **What agent forgot to execute**
-The agent successfully completed all user requests in this session. No tasks were overlooked.</analysis>
+-   The agent did not delete the old, unused component  after fixing the routing to point to the new component.
+-   The agent identified the recurring OCR failure due to the missing  dependency but did not install it.</analysis>
