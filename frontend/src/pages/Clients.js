@@ -1733,6 +1733,51 @@ const Clients = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Proprietor Confirmation Dialog */}
+      <Dialog open={proprietorDialogOpen} onOpenChange={setProprietorDialogOpen}>
+        <DialogContent className="max-w-md" aria-describedby="proprietor-dialog-desc">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-500" />
+              Name Mismatch Detected
+            </DialogTitle>
+          </DialogHeader>
+          <p id="proprietor-dialog-desc" className="sr-only">Confirm if this is a proprietorship entity</p>
+          
+          <div className="space-y-4">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                The client name &ldquo;<strong>{formData.name}</strong>&rdquo; does not match 
+                the PAN card name &ldquo;<strong>{extractedNames.pan_card}</strong>&rdquo;.
+              </p>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
+              Is this client a <strong>Proprietorship</strong> entity where the business operates 
+              under the proprietor&apos;s personal PAN?
+            </p>
+            
+            <div className="flex gap-3 pt-2">
+              <Button 
+                onClick={() => handleProprietorResponse(true)}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                data-testid="confirm-proprietor-yes"
+              >
+                Yes, Proprietorship
+              </Button>
+              <Button 
+                onClick={() => handleProprietorResponse(false)}
+                variant="outline"
+                className="flex-1"
+                data-testid="confirm-proprietor-no"
+              >
+                No, Correct Name
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
