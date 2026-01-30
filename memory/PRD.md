@@ -880,6 +880,15 @@ rp_payments: {
   - Professional formatting with styled headers and borders
 
 
+#### ✅ PE Manager Vendor Creation Rights - COMPLETED (Jan 30, 2026)
+**Implementation Details:**
+- **Updated frontend** (`/app/frontend/src/pages/Vendors.js`):
+  - PE Manager (role 2) can now access the Vendors page
+  - PE Manager can create and edit vendors
+  - Only PE Desk (role 1) can delete vendors - delete button hidden for PE Manager
+- **Backend already supported PE Manager** - No changes needed
+- **Test credentials**: `pemanager@smifs.com` / `Test@123`
+
 #### ✅ Research Center Feature - COMPLETED (Jan 30, 2026)
 **Implementation Details:**
 - **New Research Center page** at `/research` route with 3 tabs
