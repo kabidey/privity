@@ -48,16 +48,18 @@ const Vendors = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
+  const isPEManager = currentUser.role === 2;
+  const canAccessVendors = isPEDesk || isPEManager;
 
   useEffect(() => {
-    // Only PE Desk can access vendors
-    if (!isPEDesk) {
-      toast.error('Access denied. Only PE Desk can manage vendors.');
+    // PE Desk and PE Manager can access vendors
+    if (!canAccessVendors) {
+      toast.error('Access denied. Only PE Desk and PE Manager can manage vendors.');
       navigate('/');
       return;
     }
     fetchVendors();
-  }, [isPEDesk, navigate]);
+  }, [canAccessVendors, navigate]);
 
   const fetchVendors = async () => {
     try {
