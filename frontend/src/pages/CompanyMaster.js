@@ -238,6 +238,14 @@ const CompanyMaster = () => {
     });
   };
 
+  const getFullUrl = (url) => {
+    if (!url) return null;
+    // If URL already starts with http, return as is
+    if (url.startsWith('http')) return url;
+    // Otherwise, construct full URL with API prefix
+    return `${process.env.REACT_APP_BACKEND_URL}/api${url}`;
+  };
+
   const DocumentCard = ({ title, icon: Icon, documentType, url }) => (
     <Card className="relative">
       <CardHeader className="pb-3">
@@ -265,7 +273,8 @@ const CompanyMaster = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(url, '_blank')}
+                onClick={() => window.open(getFullUrl(url), '_blank')}
+                data-testid={`view-${documentType}-btn`}
               >
                 <Eye className="w-4 h-4 mr-1" />
                 View
