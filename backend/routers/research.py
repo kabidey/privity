@@ -265,6 +265,8 @@ Guidelines:
 Remember: This is for informational purposes only and should not be considered as financial advice."""
 
     try:
+        from emergentintegrations.llm.chat import UserMessage
+        
         # Generate unique session ID for this query
         session_id = f"research_{current_user['id']}_{uuid.uuid4().hex[:8]}"
         
@@ -274,7 +276,8 @@ Remember: This is for informational purposes only and should not be considered a
             system_message=system_prompt
         )
         
-        response = llm.send_message(query)
+        msg = UserMessage(text=query)
+        response = await llm.send_message(msg)
         
         # Log the research query
         await db.audit_logs.insert_one({
