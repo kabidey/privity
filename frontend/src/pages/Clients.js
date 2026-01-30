@@ -586,9 +586,22 @@ const Clients = () => {
     const labels = {
       'pan_card': 'PAN Card',
       'cml_copy': 'CML Copy',
-      'cancelled_cheque': 'Cancelled Cheque'
+      'cancelled_cheque': 'Cancelled Cheque',
+      'bank_declaration': 'Bank Declaration'
     };
     return labels[docType] || docType;
+  };
+  
+  // Handle proprietor confirmation
+  const handleProprietorResponse = (response) => {
+    setIsProprietor(response);
+    setProprietorDialogOpen(false);
+    
+    if (response) {
+      toast.info('Please upload the Bank Declaration document to proceed.');
+    } else {
+      toast.warning('Please ensure the client name matches the PAN card name, or confirm as proprietorship.');
+    }
   };
 
   const handleApprove = async (clientId, approve) => {
