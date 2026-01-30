@@ -185,7 +185,7 @@ const Vendors = () => {
   };
 
   const uploadDocuments = async (vendorId) => {
-    const docTypes = ['pan_card', 'cml_copy', 'cancelled_cheque'];
+    const docTypes = ['pan_card', 'cml_copy', 'cancelled_cheque', 'bank_declaration'];
     
     for (const docType of docTypes) {
       if (docFiles[docType]) {
@@ -211,6 +211,24 @@ const Vendors = () => {
       if (!docFiles.pan_card) missingDocs.push('PAN Card');
       if (!docFiles.cml_copy) missingDocs.push('CML Copy');
       if (!docFiles.cancelled_cheque) missingDocs.push('Cancelled Cheque');
+      
+      // If name mismatch detected, require proprietor confirmation
+      if (nameMismatchDetected && isProprietor === null) {
+        toast.error('Please confirm if this is a proprietorship entity');
+        setProprietorDialogOpen(true);
+        return false;
+      }
+      
+      // If proprietor with name mismatch, require bank declaration
+      if (nameMismatchDetected && isProprietor === true && !docFiles.bank_declaration) {
+        missingDocs.push('Bank Declaration (required for proprietorship)');
+      }
+      
+      // If not a proprietor but name mismatch exists, block creation
+      if (nameMismatchDetected && isProprietor === false) {
+        toast.error('Name mismatch detected. Please correct the vendor name to match the PAN card or confirm as proprietorship.');
+        return false;
+      }
       
       if (missingDocs.length > 0) {
         toast.error(`Please upload: ${missingDocs.join(', ')}`);
