@@ -658,14 +658,16 @@ const Vendors = () => {
                       >
                         <Pencil className="h-4 w-4" strokeWidth={1.5} />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(vendor.id)}
-                        data-testid="delete-vendor-button"
-                      >
-                        <Trash2 className="h-4 w-4" strokeWidth={1.5} />
-                      </Button>
+                      {isPEDesk && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(vendor.id)}
+                          data-testid="delete-vendor-button"
+                        >
+                          <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
