@@ -239,33 +239,26 @@ export const NotificationProvider = ({ children }) => {
             const urgentTypes = ['booking_rejected', 'loss_booking', 'approval_needed', 'payment_overdue'];
             const isUrgent = urgentTypes.some(t => notification.type?.includes(t));
             
-            // Play appropriate sound - LOUD
-            if (isUrgent) {
-              playUrgentSound();
-            } else {
-              playNotificationSound();
-            }
+            // Play sound only for urgent notifications (optional, can be disabled)
+            // Commented out to reduce noise - user requested less intrusive notifications
+            // if (isUrgent) {
+            //   playUrgentSound();
+            // }
             
-            // Trigger animation state
+            // Trigger animation state for bell icon
             setHasNewNotification(true);
             setTimeout(() => setHasNewNotification(false), 3000);
             
-            // Add to floating notifications (bottom of page)
-            addFloatingNotification(notification);
-            
-            // Show dialog for important notifications
-            if (isUrgent || notification.type?.includes('booking') || notification.type?.includes('approval')) {
-              setShowNotificationDialog(true);
+            // Only add floating notification for critical items (loss, rejection)
+            if (notification.type?.includes('loss') || notification.type?.includes('rejected')) {
+              addFloatingNotification(notification);
             }
             
-            // Show toast notification as well
-            toast(notification.title, {
+            // Show simple toast notification - single notification method
+            const toastType = isUrgent ? 'error' : 'info';
+            toast[toastType](notification.title, {
               description: notification.message,
-              duration: 6000,
-              action: {
-                label: 'View',
-                onClick: () => markAsRead(notification.id)
-              }
+              duration: isUrgent ? 8000 : 4000,
             });
           }
         } catch (e) {
