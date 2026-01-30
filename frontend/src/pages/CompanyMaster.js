@@ -30,6 +30,7 @@ const CompanyMaster = () => {
   const [uploading, setUploading] = useState({});
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoUrl, setLogoUrl] = useState(null);
+  const [logoKey, setLogoKey] = useState(Date.now()); // Force re-render on logo change
   const [formData, setFormData] = useState({
     company_name: '',
     company_address: '',
