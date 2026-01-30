@@ -880,6 +880,33 @@ rp_payments: {
   - Professional formatting with styled headers and borders
 
 
+#### ✅ Mobile Responsiveness & Notification Fixes - COMPLETED (Jan 30, 2026)
+**Implementation Details:**
+- **Notifications simplified**:
+  - Removed loud sound notifications (commented out)
+  - Floating notifications only show for critical items (loss, rejection)
+  - Removed auto-popup notification dialog
+  - Simplified to single toast notification per event
+  - FloatingNotifications now positioned at top-right, limited to 2 at a time
+- **Page caching implemented**:
+  - Dashboard stats cached for 5 minutes
+  - Stocks list cached for 10 minutes  
+  - Clients list cached for 5 minutes
+  - Research data cached for 10 minutes
+  - Faster initial page loads with cached data
+- **Mobile responsiveness**:
+  - Dialogs now use bottom-sheet style on mobile (slide up from bottom)
+  - All pages already had responsive grid layouts
+  - Research page verified working on mobile
+- **Files updated**:
+  - `/app/frontend/src/components/FloatingNotifications.js`
+  - `/app/frontend/src/context/NotificationContext.js`
+  - `/app/frontend/src/pages/Dashboard.js`
+  - `/app/frontend/src/pages/Stocks.js`
+  - `/app/frontend/src/pages/Clients.js`
+  - `/app/frontend/src/pages/Research.js`
+  - `/app/frontend/src/utils/cache.js` (new)
+
 #### ✅ Proprietorship Name Mismatch Workflow - COMPLETED (Jan 30, 2026)
 **Implementation Details:**
 - **Feature**: When creating a vendor/client, if there's a name mismatch between the entered name and OCR-extracted PAN card name:
