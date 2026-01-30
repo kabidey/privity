@@ -408,13 +408,12 @@ const Vendors = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="dp_id">DP ID *</Label>
+                      <Label htmlFor="dp_id">DP ID</Label>
                       <Input
                         id="dp_id"
                         data-testid="vendor-dpid-input"
                         value={formData.dp_id}
                         onChange={(e) => setFormData({ ...formData, dp_id: e.target.value })}
-                        required
                       />
                     </div>
                   </div>
