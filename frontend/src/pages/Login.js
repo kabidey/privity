@@ -239,7 +239,7 @@ const Login = () => {
               {isLogin ? 'Enter your credentials to access your account' : 'Fill in the details to get started'}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
             {/* Registration Success Message */}
             {registrationSuccess ? (
               <div className="space-y-4">
