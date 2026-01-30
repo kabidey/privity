@@ -467,17 +467,14 @@ async def get_employee_bookings(
     client_ids = [c["id"] for c in clients]
     client_map = {c["id"]: c for c in clients}
     
-    if not client_ids:
-        return {
-            "employee_id": employee_id,
-            "employee_name": employee.get("name"),
-            "bookings": [],
-            "total_bookings": 0
-        }
-    
-    # Build booking query
+    # Build booking query - find bookings either:
+    # 1. Where the client is mapped to this employee, OR
+    # 2. Where this employee created the booking
     booking_query = {
-        "client_id": {"$in": client_ids},
+        "$or": [
+            {"client_id": {"$in": client_ids}} if client_ids else {"_id": None},  # Skip if no clients
+            {"created_by": employee_id}
+        ],
         "is_voided": {"$ne": True}
     }
     
@@ -490,6 +487,14 @@ async def get_employee_bookings(
             booking_query["created_at"] = {"$lte": end_date}
     
     bookings = await db.bookings.find(booking_query, {"_id": 0}).to_list(10000)
+    
+    # Get all client IDs from bookings for name lookup
+    all_client_ids = list(set(b.get("client_id") for b in bookings if b.get("client_id")))
+    all_clients = await db.clients.find(
+        {"id": {"$in": all_client_ids}},
+        {"_id": 0, "id": 1, "name": 1}
+    ).to_list(10000)
+    client_map = {c["id"]: c for c in all_clients}
     
     # Get stock details
     stock_ids = list(set(b.get("stock_id") for b in bookings if b.get("stock_id")))
