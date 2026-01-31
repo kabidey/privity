@@ -41,6 +41,7 @@ import Research from './pages/Research';
 import ClientDashboard from './pages/ClientDashboard';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
+import InstallPWA from './components/InstallPWA';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
