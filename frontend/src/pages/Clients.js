@@ -515,10 +515,8 @@ const Clients = () => {
       
       // If proprietor is selected, bypass name mismatch check - allow creation with CML name
       if (isProprietor === true) {
-        // Proprietor selected - no name mismatch blocking, just require bank declaration
-        if (!docFiles.bank_declaration) {
-          missingDocs.push('Bank Declaration (required for proprietorship)');
-        }
+        // Proprietor selected - allow creation without bank declaration
+        // Bank declaration can be uploaded later via the "Upload Proof" button in the list
       } else if (panName && formName && panName !== formName) {
         setNameMismatchDetected(true);
         
