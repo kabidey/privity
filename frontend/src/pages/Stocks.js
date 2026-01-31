@@ -530,14 +530,14 @@ const Stocks = () => {
         )}
       </div>
 
-      {!isPEDesk && (
+      {!isPELevel && (
         <div className="flex items-center gap-2 p-3 bg-muted rounded-lg mb-6">
           <Lock className="h-5 w-5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Stock management is restricted to PE Desk only.</p>
+          <p className="text-sm text-muted-foreground">Stock management is restricted to PE Desk and PE Manager only.</p>
         </div>
       )}
 
-      {isPEDesk && (
+      {isPELevel && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
           <TabsList>
             <TabsTrigger value="stocks"><Package className="h-4 w-4 mr-2" />Stocks ({stocks.length})</TabsTrigger>
