@@ -848,6 +848,17 @@ rp_payments: {
   - Updated frontend to handle both `price_per_share` and `price_per_unit` fields
   - Fixed purchase date fallback to `created_at` when `purchase_date` is null
   - Updated Purchase model to include all fields with proper optionals
+- **Purchase Pay Button Access (Jan 31, 2026)**:
+  - Extended Pay button access to PE Manager (role 2) and Finance (role 3)
+  - Delete button remains PE Desk only (role 1)
+- **Polling/Refresh Performance (Jan 31, 2026)**:
+  - Fixed excessive polling causing constant page refreshes
+  - NotificationContext: Increased poll interval from 10s to 60s, only when WebSocket disconnected
+  - Removed `notifications` from dependency array to prevent re-render loops
+  - Layout heartbeat: Increased from 30s to 60s
+  - KillSwitch: Increased from 5s to 30s  
+  - SystemFrozenOverlay: Increased from 3s to 30s
+  - All alerts now primarily use WebSocket, polling is fallback only
 
 ## Recent Features Added (Jan 31, 2026)
 
