@@ -21,6 +21,106 @@ from config import (
 )
 
 
+async def get_company_info():
+    """Get company master info for email branding"""
+    from database import db
+    try:
+        company = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
+        if company:
+            return {
+                "name": company.get("company_name", "SMIFS Private Equity"),
+                "address": company.get("company_address", ""),
+                "cin": company.get("company_cin", ""),
+                "gst": company.get("company_gst", ""),
+                "pan": company.get("company_pan", ""),
+                "logo_url": company.get("logo_url", ""),
+                "bank_name": company.get("company_bank_name", ""),
+                "bank_account": company.get("company_bank_account", ""),
+                "bank_ifsc": company.get("company_bank_ifsc", ""),
+            }
+    except Exception as e:
+        logging.error(f"Error getting company info: {e}")
+    
+    return {
+        "name": "SMIFS Private Equity",
+        "address": "",
+        "cin": "",
+        "gst": "",
+        "pan": "",
+        "logo_url": "",
+        "bank_name": "",
+        "bank_account": "",
+        "bank_ifsc": "",
+    }
+
+
+def wrap_email_with_branding(body: str, company_info: dict) -> str:
+    """Wrap email body with company logo header and footer"""
+    
+    logo_html = ""
+    if company_info.get("logo_url"):
+        logo_html = f'''
+        <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #064E3B;">
+            <img src="{company_info['logo_url']}" alt="{company_info['name']}" style="max-height: 60px; max-width: 200px;" />
+        </div>
+        '''
+    else:
+        logo_html = f'''
+        <div style="text-align: center; padding: 20px 0; border-bottom: 2px solid #064E3B;">
+            <h1 style="color: #064E3B; margin: 0; font-size: 24px;">{company_info['name']}</h1>
+        </div>
+        '''
+    
+    # Build footer with company information
+    footer_lines = []
+    if company_info.get("name"):
+        footer_lines.append(f"<strong>{company_info['name']}</strong>")
+    if company_info.get("address"):
+        footer_lines.append(company_info['address'])
+    
+    info_parts = []
+    if company_info.get("cin"):
+        info_parts.append(f"CIN: {company_info['cin']}")
+    if company_info.get("gst"):
+        info_parts.append(f"GST: {company_info['gst']}")
+    if company_info.get("pan"):
+        info_parts.append(f"PAN: {company_info['pan']}")
+    
+    if info_parts:
+        footer_lines.append(" | ".join(info_parts))
+    
+    footer_content = "<br>".join(footer_lines) if footer_lines else "SMIFS Private Equity System"
+    
+    footer_html = f'''
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 12px;">
+        {footer_content}
+        <br><br>
+        <span style="color: #9ca3af;">This is an automated email from the Private Equity System. Please do not reply directly to this email.</span>
+    </div>
+    '''
+    
+    wrapped_body = f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: Arial, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            {logo_html}
+            <div style="padding: 30px;">
+                {body}
+            </div>
+            {footer_html}
+        </div>
+    </body>
+    </html>
+    '''
+    
+    return wrapped_body
+
+
 async def log_email(
     to_email: str,
     subject: str,
