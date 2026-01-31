@@ -569,6 +569,10 @@ const Finance = () => {
             <Building className="h-3 w-3 mr-1" />
             BP Payments ({bpPayments.length})
           </TabsTrigger>
+          <TabsTrigger value="employee-commissions" data-testid="employee-commissions-tab">
+            <Users className="h-3 w-3 mr-1" />
+            Emp. Commissions ({employeeCommissions.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
