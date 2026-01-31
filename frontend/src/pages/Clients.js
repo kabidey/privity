@@ -1507,6 +1507,10 @@ const Clients = () => {
                                 <Ban className="h-4 w-4" />
                               </Button>
                             )}
+                          </>
+                        )}
+                        {isPELevel && (
+                          <>
                             <Button 
                               variant="ghost" 
                               size="sm" 
@@ -1518,8 +1522,10 @@ const Clients = () => {
                               <Copy className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm" onClick={() => handleEdit(client)} title="Edit Client"><Pencil className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(client.id)} title="Delete Client"><Trash2 className="h-4 w-4" /></Button>
                           </>
+                        )}
+                        {isPEDesk && (
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(client.id)} title="Delete Client"><Trash2 className="h-4 w-4" /></Button>
                         )}
                       </TableCell>
                     </TableRow>
