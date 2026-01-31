@@ -148,6 +148,9 @@ class Client(BaseModel):
     mapped_employee_name: Optional[str] = None
     is_proprietor: bool = False  # Flag for proprietorship entities
     has_name_mismatch: bool = False  # Flag if name mismatch was detected during creation
+    bank_proof_url: Optional[str] = None  # Bank proof document for proprietors with name mismatch
+    bank_proof_uploaded_by: Optional[str] = None  # Who uploaded the bank proof
+    bank_proof_uploaded_at: Optional[str] = None  # When the bank proof was uploaded
 
 
 # ============== Stock Models ==============
