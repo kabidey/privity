@@ -15,6 +15,7 @@ from pathlib import Path
 import asyncio
 from datetime import datetime, timezone
 import uuid
+import json
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
