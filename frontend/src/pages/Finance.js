@@ -76,12 +76,13 @@ const Finance = () => {
       if (filters.startDate) params.append('start_date', filters.startDate);
       if (filters.endDate) params.append('end_date', filters.endDate);
 
-      const [paymentsRes, summaryRes, refundsRes, rpPaymentsRes, bpPaymentsRes] = await Promise.all([
+      const [paymentsRes, summaryRes, refundsRes, rpPaymentsRes, bpPaymentsRes, commissionsRes] = await Promise.all([
         api.get(`/finance/payments?${params.toString()}`),
         api.get(`/finance/summary?${params.toString()}`),
         api.get('/finance/refund-requests'),
         api.get('/finance/rp-payments'),
-        api.get('/finance/bp-payments')
+        api.get('/finance/bp-payments'),
+        api.get('/finance/employee-commissions')
       ]);
 
       setPayments(paymentsRes.data);
@@ -89,10 +90,22 @@ const Finance = () => {
       setRefundRequests(refundsRes.data);
       setRpPayments(rpPaymentsRes.data || []);
       setBpPayments(bpPaymentsRes.data || []);
+      setEmployeeCommissions(commissionsRes.data || []);
     } catch (error) {
       toast.error('Failed to fetch finance data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMarkCommissionPaid = async (bookingId) => {
+    try {
+      await api.put(`/finance/employee-commissions/${bookingId}/mark-paid`);
+      toast.success('Commission marked as paid');
+      fetchData();
+      setCommissionDialogOpen(false);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to mark commission as paid');
     }
   };
 
