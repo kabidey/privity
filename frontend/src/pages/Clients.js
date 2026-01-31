@@ -644,7 +644,11 @@ const Clients = () => {
     setProprietorDialogOpen(false);
     
     if (response) {
-      toast.info('Please upload the Bank Declaration document to proceed.');
+      // Default to CML name when proprietor is selected
+      if (extractedNames.cml_copy) {
+        setFormData(prev => ({ ...prev, name: extractedNames.cml_copy }));
+      }
+      toast.success('Proprietorship confirmed. Client will be flagged for bank proof upload after creation.');
     } else {
       toast.warning('Please ensure the client name matches the PAN card name, or confirm as proprietorship.');
     }
