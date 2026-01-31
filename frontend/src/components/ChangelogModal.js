@@ -197,7 +197,7 @@ export const useChangelogModal = () => {
   useEffect(() => {
     if (!checkedInitial) {
       const lastSeen = localStorage.getItem(LAST_SEEN_VERSION_KEY);
-      const currentVersion = getVersion();
+      const currentVersion = getFullVersion(); // Use full version with build number
       
       // Show changelog if this is a new version
       if (!lastSeen || lastSeen !== currentVersion) {
