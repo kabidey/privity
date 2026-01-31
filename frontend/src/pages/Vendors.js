@@ -320,6 +320,28 @@ const Vendors = () => {
     }
   };
 
+  // Handle bank proof upload for proprietor vendors
+  const handleBankProofUpload = async (vendorId, file) => {
+    if (!file) return;
+    
+    setUploadingBankProof(vendorId);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      await api.post(`/clients/${vendorId}/bank-proof`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success('Bank proof uploaded successfully');
+      fetchVendors();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload bank proof');
+    } finally {
+      setUploadingBankProof(null);
+    }
+  };
+
   const handleCloneToClient = async (vendor) => {
     if (!window.confirm(`Clone vendor "${vendor.name}" as a Client?\n\nThis will create a new client entry with the same details.`)) return;
     setCloning(true);
