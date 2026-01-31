@@ -1348,46 +1348,81 @@ const Clients = () => {
                     </div>
                   )}
                   
-                  {/* Name Mismatch Warning */}
+                  {/* Name Mismatch Warning with Proprietor Selection */}
                   {nameMismatchDetected && (
-                    <div className="flex items-start gap-2 p-3 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg">
-                      <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Name Mismatch Detected</p>
-                        <p className="text-xs text-amber-700 dark:text-amber-300">
-                          The client name &ldquo;{formData.name}&rdquo; does not match the PAN card name &ldquo;{extractedNames.pan_card}&rdquo;.
-                        </p>
-                        {isProprietor === true && (
-                          <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1 flex items-center gap-1">
-                            <FileCheck className="h-3 w-3" /> Proprietorship confirmed - Bank Declaration required
+                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Name Mismatch Detected</p>
+                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                            The client name &ldquo;<strong>{formData.name}</strong>&rdquo; does not match the PAN card name &ldquo;<strong>{extractedNames.pan_card}</strong>&rdquo;.
                           </p>
-                        )}
-                        {isProprietor === null && (
-                          <div className="mt-2 flex gap-2">
-                            <Button 
-                              type="button"
-                              size="sm"
-                              onClick={() => setProprietorDialogOpen(true)}
-                              className="bg-amber-600 hover:bg-amber-700 text-white"
-                            >
-                              Choose Proprietor Status
-                            </Button>
-                          </div>
-                        )}
-                        {isProprietor === false && (
-                          <div className="mt-2">
-                            <p className="text-xs text-red-600 dark:text-red-400">
-                              Please correct the client name to match the PAN card, or 
+                          
+                          {/* Proprietor Selection - Show inline */}
+                          {isProprietor === null && (
+                            <div className="mt-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-amber-200 dark:border-amber-700">
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                Is this a <strong>Proprietorship</strong> entity where the business operates under the proprietor's personal PAN?
+                              </p>
+                              <div className="flex gap-2">
+                                <Button 
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => handleProprietorResponse(true)}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                  data-testid="inline-proprietor-yes"
+                                >
+                                  <FileCheck className="h-3 w-3 mr-1" />
+                                  Yes, Proprietorship
+                                </Button>
+                                <Button 
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleProprietorResponse(false)}
+                                  data-testid="inline-proprietor-no"
+                                >
+                                  No, Correct Name
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Confirmed as Proprietor */}
+                          {isProprietor === true && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                                <FileCheck className="h-3 w-3" />
+                                Proprietorship confirmed
+                              </span>
+                              <span className="text-xs text-amber-600">→ Bank Declaration required below</span>
                               <button 
                                 type="button"
-                                onClick={() => setProprietorDialogOpen(true)}
-                                className="underline ml-1 text-amber-700 hover:text-amber-900"
+                                onClick={() => setIsProprietor(null)}
+                                className="text-xs text-gray-500 hover:text-gray-700 underline ml-2"
                               >
-                                change to Proprietorship
+                                Change
                               </button>
-                            </p>
-                          </div>
-                        )}
+                            </div>
+                          )}
+                          
+                          {/* Not a Proprietor - Show warning */}
+                          {isProprietor === false && (
+                            <div className="mt-2">
+                              <p className="text-xs text-red-600 dark:text-red-400">
+                                ⚠️ Please correct the client name to match the PAN card name.
+                              </p>
+                              <button 
+                                type="button"
+                                onClick={() => setIsProprietor(null)}
+                                className="text-xs text-amber-700 hover:text-amber-900 underline mt-1"
+                              >
+                                Actually, it's a Proprietorship
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
