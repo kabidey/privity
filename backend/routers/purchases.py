@@ -80,6 +80,43 @@ async def create_purchase(
         entity_name=purchase_number
     )
     
+    # Send email notification to vendor
+    vendor_email = vendor.get("email")
+    if vendor_email:
+        template = await get_email_template("purchase_order_created")
+        
+        if template:
+            # Format amounts with Indian locale
+            formatted_price = f"₹{purchase_data.price_per_unit:,.2f}"
+            formatted_total = f"₹{purchase_doc['total_amount']:,.2f}"
+            formatted_quantity = f"{purchase_data.quantity:,}"
+            
+            subject = template["subject"]
+            subject = subject.replace("{{stock_symbol}}", stock.get("symbol", ""))
+            
+            body = template["body"]
+            body = body.replace("{{vendor_name}}", vendor.get("name", ""))
+            body = body.replace("{{stock_symbol}}", stock.get("symbol", ""))
+            body = body.replace("{{quantity}}", formatted_quantity)
+            body = body.replace("{{price_per_unit}}", formatted_price)
+            body = body.replace("{{total_amount}}", formatted_total)
+            
+            await send_email(
+                to_email=vendor_email,
+                subject=subject,
+                body=body,
+                template_key="purchase_order_created",
+                variables={
+                    "vendor_name": vendor.get("name"),
+                    "stock_symbol": stock.get("symbol"),
+                    "quantity": formatted_quantity,
+                    "price_per_unit": formatted_price,
+                    "total_amount": formatted_total
+                },
+                related_entity_type="purchase",
+                related_entity_id=purchase_id
+            )
+    
     return purchase_doc
 
 
