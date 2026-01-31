@@ -522,12 +522,20 @@ const Clients = () => {
     
     try {
       let clientId;
+      
+      // Prepare submission data with proprietor flags
+      const submitData = {
+        ...formData,
+        is_proprietor: isProprietor === true,
+        has_name_mismatch: nameMismatchDetected
+      };
+      
       if (editingClient) {
-        await api.put(`/clients/${editingClient.id}`, formData);
+        await api.put(`/clients/${editingClient.id}`, submitData);
         clientId = editingClient.id;
         toast.success('Client updated successfully');
       } else {
-        const response = await api.post('/clients', formData);
+        const response = await api.post('/clients', submitData);
         clientId = response.data.id;
         if (isEmployee) {
           toast.success('Client created - pending approval');
