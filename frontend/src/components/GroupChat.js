@@ -182,7 +182,7 @@ const GroupChat = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-28 right-6 z-[9999] group"
+        className="fixed bottom-20 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:right-6 md:bottom-28 z-[9999] group"
         data-testid="group-chat-open-btn"
       >
         <div className="relative">
@@ -191,12 +191,12 @@ const GroupChat = () => {
           
           {/* Main button */}
           <div className="relative flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <MessageCircle className="w-6 h-6" />
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/20 flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             <div className="text-left">
               <p className="font-semibold text-sm">Team Chat</p>
-              <p className="text-xs text-white/80">Chat with everyone</p>
+              <p className="text-xs text-white/80 hidden md:block">Chat with everyone</p>
             </div>
             <div className="flex items-center gap-1">
               <Circle className="w-2 h-2 fill-green-400 text-green-400" />
@@ -210,9 +210,10 @@ const GroupChat = () => {
   // Chat window
   return (
     <div 
-      className={`fixed bottom-28 right-6 z-[9999] transition-all duration-300 ${
-        isMinimized ? 'w-72' : 'w-96'
-      }`}
+      className={`fixed z-[9999] transition-all duration-300 
+        bottom-4 left-2 right-2 md:left-auto md:right-6 md:bottom-28
+        ${isMinimized ? 'md:w-72' : 'md:w-96'}
+      `}
       data-testid="group-chat-window"
     >
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
