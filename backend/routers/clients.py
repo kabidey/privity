@@ -282,6 +282,27 @@ async def approve_client(client_id: str, approve: bool = True, current_user: dic
             {"client_id": client_id}
         )
     
+    # Send email to client
+    client_email = client.get("email")
+    if client_email:
+        template_key = "client_approved" if approve else "client_rejected"
+        template = await get_email_template(template_key)
+        
+        if template:
+            subject = template["subject"].replace("{client_name}", client["name"])
+            body = template["body"].replace("{client_name}", client["name"])
+            body = body.replace("{otc_ucc}", client.get("otc_ucc", "N/A"))
+            
+            await send_email(
+                to_email=client_email,
+                subject=subject,
+                body=body,
+                template_key=template_key,
+                variables={"client_name": client["name"], "otc_ucc": client.get("otc_ucc")},
+                related_entity_type="client",
+                related_entity_id=client_id
+            )
+    
     return {"message": f"Client {'approved' if approve else 'rejected'} successfully"}
 
 
