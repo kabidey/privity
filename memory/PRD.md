@@ -859,6 +859,12 @@ rp_payments: {
   - KillSwitch: Increased from 5s to 30s  
   - SystemFrozenOverlay: Increased from 3s to 30s
   - All alerts now primarily use WebSocket, polling is fallback only
+- **Proprietor Name Mismatch Feature Enhancement (Jan 31, 2026)**:
+  - Added `is_proprietor` and `has_name_mismatch` fields to ClientCreate and Client models
+  - Backend stores proprietor flags when creating clients/vendors
+  - Frontend sends these flags during form submission
+  - **Red flag indicator** displayed in Clients/Vendors list for PE Desk/Manager when entity is a proprietor with name mismatch
+  - Audit log now includes proprietor flags for compliance tracking
 
 ## Recent Features Added (Jan 31, 2026)
 
