@@ -103,6 +103,8 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
         "address": client_data.address,
         "pin_code": client_data.pin_code,
         "is_vendor": client_data.is_vendor,
+        "is_proprietor": client_data.is_proprietor,
+        "has_name_mismatch": client_data.has_name_mismatch,
         "bank_accounts": [acc.model_dump() for acc in client_data.bank_accounts] if client_data.bank_accounts else [],
         "documents": [],
         "approval_status": approval_status,
@@ -131,7 +133,12 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
         user_name=current_user["name"],
         user_role=user_role,
         entity_name=client_data.name,
-        details={"pan_number": client_data.pan_number, "is_vendor": client_data.is_vendor}
+        details={
+            "pan_number": client_data.pan_number, 
+            "is_vendor": client_data.is_vendor,
+            "is_proprietor": client_data.is_proprietor,
+            "has_name_mismatch": client_data.has_name_mismatch
+        }
     )
     
     # Notify PE Desk if client needs approval
