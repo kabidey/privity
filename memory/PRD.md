@@ -842,6 +842,12 @@ rp_payments: {
   - Fixed document View button returning blank screen (`getFullUrl()` helper)
   - **DO NOT MODIFY**: `/app/frontend/src/pages/CompanyMaster.js` - `logoKey`, `getFullUrl()`, and cache-busting logic
 - Dashboard Caching Bug (Jan 31, 2026): Fixed `analyticsRes.data` typo causing "Failed to load dashboard data" error (should be `responses[1].data`)
+- **Purchase Recording Bug (Jan 31, 2026)**: 
+  - Fixed model/router field name mismatch: `price_per_share` vs `price_per_unit`
+  - Updated backend router to use `purchase_data.price_per_unit` (matching the model)
+  - Updated frontend to handle both `price_per_share` and `price_per_unit` fields
+  - Fixed purchase date fallback to `created_at` when `purchase_date` is null
+  - Updated Purchase model to include all fields with proper optionals
 
 ## Recent Features Added (Jan 31, 2026)
 
