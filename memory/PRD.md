@@ -841,6 +841,23 @@ rp_payments: {
   - Fixed logo not displaying after upload (cache-busting with `logoKey`)
   - Fixed document View button returning blank screen (`getFullUrl()` helper)
   - **DO NOT MODIFY**: `/app/frontend/src/pages/CompanyMaster.js` - `logoKey`, `getFullUrl()`, and cache-busting logic
+- Dashboard Caching Bug (Jan 31, 2026): Fixed `analyticsRes.data` typo causing "Failed to load dashboard data" error (should be `responses[1].data`)
+
+## Recent Features Added (Jan 31, 2026)
+
+#### ✅ SMTP Configuration Warning Banner - COMPLETED (Jan 31, 2026)
+**Implementation Details:**
+- **Backend Endpoint** (`/app/backend/routers/smtp_config.py`):
+  - `GET /api/email-config/status` - Returns SMTP configuration status for dashboard warning
+  - Only PE Level users receive `show_warning: true` when SMTP is not configured
+  - Non-PE users always receive `show_warning: false` (they don't need to see this)
+- **Frontend Dashboard** (`/app/frontend/src/pages/Dashboard.js`):
+  - Prominent amber warning banner at top of Dashboard for PE Level users
+  - Shows when: SMTP not configured, partially configured, disabled, or test failed
+  - "Configure Email Settings" button navigates to SMTP config page (PE Desk only)
+  - Dismissible via X button (reappears on next login)
+  - Message clearly explains which features are affected (OTP, booking confirmations, etc.)
+- **Bug Fix**: Fixed caching bug where `analyticsRes.data` was referenced instead of `responses[1].data`
 
 ## Recent Features Added (Jan 29, 2026)
 - **Payment Request Email on Booking Approval**: When PE Desk/Manager approves a booking, an automatic email is sent to the client with:
