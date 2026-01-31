@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, TrendingUp, FileText, Package, Building2, ShoppingCart, Boxes, IndianRupee, BookOpen, Sparkles, ChevronRight, FileSearch, Brain } from 'lucide-react';
+import { Users, TrendingUp, FileText, Package, Building2, ShoppingCart, Boxes, IndianRupee, BookOpen, Sparkles, ChevronRight, FileSearch, Brain, AlertTriangle, Mail, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import api from '../utils/api';
 import { toast } from 'sonner';
@@ -14,9 +14,12 @@ const Dashboard = () => {
   const [researchStats, setResearchStats] = useState(null);
   const [recentReports, setRecentReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [smtpWarning, setSmtpWarning] = useState(null);
+  const [dismissedSmtpWarning, setDismissedSmtpWarning] = useState(false);
   
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const isPEDesk = currentUser.role === 1;
   const isNotBP = currentUser.role !== 8;
 
   useEffect(() => {
