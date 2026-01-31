@@ -882,6 +882,10 @@ rp_payments: {
   - Added link to "change to Proprietorship" if user previously selected "No"
   - When proprietor is selected, name mismatch is overridden and client can be created
   - Bank Declaration document required only for proprietorship with name mismatch
+  - **✅ VERIFIED (Dec 2025)**: Manual "This is a Proprietorship" checkbox added to Client and Vendor forms
+  - Checkbox appears after PAN card OCR extracts a name (data-testid: proprietor-checkbox)
+  - Checking the checkbox sets is_proprietor=true and requires Bank Declaration document
+  - Testing agent verified 100% success rate for all proprietorship-related features
 - **Purchase Order Email Notification (Jan 31, 2026)**:
   - Added email notification to vendor when purchase order is created
   - Uses existing `purchase_order_created` email template
