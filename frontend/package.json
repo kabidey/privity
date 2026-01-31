@@ -58,7 +58,6 @@
     "zod": "^3.24.4"
   },
   "scripts": {
-    "prestart": "node scripts/increment-version.js",
     "start": "craco start",
     "prebuild": "node scripts/increment-version.js",
     "build": "craco build",
