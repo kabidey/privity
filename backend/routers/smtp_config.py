@@ -318,3 +318,65 @@ async def get_smtp_presets(current_user: dict = Depends(get_current_user)):
         {"key": key, **value}
         for key, value in SMTP_PRESETS.items()
     ]
+
+
+@router.get("/status")
+async def get_smtp_status(current_user: dict = Depends(get_current_user)):
+    """Get SMTP configuration status for dashboard warning (PE Level only)
+    
+    Returns only whether SMTP is configured, not sensitive data.
+    Used by dashboard to show warning banner for admins.
+    """
+    if current_user.get("role", 5) not in [1, 2]:
+        # Non-PE users don't need to see this warning
+        return {"is_configured": True, "show_warning": False}
+    
+    config = await db.smtp_settings.find_one({}, {"_id": 0, "smtp_host": 1, "smtp_password": 1, "is_enabled": 1, "last_test_result": 1})
+    
+    if not config:
+        return {
+            "is_configured": False,
+            "is_enabled": False,
+            "show_warning": True,
+            "message": "Email service is not configured. OTP, booking confirmations, and other system emails will not be sent."
+        }
+    
+    # Check if properly configured (host and password must exist)
+    has_host = bool(config.get("smtp_host"))
+    has_password = bool(config.get("smtp_password"))
+    is_enabled = config.get("is_enabled", False)
+    last_test = config.get("last_test_result")
+    
+    is_configured = has_host and has_password
+    
+    if not is_configured:
+        return {
+            "is_configured": False,
+            "is_enabled": is_enabled,
+            "show_warning": True,
+            "message": "Email service is partially configured. Please complete SMTP setup in Email Server Config."
+        }
+    
+    if not is_enabled:
+        return {
+            "is_configured": True,
+            "is_enabled": False,
+            "show_warning": True,
+            "message": "Email service is configured but disabled. Enable it in Email Server Config to send emails."
+        }
+    
+    if last_test and last_test != "success":
+        return {
+            "is_configured": True,
+            "is_enabled": True,
+            "show_warning": True,
+            "connection_status": "failed",
+            "message": "Email service configuration test failed. Please verify SMTP settings."
+        }
+    
+    return {
+        "is_configured": True,
+        "is_enabled": True,
+        "show_warning": False,
+        "connection_status": "success" if last_test == "success" else "untested"
+    }
