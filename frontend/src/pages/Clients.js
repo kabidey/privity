@@ -636,7 +636,7 @@ const Clients = () => {
       fetchClients();
       fetchPendingClients();
     } catch (error) {
-      toast.error('Failed to update approval status');
+      toast.error(error.response?.data?.detail || 'Failed to update approval status');
     }
   };
 
