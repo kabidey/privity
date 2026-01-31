@@ -854,9 +854,43 @@ const Vendors = () => {
                             <AlertTriangle className="h-3 w-3" />
                             Proprietor
                           </span>
-                        )}
-                      </div>
-                    </TableCell>
+                          {/* Bank proof status and upload button */}
+                          {vendor.bank_proof_url ? (
+                            <span 
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                              title="Bank proof uploaded"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              Proof
+                            </span>
+                          ) : (
+                            <label 
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                              title="Upload bank proof document"
+                            >
+                              {uploadingBankProof === vendor.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Upload className="h-3 w-3" />
+                              )}
+                              <span>{uploadingBankProof === vendor.id ? 'Uploading...' : 'Upload Proof'}</span>
+                              <input 
+                                type="file" 
+                                className="hidden" 
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleBankProofUpload(vendor.id, file);
+                                  e.target.value = ''; // Reset input
+                                }}
+                                disabled={uploadingBankProof === vendor.id}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
                     <TableCell className="font-mono text-sm">{vendor.pan_number}</TableCell>
                     <TableCell className="text-sm">{vendor.dp_id}</TableCell>
                     <TableCell className="text-sm">{vendor.bank_name || '-'}</TableCell>
