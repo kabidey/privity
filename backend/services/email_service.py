@@ -396,6 +396,12 @@ async def send_email(
         return
     
     try:
+        # Get company info for branding
+        company_info = await get_company_info()
+        
+        # Wrap body with company logo and footer
+        branded_body = wrap_email_with_branding(body, company_info)
+        
         msg = MIMEMultipart()
         from_display = f"{smtp_config['from_name']} <{smtp_config['from_email']}>"
         msg['From'] = from_display
@@ -404,8 +410,8 @@ async def send_email(
             msg['Cc'] = cc_email
         msg['Subject'] = subject
         
-        # Attach HTML body
-        msg.attach(MIMEText(body, 'html'))
+        # Attach HTML body with branding
+        msg.attach(MIMEText(branded_body, 'html'))
         
         # Attach files if provided
         if attachments:
