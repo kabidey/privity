@@ -29,7 +29,7 @@ const SystemFrozenOverlay = ({ userRole }) => {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 3000);
+    const interval = setInterval(fetchStatus, 30000); // 30 seconds instead of 3 - reduces API calls
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
