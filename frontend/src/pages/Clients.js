@@ -492,7 +492,8 @@ const Clients = () => {
     }
     
     // Validate name matching across documents (only for new clients with OCR)
-    if (!editingClient) {
+    // Skip validation if proprietor is selected - they can have different business name
+    if (!editingClient && isProprietor !== true) {
       const nameValidation = validateNameMatching();
       if (!nameValidation.valid) {
         toast.error(nameValidation.message);
