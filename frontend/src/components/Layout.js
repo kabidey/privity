@@ -196,7 +196,7 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
   }
   
-  menuItems.push({ icon: Package, label: 'Stocks', path: '/' });
+  menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
   
   // Purchases - PE Desk and PE Manager only (roles 1 & 2)
   if (user.role === 1 || user.role === 2) {
