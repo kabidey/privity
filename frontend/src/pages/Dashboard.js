@@ -121,11 +121,6 @@ const Dashboard = () => {
     return date.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
   };
 
-  const chartData = analytics?.monthly_pnl?.map(item => ({
-    month: formatMonth(item.month),
-    pnl: item.pnl,
-  })) || [];
-
   const topStocksData = analytics?.top_stocks?.slice(0, 5) || [];
 
   const COLORS = ['#064E3B', '#10B981', '#34D399', '#6EE7B7', '#A7F3D0'];
