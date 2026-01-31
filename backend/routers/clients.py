@@ -289,9 +289,9 @@ async def approve_client(client_id: str, approve: bool = True, current_user: dic
         template = await get_email_template(template_key)
         
         if template:
-            subject = template["subject"].replace("{client_name}", client["name"])
-            body = template["body"].replace("{client_name}", client["name"])
-            body = body.replace("{otc_ucc}", client.get("otc_ucc", "N/A"))
+            subject = template["subject"].replace("{{client_name}}", client["name"])
+            body = template["body"].replace("{{client_name}}", client["name"])
+            body = body.replace("{{otc_ucc}}", client.get("otc_ucc", "N/A"))
             
             await send_email(
                 to_email=client_email,
