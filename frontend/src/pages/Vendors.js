@@ -493,6 +493,47 @@ const Vendors = () => {
                         onChange={(e) => handleNameChange(e.target.value)}
                         required
                       />
+                      {/* Proprietorship checkbox - shown when PAN name is extracted */}
+                      {ocrExtractedName && (
+                        <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg">
+                          <p className="text-xs text-amber-700 dark:text-amber-300 mb-2">
+                            <strong>PAN Name:</strong> {ocrExtractedName}
+                          </p>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isProprietor === true}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setIsProprietor(true);
+                                  setNameMismatchDetected(true);
+                                } else {
+                                  setIsProprietor(null);
+                                  // Re-check for actual mismatch
+                                  const panName = ocrExtractedName?.toLowerCase().trim();
+                                  const formName = formData.name?.toLowerCase().trim();
+                                  if (panName && formName && panName !== formName) {
+                                    setNameMismatchDetected(true);
+                                  } else {
+                                    setNameMismatchDetected(false);
+                                  }
+                                }
+                              }}
+                              className="w-4 h-4 text-emerald-600 rounded border-amber-300 focus:ring-emerald-500"
+                              data-testid="vendor-proprietor-checkbox"
+                            />
+                            <span className="text-sm text-amber-800 dark:text-amber-200">
+                              This is a <strong>Proprietorship</strong> (business name differs from proprietor's PAN name)
+                            </span>
+                          </label>
+                          {isProprietor === true && (
+                            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1">
+                              <FileCheck className="h-3 w-3" />
+                              Proprietorship selected - Bank Declaration document will be required
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Primary Email</Label>
