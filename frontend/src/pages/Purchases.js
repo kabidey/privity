@@ -386,7 +386,7 @@ const Purchases = () => {
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Paid</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Status</TableHead>
                     <TableHead className="text-xs uppercase tracking-wider font-semibold">Date</TableHead>
-                    {isPEDesk && <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Action</TableHead>}
+                    {canPay && <TableHead className="text-xs uppercase tracking-wider font-semibold text-center">Action</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -400,7 +400,7 @@ const Purchases = () => {
                       <TableCell className="mono text-green-600">₹{(purchase.total_paid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell>{getPaymentStatus(purchase)}</TableCell>
                       <TableCell className="text-sm">{new Date(purchase.purchase_date || purchase.created_at).toLocaleDateString('en-IN')}</TableCell>
-                      {isPEDesk && (
+                      {canPay && (
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
                             {getRemainingAmount(purchase) > 0 ? (
@@ -416,15 +416,17 @@ const Purchases = () => {
                             ) : (
                               <span className="text-green-600 text-sm font-medium mr-2">✓ Paid</span>
                             )}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleDeletePurchase(purchase.id)}
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              data-testid={`delete-purchase-btn-${purchase.id}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canDelete && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDeletePurchase(purchase.id)}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                data-testid={`delete-purchase-btn-${purchase.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       )}
