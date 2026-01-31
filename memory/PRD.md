@@ -873,6 +873,15 @@ rp_payments: {
   - **PE Manager cannot approve** proprietor clients with name mismatch unless bank proof is uploaded
   - **PE Desk can bypass** this restriction and approve without bank proof
   - Bank proof uploads are logged in audit trail
+- **Clone Vendor/Client Documents Fix (Jan 31, 2026)**:
+  - Fixed documents not being copied when cloning vendors to clients or vice versa
+  - Clone now copies: documents, is_proprietor, has_name_mismatch, bank_proof_url and related fields
+- **Proprietor Selection Workflow Enhancement (Jan 31, 2026)**:
+  - Added real-time name mismatch detection (useEffect monitoring form name vs PAN card name)
+  - Added "Choose Proprietor Status" button when name mismatch is detected
+  - Added link to "change to Proprietorship" if user previously selected "No"
+  - When proprietor is selected, name mismatch is overridden and client can be created
+  - Bank Declaration document required only for proprietorship with name mismatch
 - **Purchase Order Email Notification (Jan 31, 2026)**:
   - Added email notification to vendor when purchase order is created
   - Uses existing `purchase_order_created` email template
