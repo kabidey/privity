@@ -843,54 +843,55 @@ const Vendors = () => {
                   <TableRow key={vendor.id} data-testid="vendor-row">
                     <TableCell className="font-mono text-sm font-bold text-primary">{vendor.otc_ucc || 'N/A'}</TableCell>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         {vendor.name}
                         {/* Red flag for proprietor with name mismatch - visible to PE Desk/Manager */}
                         {isPELevel && vendor.is_proprietor && vendor.has_name_mismatch && (
-                          <span 
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
-                            title="Proprietorship - Name mismatch detected during creation"
-                          >
-                            <AlertTriangle className="h-3 w-3" />
-                            Proprietor
-                          </span>
-                          {/* Bank proof status and upload button */}
-                          {vendor.bank_proof_url ? (
+                          <div className="flex items-center gap-1">
                             <span 
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
-                              title="Bank proof uploaded"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
+                              title="Proprietorship - Name mismatch detected during creation"
                             >
-                              <CheckCircle className="h-3 w-3" />
-                              Proof
+                              <AlertTriangle className="h-3 w-3" />
+                              Proprietor
                             </span>
-                          ) : (
-                            <label 
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                              title="Upload bank proof document"
-                            >
-                              {uploadingBankProof === vendor.id ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <Upload className="h-3 w-3" />
-                              )}
-                              <span>{uploadingBankProof === vendor.id ? 'Uploading...' : 'Upload Proof'}</span>
-                              <input 
-                                type="file" 
-                                className="hidden" 
-                                accept=".pdf,.jpg,.jpeg,.png"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleBankProofUpload(vendor.id, file);
-                                  e.target.value = ''; // Reset input
-                                }}
-                                disabled={uploadingBankProof === vendor.id}
-                              />
-                            </label>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
+                            {/* Bank proof status and upload button */}
+                            {vendor.bank_proof_url ? (
+                              <span 
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
+                                title="Bank proof uploaded"
+                              >
+                                <CheckCircle className="h-3 w-3" />
+                                Proof
+                              </span>
+                            ) : (
+                              <label 
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800 cursor-pointer hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                                title="Upload bank proof document"
+                              >
+                                {uploadingBankProof === vendor.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Upload className="h-3 w-3" />
+                                )}
+                                <span>{uploadingBankProof === vendor.id ? 'Uploading...' : 'Upload Proof'}</span>
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  accept=".pdf,.jpg,.jpeg,.png"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handleBankProofUpload(vendor.id, file);
+                                    e.target.value = ''; // Reset input
+                                  }}
+                                  disabled={uploadingBankProof === vendor.id}
+                                />
+                              </label>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-mono text-sm">{vendor.pan_number}</TableCell>
                     <TableCell className="text-sm">{vendor.dp_id}</TableCell>
                     <TableCell className="text-sm">{vendor.bank_name || '-'}</TableCell>
