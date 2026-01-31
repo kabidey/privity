@@ -161,10 +161,10 @@ async def bulk_upload_stocks(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Bulk upload stocks from Excel file (PE Desk only)"""
+    """Bulk upload stocks from Excel file (PE Desk and PE Manager)"""
     user_role = current_user.get("role", 5)
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can bulk upload stocks")
+    if user_role not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Only PE Desk and PE Manager can bulk upload stocks")
     
     try:
         import openpyxl
