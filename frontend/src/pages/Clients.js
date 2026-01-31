@@ -1218,7 +1218,7 @@ const Clients = () => {
                           {isProprietor === true && (
                             <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1">
                               <FileCheck className="h-3 w-3" />
-                              Proprietorship selected - Bank Declaration document will be required
+                              Proprietorship selected - Client will be flagged for bank proof upload
                             </p>
                           )}
                         </div>
