@@ -421,6 +421,24 @@ const Dashboard = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Sohini AI Assistant Section */}
+      <Card className="border shadow-sm mt-6" data-testid="sohini-assistant-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-bold flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-purple-600" />
+            </div>
+            Ask Sohini - AI Assistant
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Get instant help with features, workflows, and questions about Privity
+          </p>
+        </CardHeader>
+        <CardContent>
+          <SohiniAssistant embedded={true} />
+        </CardContent>
+      </Card>
     </div>
   );
 };
