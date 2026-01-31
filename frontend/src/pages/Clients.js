@@ -1180,6 +1180,9 @@ const Clients = () => {
                         <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg">
                           <p className="text-xs text-amber-700 dark:text-amber-300 mb-2">
                             <strong>PAN Name:</strong> {extractedNames.pan_card}
+                            {extractedNames.cml_copy && extractedNames.cml_copy !== extractedNames.pan_card && (
+                              <span className="block mt-1"><strong>CML Name:</strong> {extractedNames.cml_copy}</span>
+                            )}
                           </p>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -1189,6 +1192,11 @@ const Clients = () => {
                                 if (e.target.checked) {
                                   setIsProprietor(true);
                                   setNameMismatchDetected(true);
+                                  // Default to CML name when proprietor is selected
+                                  if (extractedNames.cml_copy) {
+                                    setFormData(prev => ({ ...prev, name: extractedNames.cml_copy }));
+                                    toast.info('Client name set to CML name for proprietorship');
+                                  }
                                 } else {
                                   setIsProprietor(null);
                                   // Re-check for actual mismatch
