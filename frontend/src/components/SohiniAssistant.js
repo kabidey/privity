@@ -98,8 +98,8 @@ const SohiniAssistant = ({ embedded = false }) => {
     setIsMinimized(!isMinimized);
   };
 
-  // Floating button when closed
-  if (!isOpen) {
+  // Floating button when closed (not shown in embedded mode)
+  if (!isOpen && !embedded) {
     return (
       <button
         onClick={() => setIsOpen(true)}
@@ -138,7 +138,95 @@ const SohiniAssistant = ({ embedded = false }) => {
     );
   }
 
-  // Chat window
+  // Embedded mode - render inline chat
+  if (embedded) {
+    return (
+      <div className="w-full" data-testid="sohini-embedded">
+        {/* Messages */}
+        <ScrollArea className="h-64 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900 mb-4">
+          <div className="space-y-4">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {msg.role === 'assistant' && (
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
+                    <svg viewBox="0 0 36 36" className="w-5 h-5">
+                      <circle cx="18" cy="18" r="18" fill="#FFD5DC"/>
+                      <circle cx="18" cy="15" r="6" fill="#FFE4C4"/>
+                      <circle cx="15.5" cy="14" r="1" fill="#4A3728"/>
+                      <circle cx="20.5" cy="14" r="1" fill="#4A3728"/>
+                      <path d="M16 17 Q18 18.5 20 17" stroke="#E88B8B" strokeWidth="0.8" fill="none"/>
+                    </svg>
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                    msg.role === 'user'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-br-md'
+                      : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-md border shadow-sm'
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 flex items-center justify-center mr-2">
+                  <svg viewBox="0 0 36 36" className="w-5 h-5">
+                    <circle cx="18" cy="18" r="18" fill="#FFD5DC"/>
+                    <circle cx="18" cy="15" r="6" fill="#FFE4C4"/>
+                    <circle cx="15.5" cy="14" r="1" fill="#4A3728"/>
+                    <circle cx="20.5" cy="14" r="1" fill="#4A3728"/>
+                  </svg>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-bl-md px-4 py-3 border shadow-sm">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </ScrollArea>
+
+        {/* Input */}
+        <div className="flex gap-2">
+          <Input
+            ref={inputRef}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="Ask me anything about Privity..."
+            className="flex-1 rounded-full border-gray-300 focus:border-purple-400 focus:ring-purple-400"
+            disabled={isLoading}
+          />
+          <Button
+            onClick={handleSend}
+            disabled={!inputValue.trim() || isLoading}
+            className="rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-4"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+          <Button
+            onClick={clearChat}
+            variant="outline"
+            className="rounded-full px-3"
+            title="Clear chat"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Chat window (floating mode)
   return (
     <div 
       className={`fixed bottom-28 right-6 z-[9999] transition-all duration-300 ${
