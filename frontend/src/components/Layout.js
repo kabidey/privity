@@ -669,18 +669,6 @@ const Layout = ({ children }) => {
         </aside>
       </div>
 
-      {/* iOS-style Floating Action Button */}
-      <div className="lg:hidden fixed bottom-20 right-4 z-40 safe-area-inset-bottom">
-        <button
-          onClick={() => navigate('/bookings?openForm=true')}
-          className="flex items-center gap-2 px-5 py-3.5 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-500/30 hover:bg-emerald-600 active:scale-95 transition-all duration-200"
-          data-testid="fab-bookings"
-        >
-          <Plus className="h-5 w-5" strokeWidth={2} />
-          <span className="font-semibold">New Booking</span>
-        </button>
-      </div>
-
       {/* Main Content */}
       <main className="lg:ml-72 min-h-screen">
         <div className="pt-14 lg:pt-0 pb-24 lg:pb-6 px-4 lg:px-6">
