@@ -23,6 +23,7 @@ const Finance = () => {
   const [refundRequests, setRefundRequests] = useState([]);
   const [rpPayments, setRpPayments] = useState([]);
   const [bpPayments, setBpPayments] = useState([]);
+  const [employeeCommissions, setEmployeeCommissions] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -54,6 +55,8 @@ const Finance = () => {
     payment_reference: '',
     payment_date: ''
   });
+  const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
+  const [selectedCommission, setSelectedCommission] = useState(null);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   // PE Level (1, 2) or Finance role (7) can access Finance page
