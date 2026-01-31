@@ -1214,7 +1214,7 @@ const Clients = () => {
                               data-testid="proprietor-checkbox"
                             />
                             <span className="text-sm text-amber-800 dark:text-amber-200">
-                              This is a <strong>Proprietorship</strong> (business name differs from proprietor's PAN name)
+                              This is a <strong>Proprietorship</strong> (business name differs from proprietor&apos;s PAN name)
                             </span>
                           </label>
                           {isProprietor === true && (
