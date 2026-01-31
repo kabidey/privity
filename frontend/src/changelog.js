@@ -15,22 +15,22 @@ export const getCurrentBuildInfo = () => {
 
 const CHANGELOG = [
   {
-    version: 'v1.1.0',
+    version: 'v1.2.0',
     date: '2026-01-31',
-    title: 'Role Hierarchy & Permissions Update',
+    title: 'Stable Release - Role Hierarchy & Finance Updates',
     changes: [
       { type: 'feature', description: 'New Roles: Regional Manager and Business Head added to hierarchy' },
       { type: 'feature', description: 'Viewer Role Enhanced - Full view access to all modules (no create/edit/delete/download)' },
+      { type: 'feature', description: 'Employee Commissions - New tab in Finance page to track and pay commissions' },
       { type: 'feature', description: 'CML OCR Fix - Now extracts primary account holder name correctly (not father\'s name)' },
       { type: 'feature', description: 'PE Manager Stock Access - Create, edit stocks and corporate actions' },
       { type: 'feature', description: 'Proprietor Workflow - Simplified creation without mandatory bank declaration' },
-      { type: 'improvement', description: 'Version display now shows build number (v1.1.0.XX)' },
-      { type: 'improvement', description: 'Changelog now shows on each new build deployment' },
+      { type: 'improvement', description: 'Version stability - No more auto-reset on deployment' },
       { type: 'fix', description: 'Name mismatch bypass when proprietor is selected' },
     ]
   },
   {
-    version: 'v1.1.0-prev',
+    version: 'v1.1.0',
     date: '2026-01-30',
     title: 'Research Center & Mobile Enhancements',
     changes: [
