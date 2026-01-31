@@ -170,6 +170,7 @@ const Layout = ({ children }) => {
 
   // Build menu items based on user role
   const menuItems = [];
+  const isViewer = user.role === 6;
   
   // Role-specific dashboards as first item
   if (user.role === 1 || user.role === 2) {
@@ -177,8 +178,8 @@ const Layout = ({ children }) => {
   } else if (user.role === 7) {
     menuItems.push({ icon: Banknote, label: 'Finance Dashboard', path: '/finance-dashboard' });
   } else if (user.role === 6) {
-    menuItems.push({ icon: Wallet, label: 'My Portfolio', path: '/client-dashboard' });
-  } else if (user.role === 3 || user.role === 4 || user.role === 5) {
+    menuItems.push({ icon: LayoutDashboard, label: 'Overview Dashboard', path: '/pe-dashboard' });
+  } else if (user.role === 3 || user.role === 4 || user.role === 5 || user.role === 10 || user.role === 11) {
     menuItems.push({ icon: User, label: 'My Dashboard', path: '/my-dashboard' });
   }
   
@@ -191,15 +192,15 @@ const Layout = ({ children }) => {
   menuItems.push({ icon: LayoutDashboard, label: 'Dashboard', path: '/' });
   menuItems.push({ icon: Users, label: 'Clients', path: '/clients' });
 
-  // Vendors - PE Level only (roles 1 & 2)
-  if (user.role === 1 || user.role === 2) {
+  // Vendors - PE Level and Viewer (view-only for Viewer)
+  if (user.role === 1 || user.role === 2 || isViewer) {
     menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
   }
   
   menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
   
-  // Purchases - PE Desk and PE Manager only (roles 1 & 2)
-  if (user.role === 1 || user.role === 2) {
+  // Purchases - PE Desk, PE Manager, and Viewer (view-only)
+  if (user.role === 1 || user.role === 2 || isViewer) {
     menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
     menuItems.push({ icon: ArrowDownToLine, label: 'DP Receivables', path: '/dp-receivables' });
     menuItems.push({ icon: Send, label: 'DP Transfer', path: '/dp-transfer-client' });
@@ -211,30 +212,29 @@ const Layout = ({ children }) => {
     { icon: BarChart3, label: 'Reports', path: '/reports' }
   );
 
-  // Add finance for Finance role or PE level
-  if (user.role === 7 || user.role === 1 || user.role === 2) {
+  // Add finance for Finance role, PE level, or Viewer
+  if (user.role === 7 || user.role === 1 || user.role === 2 || isViewer) {
     menuItems.push({ icon: Banknote, label: 'Finance', path: '/finance' });
   }
 
-  // Add user management for PE level
-  if (user.role === 1 || user.role === 2) {
+  // Add user management for PE level or Viewer
+  if (user.role === 1 || user.role === 2 || isViewer) {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
   }
 
-  // Add Referral Partners for PE level, Manager, and Employees
-  if (user.role === 1 || user.role === 2 || user.role === 4 || user.role === 5) {
+  // Add Referral Partners for PE level, Manager, Employees, or Viewer
+  if (user.role === 1 || user.role === 2 || user.role === 4 || user.role === 5 || isViewer) {
     menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
   }
 
-  // Add Analytics and Email Templates for PE Level (roles 1 and 2)
-  if (user.role === 1 || user.role === 2) {
+  // Add Analytics and Email Templates for PE Level and Viewer (view-only for viewer)
+  if (user.role === 1 || user.role === 2 || isViewer) {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
     menuItems.push({ icon: FileText, label: 'Contract Notes', path: '/contract-notes' });
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
     menuItems.push({ icon: MailCheck, label: 'Email Logs', path: '/email-logs' });
     menuItems.push({ icon: Shield, label: 'Audit Trail', path: '/audit-trail' });
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
-    menuItems.push({ icon: Database, label: 'DB Backup', path: '/database-backup' });
   }
 
   // Company Master & Bulk Upload - PE Desk only (role 1)
@@ -243,19 +243,19 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Upload, label: 'Bulk Upload', path: '/bulk-upload' });
   }
 
-  // Business Partners - PE Level and Partners Desk (roles 1, 2 & 9)
-  if (user.role === 1 || user.role === 2 || user.role === 9) {
+  // Business Partners - PE Level, Partners Desk, and Viewer
+  if (user.role === 1 || user.role === 2 || user.role === 9 || isViewer) {
     menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
   }
 
-  // Revenue Dashboards - visible based on hierarchy
-  // RP Revenue: Employee, Manager, Zonal Manager, and PE Level
-  if (user.role >= 1 && user.role <= 5) {
+  // Revenue Dashboards - visible based on hierarchy (Viewer sees all)
+  // RP Revenue: Employee, Manager, Zonal Manager, PE Level, Regional Manager, Business Head, and Viewer
+  if ((user.role >= 1 && user.role <= 5) || user.role === 10 || user.role === 11 || isViewer) {
     menuItems.push({ icon: TrendingUp, label: 'RP Revenue', path: '/rp-revenue' });
   }
   
-  // Employee Revenue: Manager, Zonal Manager, and PE Level
-  if (user.role >= 1 && user.role <= 4) {
+  // Employee Revenue: Manager, Zonal Manager, PE Level, Regional Manager, Business Head, and Viewer
+  if ((user.role >= 1 && user.role <= 4) || user.role === 10 || user.role === 11 || isViewer) {
     menuItems.push({ icon: Users, label: 'Team Revenue', path: '/employee-revenue' });
   }
 
