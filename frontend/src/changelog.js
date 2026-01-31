@@ -3,16 +3,29 @@
 // Types: 'feature', 'fix', 'improvement', 'security'
 import { getVersionDetails } from './version';
 
+// Get dynamic version info for changelog header
+export const getCurrentBuildInfo = () => {
+  const details = getVersionDetails();
+  return {
+    version: `v${details.major}.${details.minor}.${details.patch}`,
+    build: details.build,
+    fullVersion: `v${details.major}.${details.minor}.${details.patch}.${details.build}`
+  };
+};
+
 const CHANGELOG = [
   {
     version: 'v1.1.0',
     date: '2026-01-31',
-    title: 'Build Updates & Enhancements',
+    title: 'Role Hierarchy & Permissions Update',
     changes: [
+      { type: 'feature', description: 'New Roles: Regional Manager and Business Head added to hierarchy' },
+      { type: 'feature', description: 'Viewer Role Enhanced - Full view access to all modules (no create/edit/delete/download)' },
       { type: 'feature', description: 'CML OCR Fix - Now extracts primary account holder name correctly (not father\'s name)' },
       { type: 'feature', description: 'PE Manager Stock Access - Create, edit stocks and corporate actions' },
       { type: 'feature', description: 'Proprietor Workflow - Simplified creation without mandatory bank declaration' },
       { type: 'improvement', description: 'Version display now shows build number (v1.1.0.XX)' },
+      { type: 'improvement', description: 'Changelog now shows on each new build deployment' },
       { type: 'fix', description: 'Name mismatch bypass when proprietor is selected' },
     ]
   },
