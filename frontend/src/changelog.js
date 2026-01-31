@@ -96,7 +96,10 @@ const CHANGELOG = [
 
 export const getChangelog = () => CHANGELOG;
 
-export const getLatestVersion = () => CHANGELOG[0]?.version || 'v1.0.0';
+export const getLatestVersion = () => {
+  const versionDetails = getVersionDetails();
+  return `v${versionDetails.major}.${versionDetails.minor}.${versionDetails.patch} (Build ${versionDetails.build})`;
+};
 
 export const getVersionChanges = (version) => {
   return CHANGELOG.find(entry => entry.version === version);
