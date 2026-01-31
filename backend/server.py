@@ -369,6 +369,9 @@ from routers.kill_switch import router as kill_switch_router
 # Research
 from routers.research import router as research_router
 
+# Group Chat
+from routers.group_chat import router as group_chat_router
+
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
@@ -396,6 +399,7 @@ app.include_router(notifications_router, prefix="/api")
 app.include_router(sohini_router, prefix="/api")
 app.include_router(kill_switch_router, prefix="/api")
 app.include_router(research_router, prefix="/api")
+app.include_router(group_chat_router, prefix="/api")
 
 
 # ====================
