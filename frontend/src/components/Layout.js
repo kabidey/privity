@@ -93,14 +93,14 @@ const Layout = ({ children }) => {
     }
   }, [wsPeStatus]);
 
-  // Poll PE online status and send heartbeat (fallback when WebSocket is not connected)
+  // Poll PE online status and send heartbeat (reduced frequency)
   useEffect(() => {
     const checkPeStatus = async () => {
       try {
         // Send heartbeat (will only track if current user is PE level)
         await api.post('/users/heartbeat');
         
-        // Get PE status (only if WebSocket is not connected or as initial fetch)
+        // Get PE status only if WebSocket is not connected
         if (!isConnected) {
           const response = await api.get('/users/pe-status');
           setPeStatus(response.data);
@@ -110,11 +110,11 @@ const Layout = ({ children }) => {
       }
     };
 
-    // Check immediately
+    // Check immediately on mount
     checkPeStatus();
     
-    // Then poll every 30 seconds (heartbeat) - status updates come via WebSocket when connected
-    const interval = setInterval(checkPeStatus, 30000);
+    // Heartbeat every 60 seconds (was 30s) - status updates come via WebSocket when connected
+    const interval = setInterval(checkPeStatus, 60000);
     
     return () => clearInterval(interval);
   }, [isConnected]);
