@@ -512,7 +512,14 @@ const Clients = () => {
       // Check for name mismatch between form and OCR extracted names
       const panName = extractedNames.pan_card?.toLowerCase().trim();
       const formName = formData.name?.toLowerCase().trim();
-      if (panName && formName && panName !== formName) {
+      
+      // If proprietor is selected, bypass name mismatch check - allow creation with CML name
+      if (isProprietor === true) {
+        // Proprietor selected - no name mismatch blocking, just require bank declaration
+        if (!docFiles.bank_declaration) {
+          missingDocs.push('Bank Declaration (required for proprietorship)');
+        }
+      } else if (panName && formName && panName !== formName) {
         setNameMismatchDetected(true);
         
         // If name mismatch detected, require proprietor confirmation
@@ -521,11 +528,6 @@ const Clients = () => {
           setProprietorDialogOpen(true);
           setIsSubmitting(false);
           return;
-        }
-        
-        // If proprietor with name mismatch, require bank declaration
-        if (isProprietor === true && !docFiles.bank_declaration) {
-          missingDocs.push('Bank Declaration (required for proprietorship)');
         }
         
         // If not a proprietor but name mismatch exists, block creation
