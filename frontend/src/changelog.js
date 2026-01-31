@@ -109,20 +109,6 @@ const CHANGELOG = [
 
 export const getChangelog = () => CHANGELOG;
 
-export const getLatestVersion = () => {
-  const versionDetails = getVersionDetails();
-  return `v${versionDetails.major}.${versionDetails.minor}.${versionDetails.patch} (Build ${versionDetails.build})`;
-};
-
-export const getVersionChanges = (version) => {
-  return CHANGELOG.find(entry => entry.version === version);
-};
-
-export const getChangesSinceVersion = (lastSeenVersion) => {
-  const lastIndex = CHANGELOG.findIndex(entry => entry.version === lastSeenVersion);
-  if (lastIndex === -1) return CHANGELOG; // Show all if version not found
-  if (lastIndex === 0) return []; // No new changes
-  return CHANGELOG.slice(0, lastIndex);
-};
+export const getLatestVersion = () => CHANGELOG[0]?.version || 'v1.0.0';
 
 export default CHANGELOG;
