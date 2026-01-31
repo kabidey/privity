@@ -865,6 +865,14 @@ rp_payments: {
   - Frontend sends these flags during form submission
   - **Red flag indicator** displayed in Clients/Vendors list for PE Desk/Manager when entity is a proprietor with name mismatch
   - Audit log now includes proprietor flags for compliance tracking
+- **Bank Proof Upload for Proprietors (Jan 31, 2026)**:
+  - Added `bank_proof_url`, `bank_proof_uploaded_by`, `bank_proof_uploaded_at` fields to Client model
+  - New API endpoint `POST /api/clients/{client_id}/bank-proof` for uploading bank proof (PE Level only)
+  - Upload button shown next to "Proprietor" flag in Clients/Vendors list (orange badge)
+  - Shows green "Proof" badge when bank proof is uploaded
+  - **PE Manager cannot approve** proprietor clients with name mismatch unless bank proof is uploaded
+  - **PE Desk can bypass** this restriction and approve without bank proof
+  - Bank proof uploads are logged in audit trail
 
 ## Recent Features Added (Jan 31, 2026)
 
