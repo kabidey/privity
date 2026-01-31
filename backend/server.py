@@ -236,6 +236,79 @@ async def websocket_notifications(websocket: WebSocket, token: str = None):
         ws_manager.disconnect(websocket, user_id)
 
 
+# Group Chat WebSocket Endpoint
+@app.websocket("/api/ws/group-chat")
+async def websocket_group_chat(websocket: WebSocket, token: str = None):
+    """WebSocket endpoint for real-time group chat
+    
+    All authenticated users can connect and participate in the common chat.
+    """
+    from utils.auth import decode_token
+    from routers.group_chat import get_chat_manager
+    
+    # First, accept the WebSocket connection
+    await websocket.accept()
+    
+    if not token:
+        await websocket.close(code=4001, reason="No token provided")
+        return
+    
+    try:
+        payload = decode_token(token)
+        user_id = payload.get("user_id")
+        if not user_id:
+            await websocket.close(code=4002, reason="Invalid token")
+            return
+    except Exception as e:
+        logger.warning(f"Group chat WebSocket token error: {str(e)}")
+        await websocket.close(code=4003, reason=f"Token error: {str(e)}")
+        return
+    
+    # Get user info from database
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "id": 1, "name": 1, "role": 1})
+    if not user:
+        await websocket.close(code=4004, reason="User not found")
+        return
+    
+    role_names = {
+        1: "PE Desk",
+        2: "PE Manager",
+        3: "Finance",
+        4: "Manager",
+        5: "Employee",
+        6: "Intern",
+        7: "Referral Partner",
+        8: "Business Partner"
+    }
+    
+    user_info = {
+        "name": user["name"],
+        "role": user.get("role", 5),
+        "role_name": role_names.get(user.get("role", 5), "User")
+    }
+    
+    # Get chat manager and connect
+    chat_mgr = get_chat_manager()
+    await chat_mgr.connect(websocket, user_id, user_info)
+    
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Handle ping/pong for keepalive
+            if data == "ping":
+                await websocket.send_text(json.dumps({"type": "pong"}))
+    except WebSocketDisconnect:
+        user_name = chat_mgr.disconnect(user_id)
+        if user_name:
+            await chat_mgr.broadcast_system_message(f"{user_name} left the chat")
+            await chat_mgr.broadcast_online_users()
+    except Exception as e:
+        logger.error(f"Group chat WebSocket error for user {user_id}: {str(e)}")
+        user_name = chat_mgr.disconnect(user_id)
+        if user_name:
+            await chat_mgr.broadcast_online_users()
+
+
 # ====================
 # Include All Routers
 # ====================
