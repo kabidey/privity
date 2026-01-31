@@ -15,6 +15,8 @@ import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, Chev
 const ROLES = {
   1: { name: 'PE Desk', color: 'bg-purple-100 text-purple-800' },
   2: { name: 'PE Manager', color: 'bg-indigo-100 text-indigo-800' },
+  11: { name: 'Business Head', color: 'bg-rose-100 text-rose-800' },
+  10: { name: 'Regional Manager', color: 'bg-cyan-100 text-cyan-800' },
   3: { name: 'Zonal Manager', color: 'bg-blue-100 text-blue-800' },
   4: { name: 'Manager', color: 'bg-green-100 text-green-800' },
   5: { name: 'Employee', color: 'bg-yellow-100 text-yellow-800' },
