@@ -19,7 +19,7 @@ import SystemFrozenOverlay from './SystemFrozenOverlay';
 import ChangelogModal, { useChangelogModal } from './ChangelogModal';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { getVersion } from '../version';
+import { getFullVersion } from '../version';
 import { 
   LayoutDashboard, 
   Users, 
