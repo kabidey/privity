@@ -196,8 +196,8 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Revenue Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
         <Card className="border shadow-sm" data-testid="inventory-value-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
@@ -222,79 +222,10 @@ const Dashboard = () => {
             <div className="text-xl md:text-2xl lg:text-3xl font-bold mono">{stats?.closed_bookings || 0}</div>
           </CardContent>
         </Card>
-
-        <Card className="border shadow-sm" data-testid="pnl-summary-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-              <IndianRupee className="h-4 w-4" />
-              Total Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-xl md:text-2xl lg:text-3xl font-bold mono ${(stats?.total_profit_loss || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ₹{(stats?.total_profit_loss || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
-        {/* Revenue Trend Chart */}
-        <Card className="border shadow-sm" data-testid="pnl-chart-card">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold">Revenue Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorPnl" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#064E3B" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#064E3B" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: 12 }} 
-                    tickLine={false}
-                    axisLine={{ stroke: '#e5e7eb' }}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }} 
-                    tickLine={false}
-                    axisLine={{ stroke: '#e5e7eb' }}
-                    tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`}
-                  />
-                  <Tooltip 
-                    formatter={(value) => [`₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, 'Revenue']}
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="pnl" 
-                    stroke="#064E3B" 
-                    strokeWidth={2}
-                    fillOpacity={1} 
-                    fill="url(#colorPnl)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[280px] flex items-center justify-center text-muted-foreground">
-                No Revenue data available yet
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 gap-3 md:gap-4 mb-6 md:mb-8">
         {/* Top Performing Stocks */}
         <Card className="border shadow-sm" data-testid="top-stocks-card">
           <CardHeader>
