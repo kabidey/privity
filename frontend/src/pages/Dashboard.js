@@ -132,6 +132,45 @@ const Dashboard = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="dashboard">
+      {/* SMTP Warning Banner for PE Level Users */}
+      {isPELevel && smtpWarning && smtpWarning.show_warning && !dismissedSmtpWarning && (
+        <div 
+          className="mb-6 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg flex items-start gap-3"
+          data-testid="smtp-warning-banner"
+        >
+          <div className="flex-shrink-0 p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full">
+            <Mail className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <h3 className="font-semibold text-amber-800 dark:text-amber-200">Email Service Not Configured</h3>
+            </div>
+            <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
+              {smtpWarning.message}
+            </p>
+            {isPEDesk && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/50"
+                onClick={() => navigate('/smtp-config')}
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Configure Email Settings
+              </Button>
+            )}
+          </div>
+          <button 
+            onClick={() => setDismissedSmtpWarning(true)}
+            className="flex-shrink-0 p-1 hover:bg-amber-200 dark:hover:bg-amber-800 rounded-full transition-colors"
+            aria-label="Dismiss warning"
+          >
+            <X className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          </button>
+        </div>
+      )}
+
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Dashboard</h1>
         <p className="text-muted-foreground text-sm md:text-base">Overview of your private equity system</p>
