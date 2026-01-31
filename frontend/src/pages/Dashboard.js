@@ -287,6 +287,99 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Research Dashboard Section */}
+      {isNotBP && (
+        <div className="mb-6 md:mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-emerald-600" />
+              <h2 className="text-xl font-bold">Research Center</h2>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/research')}
+              className="gap-1"
+            >
+              View All <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Research Stats Card */}
+            <Card className="border shadow-sm bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-background">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <FileSearch className="h-5 w-5 text-emerald-600" />
+                  Research Reports
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-3xl font-bold text-emerald-600">{researchStats?.total_reports || 0}</div>
+                    <div className="text-xs text-muted-foreground">Total Reports</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-blue-600">{researchStats?.by_type?.analysis || 0}</div>
+                    <div className="text-xs text-muted-foreground">Analysis</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AI Research Assistant Card */}
+            <Card 
+              className="border shadow-sm cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/20 dark:to-background"
+              onClick={() => navigate('/research')}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                  AI Research Assistant
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Get AI-powered insights on stocks and investment analysis
+                </p>
+                <Button size="sm" className="w-full gap-2 bg-purple-600 hover:bg-purple-700">
+                  <Sparkles className="h-4 w-4" />
+                  Start Research
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Recent Reports Card */}
+            <Card className="border shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-semibold">Recent Reports</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {recentReports.length > 0 ? (
+                  <div className="space-y-2">
+                    {recentReports.map((report, idx) => (
+                      <div 
+                        key={idx} 
+                        className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer text-sm"
+                        onClick={() => navigate('/research')}
+                      >
+                        <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate">{report.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-muted-foreground text-sm">
+                    No reports uploaded yet
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       {/* Quick Actions */}
       <Card className="border shadow-sm" data-testid="quick-actions-card">
         <CardHeader>
@@ -330,6 +423,16 @@ const Dashboard = () => {
               <FileText className="h-5 w-5 mb-2 text-orange-600" strokeWidth={1.5} />
               <div className="font-semibold text-sm">Create Booking</div>
             </button>
+            {isNotBP && (
+              <button
+                data-testid="quick-research"
+                onClick={() => navigate('/research')}
+                className="p-4 text-left border rounded-md hover:bg-muted/20 transition-colors duration-200"
+              >
+                <BookOpen className="h-5 w-5 mb-2 text-emerald-600" strokeWidth={1.5} />
+                <div className="font-semibold text-sm">Research</div>
+              </button>
+            )}
           </div>
         </CardContent>
       </Card>
