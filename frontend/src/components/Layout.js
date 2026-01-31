@@ -182,6 +182,11 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: User, label: 'My Dashboard', path: '/my-dashboard' });
   }
   
+  // Research - at the top for all employees (not BP)
+  if (user.role !== 8) {
+    menuItems.push({ icon: BookOpen, label: 'Research', path: '/research' });
+  }
+  
   // General Dashboard for all
   menuItems.push({ icon: LayoutDashboard, label: 'Dashboard', path: '/' });
   menuItems.push({ icon: Users, label: 'Clients', path: '/clients' });
@@ -191,7 +196,7 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
   }
   
-  menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
+  menuItems.push({ icon: Package, label: 'Stocks', path: '/' });
   
   // Purchases - PE Desk and PE Manager only (roles 1 & 2)
   if (user.role === 1 || user.role === 2) {
