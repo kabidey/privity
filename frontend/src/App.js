@@ -104,8 +104,8 @@ function App() {
                     <FloatingNotifications />
                     {/* Dialog for important notifications */}
                     <NotificationDialog />
-                    {/* Sohini AI Assistant */}
-                    <SohiniAssistant />
+                    {/* Team Group Chat */}
+                    <GroupChat />
                   </NotificationProvider>
                 </PrivateRoute>
               }
