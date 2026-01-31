@@ -238,6 +238,26 @@ const Clients = () => {
     return { valid: true, message: '' };
   };
 
+  // Real-time name mismatch detection
+  useEffect(() => {
+    const panName = extractedNames.pan_card?.toLowerCase().trim();
+    const formName = formData.name?.toLowerCase().trim();
+    
+    if (panName && formName && panName !== formName) {
+      // Check if names are significantly different (not just case/whitespace)
+      const similarity = calculateNameSimilarity(panName, formName);
+      if (similarity < 90) {
+        setNameMismatchDetected(true);
+      } else {
+        setNameMismatchDetected(false);
+        setIsProprietor(null);
+      }
+    } else if (panName && formName && panName === formName) {
+      setNameMismatchDetected(false);
+      setIsProprietor(null);
+    }
+  }, [formData.name, extractedNames.pan_card]);
+
   const processOcrAndAutofill = async (docType, file) => {
     if (!file) return;
     
