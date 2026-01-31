@@ -879,6 +879,24 @@ rp_payments: {
   - Columns: Name, DP ID, PAN, Stock Symbol, Stock Name, ISIN, Quantity, Amount, Status, DP Type, Date
   - Professional formatting with styled headers and borders
 
+#### ✅ Email System Enhancements - COMPLETED (Jan 31, 2026)
+**Implementation Details:**
+- **Company Branding on Emails**: All emails now include:
+  - Company logo header (from Company Master settings)
+  - Company name, address, CIN, GST, PAN in footer
+  - Professional HTML wrapper with styling
+- **Client Approval Email**: Added email notification when client is approved/rejected
+  - Uses `client_approved` and `client_rejected` templates
+  - Sends to client's registered email
+  - Logged in Email Audit Logs
+- **New Template**: Added `client_rejected` email template
+- **Files Updated**:
+  - `/app/backend/services/email_service.py` - Added `get_company_info()` and `wrap_email_with_branding()`
+  - `/app/backend/routers/clients.py` - Added email on client approval
+  - `/app/backend/email_templates.py` - Added client_rejected template
+
+**Note**: Emails show as "Skipped" in logs when SMTP is not configured. Configure SMTP in Email Server Config to enable sending.
+
 #### ✅ Critical Bug Fix: Route Order in Bookings - COMPLETED (Jan 30, 2026)
 **Issue**: FastAPI was matching `/bookings/pending-approval` and `/bookings/pending-loss-approval` as `{booking_id}` because dynamic routes were defined before static routes.
 
