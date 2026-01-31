@@ -248,7 +248,13 @@ const Vendors = () => {
     
     setUploading(true);
     try {
-      const payload = { ...formData, is_vendor: true };
+      // Prepare submission data with proprietor flags
+      const payload = { 
+        ...formData, 
+        is_vendor: true,
+        is_proprietor: isProprietor === true,
+        has_name_mismatch: nameMismatchDetected
+      };
       let vendorId;
       
       if (editingVendor) {
