@@ -818,7 +818,21 @@ const Vendors = () => {
                 {vendors.map((vendor) => (
                   <TableRow key={vendor.id} data-testid="vendor-row">
                     <TableCell className="font-mono text-sm font-bold text-primary">{vendor.otc_ucc || 'N/A'}</TableCell>
-                    <TableCell className="font-medium">{vendor.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {vendor.name}
+                        {/* Red flag for proprietor with name mismatch - visible to PE Desk/Manager */}
+                        {isPELevel && vendor.is_proprietor && vendor.has_name_mismatch && (
+                          <span 
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
+                            title="Proprietorship - Name mismatch detected during creation"
+                          >
+                            <AlertTriangle className="h-3 w-3" />
+                            Proprietor
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-mono text-sm">{vendor.pan_number}</TableCell>
                     <TableCell className="text-sm">{vendor.dp_id}</TableCell>
                     <TableCell className="text-sm">{vendor.bank_name || '-'}</TableCell>
