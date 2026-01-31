@@ -741,6 +741,29 @@ const Clients = () => {
     }
   };
 
+  // Handle bank proof upload for proprietor clients
+  const handleBankProofUpload = async (clientId, file) => {
+    if (!file) return;
+    
+    setUploadingBankProof(clientId);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      await api.post(`/clients/${clientId}/bank-proof`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success('Bank proof uploaded successfully');
+      fetchClients();
+      if (isManager) fetchPendingClients();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload bank proof');
+    } finally {
+      setUploadingBankProof(null);
+    }
+  };
+
   const handleMapping = (client) => {
     setSelectedClient(client);
     setMappingDialogOpen(true);
