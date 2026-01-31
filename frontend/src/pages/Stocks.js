@@ -566,7 +566,7 @@ const Stocks = () => {
                       <TableHead className="text-xs uppercase">Product</TableHead>
                       <TableHead className="text-xs uppercase">Face Value</TableHead>
                       <TableHead className="text-xs uppercase">Exchange</TableHead>
-                      {isPEDesk && <TableHead className="text-xs uppercase text-right">Actions</TableHead>}
+                      {isPELevel && <TableHead className="text-xs uppercase text-right">Actions</TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -592,10 +592,10 @@ const Stocks = () => {
                             {stock.exchange || 'UNLISTED/CCPS'}
                           </Badge>
                         </TableCell>
-                        {isPEDesk && (
+                        {isPELevel && (
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm" onClick={() => handleEdit(stock)}><Pencil className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(stock.id)}><Trash2 className="h-4 w-4" /></Button>
+                            {isPEDesk && <Button variant="ghost" size="sm" onClick={() => handleDelete(stock.id)}><Trash2 className="h-4 w-4" /></Button>}
                           </TableCell>
                         )}
                       </TableRow>
