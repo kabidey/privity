@@ -24,7 +24,23 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
+    // Check SMTP status for PE Level users
+    if (isPELevel) {
+      checkSmtpStatus();
+    }
   }, []);
+
+  const checkSmtpStatus = async () => {
+    try {
+      const response = await api.get('/email-config/status');
+      if (response.data.show_warning) {
+        setSmtpWarning(response.data);
+      }
+    } catch (error) {
+      // Silently fail - don't show error for this background check
+      console.log('SMTP status check failed:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
