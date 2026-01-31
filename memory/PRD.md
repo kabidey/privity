@@ -873,6 +873,12 @@ rp_payments: {
   - **PE Manager cannot approve** proprietor clients with name mismatch unless bank proof is uploaded
   - **PE Desk can bypass** this restriction and approve without bank proof
   - Bank proof uploads are logged in audit trail
+- **Purchase Order Email Notification (Jan 31, 2026)**:
+  - Added email notification to vendor when purchase order is created
+  - Uses existing `purchase_order_created` email template
+  - Email includes: vendor name, stock symbol, quantity, price per unit, total amount
+  - Email is logged in email_logs collection with `related_entity_type: "purchase"`
+  - Same pattern as client approval emails
 
 ## Recent Features Added (Jan 31, 2026)
 
