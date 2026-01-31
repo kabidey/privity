@@ -110,6 +110,8 @@ class ClientCreate(BaseModel):
     pin_code: Optional[str] = None
     bank_accounts: List[BankAccount] = []
     is_vendor: bool = False
+    is_proprietor: bool = False  # Flag for proprietorship entities
+    has_name_mismatch: bool = False  # Flag if name mismatch was detected during creation
 
 
 class Client(BaseModel):
