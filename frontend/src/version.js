@@ -5,8 +5,8 @@ const VERSION = {
   major: 1,
   minor: 1,
   patch: 0,
-  build: 14,
-  timestamp: '2026-01-31T18:03:45.864Z',
+  build: 15,
+  timestamp: '2026-01-31T18:05:24.529Z',
   formatted: 'v1.1.0'
 };
 
