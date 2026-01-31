@@ -84,7 +84,7 @@ If any field is not visible, use null."""
 1. DP ID (Depository Participant ID - usually starts with IN followed by numbers, e.g., IN301629)
 2. Client ID (the client-specific ID number that follows the DP ID)
 3. Full DP Client ID (combination of DP ID + Client ID, e.g., IN301629-10242225 or the complete identifier shown)
-4. Client Name
+4. Client Name - IMPORTANT: This is the PRIMARY ACCOUNT HOLDER'S NAME, NOT the Father's/Husband's/Guardian's name. Look for fields labeled "Name", "Account Holder Name", "Client Name", "Name of First Holder", or "Holder Name". Do NOT use the name from "Father's Name", "Father/Husband Name", "Guardian Name" or similar fields.
 5. PAN Number
 6. Email Address
 7. Mobile Number
@@ -94,6 +94,8 @@ If any field is not visible, use null."""
 11. Bank Account Number
 12. IFSC Code
 13. Branch Name
+
+CRITICAL: The client_name field must contain the PRIMARY ACCOUNT HOLDER'S name only. CML documents have multiple name fields - you must extract the main client/holder name, NOT the father's name or guardian's name.
 
 Return ONLY a JSON object with keys: dp_id, client_id, full_dp_client_id, client_name, pan_number, email, mobile, address, pin_code, bank_name, account_number, ifsc_code, branch_name
 If any field is not visible, use null. For full_dp_client_id, combine dp_id and client_id if they appear separately."""
