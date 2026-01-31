@@ -78,6 +78,7 @@ const Stocks = () => {
     if (isPELevel) {
       fetchCorporateActions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchStocks = async () => {
@@ -88,7 +89,9 @@ const Stocks = () => {
         try {
           const { data, expiry } = JSON.parse(cached);
           if (Date.now() < expiry) setStocks(data);
-        } catch (e) {}
+        } catch (e) {
+          // Ignore cache parse errors
+        }
       }
       
       const response = await api.get('/stocks');
