@@ -159,13 +159,17 @@ const UserManagement = () => {
 
   // Group users by hierarchy for the hierarchy view
   const buildHierarchy = () => {
+    const businessHeads = users.filter(u => u.role === 11);
+    const regionalManagers = users.filter(u => u.role === 10);
     const zonalManagers = users.filter(u => u.role === 3);
     const managersData = users.filter(u => u.role === 4);
     const employees = users.filter(u => u.role === 5);
     const peUsers = users.filter(u => u.role <= 2);
     const viewers = users.filter(u => u.role === 6);
+    const financeUsers = users.filter(u => u.role === 7);
+    const partnersDesk = users.filter(u => u.role === 9);
 
-    return { zonalManagers, managers: managersData, employees, peUsers, viewers };
+    return { businessHeads, regionalManagers, zonalManagers, managers: managersData, employees, peUsers, viewers, financeUsers, partnersDesk };
   };
 
   const hierarchy = buildHierarchy();
