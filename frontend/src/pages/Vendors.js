@@ -31,6 +31,7 @@ const Vendors = () => {
   const [nameMismatchDetected, setNameMismatchDetected] = useState(false);
   const [isProprietor, setIsProprietor] = useState(null); // null = not asked, true/false = answered
   const [proprietorDialogOpen, setProprietorDialogOpen] = useState(false);
+  const [uploadingBankProof, setUploadingBankProof] = useState(null); // vendor ID being uploaded to
   
   const [formData, setFormData] = useState({
     name: '',
