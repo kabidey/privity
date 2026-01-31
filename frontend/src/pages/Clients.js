@@ -1436,7 +1436,21 @@ const Clients = () => {
                   {displayedClients.map((client) => (
                     <TableRow key={client.id} data-testid="client-row">
                       <TableCell className="font-mono text-xs md:text-sm font-bold text-primary">{client.otc_ucc || 'N/A'}</TableCell>
-                      <TableCell className="font-medium text-sm">{client.name}</TableCell>
+                      <TableCell className="font-medium text-sm">
+                        <div className="flex items-center gap-2">
+                          {client.name}
+                          {/* Red flag for proprietor with name mismatch - visible to PE Desk/Manager */}
+                          {isPELevel && client.is_proprietor && client.has_name_mismatch && (
+                            <span 
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
+                              title="Proprietorship - Name mismatch detected during creation"
+                            >
+                              <AlertTriangle className="h-3 w-3" />
+                              Proprietor
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="mono text-xs md:text-sm">{client.pan_number}</TableCell>
                       <TableCell className="hidden md:table-cell">
                         <Badge variant={client.dp_type === 'smifs' ? 'default' : 'outline'} className="text-xs">
