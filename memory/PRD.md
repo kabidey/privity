@@ -879,6 +879,20 @@ rp_payments: {
   - Email includes: vendor name, stock symbol, quantity, price per unit, total amount
   - Email is logged in email_logs collection with `related_entity_type: "purchase"`
   - Same pattern as client approval emails
+- **Real-Time Team Group Chat (Jan 31, 2026)**:
+  - Replaced Sohini AI Assistant with real-time group chat
+  - WebSocket-based for instant message delivery
+  - Common chat window for ALL roles - no one-to-one chat
+  - Features:
+    - Real-time message broadcast to all connected users
+    - Online user count and list
+    - System messages (user joined/left)
+    - Message history (last 50 messages loaded)
+    - Color-coded role badges
+    - Timestamps on all messages
+    - Reconnection handling
+  - Backend: `/api/group-chat/messages` (GET/POST), `/api/ws/group-chat` (WebSocket)
+  - Frontend: `GroupChat.js` component with emerald/teal theme
 
 ## Recent Features Added (Jan 31, 2026)
 
