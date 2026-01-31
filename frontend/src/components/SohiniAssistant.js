@@ -6,8 +6,8 @@ import { toast } from 'sonner';
 import api from '../utils/api';
 import { MessageCircle, X, Send, Sparkles, Trash2, Minimize2 } from 'lucide-react';
 
-const SohiniAssistant = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const SohiniAssistant = ({ embedded = false }) => {
+  const [isOpen, setIsOpen] = useState(embedded); // Auto-open if embedded
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
