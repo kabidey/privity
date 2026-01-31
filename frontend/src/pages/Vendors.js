@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Pencil, Trash2, Building2, Copy, Upload, FileText, CreditCard, FileCheck, Loader2, Sparkles, FolderOpen, Download, Eye, AlertCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Building2, Copy, Upload, FileText, CreditCard, FileCheck, Loader2, Sparkles, FolderOpen, Download, Eye, AlertCircle, AlertTriangle } from 'lucide-react';
 
 const Vendors = () => {
   const navigate = useNavigate();
