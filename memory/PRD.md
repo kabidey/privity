@@ -902,6 +902,20 @@ rp_payments: {
     - Reconnection handling
   - Backend: `/api/group-chat/messages` (GET/POST), `/api/ws/group-chat` (WebSocket)
   - Frontend: `GroupChat.js` component with emerald/teal theme
+  - Mobile: Button centered at bottom, full-width chat window
+- **Progressive Web App (PWA) Support (Jan 31, 2026)**:
+  - Added service worker for offline caching (`service-worker.js`)
+  - Cache-first strategy for static assets
+  - Network-first strategy for API calls with offline fallback
+  - Updated `manifest.json` with full PWA configuration:
+    - App shortcuts (Dashboard, Bookings, Clients)
+    - Multiple icon sizes for all devices
+    - Standalone display mode
+    - Theme and background colors
+  - PWA meta tags in `index.html` for iOS and Android
+  - "Install App" banner (`InstallPWA.js`) appears for installable browsers
+  - Service worker registration in `index.js`
+  - Features: Offline mode, Add to Home Screen, Push notifications ready
 
 ## Recent Features Added (Jan 31, 2026)
 
