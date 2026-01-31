@@ -1485,34 +1485,17 @@ const Clients = () => {
                     {renderDocumentUploadCard('cml_copy', `CML Copy${!editingClient ? ' *' : ''}`, FileCheck, 'text-purple-600', 'Extracts: DP ID, Name, PAN, Email, Mobile, Address, Bank Details')}
                     {renderDocumentUploadCard('cancelled_cheque', `Cancelled Cheque${!editingClient ? ' *' : ''}`, FileText, 'text-orange-600', 'Extracts: Bank Name, Account Number, IFSC Code (adds as separate bank account)')}
                     
-                    {/* Bank Declaration - Required for Proprietorship with Name Mismatch */}
-                    {nameMismatchDetected && isProprietor === true && (
-                      <div className="border-2 border-purple-300 dark:border-purple-700 rounded-lg p-4 bg-purple-50 dark:bg-purple-900/20">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-purple-600" />
-                            <span className="font-medium text-purple-800 dark:text-purple-200">
-                              Bank Declaration <span className="text-red-500">*</span>
-                            </span>
-                          </div>
-                          {docFiles.bank_declaration && (
-                            <Badge variant="outline" className="text-green-600 border-green-600">
-                              ✓ {docFiles.bank_declaration.name}
-                            </Badge>
-                          )}
-                        </div>
+                    {/* Proprietor info message */}
+                    {isProprietor === true && (
+                      <div className="border border-emerald-300 dark:border-emerald-700 rounded-lg p-4 bg-emerald-50 dark:bg-emerald-900/20">
                         <div className="flex items-center gap-2">
-                          <Input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={(e) => setDocFiles(prev => ({ ...prev, bank_declaration: e.target.files[0] }))}
-                            className="flex-1"
-                            data-testid="client-bank-declaration-upload"
-                          />
-                          <Upload className="h-5 w-5 text-purple-600" />
+                          <FileCheck className="h-5 w-5 text-emerald-600" />
+                          <span className="font-medium text-emerald-800 dark:text-emerald-200">
+                            Proprietorship Selected
+                          </span>
                         </div>
-                        <p className="text-xs text-purple-700 dark:text-purple-300 mt-2">
-                          Required for proprietorship entities where the business name differs from the PAN card name.
+                        <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-2">
+                          Client will be created and flagged as proprietor. Bank proof can be uploaded later from the client list.
                         </p>
                       </div>
                     )}
