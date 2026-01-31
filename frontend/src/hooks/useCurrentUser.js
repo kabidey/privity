@@ -4,24 +4,30 @@ import { useState, useEffect, useCallback } from 'react';
 export const ROLES = {
   PE_DESK: 1,
   PE_MANAGER: 2,
-  PE_HEAD: 3,
+  ZONAL_MANAGER: 3,
   MANAGER: 4,
   EMPLOYEE: 5,
   VIEWER: 6,
   FINANCE: 7,
   BUSINESS_PARTNER: 8,
+  PARTNERS_DESK: 9,
+  REGIONAL_MANAGER: 10,
+  BUSINESS_HEAD: 11,
 };
 
 // Role names for display
 export const ROLE_NAMES = {
   1: 'PE Desk',
   2: 'PE Manager',
-  3: 'PE Head',
+  3: 'Zonal Manager',
   4: 'Manager',
   5: 'Employee',
   6: 'Viewer',
   7: 'Finance',
   8: 'Business Partner',
+  9: 'Partners Desk',
+  10: 'Regional Manager',
+  11: 'Business Head',
 };
 
 // Hook to get current user info
