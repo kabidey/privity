@@ -608,7 +608,7 @@ const Stocks = () => {
         </Card>
       )}
 
-      {isPEDesk && activeTab === 'actions' && (
+      {isPELevel && activeTab === 'actions' && (
         <Card className="border shadow-sm">
           <CardHeader>
             <CardTitle>Corporate Actions</CardTitle>
