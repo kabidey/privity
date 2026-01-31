@@ -259,11 +259,6 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Users, label: 'Team Revenue', path: '/employee-revenue' });
   }
 
-  // Research - accessible to all employees (not BP)
-  if (user.role !== 8) {
-    menuItems.push({ icon: BookOpen, label: 'Research', path: '/research' });
-  }
-
   // BP Dashboard - for Business Partners only (role 8)
   if (user.role === 8) {
     // BP has their own limited menu
