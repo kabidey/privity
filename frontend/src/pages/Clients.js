@@ -1440,9 +1440,8 @@ const Clients = () => {
                             <div className="mt-2 flex items-center gap-2">
                               <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
                                 <FileCheck className="h-3 w-3" />
-                                Proprietorship confirmed
+                                Proprietorship confirmed - Ready to create
                               </span>
-                              <span className="text-xs text-amber-600">→ Bank Declaration required below</span>
                               <button 
                                 type="button"
                                 onClick={() => setIsProprietor(null)}
