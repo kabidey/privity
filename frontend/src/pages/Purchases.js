@@ -392,11 +392,11 @@ const Purchases = () => {
                       <TableCell className="font-medium">{purchase.vendor_name}</TableCell>
                       <TableCell className="mono text-sm font-semibold">{purchase.stock_symbol}</TableCell>
                       <TableCell className="mono">{purchase.quantity.toLocaleString('en-IN')}</TableCell>
-                      <TableCell className="mono">₹{purchase.price_per_unit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="mono">₹{(purchase.price_per_share || purchase.price_per_unit || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell className="mono font-semibold">₹{purchase.total_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell className="mono text-green-600">₹{(purchase.total_paid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell>{getPaymentStatus(purchase)}</TableCell>
-                      <TableCell className="text-sm">{new Date(purchase.purchase_date).toLocaleDateString('en-IN')}</TableCell>
+                      <TableCell className="text-sm">{new Date(purchase.purchase_date || purchase.created_at).toLocaleDateString('en-IN')}</TableCell>
                       {isPEDesk && (
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
