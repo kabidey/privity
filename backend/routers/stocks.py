@@ -118,10 +118,10 @@ async def get_stock(stock_id: str, current_user: dict = Depends(get_current_user
 
 @router.put("/stocks/{stock_id}", response_model=Stock)
 async def update_stock(stock_id: str, stock_data: StockCreate, current_user: dict = Depends(get_current_user)):
-    """Update a stock (PE Desk only)"""
+    """Update a stock (PE Desk and PE Manager)"""
     user_role = current_user.get("role", 5)
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can update stocks")
+    if user_role not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Only PE Desk and PE Manager can update stocks")
     
     existing = await db.stocks.find_one({"id": stock_id}, {"_id": 0})
     if not existing:
