@@ -66,10 +66,10 @@ async def update_inventory(stock_id: str):
 # ============== Stock Endpoints ==============
 @router.post("/stocks", response_model=Stock)
 async def create_stock(stock_data: StockCreate, current_user: dict = Depends(get_current_user)):
-    """Create a new stock (PE Desk only)"""
+    """Create a new stock (PE Desk and PE Manager)"""
     user_role = current_user.get("role", 5)
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can create stocks")
+    if user_role not in [1, 2]:
+        raise HTTPException(status_code=403, detail="Only PE Desk and PE Manager can create stocks")
     
     existing = await db.stocks.find_one({"symbol": stock_data.symbol.upper()}, {"_id": 0})
     if existing:
