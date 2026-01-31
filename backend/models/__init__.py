@@ -146,6 +146,8 @@ class Client(BaseModel):
     created_by_role: int = 5
     mapped_employee_id: Optional[str] = None
     mapped_employee_name: Optional[str] = None
+    is_proprietor: bool = False  # Flag for proprietorship entities
+    has_name_mismatch: bool = False  # Flag if name mismatch was detected during creation
 
 
 # ============== Stock Models ==============
