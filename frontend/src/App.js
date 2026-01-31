@@ -40,7 +40,7 @@ import MyDashboard from './pages/MyDashboard';
 import Research from './pages/Research';
 import ClientDashboard from './pages/ClientDashboard';
 import Layout from './components/Layout';
-import SohiniAssistant from './components/SohiniAssistant';
+import GroupChat from './components/GroupChat';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
