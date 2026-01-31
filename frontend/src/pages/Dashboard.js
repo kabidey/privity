@@ -6,6 +6,7 @@ import { Users, TrendingUp, FileText, Package, Building2, ShoppingCart, Boxes, B
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import api from '../utils/api';
 import { toast } from 'sonner';
+import SohiniAssistant from '../components/SohiniAssistant';
 
 const Dashboard = () => {
   const navigate = useNavigate();
