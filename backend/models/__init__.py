@@ -226,15 +226,23 @@ class Purchase(BaseModel):
     stock_id: str
     stock_symbol: str
     quantity: int
-    price_per_unit: float
+    price_per_share: Optional[float] = None
+    price_per_unit: Optional[float] = None
     total_amount: float
-    purchase_date: str
+    purchase_date: Optional[str] = None
+    purchase_number: Optional[str] = None
     notes: Optional[str] = None
     created_at: str
     created_by: str
+    created_by_name: Optional[str] = None
     payments: Optional[List[dict]] = []
     total_paid: float = 0
     payment_status: str = "pending"
+    status: Optional[str] = "pending"
+    dp_status: Optional[str] = None
+    dp_type: Optional[str] = None
+    dp_receivable_at: Optional[str] = None
+    dp_received_at: Optional[str] = None
 
 
 # ============== Inventory Model ==============
