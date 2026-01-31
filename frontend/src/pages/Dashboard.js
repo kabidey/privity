@@ -1,17 +1,23 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, TrendingUp, FileText, Package, Building2, ShoppingCart, Boxes, IndianRupee } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, TrendingUp, FileText, Package, Building2, ShoppingCart, Boxes, IndianRupee, BookOpen, Sparkles, ChevronRight, FileSearch, Brain } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import api from '../utils/api';
 import { toast } from 'sonner';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [analytics, setAnalytics] = useState(null);
+  const [researchStats, setResearchStats] = useState(null);
+  const [recentReports, setRecentReports] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const isNotBP = currentUser.role !== 8;
 
   useEffect(() => {
     fetchData();
@@ -36,17 +42,30 @@ const Dashboard = () => {
         } catch (e) {}
       }
       
-      const [statsRes, analyticsRes] = await Promise.all([
+      const requests = [
         api.get('/dashboard/stats'),
         api.get('/dashboard/analytics'),
-      ]);
-      setStats(statsRes.data);
-      setAnalytics(analyticsRes.data);
+      ];
+      
+      // Fetch research data for non-BP users
+      if (isNotBP) {
+        requests.push(api.get('/research/stats'));
+        requests.push(api.get('/research/reports?limit=5'));
+      }
+      
+      const responses = await Promise.all(requests);
+      setStats(responses[0].data);
+      setAnalytics(responses[1].data);
+      
+      if (isNotBP && responses.length > 2) {
+        setResearchStats(responses[2].data);
+        setRecentReports(responses[3].data.slice(0, 3));
+      }
       
       // Cache for 5 minutes
       const ttl = 5 * 60 * 1000;
       localStorage.setItem('privity_cache_dashboard_stats', JSON.stringify({
-        data: statsRes.data,
+        data: responses[0].data,
         expiry: Date.now() + ttl
       }));
       localStorage.setItem('privity_cache_dashboard_analytics', JSON.stringify({
