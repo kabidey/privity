@@ -32,6 +32,23 @@ DEFAULT_EMAIL_TEMPLATES = {
         "variables": ["client_name", "otc_ucc"],
         "is_active": True
     },
+    "client_rejected": {
+        "key": "client_rejected",
+        "name": "Client Rejected",
+        "subject": "Account Registration - Update Required",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #ef4444;">Account Registration Update</h2>
+            <p>Dear {{client_name}},</p>
+            <p>We regret to inform you that your account registration could not be approved at this time.</p>
+            <p>This may be due to incomplete documentation or verification requirements.</p>
+            <p>Please contact our team for more details and next steps.</p>
+            <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+        </div>
+        """,
+        "variables": ["client_name"],
+        "is_active": True
+    },
     "booking_created": {
         "key": "booking_created",
         "name": "Booking Created (Pending Approval)",
