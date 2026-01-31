@@ -29,10 +29,10 @@ const KillSwitch = ({ userRole }) => {
     }
   }, []);
 
-  // Fetch status on mount and periodically
+  // Fetch status on mount and periodically (reduced from 5s to 30s)
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000);
+    const interval = setInterval(fetchStatus, 30000); // 30 seconds instead of 5
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
