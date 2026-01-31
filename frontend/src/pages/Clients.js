@@ -66,6 +66,7 @@ const Clients = () => {
   const [nameMismatchDetected, setNameMismatchDetected] = useState(false);
   const [isProprietor, setIsProprietor] = useState(null); // null = not asked, true/false = answered
   const [proprietorDialogOpen, setProprietorDialogOpen] = useState(false);
+  const [uploadingBankProof, setUploadingBankProof] = useState(null); // client ID being uploaded to
   
   const [newBankAccount, setNewBankAccount] = useState({
     bank_name: '',
@@ -84,6 +85,7 @@ const Clients = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
+  const isPEManager = currentUser.role === 2;
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
   const isAdmin = currentUser.role <= 2;
   const isManager = currentUser.role <= 3;
