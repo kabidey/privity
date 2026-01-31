@@ -70,10 +70,12 @@ const Stocks = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
+  const isPEManager = currentUser.role === 2;
+  const isPELevel = isPEDesk || isPEManager;
 
   useEffect(() => {
     fetchStocks();
-    if (isPEDesk) {
+    if (isPELevel) {
       fetchCorporateActions();
     }
   }, []);
