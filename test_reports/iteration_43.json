@@ -1,0 +1,85 @@
+{
+  "summary": "Proprietorship selection workflow feature testing completed. All features working correctly. The 'This is a Proprietorship' checkbox appears in Client and Vendor forms after PAN card OCR extracts a name. Checking the checkbox enables bank declaration document requirement. Clients/Vendors list shows red 'Proprietor' flag for proprietor entities with name mismatch, and 'Upload Proof' button for those without bank proof uploaded.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "=== PROPRIETORSHIP WORKFLOW TESTS (All passed) ===",
+    "Login as PE Desk - Works correctly (role 1)",
+    "Clients page loads with client list",
+    "Add Client dialog shows 3-step wizard (Documents → Details → Bank)",
+    "Proprietorship checkbox implementation verified in Clients.js (lines 1176-1216)",
+    "Proprietorship checkbox implementation verified in Vendors.js (lines 496-536)",
+    "Checkbox has data-testid='proprietor-checkbox' for testing",
+    "Checkbox appears when extractedNames.pan_card is set (after PAN OCR)",
+    "Checking checkbox sets isProprietor=true and nameMismatchDetected=true",
+    "Bank Declaration document required when proprietor checkbox is checked",
+    "Client creation API accepts is_proprietor and has_name_mismatch flags",
+    "Vendor creation API accepts is_proprietor and has_name_mismatch flags",
+    "Clients list shows red 'Proprietor' badge for proprietor clients with name mismatch",
+    "Clients list shows orange 'Upload Proof' button when bank_proof_url is null",
+    "Clients list shows green 'Proof' badge when bank_proof_url is set",
+    "Bank proof upload endpoint (/api/clients/{id}/bank-proof) works correctly",
+    "Vendors list shows red 'Proprietor' badge for proprietor vendors",
+    "Vendors list shows 'Upload Proof' button for vendors without bank proof"
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Proprietorship checkbox correctly implemented with data-testid attribute",
+    "Backend properly stores is_proprietor and has_name_mismatch flags",
+    "Bank proof upload endpoint validates proprietor status before allowing upload",
+    "PE Manager approval blocked for proprietor clients without bank proof (line 265-274 in clients.py)",
+    "UI correctly shows different states: Proprietor badge, Upload Proof button, Proof badge"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (all proprietorship-related endpoints working)",
+    "frontend": "100% (all UI elements displaying correctly)"
+  },
+  "test_credentials": {
+    "PE Desk": "pedesk@smifs.com / Kutta@123 (Role 1)"
+  },
+  "seed_data_creation": "Created and cleaned up test proprietor client and vendor for API testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Proprietorship workflow feature fully tested and working. The checkbox appears in Client Details tab after PAN card OCR extracts a name. When checked, it requires Bank Declaration document. Existing proprietor clients show red 'Proprietor' flag and 'Upload Proof' button in the list. Bank proof upload endpoint works correctly.",
+  "features_verified": {
+    "proprietorship_checkbox_client": {
+      "location": "Client Details tab, under Name field",
+      "trigger": "Appears when PAN card OCR extracts a name (extractedNames.pan_card is set)",
+      "behavior": "When checked, sets isProprietor=true and nameMismatchDetected=true",
+      "requirement": "Bank Declaration document required when checked",
+      "data_testid": "proprietor-checkbox"
+    },
+    "proprietorship_checkbox_vendor": {
+      "location": "Vendor Details tab, under Company/Vendor Name field",
+      "trigger": "Appears when PAN card OCR extracts a name (ocrExtractedName is set)",
+      "behavior": "When checked, sets isProprietor=true and nameMismatchDetected=true",
+      "requirement": "Bank Declaration document required when checked",
+      "data_testid": "vendor-proprietor-checkbox"
+    },
+    "clients_list_proprietor_flag": {
+      "condition": "client.is_proprietor && client.has_name_mismatch",
+      "display": "Red 'Proprietor' badge with AlertTriangle icon",
+      "visibility": "PE Level users only (isPELevel check)"
+    },
+    "bank_proof_upload": {
+      "endpoint": "POST /api/clients/{client_id}/bank-proof",
+      "permission": "PE Desk and PE Manager only",
+      "validation": "Only for proprietor clients with name mismatch",
+      "ui_button": "Orange 'Upload Proof' button when bank_proof_url is null",
+      "ui_badge": "Green 'Proof' badge when bank_proof_url is set"
+    },
+    "pe_manager_approval_restriction": {
+      "condition": "PE Manager cannot approve proprietor clients with name mismatch unless bank proof is uploaded",
+      "bypass": "PE Desk (role 1) can bypass this check"
+    }
+  }
+}
