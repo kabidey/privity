@@ -107,6 +107,8 @@ function App() {
                     <NotificationDialog />
                     {/* Team Group Chat */}
                     <GroupChat />
+                    {/* PWA Install Prompt */}
+                    <InstallPWA />
                   </NotificationProvider>
                 </PrivateRoute>
               }
