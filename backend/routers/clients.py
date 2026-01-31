@@ -745,7 +745,12 @@ async def clone_client_vendor(
         "is_vendor": target_type == "vendor",
         "is_active": True,
         "approval_status": "approved",
-        "documents": [],
+        "documents": source.get("documents", []),  # Copy documents from source
+        "is_proprietor": source.get("is_proprietor", False),
+        "has_name_mismatch": source.get("has_name_mismatch", False),
+        "bank_proof_url": source.get("bank_proof_url"),
+        "bank_proof_uploaded_by": source.get("bank_proof_uploaded_by"),
+        "bank_proof_uploaded_at": source.get("bank_proof_uploaded_at"),
         "user_id": current_user["id"],
         "created_by": current_user["id"],
         "created_by_role": current_user.get("role", 1),
