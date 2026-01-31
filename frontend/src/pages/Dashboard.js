@@ -88,7 +88,7 @@ const Dashboard = () => {
         expiry: Date.now() + ttl
       }));
       localStorage.setItem('privity_cache_dashboard_analytics', JSON.stringify({
-        data: analyticsRes.data,
+        data: responses[1].data,
         expiry: Date.now() + ttl
       }));
     } catch (error) {
