@@ -48,7 +48,9 @@ ROLES = {
     6: "Viewer",
     7: "Finance",
     8: "Business Partner",
-    9: "Partners Desk"
+    9: "Partners Desk",
+    10: "Regional Manager",
+    11: "Business Head"
 }
 
 # Role Permissions
@@ -61,10 +63,12 @@ ROLE_PERMISSIONS = {
     3: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
     4: ["view_all", "manage_clients", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],
     5: ["view_own", "create_bookings", "view_clients", "create_clients"],
-    6: ["view_own"],
+    6: ["view_all"],  # Viewer - View all modules but no create/edit/delete/download
     7: ["view_own", "create_bookings", "view_clients", "create_clients", "view_finance", "manage_finance"],  # Finance - Employee + full Finance access
     8: ["view_own", "create_bookings", "view_clients", "create_clients", "view_bp_dashboard", "view_bp_reports"],  # Business Partner - can create bookings and clients, view own dashboard
-    9: ["view_own", "create_bookings", "view_clients", "create_clients", "manage_business_partners", "view_bp_revenue", "add_business_partners"]  # Partners Desk - Employee + BP management (no delete)
+    9: ["view_own", "create_bookings", "view_clients", "create_clients", "manage_business_partners", "view_bp_revenue", "add_business_partners"],  # Partners Desk - Employee + BP management (no delete)
+    10: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "view_reports", "approve_clients"],  # Regional Manager - Above Zonal Manager
+    11: ["view_all", "manage_users", "manage_clients", "manage_stocks", "manage_bookings", "manage_purchases", "view_reports", "approve_clients", "approve_bookings"]  # Business Head - Above Regional Manager
 }
 
 
