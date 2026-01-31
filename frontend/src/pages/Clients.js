@@ -1471,7 +1471,7 @@ const Clients = () => {
                                 onClick={() => setIsProprietor(null)}
                                 className="text-xs text-amber-700 hover:text-amber-900 underline mt-1"
                               >
-                                Actually, it's a Proprietorship
+                                Actually, it&apos;s a Proprietorship
                               </button>
                             </div>
                           )}
