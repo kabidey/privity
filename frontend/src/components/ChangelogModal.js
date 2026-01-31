@@ -22,7 +22,7 @@ const LAST_SEEN_VERSION_KEY = 'privity_last_seen_version';
 
 const ChangelogModal = ({ isOpen, onClose, showAllVersions = false }) => {
   const [changelog, setChangelog] = useState([]);
-  const currentVersion = getVersion();
+  const currentVersion = getFullVersion(); // Use full version with build number
 
   useEffect(() => {
     if (showAllVersions) {
