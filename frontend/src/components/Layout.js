@@ -291,7 +291,7 @@ const Layout = ({ children }) => {
               data-testid="app-version"
               title="View changelog"
             >
-              {getVersion()}
+              {getFullVersion()}
             </button>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">Private Equity System</p>
@@ -511,7 +511,7 @@ const Layout = ({ children }) => {
               className="text-[10px] font-medium text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full hover:bg-emerald-100 hover:text-emerald-600 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 transition-colors"
               data-testid="app-version-mobile"
             >
-              {getVersion()}
+              {getFullVersion()}
             </button>
             {/* PE Availability Indicator for Mobile */}
             <div 
