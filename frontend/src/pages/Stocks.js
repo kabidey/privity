@@ -251,10 +251,10 @@ const Stocks = () => {
         <div>
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Stocks</h1>
           <p className="text-muted-foreground text-sm md:text-base">
-            {isPEDesk ? 'Manage stocks and corporate actions' : 'View available stocks'}
+            {isPELevel ? 'Manage stocks and corporate actions' : 'View available stocks'}
           </p>
         </div>
-        {isPEDesk && (
+        {isPELevel && (
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Dialog open={actionDialogOpen} onOpenChange={(open) => { setActionDialogOpen(open); if (!open) resetActionForm(); }}>
               <DialogTrigger asChild>
