@@ -18,7 +18,7 @@ from models import ClientCreate, Client, BankAccount, ClientSuspensionRequest
 from utils.auth import get_current_user, check_permission
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
-from services.email_service import send_templated_email
+from services.email_service import send_templated_email, send_email, get_email_template
 from services.ocr_service import process_document_ocr
 
 router = APIRouter(tags=["Clients"])
