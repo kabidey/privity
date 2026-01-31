@@ -833,6 +833,12 @@ rp_payments: {
 - [ ] Configurable thresholds for loss-booking auto-approval
 
 ## Known Issues Fixed
+- **CML OCR Extracting Father's Name Bug (Dec 2025)**:
+  - Fixed OCR extracting father's/spouse's name instead of primary account holder name
+  - Updated `/app/backend/services/ocr_service.py` with explicit instructions to extract "Sole/First Holder Name"
+  - Prompt now explicitly excludes "Father's Name", "Father/Husband Name", "Guardian Name" fields
+  - Installed `poppler-utils` for PDF processing support
+  - Verified with test CML: Correctly extracts "SOMNATH DEY" (not "SUBHASH CHANDRA DEY")
 - OTP and system emails not being sent (requires SMTP configuration via Email Server Config page)
 - SMTP Collection Mismatch (Jan 29, 2026): Fixed email service to read from `smtp_settings` collection instead of `email_config`
 - Default User Role Bug (Jan 29, 2026): Fixed new users being created as Manager (role 4) instead of Employee (role 5)
