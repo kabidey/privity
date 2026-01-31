@@ -543,6 +543,84 @@ async def upload_client_document(
     return {"message": "Document uploaded successfully", "document": doc_record}
 
 
+@router.post("/clients/{client_id}/bank-proof")
+async def upload_bank_proof(
+    client_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload bank proof document for proprietor clients with name mismatch (PE Level only)."""
+    user_role = current_user.get("role", 6)
+    
+    # Only PE Desk and PE Manager can upload bank proof
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can upload bank proof")
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Validate this is a proprietor client with name mismatch
+    if not client.get("is_proprietor") or not client.get("has_name_mismatch"):
+        raise HTTPException(status_code=400, detail="Bank proof upload is only required for proprietor clients with name mismatch")
+    
+    # Create client directory
+    client_dir = UPLOAD_DIR / client_id
+    client_dir.mkdir(exist_ok=True)
+    
+    # Save file
+    file_ext = Path(file.filename).suffix
+    filename = f"bank_proof_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{file_ext}"
+    file_path = client_dir / filename
+    
+    async with aiofiles.open(file_path, 'wb') as f:
+        content = await file.read()
+        await f.write(content)
+    
+    # Update client with bank proof URL
+    bank_proof_url = f"/api/clients/{client_id}/documents/{filename}"
+    update_data = {
+        "bank_proof_url": bank_proof_url,
+        "bank_proof_uploaded_by": current_user["id"],
+        "bank_proof_uploaded_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.clients.update_one({"id": client_id}, {"$set": update_data})
+    
+    # Also add to documents array for consistency
+    doc_record = {
+        "doc_type": "bank_proof",
+        "filename": filename,
+        "file_path": str(file_path),
+        "upload_date": datetime.now(timezone.utc).isoformat(),
+        "ocr_data": None
+    }
+    
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$push": {"documents": doc_record}}
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="BANK_PROOF_UPLOAD",
+        entity_type="client",
+        entity_id=client_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=client["name"],
+        details={"filename": filename, "is_proprietor": True, "has_name_mismatch": True}
+    )
+    
+    return {
+        "message": "Bank proof uploaded successfully", 
+        "bank_proof_url": bank_proof_url,
+        "uploaded_by": current_user["name"],
+        "uploaded_at": update_data["bank_proof_uploaded_at"]
+    }
+
+
 @router.get("/clients/{client_id}/documents/{filename}")
 async def download_client_document(
     client_id: str,
