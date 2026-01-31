@@ -1342,6 +1342,32 @@ const Clients = () => {
                             <FileCheck className="h-3 w-3" /> Proprietorship confirmed - Bank Declaration required
                           </p>
                         )}
+                        {isProprietor === null && (
+                          <div className="mt-2 flex gap-2">
+                            <Button 
+                              type="button"
+                              size="sm"
+                              onClick={() => setProprietorDialogOpen(true)}
+                              className="bg-amber-600 hover:bg-amber-700 text-white"
+                            >
+                              Choose Proprietor Status
+                            </Button>
+                          </div>
+                        )}
+                        {isProprietor === false && (
+                          <div className="mt-2">
+                            <p className="text-xs text-red-600 dark:text-red-400">
+                              Please correct the client name to match the PAN card, or 
+                              <button 
+                                type="button"
+                                onClick={() => setProprietorDialogOpen(true)}
+                                className="underline ml-1 text-amber-700 hover:text-amber-900"
+                              >
+                                change to Proprietorship
+                              </button>
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
