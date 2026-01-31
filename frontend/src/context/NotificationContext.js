@@ -302,54 +302,55 @@ export const NotificationProvider = ({ children }) => {
       fetchUnreadCount();
       connectWebSocket();
       
-      // Polling fallback for when WebSocket is not available
-      // Poll every 10 seconds for new notifications
+      // Polling fallback ONLY when WebSocket is not available
+      // Poll every 60 seconds (was 10 seconds - reduced to minimize API calls)
       const pollInterval = setInterval(async () => {
+        // Only poll if WebSocket is NOT connected
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
           try {
             const response = await api.get('/notifications?limit=5');
             const newNotifications = response.data;
             
-            // Check for new notifications
+            // Check for new notifications by comparing with stored latest ID
+            const storedLatestId = localStorage.getItem('privity_latest_notification_id');
+            
             if (newNotifications.length > 0) {
               const latestFromServer = newNotifications[0];
-              const currentLatest = notifications[0];
               
               // If there's a new notification we haven't seen
-              if (!currentLatest || latestFromServer.id !== currentLatest.id) {
-                // Check if this is actually new (not in our current list)
-                const isNew = !notifications.find(n => n.id === latestFromServer.id);
-                if (isNew && !latestFromServer.read) {
-                  setNotifications(prev => {
-                    // Only add if not already present
-                    if (!prev.find(n => n.id === latestFromServer.id)) {
-                      return [latestFromServer, ...prev];
-                    }
-                    return prev;
-                  });
-                  setUnreadCount(prev => prev + 1);
-                  
-                  // Play sound and show floating notification
-                  const urgentTypes = ['booking_rejected', 'loss_booking', 'approval_needed', 'payment_overdue'];
-                  const isUrgent = urgentTypes.some(t => latestFromServer.type?.includes(t));
-                  
-                  if (isUrgent) {
-                    playUrgentSound();
-                  } else {
-                    playNotificationSound();
+              if (latestFromServer.id !== storedLatestId && !latestFromServer.read) {
+                // Store the latest ID to prevent duplicate processing
+                localStorage.setItem('privity_latest_notification_id', latestFromServer.id);
+                
+                setNotifications(prev => {
+                  // Only add if not already present
+                  if (!prev.find(n => n.id === latestFromServer.id)) {
+                    return [latestFromServer, ...prev];
                   }
-                  
-                  addFloatingNotification(latestFromServer);
-                  setLatestNotification(latestFromServer);
-                  setHasNewNotification(true);
-                  setTimeout(() => setHasNewNotification(false), 3000);
-                  
-                  // Show toast
-                  toast(latestFromServer.title, {
-                    description: latestFromServer.message,
-                    duration: 6000
-                  });
+                  return prev;
+                });
+                setUnreadCount(prev => prev + 1);
+                
+                // Play sound and show floating notification
+                const urgentTypes = ['booking_rejected', 'loss_booking', 'approval_needed', 'payment_overdue'];
+                const isUrgent = urgentTypes.some(t => latestFromServer.type?.includes(t));
+                
+                if (isUrgent) {
+                  playUrgentSound();
+                } else {
+                  playNotificationSound();
                 }
+                
+                addFloatingNotification(latestFromServer);
+                setLatestNotification(latestFromServer);
+                setHasNewNotification(true);
+                setTimeout(() => setHasNewNotification(false), 3000);
+                
+                // Show toast
+                toast(latestFromServer.title, {
+                  description: latestFromServer.message,
+                  duration: 6000
+                });
               }
             }
             
@@ -360,7 +361,7 @@ export const NotificationProvider = ({ children }) => {
             // Silent fail for polling
           }
         }
-      }, 10000); // Poll every 10 seconds
+      }, 60000); // Poll every 60 seconds only as fallback
       
       return () => clearInterval(pollInterval);
     }
@@ -373,7 +374,7 @@ export const NotificationProvider = ({ children }) => {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [fetchNotifications, fetchUnreadCount, connectWebSocket, addFloatingNotification, notifications]);
+  }, [fetchNotifications, fetchUnreadCount, connectWebSocket, addFloatingNotification]);
 
   // Manual test notification trigger
   const triggerTestNotification = useCallback(async () => {
