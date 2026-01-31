@@ -4,6 +4,24 @@
 
 const CHANGELOG = [
   {
+    version: 'v1.1.0',
+    date: '2026-01-30',
+    title: 'Research Center & Mobile Enhancements',
+    changes: [
+      { type: 'feature', description: 'Research Center - AI-powered stock research assistant and report management' },
+      { type: 'feature', description: 'Proprietorship Workflow - Name mismatch detection with Bank Declaration upload' },
+      { type: 'feature', description: 'PE Manager Vendor Access - Create and edit vendors (without delete)' },
+      { type: 'feature', description: 'Page Caching - Faster load times for Dashboard, Stocks, Clients' },
+      { type: 'improvement', description: 'Mobile Responsiveness - Bottom sheet dialogs on mobile devices' },
+      { type: 'improvement', description: 'Simplified Notifications - Reduced intrusive sounds and popups' },
+      { type: 'improvement', description: 'Code Refactoring - Email templates extracted, hooks centralized' },
+      { type: 'fix', description: 'Route Order Bug - Fixed pending-approval endpoints returning 404' },
+      { type: 'fix', description: 'Vendor Creation - Made DP ID optional for vendors' },
+      { type: 'fix', description: 'Vendor Update - Fixed field name mismatches in update endpoint' },
+      { type: 'fix', description: 'Health Endpoint - Added /health for Kubernetes probes' },
+    ]
+  },
+  {
     version: 'v1.0.0',
     date: '2026-01-29',
     title: 'Major Release',
