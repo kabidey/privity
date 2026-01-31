@@ -46,6 +46,9 @@ const Purchases = () => {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const isFinance = currentUser.role === 3;
+  const canPay = isPELevel || isFinance; // PE Desk, PE Manager, and Finance can pay
+  const canDelete = isPEDesk; // Only PE Desk can delete
 
   useEffect(() => {
     // Only PE Desk and PE Manager can access Purchases
