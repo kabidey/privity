@@ -1,10 +1,23 @@
 // Changelog data - Add new entries at the top
 // Format: { version, date, changes: [{ type, description }] }
 // Types: 'feature', 'fix', 'improvement', 'security'
+import { getVersionDetails } from './version';
 
 const CHANGELOG = [
   {
     version: 'v1.1.0',
+    date: '2026-01-31',
+    title: 'Build Updates & Enhancements',
+    changes: [
+      { type: 'feature', description: 'CML OCR Fix - Now extracts primary account holder name correctly (not father\'s name)' },
+      { type: 'feature', description: 'PE Manager Stock Access - Create, edit stocks and corporate actions' },
+      { type: 'feature', description: 'Proprietor Workflow - Simplified creation without mandatory bank declaration' },
+      { type: 'improvement', description: 'Version display now shows build number (v1.1.0.XX)' },
+      { type: 'fix', description: 'Name mismatch bypass when proprietor is selected' },
+    ]
+  },
+  {
+    version: 'v1.1.0-prev',
     date: '2026-01-30',
     title: 'Research Center & Mobile Enhancements',
     changes: [
