@@ -1416,7 +1416,7 @@ const Clients = () => {
                           {isProprietor === null && (
                             <div className="mt-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-amber-200 dark:border-amber-700">
                               <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                Is this a <strong>Proprietorship</strong> entity where the business operates under the proprietor's personal PAN?
+                                Is this a <strong>Proprietorship</strong> entity where the business operates under the proprietor&apos;s personal PAN?
                               </p>
                               <div className="flex gap-2">
                                 <Button 
