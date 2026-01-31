@@ -818,7 +818,12 @@ rp_payments: {
   - Added 6 missing templates: corporate_action_notification, contract_note, bp_login_otp, payment_request, stock_transfer_request, stock_transferred
   - Fixed broken function calls in stocks.py and business_partners.py
   - Total 23 email templates now available
-- [ ] UI notification for admins if SMTP email service is not configured
+- [x] UI notification for admins if SMTP email service is not configured - COMPLETED (Jan 31, 2026)
+  - Added `/api/email-config/status` endpoint to check SMTP configuration status
+  - Added prominent amber warning banner on Dashboard for PE Level users
+  - Shows "Email Service Not Configured" with clear message about affected features
+  - Includes "Configure Email Settings" button for PE Desk users
+  - Warning is dismissible and only shows when SMTP is not properly configured
 
 ### P2 - Nice to Have
 - [x] Role-specific dashboards - COMPLETED (Jan 29, 2026)
