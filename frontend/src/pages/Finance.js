@@ -815,7 +815,141 @@ const Finance = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Employee Commissions Tab */}
+        <TabsContent value="employee-commissions">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Employee Commissions
+              </CardTitle>
+              <CardDescription>
+                Track employee revenue share commissions from closed bookings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 md:p-6">
+              {employeeCommissions.length === 0 ? (
+                <p className="text-center py-8 text-muted-foreground">No employee commissions found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Booking #</TableHead>
+                        <TableHead>Employee</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Stock</TableHead>
+                        <TableHead className="text-right">Profit</TableHead>
+                        <TableHead className="text-right">Share %</TableHead>
+                        <TableHead className="text-right">Commission</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {employeeCommissions.map((commission) => (
+                        <TableRow key={commission.booking_id} data-testid={`commission-row-${commission.booking_id}`}>
+                          <TableCell className="font-mono text-sm">{commission.booking_number}</TableCell>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{commission.employee_name}</p>
+                              <p className="text-xs text-muted-foreground">{commission.employee_email}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{commission.client_name}</TableCell>
+                          <TableCell className="font-mono">{commission.stock_symbol}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(commission.profit)}</TableCell>
+                          <TableCell className="text-right text-blue-600">{commission.employee_share_percent}%</TableCell>
+                          <TableCell className="text-right font-bold text-green-600">
+                            {formatCurrency(commission.commission_amount)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={
+                              commission.status === 'paid' 
+                                ? 'bg-green-100 text-green-800' 
+                                : commission.status === 'calculated'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }>
+                              {commission.status === 'paid' && <CheckCircle className="h-3 w-3 mr-1" />}
+                              {commission.status === 'calculated' && <Clock className="h-3 w-3 mr-1" />}
+                              {commission.status === 'pending' && <AlertCircle className="h-3 w-3 mr-1" />}
+                              {commission.status.charAt(0).toUpperCase() + commission.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {commission.status !== 'paid' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedCommission(commission);
+                                  setCommissionDialogOpen(true);
+                                }}
+                                data-testid={`mark-paid-${commission.booking_id}`}
+                              >
+                                Mark Paid
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Employee Commission Dialog */}
+      <Dialog open={commissionDialogOpen} onOpenChange={setCommissionDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Mark Commission as Paid
+            </DialogTitle>
+            <DialogDescription>
+              Confirm payment of commission to {selectedCommission?.employee_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedCommission && (
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="pt-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Booking:</span>
+                    <span className="font-mono">{selectedCommission.booking_number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Commission Amount:</span>
+                    <span className="font-bold text-green-600">{formatCurrency(selectedCommission.commission_amount)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Employee Share:</span>
+                    <span>{selectedCommission.employee_share_percent}%</span>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setCommissionDialogOpen(false)}>Cancel</Button>
+                <Button 
+                  onClick={() => handleMarkCommissionPaid(selectedCommission.booking_id)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Confirm Payment
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Refund Update Dialog */}
       <Dialog open={refundDialogOpen} onOpenChange={setRefundDialogOpen}>
