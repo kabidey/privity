@@ -237,6 +237,7 @@ async def add_purchase_payment(
         "payment_mode": payment_mode,
         "reference_number": reference_number,
         "notes": notes,
+        "proof_url": proof_url,
         "status": "completed",
         "created_by": current_user["id"],
         "created_at": datetime.now(timezone.utc).isoformat()
