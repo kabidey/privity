@@ -552,35 +552,28 @@ const Layout = ({ children }) => {
             </button>
           </div>
           
-          {/* User Card */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-            <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold text-lg ${
+          {/* Compact User Card */}
+          <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
                 isPELevel 
                   ? 'bg-gradient-to-br from-emerald-400 to-teal-500' 
                   : 'bg-gradient-to-br from-blue-400 to-indigo-500'
               }`}>
                 {user.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'}
               </div>
-              <div className="flex-1">
-                <div className="font-semibold text-gray-900 dark:text-white">{user.name}</div>
-                <div className="text-sm text-emerald-600 dark:text-emerald-400">{user.role_name}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm text-gray-900 dark:text-white truncate">{user.name}</div>
+                <div className="text-xs text-emerald-600 dark:text-emerald-400">{user.role_name}</div>
               </div>
-              {/* PE Availability indicator */}
               <div 
-                className={`w-3 h-3 rounded-full ${isPeAvailable ? 'bg-green-500' : 'bg-red-500'}`}
+                className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isPeAvailable ? 'bg-green-500' : 'bg-red-500'}`}
                 style={{
                   boxShadow: isPeAvailable 
-                    ? '0 0 8px #22c55e, 0 0 16px #22c55e' 
-                    : '0 0 8px #ef4444, 0 0 16px #ef4444'
+                    ? '0 0 6px #22c55e' 
+                    : '0 0 6px #ef4444'
                 }}
-                title={peStatus.message}
               />
-            </div>
-            {/* PE Status Message */}
-            <div className={`mt-2 text-xs text-center ${isPeAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {peStatus.message}
             </div>
           </div>
           
