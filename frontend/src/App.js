@@ -43,11 +43,59 @@ import ClientDashboard from './pages/ClientDashboard';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
+import UserAgreementModal from './components/UserAgreementModal';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
+};
+
+// Component to check and show user agreement
+const AgreementChecker = ({ children }) => {
+  const [showAgreement, setShowAgreement] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    checkAgreement();
+  }, []);
+
+  const checkAgreement = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    // Show agreement if user hasn't accepted it yet
+    if (user.id && !user.agreement_accepted) {
+      setShowAgreement(true);
+    }
+    setChecking(false);
+  };
+
+  const handleAccept = () => {
+    setShowAgreement(false);
+  };
+
+  const handleDecline = () => {
+    // Will redirect to login via the modal
+  };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <UserAgreementModal 
+        isOpen={showAgreement} 
+        onAccept={handleAccept} 
+        onDecline={handleDecline} 
+      />
+      {children}
+    </>
+  );
 };
 
 function App() {
