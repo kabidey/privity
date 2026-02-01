@@ -279,9 +279,9 @@ const Layout = ({ children }) => {
       <SystemFrozenOverlay userRole={user.role} />
       
       {/* iOS-style Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 fixed h-full z-40">
+      <aside className="hidden lg:flex lg:flex-col w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 fixed h-screen z-40 overflow-hidden">
         {/* Header with Logo and Status Indicator */}
-        <div className="p-6 border-b border-gray-200/50 dark:border-gray-800/50">
+        <div className="p-6 border-b border-gray-200/50 dark:border-gray-800/50 flex-shrink-0">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent" data-testid="app-title">
               PRIVITY
