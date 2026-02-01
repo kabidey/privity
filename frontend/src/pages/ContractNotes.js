@@ -379,6 +379,22 @@ const ContractNotes = () => {
                               <Mail className="w-4 h-4" />
                             </Button>
                           )}
+                          {isPEDesk && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRegenerate(note.id)}
+                              disabled={regenerating === note.id}
+                              title="Regenerate Contract Note"
+                              className="text-orange-600 hover:text-orange-700"
+                            >
+                              {regenerating === note.id ? (
+                                <RefreshCw className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <RefreshCw className="w-4 h-4" />
+                              )}
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
