@@ -788,7 +788,7 @@ async def generate_vendor_purchase_contract_note_pdf(purchase: dict) -> io.Bytes
     if dp_received_at:
         try:
             dp_date = datetime.fromisoformat(dp_received_at.replace('Z', '+00:00')).strftime('%d-%b-%Y %H:%M')
-        except:
+        except (ValueError, TypeError):
             dp_date = dp_received_at
     else:
         dp_date = "N/A"
