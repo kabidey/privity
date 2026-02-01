@@ -145,22 +145,23 @@ function App() {
                         <Route path="/employee-revenue" element={<EmployeeRevenueDashboard />} />
                         <Route path="/audit-trail" element={<AuditTrail />} />
                         <Route path="/pe-dashboard" element={<PEDashboard />} />
-                        <Route path="/finance-dashboard" element={<FinanceDashboard />} />
-                        <Route path="/my-dashboard" element={<MyDashboard />} />
-                        <Route path="/client-dashboard" element={<ClientDashboard />} />
-                        <Route path="/research" element={<Research />} />
-                      </Routes>
-                    </Layout>
-                    {/* Notification Permission Banner */}
-                    <NotificationPermissionBanner />
-                    {/* Floating Notifications at bottom right */}
-                    <FloatingNotifications />
-                    {/* Dialog for important notifications */}
-                    <NotificationDialog />
-                    {/* Team Group Chat */}
-                    <GroupChat />
-                    {/* PWA Install Prompt */}
-                    <InstallPWA />
+                          <Route path="/finance-dashboard" element={<FinanceDashboard />} />
+                          <Route path="/my-dashboard" element={<MyDashboard />} />
+                          <Route path="/client-dashboard" element={<ClientDashboard />} />
+                          <Route path="/research" element={<Research />} />
+                        </Routes>
+                      </Layout>
+                      {/* Notification Permission Banner */}
+                      <NotificationPermissionBanner />
+                      {/* Floating Notifications at bottom right */}
+                      <FloatingNotifications />
+                      {/* Dialog for important notifications */}
+                      <NotificationDialog />
+                      {/* Team Group Chat */}
+                      <GroupChat />
+                      {/* PWA Install Prompt */}
+                      <InstallPWA />
+                    </AgreementChecker>
                   </NotificationProvider>
                 </PrivateRoute>
               }
