@@ -304,7 +304,7 @@ async def add_purchase_payment(
     payment_data: PaymentRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Add a payment tranche to a purchase"""
+    """Add a payment tranche to a purchase with TCS calculation"""
     user_role = current_user.get("role", 6)
     
     # Extract payment data from Pydantic model
@@ -314,6 +314,8 @@ async def add_purchase_payment(
     reference_number = payment_data.reference_number
     notes = payment_data.notes
     proof_url = payment_data.proof_url
+    manual_tcs_amount = payment_data.tcs_amount
+    manual_tcs_applicable = payment_data.tcs_applicable
     
     if not is_pe_level(user_role):
         raise HTTPException(status_code=403, detail="Only PE level can add payments")
@@ -322,7 +324,9 @@ async def add_purchase_payment(
     if not purchase:
         raise HTTPException(status_code=404, detail="Purchase not found")
     
-    # Get existing payments
+    vendor_id = purchase.get("vendor_id")
+    
+    # Get existing payments for this purchase
     existing_payments = await db.purchase_payments.find(
         {"purchase_id": purchase_id},
         {"_id": 0}
@@ -336,6 +340,18 @@ async def add_purchase_payment(
             status_code=400,
             detail=f"Payment amount ({amount}) exceeds remaining balance ({remaining})"
         )
+    
+    # Calculate TCS
+    cumulative_vendor_payments = await get_vendor_fy_payments(vendor_id, payment_date)
+    tcs_info = calculate_tcs(amount, cumulative_vendor_payments)
+    
+    # Use manual TCS if provided, otherwise use calculated
+    if manual_tcs_applicable is not None:
+        tcs_applicable = manual_tcs_applicable
+        tcs_amount = manual_tcs_amount if manual_tcs_amount is not None else tcs_info["tcs_amount"]
+    else:
+        tcs_applicable = tcs_info["tcs_applicable"]
+        tcs_amount = tcs_info["tcs_amount"]
     
     tranche_number = len(existing_payments) + 1
     payment_id = str(uuid.uuid4())
