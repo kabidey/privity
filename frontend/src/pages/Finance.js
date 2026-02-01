@@ -28,6 +28,7 @@ const Finance = () => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [exportingTcs, setExportingTcs] = useState(false);
   const [filters, setFilters] = useState({
     type: 'all',
     startDate: '',
