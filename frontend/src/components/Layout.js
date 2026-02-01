@@ -533,15 +533,15 @@ const Layout = ({ children }) => {
           onClick={() => setSidebarOpen(false)}
         />
         
-        {/* Slide-over Panel */}
+        {/* Slide-over Panel - Full Height Flex Layout */}
         <aside
-          className={`absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-out ${
+          className={`absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
             sidebarOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Panel Header */}
-          <div className="h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800 safe-area-inset-top">
+          <div className="h-12 flex items-center justify-between px-3 border-b border-gray-200 dark:border-gray-800 safe-area-inset-top flex-shrink-0">
             <span className="font-semibold text-gray-900 dark:text-white">Menu</span>
             <button
               onClick={() => setSidebarOpen(false)}
