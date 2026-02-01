@@ -17,7 +17,7 @@ router = APIRouter(prefix="/inventory", tags=["Inventory"])
 async def calculate_weighted_avg_for_stock(stock_id: str) -> dict:
     """
     Calculate weighted average price from all received purchases for a stock.
-    This ensures accurate pricing based on actual purchase history.
+    Falls back to stored inventory values if no received purchases exist.
     """
     # Get all purchases for this stock that have been received (dp_status = 'received')
     purchases = await db.purchases.find(
@@ -25,25 +25,35 @@ async def calculate_weighted_avg_for_stock(stock_id: str) -> dict:
         {"_id": 0, "quantity": 1, "total_amount": 1, "price_per_share": 1}
     ).to_list(10000)
     
-    if not purchases:
-        return {"weighted_avg_price": 0, "total_value": 0, "total_purchased_qty": 0}
+    if purchases:
+        # Calculate from received purchases
+        total_quantity = 0
+        total_value = 0
+        
+        for p in purchases:
+            qty = p.get("quantity", 0)
+            amount = p.get("total_amount", 0)
+            total_quantity += qty
+            total_value += amount
+        
+        weighted_avg = total_value / total_quantity if total_quantity > 0 else 0
+        
+        return {
+            "weighted_avg_price": round(weighted_avg, 2),
+            "total_value": round(total_value, 2),
+            "total_purchased_qty": total_quantity
+        }
     
-    total_quantity = 0
-    total_value = 0
+    # Fallback: Use stored inventory values
+    inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+    if inventory:
+        return {
+            "weighted_avg_price": inventory.get("weighted_avg_price", 0),
+            "total_value": inventory.get("total_value", 0),
+            "total_purchased_qty": inventory.get("available_quantity", 0)
+        }
     
-    for p in purchases:
-        qty = p.get("quantity", 0)
-        amount = p.get("total_amount", 0)
-        total_quantity += qty
-        total_value += amount
-    
-    weighted_avg = total_value / total_quantity if total_quantity > 0 else 0
-    
-    return {
-        "weighted_avg_price": round(weighted_avg, 2),
-        "total_value": round(total_value, 2),
-        "total_purchased_qty": total_quantity
-    }
+    return {"weighted_avg_price": 0, "total_value": 0, "total_purchased_qty": 0}
 
 
 @router.get("", response_model=List[InventoryModel])
