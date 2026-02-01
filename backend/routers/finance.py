@@ -857,3 +857,207 @@ async def export_finance_excel(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+@router.get("/finance/tcs-export")
+async def export_tcs_report(
+    financial_year: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Export TCS (Tax Collected at Source) report to Excel.
+    Report includes vendor-wise TCS collected for compliance filing.
+    
+    Format follows standard TCS filing requirements:
+    - Vendor Name, PAN, Total Payments, TCS Amount, Payment Details
+    """
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can export TCS data")
+    
+    # Get current FY if not specified
+    if not financial_year:
+        now = datetime.now()
+        if now.month >= 4:
+            financial_year = f"{now.year}-{now.year + 1}"
+        else:
+            financial_year = f"{now.year - 1}-{now.year}"
+    
+    # Get all TCS payments for the financial year
+    query = {"tcs_applicable": True}
+    if financial_year:
+        query["financial_year"] = financial_year
+    
+    payments = await db.purchase_payments.find(query, {"_id": 0}).sort("payment_date", 1).to_list(10000)
+    
+    # Create workbook
+    wb = Workbook()
+    
+    # ===== Sheet 1: TCS Summary by Vendor =====
+    ws_summary = wb.active
+    ws_summary.title = "TCS Summary"
+    
+    # Header styling
+    header_fill = PatternFill(start_color="F59E0B", end_color="F59E0B", fill_type="solid")  # Amber
+    header_font = Font(bold=True, color="000000")
+    subheader_fill = PatternFill(start_color="FEF3C7", end_color="FEF3C7", fill_type="solid")  # Light amber
+    
+    # Title row
+    ws_summary.merge_cells('A1:H1')
+    title_cell = ws_summary['A1']
+    title_cell.value = f"TCS COMPLIANCE REPORT - FY {financial_year}"
+    title_cell.font = Font(bold=True, size=14, color="000000")
+    title_cell.alignment = Alignment(horizontal="center")
+    title_cell.fill = PatternFill(start_color="FBBF24", end_color="FBBF24", fill_type="solid")
+    
+    # Generated on
+    ws_summary.merge_cells('A2:H2')
+    ws_summary['A2'].value = f"Generated on: {datetime.now().strftime('%d-%b-%Y %H:%M:%S')}"
+    ws_summary['A2'].alignment = Alignment(horizontal="center")
+    ws_summary['A2'].font = Font(italic=True)
+    
+    # TCS Rate info
+    ws_summary.merge_cells('A3:H3')
+    ws_summary['A3'].value = "TCS Rate: 0.1% under Section 194Q (applicable on payments exceeding ₹50 lakhs)"
+    ws_summary['A3'].alignment = Alignment(horizontal="center")
+    ws_summary['A3'].font = Font(italic=True, size=10)
+    
+    # Summary Headers (row 5)
+    summary_headers = ["S.No.", "Vendor Name", "PAN Number", "Total Payments (₹)", "TCS Collected (₹)", "No. of Transactions", "First Payment Date", "Last Payment Date"]
+    for col, header in enumerate(summary_headers, 1):
+        cell = ws_summary.cell(row=5, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    
+    # Aggregate by vendor
+    vendor_data = {}
+    for payment in payments:
+        vendor_id = payment.get("vendor_id")
+        if vendor_id not in vendor_data:
+            vendor_data[vendor_id] = {
+                "vendor_id": vendor_id,
+                "total_payments": 0,
+                "total_tcs": 0,
+                "payment_count": 0,
+                "first_date": payment.get("payment_date"),
+                "last_date": payment.get("payment_date")
+            }
+        
+        vendor_data[vendor_id]["total_payments"] += payment.get("amount", 0)
+        vendor_data[vendor_id]["total_tcs"] += payment.get("tcs_amount", 0)
+        vendor_data[vendor_id]["payment_count"] += 1
+        
+        # Track first and last dates
+        pdate = payment.get("payment_date", "")
+        if pdate < vendor_data[vendor_id]["first_date"]:
+            vendor_data[vendor_id]["first_date"] = pdate
+        if pdate > vendor_data[vendor_id]["last_date"]:
+            vendor_data[vendor_id]["last_date"] = pdate
+    
+    # Fetch vendor details and write rows
+    row = 6
+    serial = 1
+    total_payments_sum = 0
+    total_tcs_sum = 0
+    
+    for vendor_id, data in sorted(vendor_data.items(), key=lambda x: x[1]["total_tcs"], reverse=True):
+        vendor = await db.clients.find_one({"id": vendor_id}, {"_id": 0, "name": 1, "pan_number": 1})
+        
+        ws_summary.cell(row=row, column=1, value=serial)
+        ws_summary.cell(row=row, column=2, value=vendor.get("name") if vendor else "Unknown")
+        ws_summary.cell(row=row, column=3, value=vendor.get("pan_number") if vendor else "N/A")
+        ws_summary.cell(row=row, column=4, value=round(data["total_payments"], 2))
+        ws_summary.cell(row=row, column=5, value=round(data["total_tcs"], 2))
+        ws_summary.cell(row=row, column=6, value=data["payment_count"])
+        ws_summary.cell(row=row, column=7, value=data["first_date"][:10] if data["first_date"] else "")
+        ws_summary.cell(row=row, column=8, value=data["last_date"][:10] if data["last_date"] else "")
+        
+        # Format numbers
+        ws_summary.cell(row=row, column=4).number_format = '#,##0.00'
+        ws_summary.cell(row=row, column=5).number_format = '#,##0.00'
+        
+        total_payments_sum += data["total_payments"]
+        total_tcs_sum += data["total_tcs"]
+        
+        row += 1
+        serial += 1
+    
+    # Total row
+    total_row = row
+    ws_summary.cell(row=total_row, column=1, value="")
+    ws_summary.cell(row=total_row, column=2, value="TOTAL")
+    ws_summary.cell(row=total_row, column=3, value="")
+    ws_summary.cell(row=total_row, column=4, value=round(total_payments_sum, 2))
+    ws_summary.cell(row=total_row, column=5, value=round(total_tcs_sum, 2))
+    ws_summary.cell(row=total_row, column=6, value=len(payments))
+    
+    for col in range(1, 9):
+        ws_summary.cell(row=total_row, column=col).fill = subheader_fill
+        ws_summary.cell(row=total_row, column=col).font = Font(bold=True)
+    ws_summary.cell(row=total_row, column=4).number_format = '#,##0.00'
+    ws_summary.cell(row=total_row, column=5).number_format = '#,##0.00'
+    
+    # Column widths for summary
+    summary_widths = [8, 35, 15, 22, 20, 18, 18, 18]
+    for i, width in enumerate(summary_widths, 1):
+        ws_summary.column_dimensions[chr(64 + i)].width = width
+    
+    # ===== Sheet 2: Detailed TCS Transactions =====
+    ws_detail = wb.create_sheet(title="TCS Transactions")
+    
+    detail_headers = ["S.No.", "Payment Date", "Vendor Name", "Vendor PAN", "Stock", "Purchase Ref", 
+                      "Payment Amount (₹)", "TCS Amount (₹)", "Net Payment (₹)", "FY Cumulative Before", "FY Cumulative After", "Reference #"]
+    
+    for col, header in enumerate(detail_headers, 1):
+        cell = ws_detail.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    
+    # Detail rows
+    row = 2
+    for serial, payment in enumerate(payments, 1):
+        vendor_id = payment.get("vendor_id")
+        purchase_id = payment.get("purchase_id")
+        
+        vendor = await db.clients.find_one({"id": vendor_id}, {"_id": 0, "name": 1, "pan_number": 1})
+        purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0, "purchase_number": 1, "stock_symbol": 1})
+        
+        ws_detail.cell(row=row, column=1, value=serial)
+        ws_detail.cell(row=row, column=2, value=payment.get("payment_date", "")[:10] if payment.get("payment_date") else "")
+        ws_detail.cell(row=row, column=3, value=vendor.get("name") if vendor else "Unknown")
+        ws_detail.cell(row=row, column=4, value=vendor.get("pan_number") if vendor else "N/A")
+        ws_detail.cell(row=row, column=5, value=purchase.get("stock_symbol") if purchase else "N/A")
+        ws_detail.cell(row=row, column=6, value=purchase.get("purchase_number") if purchase else "N/A")
+        ws_detail.cell(row=row, column=7, value=round(payment.get("amount", 0), 2))
+        ws_detail.cell(row=row, column=8, value=round(payment.get("tcs_amount", 0), 2))
+        ws_detail.cell(row=row, column=9, value=round(payment.get("net_payment", 0), 2))
+        ws_detail.cell(row=row, column=10, value=round(payment.get("vendor_fy_cumulative_before", 0), 2))
+        ws_detail.cell(row=row, column=11, value=round(payment.get("vendor_fy_cumulative_after", 0), 2))
+        ws_detail.cell(row=row, column=12, value=payment.get("reference_number", ""))
+        
+        # Format numbers
+        for c in [7, 8, 9, 10, 11]:
+            ws_detail.cell(row=row, column=c).number_format = '#,##0.00'
+        
+        row += 1
+    
+    # Column widths for detail
+    detail_widths = [8, 14, 35, 15, 12, 20, 18, 16, 16, 20, 20, 20]
+    for i, width in enumerate(detail_widths, 1):
+        ws_detail.column_dimensions[chr(64 + i) if i <= 26 else 'A' + chr(64 + i - 26)].width = width
+    
+    # Save to bytes
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    # Parse FY for filename
+    fy_short = financial_year.replace("-", "_") if financial_year else "current"
+    filename = f"TCS_Report_FY{fy_short}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
