@@ -15,9 +15,11 @@ const PEDashboard = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [clearingCache, setClearingCache] = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const isPEDesk = currentUser.role === 1;
 
   useEffect(() => {
     if (!isPELevel) {
@@ -37,6 +39,25 @@ const PEDashboard = () => {
       toast.error('Failed to load PE dashboard');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    if (!window.confirm('This will clear system cache, recalculate inventory averages, and clean up orphaned records. Continue?')) {
+      return;
+    }
+    
+    setClearingCache(true);
+    try {
+      const response = await api.post('/dashboard/clear-cache');
+      toast.success(response.data.message);
+      localStorage.removeItem('privity_cache_dashboard_stats');
+      localStorage.removeItem('privity_cache_dashboard_analytics');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to clear cache');
+    } finally {
+      setClearingCache(false);
     }
   };
 
