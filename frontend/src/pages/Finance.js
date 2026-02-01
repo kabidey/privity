@@ -972,7 +972,7 @@ const Finance = () => {
         {/* TCS Collected Tab */}
         <TabsContent value="tcs">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calculator className="h-5 w-5" />
@@ -982,7 +982,20 @@ const Finance = () => {
                   TCS @0.1% collected on vendor payments exceeding ₹50 lakhs in a Financial Year
                 </CardDescription>
               </div>
-              {tcsPayments.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                {/* Financial Year Selector */}
+                <Select value={selectedTcsFY} onValueChange={setSelectedTcsFY}>
+                  <SelectTrigger className="w-full sm:w-[160px]" data-testid="tcs-fy-select">
+                    <SelectValue placeholder="Select FY" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAvailableFinancialYears().map((fy) => (
+                      <SelectItem key={fy} value={fy}>
+                        FY {fy}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button 
                   onClick={handleExportTcs} 
                   disabled={exportingTcs}
@@ -994,9 +1007,9 @@ const Finance = () => {
                   ) : (
                     <FileSpreadsheet className="h-4 w-4 mr-2" />
                   )}
-                  Export TCS Report
+                  Export FY {selectedTcsFY}
                 </Button>
-              )}
+              </div>
             </CardHeader>
             <CardContent className="p-0 md:p-6">
               {tcsPayments.length === 0 ? (
