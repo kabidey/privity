@@ -366,8 +366,8 @@ const Layout = ({ children }) => {
           </div>
         </nav>
         
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-200/50 dark:border-gray-800/50 space-y-2">
+        {/* Footer - Fixed at bottom */}
+        <div className="p-4 border-t border-gray-200/50 dark:border-gray-800/50 space-y-2 flex-shrink-0 bg-white/80 dark:bg-gray-900/80">
           {/* Kill Switch - PE Desk Only */}
           <KillSwitch userRole={user.role} />
           
