@@ -326,6 +326,138 @@ class SecurityAlertService:
             logger.info(f"Sent new login alert to {user_email}")
         except Exception as e:
             logger.error(f"Failed to send login alert to {user_email}: {e}")
+    
+    @staticmethod
+    async def send_unusual_login_alert(
+        user_email: str,
+        user_name: str,
+        ip_address: str,
+        user_agent: str,
+        location_data: dict
+    ):
+        """Send alert for unusual login location"""
+        from services.email_service import send_email_async
+        from database import db
+        
+        location = location_data.get("location", {})
+        alerts = location_data.get("alerts", [])
+        risk_level = location_data.get("risk_level", "unknown")
+        
+        # Determine color based on risk
+        color_map = {
+            "critical": ("#dc2626", "#ef4444", "🚨"),
+            "high": ("#ea580c", "#f97316", "⚠️"),
+            "medium": ("#d97706", "#f59e0b", "⚡"),
+            "low": ("#0891b2", "#06b6d4", "ℹ️")
+        }
+        color1, color2, emoji = color_map.get(risk_level, ("#6b7280", "#9ca3af", "❓"))
+        
+        # Build alerts HTML
+        alerts_html = ""
+        for alert in alerts:
+            severity_colors = {
+                "critical": "#dc2626",
+                "high": "#ea580c", 
+                "medium": "#d97706",
+                "low": "#0891b2"
+            }
+            alert_color = severity_colors.get(alert.get("severity"), "#6b7280")
+            alerts_html += f'''
+            <div style="background: {alert_color}15; border-left: 4px solid {alert_color}; padding: 10px; margin: 5px 0; border-radius: 0 5px 5px 0;">
+                <strong style="color: {alert_color};">{alert.get("type", "Alert").replace("_", " ").title()}</strong>
+                <p style="margin: 5px 0 0 0; color: #374151;">{alert.get("message", "")}</p>
+            </div>
+            '''
+        
+        subject = f"{emoji} Unusual Login Alert - {user_email}"
+        
+        body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, {color1}, {color2}); color: white; padding: 20px; border-radius: 10px 10px 0 0;">
+                <h2 style="margin: 0;">{emoji} Unusual Login Detected</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">Risk Level: {risk_level.upper()}</p>
+            </div>
+            
+            <div style="background: #fff; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
+                <p>An unusual login has been detected for account: <strong>{user_email}</strong></p>
+                
+                <h3 style="color: #374151; margin-top: 20px;">📍 Location Details</h3>
+                <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                    <tr style="background: #f9fafb;">
+                        <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">Country</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{location.get("country", "Unknown")}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">City</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{location.get("city", "Unknown")}</td>
+                    </tr>
+                    <tr style="background: #f9fafb;">
+                        <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">ISP</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{location.get("isp", "Unknown")}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">IP Address</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{ip_address}</td>
+                    </tr>
+                    <tr style="background: #f9fafb;">
+                        <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">VPN/Proxy</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{"Yes ⚠️" if location_data.get("is_proxy") else "No"}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">Time</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</td>
+                    </tr>
+                </table>
+                
+                <h3 style="color: #374151; margin-top: 20px;">🚨 Security Alerts</h3>
+                {alerts_html if alerts_html else '<p style="color: #6b7280;">No specific alerts</p>'}
+                
+                <div style="background: #fef2f2; border: 1px solid #ef4444; border-radius: 5px; padding: 15px; margin-top: 20px;">
+                    <p style="margin: 0; color: #991b1b;">
+                        <strong>Action Required:</strong> If this login was not authorized, please:
+                        <ol style="margin: 10px 0 0 0; padding-left: 20px;">
+                            <li>Change the user's password immediately</li>
+                            <li>Check the Security Status dashboard for more details</li>
+                            <li>Consider blocking the IP address if suspicious</li>
+                        </ol>
+                    </p>
+                </div>
+                
+                <p style="margin-top: 20px; color: #6b7280; font-size: 12px;">
+                    This is an automated security alert from PRIVITY Share Booking System.
+                </p>
+            </div>
+        </div>
+        """
+        
+        # Send to PE Desk users
+        pe_users = await db.users.find(
+            {"role": {"$in": [1, 2]}},
+            {"_id": 0, "email": 1}
+        ).to_list(10)
+        
+        for pe_user in pe_users:
+            try:
+                await send_email_async(
+                    to_email=pe_user["email"],
+                    subject=subject,
+                    body=body,
+                    is_html=True
+                )
+                logger.info(f"Sent unusual login alert to {pe_user['email']}")
+            except Exception as e:
+                logger.error(f"Failed to send unusual login alert: {e}")
+        
+        # Also notify the user themselves
+        try:
+            await send_email_async(
+                to_email=user_email,
+                subject=f"{emoji} Security Alert: Unusual login to your account",
+                body=body,
+                is_html=True
+            )
+        except Exception as e:
+            logger.error(f"Failed to send unusual login alert to user: {e}")
 
 
 # Export
