@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Check, CheckCheck, X, Volume2 } from 'lucide-react';
+import { Bell, Check, CheckCheck, X, Volume2, VolumeX, BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,7 +12,20 @@ import { useNotifications } from '../context/NotificationContext';
 
 const NotificationBell = () => {
   const [open, setOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead, isConnected, hasNewNotification, setHasNewNotification, triggerTestNotification } = useNotifications();
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllAsRead, 
+    isConnected, 
+    hasNewNotification, 
+    setHasNewNotification, 
+    triggerTestNotification,
+    soundEnabled,
+    toggleSound,
+    notificationPermission,
+    requestPermissions
+  } = useNotifications();
   
   // Derive animation state directly from hasNewNotification
   const isAnimating = hasNewNotification && !open;
@@ -98,16 +111,41 @@ const NotificationBell = () => {
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-3 border-b">
           <h4 className="font-semibold">Notifications</h4>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {/* Sound toggle */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => toggleSound(!soundEnabled)}
+              className={`text-xs ${soundEnabled ? 'text-emerald-600' : 'text-gray-400'}`}
+              title={soundEnabled ? 'Sound on - Click to mute' : 'Sound off - Click to enable'}
+              data-testid="sound-toggle-btn"
+            >
+              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            {/* Test notification */}
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => triggerTestNotification()}
               className="text-xs"
-              title="Test notification sound"
+              title="Test notification"
+              data-testid="test-notification-btn"
             >
-              <Volume2 className="h-4 w-4" />
+              <BellRing className="h-4 w-4" />
             </Button>
+            {/* Enable browser notifications if not granted */}
+            {notificationPermission !== 'granted' && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={requestPermissions}
+                className="text-xs text-amber-600"
+                title="Enable browser notifications"
+              >
+                Enable
+              </Button>
+            )}
             {unreadCount > 0 && (
               <Button 
                 variant="ghost" 
