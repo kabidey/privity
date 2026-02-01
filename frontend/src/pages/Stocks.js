@@ -498,12 +498,21 @@ const Stocks = () => {
                     </div>
                     <div className="space-y-2">
                       <Label>Sector</Label>
-                      <Select value={formData.sector} onValueChange={(v) => setFormData({ ...formData, sector: v })}>
+                      <Select value={formData.sector} onValueChange={(v) => setFormData({ ...formData, sector: v, customSector: v === 'Others' ? formData.customSector : '' })}>
                         <SelectTrigger><SelectValue placeholder="Select sector" /></SelectTrigger>
                         <SelectContent>
                           {SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                         </SelectContent>
                       </Select>
+                      {formData.sector === 'Others' && (
+                        <Input
+                          placeholder="Enter custom sector name"
+                          value={formData.customSector}
+                          onChange={(e) => setFormData({ ...formData, customSector: e.target.value })}
+                          className="mt-2"
+                          data-testid="custom-sector-input"
+                        />
+                      )}
                     </div>
                   </div>
                   
