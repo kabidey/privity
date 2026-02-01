@@ -200,6 +200,126 @@ async def create_backup(
     }
 
 
+@router.post("/backups/full")
+async def create_full_backup(
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a FULL database backup including ALL collections and files info (PE Desk only)
+    
+    This backup includes:
+    - ALL database collections (dynamically detected)
+    - Metadata about all uploaded files
+    - Ready for complete system restore
+    """
+    if not is_pe_desk_only(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk can create full backups")
+    
+    backup_id = str(uuid.uuid4())
+    backup_data = {}
+    record_counts = {}
+    total_size = 0
+    
+    # Get ALL collections dynamically
+    all_collections = await db.list_collection_names()
+    collections_to_backup = [c for c in all_collections if c != "database_backups"]
+    
+    # Backup each collection
+    for collection_name in collections_to_backup:
+        try:
+            collection = db[collection_name]
+            documents = await collection.find({}, {"_id": 0}).to_list(100000)
+            backup_data[collection_name] = documents
+            record_counts[collection_name] = len(documents)
+            total_size += len(json.dumps(documents, default=str))
+        except Exception as e:
+            backup_data[collection_name] = []
+            record_counts[collection_name] = 0
+    
+    # Get file stats for metadata
+    files_count, files_size = get_files_stats(UPLOADS_DIR)
+    
+    # Get files by category
+    files_by_category = {}
+    if os.path.exists(UPLOADS_DIR):
+        for item in os.listdir(UPLOADS_DIR):
+            item_path = os.path.join(UPLOADS_DIR, item)
+            if os.path.isdir(item_path):
+                cat_count, cat_size = get_files_stats(item_path)
+                if cat_count > 0:
+                    files_by_category[item] = {
+                        "count": cat_count,
+                        "size_bytes": cat_size
+                    }
+    
+    # Store backup
+    now = datetime.now(timezone.utc)
+    backup_name = f"Full_Backup_{now.strftime('%Y%m%d_%H%M%S')}"
+    
+    backup_doc = {
+        "id": backup_id,
+        "name": backup_name,
+        "description": f"Full system backup - {len(collections_to_backup)} collections, {sum(record_counts.values())} records",
+        "created_at": now.isoformat(),
+        "created_by": current_user["id"],
+        "created_by_name": current_user["name"],
+        "collections": collections_to_backup,
+        "record_counts": record_counts,
+        "size_bytes": total_size,
+        "include_all": True,
+        "is_full_backup": True,
+        "files_metadata": {
+            "total_count": files_count,
+            "total_size_bytes": files_size,
+            "by_category": files_by_category
+        },
+        "data": backup_data
+    }
+    
+    await db.database_backups.insert_one(backup_doc)
+    
+    # Log the backup action
+    await db.audit_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "action": "FULL_DATABASE_BACKUP",
+        "entity_type": "database",
+        "entity_id": backup_id,
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "user_role": current_user.get("role", 5),
+        "details": {
+            "backup_name": backup_name,
+            "collections_count": len(collections_to_backup),
+            "total_records": sum(record_counts.values()),
+            "size_bytes": total_size,
+            "files_count": files_count,
+            "files_size_bytes": files_size
+        },
+        "timestamp": now.isoformat()
+    })
+    
+    # Keep only last 10 backups
+    all_backups = await db.database_backups.find({}, {"id": 1}).sort("created_at", -1).to_list(100)
+    if len(all_backups) > 10:
+        old_backup_ids = [b["id"] for b in all_backups[10:]]
+        await db.database_backups.delete_many({"id": {"$in": old_backup_ids}})
+    
+    return {
+        "message": "Full backup created successfully",
+        "backup": {
+            "id": backup_id,
+            "name": backup_name,
+            "collections_count": len(collections_to_backup),
+            "collections": collections_to_backup,
+            "record_counts": record_counts,
+            "total_records": sum(record_counts.values()),
+            "size_bytes": total_size,
+            "files_count": files_count,
+            "files_size_mb": round(files_size / (1024 * 1024), 2)
+        },
+        "tip": f"Download this backup with files using: GET /api/database/backups/{backup_id}/download?include_files=true"
+    }
+
+
 @router.get("/backups/{backup_id}")
 async def get_backup_details(backup_id: str, current_user: dict = Depends(get_current_user)):
     """Get backup details (PE Level)"""
