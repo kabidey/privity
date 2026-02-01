@@ -609,21 +609,21 @@ const Layout = ({ children }) => {
           </nav>
           
           {/* Compact Footer Actions */}
-          <div className="p-2 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 safe-area-inset-bottom">
+          <div className="p-2 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 safe-area-inset-bottom flex-shrink-0 relative z-[60]">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => {
                   setShowChangePassword(true);
                   setSidebarOpen(false);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-xs"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-xs font-medium"
               >
                 <Key className="h-4 w-4" strokeWidth={1.5} />
                 <span>Password</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-xs"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-xs font-medium"
                 data-testid="mobile-logout-button"
               >
                 <LogOut className="h-4 w-4" strokeWidth={1.5} />
