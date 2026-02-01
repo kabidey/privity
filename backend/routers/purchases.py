@@ -634,13 +634,15 @@ async def mark_dp_received(
     if purchase.get("dp_status") != "receivable":
         raise HTTPException(status_code=400, detail="Purchase is not in receivable status")
     
+    received_at = datetime.now(timezone.utc).isoformat()
+    
     # Update purchase with received status
     await db.purchases.update_one(
         {"id": purchase_id},
         {"$set": {
             "dp_status": "received",
             "dp_type": dp_type,
-            "dp_received_at": datetime.now(timezone.utc).isoformat(),
+            "dp_received_at": received_at,
             "dp_received_by": current_user["id"],
             "dp_received_by_name": current_user["name"]
         }}
@@ -681,11 +683,63 @@ async def mark_dp_received(
         entity_name=purchase.get("purchase_number", purchase_id)
     )
     
+    # Send email notification to vendor
+    vendor = await db.clients.find_one(
+        {"id": purchase.get("vendor_id"), "is_vendor": True},
+        {"_id": 0}
+    )
+    
+    if vendor and vendor.get("email"):
+        template = await get_email_template("vendor_stock_received")
+        
+        if template:
+            # Format the received date
+            received_date = datetime.fromisoformat(received_at.replace('Z', '+00:00')).strftime('%d-%b-%Y %H:%M')
+            
+            # Format total amount with Indian locale
+            total_amount = f"{purchase.get('total_amount', 0):,.2f}"
+            
+            subject = template["subject"]
+            subject = subject.replace("{{stock_symbol}}", stock.get("symbol", "") if stock else "")
+            subject = subject.replace("{{purchase_number}}", purchase.get("purchase_number", ""))
+            
+            body = template["body"]
+            body = body.replace("{{vendor_name}}", vendor.get("name", ""))
+            body = body.replace("{{purchase_number}}", purchase.get("purchase_number", ""))
+            body = body.replace("{{stock_symbol}}", stock.get("symbol", "") if stock else "")
+            body = body.replace("{{stock_name}}", stock.get("name", "") if stock else "")
+            body = body.replace("{{isin_number}}", stock.get("isin", "") if stock else "")
+            body = body.replace("{{quantity}}", f"{purchase.get('quantity', 0):,}")
+            body = body.replace("{{dp_type}}", dp_type)
+            body = body.replace("{{received_date}}", received_date)
+            body = body.replace("{{total_amount}}", total_amount)
+            
+            await send_email(
+                to_email=vendor.get("email"),
+                subject=subject,
+                body=body,
+                template_key="vendor_stock_received",
+                variables={
+                    "vendor_name": vendor.get("name"),
+                    "purchase_number": purchase.get("purchase_number"),
+                    "stock_symbol": stock.get("symbol") if stock else "",
+                    "stock_name": stock.get("name") if stock else "",
+                    "isin_number": stock.get("isin") if stock else "",
+                    "quantity": purchase.get("quantity"),
+                    "dp_type": dp_type,
+                    "received_date": received_date,
+                    "total_amount": total_amount
+                },
+                related_entity_type="purchase",
+                related_entity_id=purchase_id
+            )
+    
     return {
         "message": f"Stock received via {dp_type} and inventory updated",
         "dp_type": dp_type,
         "quantity": purchase.get("quantity"),
-        "received_at": datetime.now(timezone.utc).isoformat()
+        "received_at": received_at,
+        "email_sent": bool(vendor and vendor.get("email"))
     }
 
 
