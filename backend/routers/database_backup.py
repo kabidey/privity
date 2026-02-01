@@ -331,13 +331,13 @@ async def get_database_stats(current_user: dict = Depends(get_current_user)):
                 collection = db[collection_name]
                 count = await collection.count_documents({})
                 stats[collection_name] = count
-            except:
+            except Exception:
                 stats[collection_name] = 0
     
     # Get uploaded files stats
     files_count, files_size = get_files_stats(UPLOADS_DIR)
     
-    # Get files by category
+    # Get files by category (including client document folders)
     files_by_category = {}
     if os.path.exists(UPLOADS_DIR):
         for item in os.listdir(UPLOADS_DIR):
@@ -351,17 +351,22 @@ async def get_database_stats(current_user: dict = Depends(get_current_user)):
                         "size_mb": round(cat_size / (1024 * 1024), 2)
                     }
     
+    # Check for missing collections in backup list
+    missing_from_backup = [c for c in all_collections if c not in BACKUP_COLLECTIONS and c != "database_backups"]
+    
     return {
         "collections": stats,
         "total_records": sum(stats.values()),
         "total_collections": len(stats),
         "backup_count": await db.database_backups.count_documents({}),
         "backed_up_collections": BACKUP_COLLECTIONS,
+        "missing_from_backup_list": missing_from_backup,
         "uploaded_files": {
             "total_count": files_count,
             "total_size_bytes": files_size,
             "total_size_mb": round(files_size / (1024 * 1024), 2),
-            "by_category": files_by_category
+            "by_category": files_by_category,
+            "backed_up_directories": FILE_DIRECTORIES
         }
     }
 
