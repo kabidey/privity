@@ -191,9 +191,28 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground text-sm md:text-base">Overview of your private equity system</p>
+      <div className="mb-6 md:mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Dashboard</h1>
+          <p className="text-muted-foreground text-sm md:text-base">Overview of your private equity system</p>
+        </div>
+        {isPEDesk && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearCache}
+            disabled={clearingCache}
+            className="text-orange-600 border-orange-300 hover:bg-orange-50"
+            data-testid="clear-cache-btn"
+          >
+            {clearingCache ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Clear Cache
+          </Button>
+        )}
       </div>
 
       {/* Stats Grid */}
