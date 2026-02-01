@@ -44,6 +44,29 @@ const Dashboard = () => {
     }
   };
 
+  const handleClearCache = async () => {
+    if (!window.confirm('This will clear system cache, recalculate inventory averages, and clean up orphaned records. Continue?')) {
+      return;
+    }
+    
+    setClearingCache(true);
+    try {
+      const response = await api.post('/dashboard/clear-cache');
+      toast.success(response.data.message);
+      
+      // Clear local storage cache
+      localStorage.removeItem('privity_cache_dashboard_stats');
+      localStorage.removeItem('privity_cache_dashboard_analytics');
+      
+      // Refresh dashboard data
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to clear cache');
+    } finally {
+      setClearingCache(false);
+    }
+  };
+
   const fetchData = async () => {
     try {
       // Load from cache first for faster initial render
