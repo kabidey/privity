@@ -199,7 +199,7 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ]))
             elements.append(header_table)
-        except:
+        except (IOError, OSError):
             # Fallback to text-only header
             elements.append(Paragraph(f"<b>{company_name}</b>", title_style))
             if company_address:
