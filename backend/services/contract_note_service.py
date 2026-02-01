@@ -526,3 +526,405 @@ async def create_and_save_contract_note(booking_id: str, user_id: str, user_name
     )
     
     return cn_doc
+
+
+# ==================== VENDOR PURCHASE CONTRACT NOTE ====================
+
+async def generate_vendor_purchase_contract_note_number():
+    """Generate unique purchase contract note number for vendors"""
+    now = datetime.now()
+    year_start = now.year if now.month >= 4 else now.year - 1
+    year_end = year_start + 1
+    
+    # Count existing vendor contract notes for this financial year
+    fy_start = f"{year_start}-04-01"
+    count = await db.vendor_contract_notes.count_documents({
+        "created_at": {"$gte": fy_start}
+    })
+    
+    serial = str(count + 1).zfill(4)
+    return f"SMIFS/PCN/{str(year_start)[2:]}-{str(year_end)[2:]}/{serial}"
+
+
+async def generate_vendor_purchase_contract_note_pdf(purchase: dict) -> io.BytesIO:
+    """
+    Generate Purchase Contract Note PDF for a vendor purchase after DP received
+    
+    Args:
+        purchase: The purchase document with vendor, stock, and transaction details
+    
+    Returns:
+        BytesIO buffer containing the PDF
+    """
+    # Get company master
+    company = await get_company_master()
+    
+    # Get vendor details
+    vendor = await db.clients.find_one({"id": purchase.get("vendor_id")}, {"_id": 0})
+    
+    # Get stock details
+    stock = await db.stocks.find_one({"id": purchase.get("stock_id")}, {"_id": 0})
+    
+    # Create PDF buffer
+    buffer = io.BytesIO()
+    
+    # Page setup
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=1.5*cm,
+        leftMargin=1.5*cm,
+        topMargin=1*cm,
+        bottomMargin=1*cm
+    )
+    
+    # Define styles
+    styles = getSampleStyleSheet()
+    
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Title'],
+        fontSize=16,
+        spaceAfter=6,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor('#1a1a1a'),
+        fontName='Helvetica-Bold'
+    )
+    
+    section_title = ParagraphStyle(
+        'SectionTitle',
+        fontSize=10,
+        spaceAfter=8,
+        spaceBefore=10,
+        textColor=colors.HexColor('#065f46'),  # Green for purchase
+        fontName='Helvetica-Bold'
+    )
+    
+    normal_style = ParagraphStyle(
+        'Normal',
+        fontSize=9,
+        leading=12,
+        alignment=TA_LEFT
+    )
+    
+    small_style = ParagraphStyle(
+        'Small',
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor('#666666')
+    )
+    
+    elements = []
+    
+    # Company details
+    company_name = company.get("company_name", "SMIFS Capital Markets Ltd")
+    
+    # Header
+    elements.append(Paragraph(f"<b>{company_name}</b>", title_style))
+    elements.append(Paragraph(
+        company.get("company_address", ""),
+        ParagraphStyle('Address', fontSize=8, alignment=TA_CENTER)
+    ))
+    
+    # CIN & Contact
+    cin_gstin = f"CIN: {company.get('company_cin', 'N/A')} | GSTIN: {company.get('company_gstin', 'N/A')}"
+    elements.append(Paragraph(cin_gstin, ParagraphStyle('CIN', fontSize=7, alignment=TA_CENTER, textColor=colors.grey)))
+    
+    elements.append(Spacer(1, 0.3*cm))
+    elements.append(HRFlowable(width="100%", thickness=2, color=colors.HexColor('#065f46')))
+    elements.append(Spacer(1, 0.2*cm))
+    
+    # Document Title
+    elements.append(Paragraph("<b>PURCHASE CONTRACT NOTE</b>", 
+        ParagraphStyle('DocTitle', fontSize=14, alignment=TA_CENTER, textColor=colors.HexColor('#065f46'), fontName='Helvetica-Bold')
+    ))
+    elements.append(Paragraph("(Stock Purchase Acknowledgment)", 
+        ParagraphStyle('Subtitle', fontSize=9, alignment=TA_CENTER, textColor=colors.grey)
+    ))
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # Contract Note Details (Left) and Date (Right)
+    cn_number = purchase.get("purchase_contract_note_number", "")
+    cn_date = datetime.now().strftime('%d-%b-%Y')
+    
+    header_data = [
+        [f"<b>PCN No:</b> {cn_number}", f"<b>Date:</b> {cn_date}"],
+        [f"<b>Purchase Order:</b> {purchase.get('purchase_number', '')}", f"<b>DP Type:</b> {purchase.get('dp_type', 'N/A')}"],
+    ]
+    
+    header_table = Table(
+        [[Paragraph(c, normal_style) for c in row] for row in header_data],
+        colWidths=[9*cm, 6*cm]
+    )
+    header_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # Vendor Details Section
+    elements.append(Paragraph("<b>VENDOR DETAILS (SELLER)</b>", section_title))
+    
+    vendor_name = vendor.get("name", "N/A") if vendor else "N/A"
+    vendor_pan = vendor.get("pan_number", "N/A") if vendor else "N/A"
+    vendor_address = vendor.get("address", "N/A") if vendor else "N/A"
+    vendor_email = vendor.get("email", "N/A") if vendor else "N/A"
+    vendor_phone = vendor.get("phone", "N/A") if vendor else "N/A"
+    
+    vendor_data = [
+        ["Name:", vendor_name],
+        ["PAN:", vendor_pan],
+        ["Address:", vendor_address],
+        ["Email:", vendor_email],
+        ["Phone:", vendor_phone],
+    ]
+    
+    vendor_table = Table(vendor_data, colWidths=[3*cm, 12*cm])
+    vendor_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f0fdf4')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#86efac')),
+    ]))
+    elements.append(vendor_table)
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # Stock Details Section
+    elements.append(Paragraph("<b>STOCK DETAILS</b>", section_title))
+    
+    stock_symbol = stock.get("symbol", "N/A") if stock else "N/A"
+    stock_name = stock.get("name", "N/A") if stock else "N/A"
+    stock_isin = stock.get("isin", "N/A") if stock else "N/A"
+    
+    stock_data = [
+        ["Stock Symbol:", stock_symbol, "ISIN:", stock_isin],
+        ["Stock Name:", stock_name, "", ""],
+    ]
+    
+    stock_table = Table(stock_data, colWidths=[3*cm, 6*cm, 2.5*cm, 3.5*cm])
+    stock_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    elements.append(stock_table)
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # Transaction Details
+    elements.append(Paragraph("<b>TRANSACTION DETAILS</b>", section_title))
+    
+    quantity = purchase.get("quantity", 0)
+    price_per_share = purchase.get("price_per_share", 0)
+    total_amount = purchase.get("total_amount", 0)
+    
+    txn_data = [
+        ["Description", "Quantity", "Rate (₹)", "Amount (₹)"],
+        [f"Purchase of {stock_symbol} shares", f"{quantity:,}", f"{price_per_share:,.2f}", f"{total_amount:,.2f}"],
+    ]
+    
+    txn_table = Table(txn_data, colWidths=[7*cm, 3*cm, 3*cm, 3*cm])
+    txn_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#065f46')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(txn_table)
+    elements.append(Spacer(1, 0.3*cm))
+    
+    # Payment Summary
+    elements.append(Paragraph("<b>PAYMENT SUMMARY</b>", section_title))
+    
+    total_paid = purchase.get("total_paid", 0)
+    
+    # Get TCS details if any
+    tcs_total = 0
+    payments = await db.purchase_payments.find({"purchase_id": purchase.get("id")}, {"_id": 0}).to_list(100)
+    for p in payments:
+        tcs_total += p.get("tcs_amount", 0)
+    
+    net_paid = total_paid - tcs_total
+    
+    summary_data = [
+        ["Total Purchase Amount:", f"₹{total_amount:,.2f}"],
+        ["Total Amount Paid:", f"₹{total_paid:,.2f}"],
+        ["TCS Deducted @0.1%:", f"₹{tcs_total:,.2f}"],
+        ["Net Amount Transferred:", f"₹{net_paid:,.2f}"],
+    ]
+    
+    summary_table = Table(summary_data, colWidths=[10*cm, 5*cm])
+    summary_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (1, -1), (1, -1), 'Helvetica-Bold'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#d1fae5')),
+    ]))
+    elements.append(summary_table)
+    elements.append(Spacer(1, 0.3*cm))
+    
+    # Amount in Words
+    elements.append(Paragraph(f"<b>Amount in Words:</b> {amount_to_words(total_amount)}", normal_style))
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # DP Receipt Confirmation
+    elements.append(Paragraph("<b>DP RECEIPT CONFIRMATION</b>", section_title))
+    
+    dp_received_at = purchase.get("dp_received_at", "")
+    if dp_received_at:
+        try:
+            dp_date = datetime.fromisoformat(dp_received_at.replace('Z', '+00:00')).strftime('%d-%b-%Y %H:%M')
+        except:
+            dp_date = dp_received_at
+    else:
+        dp_date = "N/A"
+    
+    dp_data = [
+        ["Stock Received Via:", purchase.get("dp_type", "N/A")],
+        ["Received Date:", dp_date],
+        ["Received By:", purchase.get("dp_received_by_name", "N/A")],
+        ["Quantity Received:", f"{quantity:,} shares"],
+    ]
+    
+    dp_table = Table(dp_data, colWidths=[4*cm, 11*cm])
+    dp_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#ecfdf5')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#10b981')),
+    ]))
+    elements.append(dp_table)
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # Terms & Conditions
+    elements.append(Paragraph("<b>TERMS & CONDITIONS</b>", section_title))
+    
+    terms = [
+        "1. This purchase contract note confirms receipt of shares from the vendor.",
+        "2. TCS @0.1% has been deducted as per Section 194Q of the Income Tax Act (if applicable).",
+        "3. The shares have been credited to our depository account as per the DP type mentioned above.",
+        "4. Any discrepancy should be reported within 3 working days from receipt of this document.",
+        "5. This document is computer generated and does not require physical signature.",
+    ]
+    
+    for term in terms:
+        elements.append(Paragraph(term, small_style))
+    
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # Signatures
+    sig_data = [
+        [f"For {company_name}", f"For {vendor_name}"],
+        ["", ""],
+        ["", ""],
+        ["Authorized Signatory", "Vendor Acknowledgment"]
+    ]
+    
+    sig_table = Table(sig_data, colWidths=[7.5*cm, 7.5*cm])
+    sig_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+    ]))
+    elements.append(sig_table)
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    return buffer
+
+
+async def create_and_save_vendor_contract_note(purchase_id: str, user_id: str, user_name: str) -> dict:
+    """
+    Create purchase contract note for a vendor and save to database
+    
+    Args:
+        purchase_id: The purchase ID
+        user_id: The user creating the contract note
+        user_name: The user's name
+    
+    Returns:
+        Vendor contract note document
+    """
+    purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
+    if not purchase:
+        raise ValueError("Purchase not found")
+    
+    # Generate contract note number
+    cn_number = await generate_vendor_purchase_contract_note_number()
+    
+    # Update purchase with contract note number for PDF generation
+    purchase["purchase_contract_note_number"] = cn_number
+    
+    # Generate PDF
+    pdf_buffer = await generate_vendor_purchase_contract_note_pdf(purchase)
+    
+    # Save PDF to disk
+    cn_dir = "/app/uploads/vendor_contract_notes"
+    os.makedirs(cn_dir, exist_ok=True)
+    
+    filename = f"PCN_{cn_number.replace('/', '_')}_{purchase_id[:8]}.pdf"
+    filepath = os.path.join(cn_dir, filename)
+    
+    with open(filepath, "wb") as f:
+        f.write(pdf_buffer.getvalue())
+    
+    # Get vendor details
+    vendor = await db.clients.find_one({"id": purchase.get("vendor_id")}, {"_id": 0})
+    
+    # Create contract note record
+    cn_doc = {
+        "id": str(uuid.uuid4()),
+        "contract_note_number": cn_number,
+        "purchase_id": purchase_id,
+        "purchase_number": purchase.get("purchase_number"),
+        "vendor_id": purchase.get("vendor_id"),
+        "vendor_name": vendor.get("name") if vendor else "Unknown",
+        "stock_id": purchase.get("stock_id"),
+        "quantity": purchase.get("quantity"),
+        "rate": purchase.get("price_per_share"),
+        "total_amount": purchase.get("total_amount"),
+        "pdf_url": f"/uploads/vendor_contract_notes/{filename}",
+        "status": "generated",
+        "email_sent": False,
+        "created_by": user_id,
+        "created_by_name": user_name,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.vendor_contract_notes.insert_one(cn_doc)
+    
+    # Update purchase with contract note reference
+    await db.purchases.update_one(
+        {"id": purchase_id},
+        {
+            "$set": {
+                "contract_note_number": cn_number,
+                "contract_note_id": cn_doc["id"],
+                "contract_note_generated_at": cn_doc["created_at"]
+            }
+        }
+    )
+    
+    return cn_doc
