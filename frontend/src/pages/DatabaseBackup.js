@@ -249,6 +249,21 @@ const DatabaseBackup = () => {
             <span className="hidden sm:inline">Create </span>Backup
           </Button>
           {isPEDesk && (
+            <Button 
+              onClick={handleCreateFullBackup} 
+              disabled={creatingFull}
+              className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700" 
+              data-testid="full-backup-btn"
+            >
+              {creatingFull ? (
+                <RefreshCw className="h-4 w-4 sm:mr-2 animate-spin" />
+              ) : (
+                <FileArchive className="h-4 w-4 sm:mr-2" />
+              )}
+              <span className="hidden sm:inline">Full </span>Backup
+            </Button>
+          )}
+          {isPEDesk && (
             <Button variant="destructive" onClick={() => setClearDialogOpen(true)} className="flex-1 sm:flex-none" data-testid="clear-database-btn">
               <XCircle className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Clear </span>DB
