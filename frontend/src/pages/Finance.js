@@ -573,6 +573,10 @@ const Finance = () => {
             <Users className="h-3 w-3 mr-1" />
             Emp. Commissions ({employeeCommissions.length})
           </TabsTrigger>
+          <TabsTrigger value="tcs" data-testid="tcs-tab">
+            <Calculator className="h-3 w-3 mr-1" />
+            TCS Collected
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
