@@ -82,7 +82,34 @@ async def get_company_master(current_user: dict = Depends(get_current_user)):
     master = await db.company_master.find_one({"_id": "company_settings"})
     
     if not master:
-        # Create default record
+        # Create default record with default user agreement
+        default_agreement = """TERMS OF USE AND USER AGREEMENT
+
+By accessing and using the PRIVITY Share Booking System, you agree to the following terms and conditions:
+
+1. CONFIDENTIALITY
+You agree to maintain the confidentiality of all information accessed through this system. Client data, transaction details, and business information must not be shared with unauthorized parties.
+
+2. AUTHORIZED USE
+This system is intended solely for authorized business purposes. You agree not to use the system for any illegal or unauthorized activities.
+
+3. DATA ACCURACY
+You are responsible for ensuring the accuracy of all data you enter into the system. Any errors should be reported and corrected immediately.
+
+4. SECURITY
+You agree to keep your login credentials secure and not share them with anyone. Report any suspected security breaches immediately.
+
+5. COMPLIANCE
+You agree to comply with all applicable laws, regulations, and company policies while using this system.
+
+6. MONITORING
+You acknowledge that your activities on this system may be monitored and logged for security and audit purposes.
+
+7. TERMINATION
+The company reserves the right to terminate your access to the system at any time for violation of these terms.
+
+By clicking "I Agree", you confirm that you have read, understood, and agree to be bound by these terms and conditions."""
+        
         master = {
             "_id": "company_settings",
             "id": "company_settings",
@@ -103,6 +130,7 @@ async def get_company_master(current_user: dict = Depends(get_current_user)):
             "cml_nsdl_url": None,
             "cancelled_cheque_url": None,
             "pan_card_url": None,
+            "user_agreement_text": default_agreement,
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "updated_by": current_user["name"]
         }
