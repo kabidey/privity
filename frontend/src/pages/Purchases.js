@@ -474,6 +474,19 @@ const Purchases = () => {
                             ) : (
                               <span className="text-green-600 text-sm font-medium mr-2">✓ Paid</span>
                             )}
+                            {/* View Payments Button */}
+                            {(purchase.total_paid || 0) > 0 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => fetchPayments(purchase)}
+                                className="text-blue-600 hover:text-blue-700"
+                                data-testid={`view-payments-btn-${purchase.id}`}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                            )}
                             {canDelete && (
                               <Button
                                 size="sm"
@@ -496,6 +509,130 @@ const Purchases = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* View Payments Dialog */}
+      <Dialog open={paymentsDialog.open} onOpenChange={(open) => setPaymentsDialog({ ...paymentsDialog, open })}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Payment History
+            </DialogTitle>
+            <DialogDescription>
+              {paymentsDialog.purchase && (
+                <>Payments for {paymentsDialog.purchase.vendor_name} - {paymentsDialog.purchase.stock_symbol}</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {paymentsDialog.purchase && (
+            <div className="space-y-4">
+              {/* Summary */}
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground block">Total Amount</span>
+                    <span className="font-bold text-lg">₹{paymentsDialog.purchase.total_amount?.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block">Paid</span>
+                    <span className="font-bold text-lg text-green-600">₹{(paymentsDialog.purchase.total_paid || 0).toLocaleString('en-IN')}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block">Remaining</span>
+                    <span className="font-bold text-lg text-orange-600">₹{getRemainingAmount(paymentsDialog.purchase).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Payments List */}
+              {paymentsLoading ? (
+                <div className="text-center py-8">
+                  <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+                  Loading payments...
+                </div>
+              ) : paymentsDialog.payments.length === 0 ? (
+                <p className="text-center py-8 text-muted-foreground">No payments recorded yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {paymentsDialog.payments.map((payment, idx) => (
+                    <div key={payment.id} className="border rounded-lg p-4 bg-white dark:bg-gray-900">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-xs">Tranche #{payment.tranche_number}</Badge>
+                            <span className="text-sm text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString('en-IN')}</span>
+                          </div>
+                          <div className="text-xl font-bold">₹{payment.amount?.toLocaleString('en-IN')}</div>
+                        </div>
+                        <Badge className={payment.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                          {payment.status || 'Completed'}
+                        </Badge>
+                      </div>
+                      
+                      {/* TCS Info */}
+                      {payment.tcs_applicable && (
+                        <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calculator className="h-4 w-4 text-amber-600" />
+                            <span className="font-medium text-amber-700 dark:text-amber-300">TCS Deducted</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                            <span className="text-muted-foreground">TCS Amount:</span>
+                            <span className="font-mono">₹{payment.tcs_amount?.toLocaleString('en-IN') || '0'}</span>
+                            <span className="text-muted-foreground">Net Payment:</span>
+                            <span className="font-mono">₹{payment.net_payment?.toLocaleString('en-IN') || payment.amount?.toLocaleString('en-IN')}</span>
+                            <span className="text-muted-foreground">FY Cumulative:</span>
+                            <span className="font-mono">₹{payment.vendor_fy_cumulative_after?.toLocaleString('en-IN') || 'N/A'}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Payment Details */}
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                        {payment.payment_mode && (
+                          <>
+                            <span className="text-muted-foreground">Mode:</span>
+                            <span className="capitalize">{payment.payment_mode.replace('_', ' ')}</span>
+                          </>
+                        )}
+                        {payment.reference_number && (
+                          <>
+                            <span className="text-muted-foreground">Reference:</span>
+                            <span className="font-mono">{payment.reference_number}</span>
+                          </>
+                        )}
+                        {payment.notes && (
+                          <>
+                            <span className="text-muted-foreground">Notes:</span>
+                            <span>{payment.notes}</span>
+                          </>
+                        )}
+                      </div>
+                      
+                      {/* Proof Document */}
+                      {payment.proof_url && (
+                        <div className="mt-3 pt-3 border-t">
+                          <a 
+                            href={payment.proof_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            <FileText className="h-4 w-4" />
+                            View Payment Proof
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Payment Dialog */}
       <Dialog open={paymentDialog.open} onOpenChange={(open) => {
