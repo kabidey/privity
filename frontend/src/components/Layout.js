@@ -53,7 +53,8 @@ import {
   User,
   ArrowDownToLine,
   Send,
-  BookOpen
+  BookOpen,
+  Phone
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
