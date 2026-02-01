@@ -92,6 +92,14 @@ const Finance = () => {
       setRpPayments(rpPaymentsRes.data || []);
       setBpPayments(bpPaymentsRes.data || []);
       setEmployeeCommissions(commissionsRes.data || []);
+      
+      // Fetch TCS payments separately
+      try {
+        const tcsRes = await api.get('/finance/tcs-payments');
+        setTcsPayments(tcsRes.data || []);
+      } catch (e) {
+        setTcsPayments([]);
+      }
     } catch (error) {
       toast.error('Failed to fetch finance data');
     } finally {
