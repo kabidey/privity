@@ -47,6 +47,8 @@ class User(BaseModel):
     role: int
     role_name: str
     created_at: str
+    agreement_accepted: Optional[bool] = False
+    agreement_accepted_at: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
