@@ -34,7 +34,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 async def register(user_data: UserCreate, request: Request = None):
     """
     Register a new employee. Password is auto-generated and sent via email.
-    PAN is required for all users except superadmin (pedesk@smifs.com).
+    PAN is required for all users except superadmin (pe@smifs.com).
     """
     # Check email domain restriction
     email_domain = user_data.email.split('@')[-1].lower()
@@ -48,8 +48,8 @@ async def register(user_data: UserCreate, request: Request = None):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Superadmin check - pedesk@smifs.com doesn't need PAN
-    is_superadmin = user_data.email.lower() == "pedesk@smifs.com"
+    # Superadmin check - pe@smifs.com doesn't need PAN
+    is_superadmin = user_data.email.lower() == "pe@smifs.com"
     
     pan_number = None
     if not is_superadmin:
@@ -98,7 +98,7 @@ async def register(user_data: UserCreate, request: Request = None):
     user_id = str(uuid.uuid4())
     hashed_pw = hash_password(random_password)
     
-    # Set role: Superadmin (1) for pedesk@smifs.com, Employee (5) for others
+    # Set role: Superadmin (1) for pe@smifs.com, Employee (5) for others
     user_role = 1 if is_superadmin else 5
     
     user_doc = {

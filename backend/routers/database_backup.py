@@ -384,9 +384,9 @@ async def restore_database(
             # Special handling for users - preserve super admin
             documents = backup_data[collection_name]
             # Remove existing users except super admin
-            await db.users.delete_many({"email": {"$ne": "pedesk@smifs.com"}})
+            await db.users.delete_many({"email": {"$ne": "pe@smifs.com"}})
             # Insert backup users except if they conflict with super admin
-            users_to_insert = [d for d in documents if d.get("email") != "pedesk@smifs.com"]
+            users_to_insert = [d for d in documents if d.get("email") != "pe@smifs.com"]
             if users_to_insert:
                 await db.users.insert_many(users_to_insert)
             restored_counts[collection_name] = len(users_to_insert)
@@ -736,8 +736,8 @@ async def restore_from_file(
             
             if collection_name == "users":
                 # Special handling for users - preserve super admin
-                await db.users.delete_many({"email": {"$ne": "pedesk@smifs.com"}})
-                users_to_insert = [d for d in documents if d.get("email") != "pedesk@smifs.com"]
+                await db.users.delete_many({"email": {"$ne": "pe@smifs.com"}})
+                users_to_insert = [d for d in documents if d.get("email") != "pe@smifs.com"]
                 if users_to_insert:
                     await db.users.insert_many(users_to_insert)
                 restored_counts[collection_name] = len(users_to_insert)

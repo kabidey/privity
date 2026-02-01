@@ -121,8 +121,8 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Prevent modifying the super admin (pedesk@smifs.com)
-    if user.get("email") == "pedesk@smifs.com" and current_user.get("email") != "pedesk@smifs.com":
+    # Prevent modifying the super admin (pe@smifs.com)
+    if user.get("email") == "pe@smifs.com" and current_user.get("email") != "pe@smifs.com":
         raise HTTPException(status_code=403, detail="Cannot modify the super admin account")
     
     # PE Manager cannot modify PE Desk or PE Manager users
@@ -164,7 +164,7 @@ async def update_user_role(user_id: str, role: int, current_user: dict = Depends
         raise HTTPException(status_code=404, detail="User not found")
     
     # Prevent modifying the super admin
-    if user.get("email") == "pedesk@smifs.com":
+    if user.get("email") == "pe@smifs.com":
         raise HTTPException(status_code=403, detail="Cannot modify the super admin role")
     
     # PE Manager restrictions
@@ -192,7 +192,7 @@ async def delete_user(user_id: str, current_user: dict = Depends(get_current_use
         raise HTTPException(status_code=404, detail="User not found")
     
     # Prevent deleting the super admin
-    if user.get("email") == "pedesk@smifs.com":
+    if user.get("email") == "pe@smifs.com":
         raise HTTPException(status_code=403, detail="Cannot delete the super admin account")
     
     # Prevent self-deletion
