@@ -24,6 +24,16 @@ from services.email_service import send_stock_transfer_request_email, send_email
 router = APIRouter(prefix="/purchases", tags=["Purchases"])
 
 
+# Pydantic model for payment request
+class PaymentRequest(BaseModel):
+    amount: float
+    payment_date: str
+    payment_mode: Optional[str] = "bank_transfer"
+    reference_number: Optional[str] = None
+    notes: Optional[str] = None
+    proof_url: Optional[str] = None
+
+
 @router.post("", response_model=Purchase)
 async def create_purchase(
     purchase_data: PurchaseCreate,
