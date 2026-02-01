@@ -163,12 +163,66 @@ async def register(user_data: UserCreate, request: Request = None):
     }
 
 
+from middleware.security import login_tracker, SecurityAuditLogger
+
 @router.post("/login", response_model=TokenResponse)
-async def login(login_data: UserLogin):
+async def login(login_data: UserLogin, request: Request = None):
     """Login user and return JWT token"""
-    user = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+    email = login_data.email.lower().strip()
+    
+    # Get client IP for security tracking
+    client_ip = "unknown"
+    if request:
+        client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or \
+                    request.headers.get("X-Real-IP", "") or \
+                    (request.client.host if request.client else "unknown")
+    
+    # Check if account is locked due to too many failed attempts
+    is_locked, remaining_seconds = login_tracker.is_account_locked(email)
+    if is_locked:
+        await SecurityAuditLogger.log_security_event(
+            "LOGIN_BLOCKED_LOCKED_ACCOUNT",
+            client_ip,
+            details={"email": email, "remaining_seconds": remaining_seconds}
+        )
+        raise HTTPException(
+            status_code=423, 
+            detail=f"Account temporarily locked due to too many failed attempts. Try again in {remaining_seconds // 60} minutes."
+        )
+    
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    
     if not user or not verify_password(login_data.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        # Record failed attempt
+        remaining_attempts = login_tracker.record_failed_attempt(email)
+        
+        await SecurityAuditLogger.log_security_event(
+            "LOGIN_FAILED",
+            client_ip,
+            details={"email": email, "remaining_attempts": remaining_attempts}
+        )
+        
+        if remaining_attempts > 0:
+            raise HTTPException(
+                status_code=401, 
+                detail=f"Invalid email or password. {remaining_attempts} attempts remaining."
+            )
+        else:
+            raise HTTPException(
+                status_code=401, 
+                detail="Invalid email or password. Account has been temporarily locked."
+            )
+    
+    # Clear failed attempts on successful login
+    login_tracker.clear_attempts(email)
+    
+    # Log successful login
+    await SecurityAuditLogger.log_security_event(
+        "LOGIN_SUCCESS",
+        client_ip,
+        user_id=user["id"],
+        details={"email": email}
+    )
     
     # Create audit log for login
     await create_audit_log(
