@@ -340,8 +340,8 @@ const Layout = ({ children }) => {
           </div>
         </div>
         
-        {/* Navigation */}
-        <nav className="flex-1 p-3 overflow-y-auto" data-testid="sidebar-nav">
+        {/* Navigation - Scrollable area */}
+        <nav className="flex-1 p-3 overflow-y-auto min-h-0" data-testid="sidebar-nav">
           <div className="space-y-0.5">
             {menuItems.map((item) => {
               const Icon = item.icon;
