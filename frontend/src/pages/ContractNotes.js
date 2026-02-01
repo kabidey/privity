@@ -31,6 +31,7 @@ const ContractNotes = () => {
   const [selectedNote, setSelectedNote] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [regenerating, setRegenerating] = useState(null);
   
   // Filters
   const [filters, setFilters] = useState({
@@ -42,6 +43,7 @@ const ContractNotes = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const isPEDesk = currentUser.role === 1;
 
   useEffect(() => {
     if (!isPELevel) {
