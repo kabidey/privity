@@ -951,14 +951,31 @@ const Finance = () => {
         {/* TCS Collected Tab */}
         <TabsContent value="tcs">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                TCS Collected (Section 194Q)
-              </CardTitle>
-              <CardDescription>
-                TCS @0.1% collected on vendor payments exceeding ₹50 lakhs in a Financial Year
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calculator className="h-5 w-5" />
+                  TCS Collected (Section 194Q)
+                </CardTitle>
+                <CardDescription>
+                  TCS @0.1% collected on vendor payments exceeding ₹50 lakhs in a Financial Year
+                </CardDescription>
+              </div>
+              {tcsPayments.length > 0 && (
+                <Button 
+                  onClick={handleExportTcs} 
+                  disabled={exportingTcs}
+                  className="bg-amber-600 hover:bg-amber-700"
+                  data-testid="export-tcs-btn"
+                >
+                  {exportingTcs ? (
+                    <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  )}
+                  Export TCS Report
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="p-0 md:p-6">
               {tcsPayments.length === 0 ? (
