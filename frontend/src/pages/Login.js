@@ -173,17 +173,35 @@ const Login = () => {
       return;
     }
     
+    // Validate CAPTCHA if required
+    if (captchaRequired && !captchaAnswer) {
+      toast.error('Please solve the CAPTCHA to continue');
+      return;
+    }
+    
     setLoading(true);
 
     try {
       if (isLogin) {
-        const response = await api.post('/auth/login', { 
+        // Build login URL with CAPTCHA params if required
+        let loginUrl = '/auth/login';
+        if (captchaRequired && captchaToken && captchaAnswer) {
+          loginUrl += `?captcha_token=${encodeURIComponent(captchaToken)}&captcha_answer=${encodeURIComponent(captchaAnswer)}`;
+        }
+        
+        const response = await api.post(loginUrl, { 
           email: formData.email, 
           password: formData.password 
         });
         
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Clear CAPTCHA state on success
+        setCaptchaRequired(false);
+        setCaptchaToken('');
+        setCaptchaQuestion('');
+        setCaptchaAnswer('');
         
         toast.success('Logged in successfully');
         navigate('/');
@@ -203,7 +221,27 @@ const Login = () => {
         toast.success('Account created! Check your email for login credentials.');
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'An error occurred');
+      const errorData = error.response?.data;
+      
+      // Handle CAPTCHA requirement (status 428 or 401 with captcha_required)
+      if (error.response?.status === 428 || (errorData?.detail?.captcha_required)) {
+        const captchaData = error.response?.status === 428 ? errorData?.detail : errorData?.detail;
+        setCaptchaRequired(true);
+        setCaptchaToken(captchaData?.captcha_token || '');
+        setCaptchaQuestion(captchaData?.captcha_question || '');
+        setCaptchaAnswer('');
+        
+        if (captchaData?.message) {
+          toast.error(captchaData.message);
+        } else {
+          toast.error('Please solve the CAPTCHA to continue');
+        }
+      } else {
+        const message = typeof errorData?.detail === 'string' 
+          ? errorData.detail 
+          : errorData?.detail?.message || 'An error occurred';
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
