@@ -8,6 +8,8 @@ import secrets
 import string
 import logging
 from datetime import datetime, timezone, timedelta
+
+logger = logging.getLogger(__name__)
 from fastapi import APIRouter, HTTPException, Depends, Request, Body
 
 from database import db
