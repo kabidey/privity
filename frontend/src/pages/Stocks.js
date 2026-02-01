@@ -253,7 +253,7 @@ const Stocks = () => {
 
   const resetForm = () => {
     setFormData({
-      symbol: '', name: '', exchange: 'UNLISTED/CCPS', isin_number: '', sector: '', product: 'Equity', face_value: '',
+      symbol: '', name: '', exchange: 'UNLISTED/CCPS', isin_number: '', sector: '', customSector: '', product: 'Equity', face_value: '',
     });
     setEditingStock(null);
   };
