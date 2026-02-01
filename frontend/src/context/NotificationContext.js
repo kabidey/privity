@@ -4,10 +4,92 @@ import api from '../utils/api';
 
 const NotificationContext = createContext();
 
+// Audio context singleton to avoid creating multiple contexts
+let globalAudioContext = null;
+let audioUnlocked = false;
+
+// Initialize or resume audio context
+const initAudioContext = () => {
+  if (!globalAudioContext) {
+    globalAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (globalAudioContext.state === 'suspended') {
+    globalAudioContext.resume();
+  }
+  return globalAudioContext;
+};
+
+// Unlock audio on user interaction
+const unlockAudio = async () => {
+  if (audioUnlocked) return true;
+  
+  try {
+    const ctx = initAudioContext();
+    // Create and play a silent buffer to unlock audio
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+    audioUnlocked = true;
+    console.log('Audio context unlocked');
+    return true;
+  } catch (error) {
+    console.error('Failed to unlock audio:', error);
+    return false;
+  }
+};
+
+// Request browser notification permission
+const requestNotificationPermission = async () => {
+  if (!('Notification' in window)) {
+    console.log('Browser does not support notifications');
+    return 'unsupported';
+  }
+  
+  if (Notification.permission === 'granted') {
+    return 'granted';
+  }
+  
+  if (Notification.permission !== 'denied') {
+    const permission = await Notification.requestPermission();
+    return permission;
+  }
+  
+  return Notification.permission;
+};
+
+// Show browser notification
+const showBrowserNotification = (title, options = {}) => {
+  if (Notification.permission === 'granted') {
+    try {
+      const notification = new Notification(title, {
+        icon: '/logo192.png',
+        badge: '/logo192.png',
+        ...options
+      });
+      
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+      
+      // Auto-close after 5 seconds
+      setTimeout(() => notification.close(), 5000);
+    } catch (error) {
+      console.error('Failed to show browser notification:', error);
+    }
+  }
+};
+
 // Create a LOUD notification chime with multiple harmonics
 const playNotificationSound = () => {
   try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = initAudioContext();
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    
     const masterGain = audioContext.createGain();
     masterGain.connect(audioContext.destination);
     masterGain.gain.value = 0.8; // Louder master volume
@@ -47,7 +129,6 @@ const playNotificationSound = () => {
     playTone(1318.51, now + 0.35, 0.4, 'sine', 0.5); // E6
     playTone(1567.98, now + 0.4, 0.35, 'sine', 0.4); // G6
     
-    setTimeout(() => audioContext.close(), 1500);
   } catch (error) {
     console.error('Failed to play notification sound:', error);
   }
@@ -56,7 +137,11 @@ const playNotificationSound = () => {
 // Play urgent alert sound for critical notifications
 const playUrgentSound = () => {
   try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = initAudioContext();
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    
     const masterGain = audioContext.createGain();
     masterGain.connect(audioContext.destination);
     masterGain.gain.value = 1.0; // Maximum volume for urgent
