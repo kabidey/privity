@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, TrendingUp, FileText, Package, Building2, ShoppingCart, Boxes, BookOpen, Sparkles, ChevronRight, FileSearch, Brain, AlertTriangle, Mail, X } from 'lucide-react';
+import { Users, TrendingUp, FileText, Package, Building2, ShoppingCart, Boxes, BookOpen, Sparkles, ChevronRight, FileSearch, Brain, AlertTriangle, Mail, X, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import api from '../utils/api';
 import { toast } from 'sonner';
