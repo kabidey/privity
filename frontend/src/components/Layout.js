@@ -241,6 +241,7 @@ const Layout = ({ children }) => {
   if (user.role === 1) {
     menuItems.push({ icon: Building2, label: 'Company Master', path: '/company-master' });
     menuItems.push({ icon: Upload, label: 'Bulk Upload', path: '/bulk-upload' });
+    menuItems.push({ icon: Database, label: 'Database Backup', path: '/database-backup' });
   }
 
   // Business Partners - PE Level, Partners Desk, and Viewer
