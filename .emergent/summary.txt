@@ -1,7 +1,7 @@
 <analysis>**original_problem_statement:**
 The user's initial goal was to restore and enhance their Privity - Share Booking System application.
 
-In this extensive session, the user requested a wide array of features, bug fixes, and workflow enhancements:
+In this session, the user requested a wide array of features, bug fixes, and workflow enhancements:
 *   **System Notifications**: Add a warning banner on the dashboard for administrators when the SMTP email service is not configured.
 *   **Purchases Workflow**:
     *   Fix an error occurred bug when recording a new purchase.
@@ -11,8 +11,7 @@ In this extensive session, the user requested a wide array of features, bug fixe
     *   When a name mismatch is detected during creation, provide an option to select Proprietor to bypass the mismatch.
     *   The Proprietor status should be marked with a red flag in the UI for PE Desk/Manager.
     *   Add a Bank Proof upload button for flagged proprietor clients, accessible only by PE Desk/Manager.
-    *   Enforce a rule where PE Managers cannot approve a flagged client until Bank Proof is uploaded (PE Desk can bypass this).
-    *   Fix the UI to ensure the proprietor selection option is always visible when a name mismatch occurs.
+    - On client form, don't ask for Bank Declaration for proprietors.
 *   **UI/UX & Performance**:
     *   Fix a bug causing the application to refresh constantly by replacing polling with WebSockets.
     *   Remove the Total Revenue and Revenue Trend sections from the dashboard.
@@ -22,132 +21,156 @@ In this extensive session, the user requested a wide array of features, bug fixe
 *   **Bug Fixes & Deployment**:
     *   Fix a bug where documents were not being carried over when cloning a vendor to a client.
     *   Resolve a deployment-blocking  in the backend server.
-*   **Mobile App Request**:
-    *   In response to a request for an APK file, implement Progressive Web App (PWA) support as a web-based alternative.
+    - CML OCR is extracting the wrong name (father's name instead of the primary account holder).
+    - Version auto-update on deployment is not working, causing the version to reset and features to disappear.
+    - The changelog modal is not showing the latest build changes and should be made static instead of automatic.
+*   **New Features & Enhancements**:
+    - Give stock creation and management rights to the PE Manager role.
+    - Edit the Viewer user role to have read-only access to all application modules.
+    - Add new user roles: Regional Manager and Business Head.
+    - Conduct a full analysis to ensure all backend endpoints are integrated and used in the frontend UI.
+    - Implement email notifications when a client is approved, and when a vendor is converted to a client (and vice-versa).
+    - Implement TCS (Tax Collected at Source) at 0.1% for vendor payments where the total for the financial year exceeds 50 lakhs. This should be auto-calculated with a manual override option.
+    - Display recorded payments, payment proofs, and TCS details in the UI.
+    - Create a TCS Collected section on the Finance page.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The Privity - Share Booking System is a stable full-stack application (React/FastAPI/MongoDB). This session saw the implementation of a real-time group chat feature, which replaced the previous floating AI assistant. The AI assistant was then re-integrated as a static component on the dashboard. A major bug causing constant UI refreshing was resolved by refactoring multiple components to reduce polling. The client and vendor creation workflow was significantly enhanced with a multi-step proprietorship and name mismatch handling system, including conditional document uploads and role-based approval restrictions. The application now also has PWA (Progressive Web App) support, allowing it to be installed on user devices. Several other bugs related to purchases, cloning, and deployment have been fixed.
+The Privity - Share Booking System is a stable full-stack application (React/FastAPI/MongoDB). This session focused heavily on bug fixes, workflow enhancements, and implementing a major compliance feature.
+
+The CML OCR was improved to correctly extract the primary account holder's name. The application's versioning system was stabilized to be static, preventing version resets on deployment and ensuring UI consistency. The proprietor workflow for client creation was simplified, removing the mandatory bank declaration and ensuring the Proprietor tag is always displayed correctly.
+
+Major role-based access control (RBAC) changes were made: the PE Manager role can now manage stocks, the Viewer role has read-only access to all modules, and two new senior roles (Regional Manager, Business Head) were added.
+
+A critical bug in the vendor payment recording workflow was fixed. Building on this, a comprehensive TCS (Tax Collected at Source) feature was implemented, which auto-calculates tax for vendor payments exceeding the ₹50 lakh threshold, with UI for preview, manual overrides, payment history display, and a dedicated TCS Collected tab on the Finance page.
 
 **Last working item**:
--   **Last item agent was working**: Fixing the proprietor selection workflow on the client/vendor creation forms. The user reported that the proprietor selection option was not appearing. The agent diagnosed that the automatic name-mismatch detection was flawed because the client's name was being auto-filled from OCR, preventing a mismatch from being triggered. To provide a reliable way for users to handle this, the agent added a manual This is a Proprietorship checkbox to both the client and vendor creation forms, allowing the user to initiate the proprietorship workflow proactively.
+-   **Last item agent was working**: The user reported that the tabs on the Finance page (Sent, Received, TCS Collected) were not properly visible. The agent diagnosed a CSS layout issue ( for 8 tabs) and fixed it by switching to a flexible, horizontally scrollable layout, ensuring all tabs are visible on a single line.
 -   **Status**: USER VERIFICATION PENDING
 -   **Agent Testing Done**: Y
--   **Which testing method agent to use?**: Frontend testing agent. The test should verify that the This is a Proprietorship checkbox is visible on the client and vendor creation forms. It should then confirm that checking this box correctly initiates the proprietor workflow (e.g., requires a bank declaration on submission if there's a name mismatch).
+-   **Which testing method agent to use?**: Frontend testing agent. The test should navigate to the  page and verify that all 8 tabs (All, Received, Sent, Refunds, RP, BP, Commissions, TCS) are visible and clickable.
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: (P1) OTP and other system emails are not sent in environments without valid SMTP credentials.
--   **Issue 2**: (P0) The manual This is a Proprietorship checkbox fix for the client/vendor creation workflow needs to be verified by the user.
+-   **Issue 1**: (P0) Finance page tab visibility fix needs user verification.
+-   **Issue 2**: (P1) System emails (e.g., OTP, client approval, purchase orders) are not being delivered because SMTP credentials have not been provided by the user.
 
 **Issues Detail**:
--   **Issue 1**: Emails not sent without SMTP config.
-    -   **Attempted fixes**: The backend code is complete. The system correctly logs emails as Skipped if SMTP credentials are not present. A warning banner is now displayed on the dashboard for admins.
-    -   **Next debug checklist**: This is not a bug; it is a configuration requirement. The user must provide valid SMTP credentials via the Email Server Config page.
-    -   **Why fix this issue and what will be achieved with the fix?**: Enables all email-dependent features (OTP, purchase orders, client approvals).
+-   **Issue 1**: Finance page tab visibility.
+    -   **Attempted fixes**: The agent replaced the rigid grid layout for the tabs with  and  to ensure all tabs fit on one line and are scrollable on smaller screens. This was verified via screenshot.
+    -   **Next debug checklist**: User to log in and navigate to the Finance page to confirm all tabs are visible and accessible.
+    -   **Why fix this issue and what will be achieved with the fix?**: Ensures users can access all financial reporting sections, including the newly added TCS Collected and Emp. Commissions tabs.
+    -   **Status**: USER VERIFICATION PENDING
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: frontend
+-   **Issue 2**: System emails are not sent.
+    -   **Attempted fixes**: The agent has confirmed that the email service is fully implemented and correctly logs all outgoing emails to the  collection with a skipped status. A dedicated Email Server Configuration page exists for admins to enter SMTP credentials.
+    -   **Next debug checklist**: This is not a bug but a configuration requirement. The user needs to navigate to the Email Server Configuration page and enter valid SMTP credentials.
+    -   **Why fix this issue and what will be achieved with the fix?**: Enabling SMTP will activate all email-dependent features, providing crucial notifications to clients and vendors.
     -   **Status**: BLOCKED (on user providing credentials)
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: backend
--   **Issue 2**: Proprietor workflow UI fix pending verification.
-    -   **Attempted fixes**: The agent added a manual This is a Proprietorship checkbox to the Client and Vendor creation forms (, ) as the automatic name-mismatch detection was not reliably triggering the workflow.
-    -   **Next debug checklist**: Use the frontend testing agent to confirm the checkbox is visible and that checking it correctly alters the form submission logic to include the  flag.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will provide a robust and user-initiated way to handle proprietorship entities where the business name differs from the name on the PAN card, unblocking client/vendor creation in these cases.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: frontend
 
 **In progress Task List**:
 None.
 
 **Upcoming and Future Tasks**
+-   **Upcoming Tasks**:
+    -   (P1) **TCS Report Export**: Generate a Financial Year-wise TCS compliance report from the Finance page.
 -   **Future Tasks**:
     -   (P2) Implement Two-Factor Authentication (TOTP).
     -   (P2) Implement a bulk booking closure feature.
     -   (P2) Add configurable thresholds for loss-booking auto-approval.
+    -   (P2) Create a dashboard for Referral Partners (RPs) to track revenue.
+    -   (P3) Generate backend API documentation (e.g., using Swagger/OpenAPI).
 
 **Completed work in this session**
--   **Feature: Real-Time Team Chat**: Replaced the floating AI assistant with a real-time group chat for all users. The chat is mobile-responsive. (, ).
--   **Feature: PWA Support**: Converted the web app into a Progressive Web App, making it installable on devices. (, ).
--   **Feature: Proprietor Workflow**: Implemented a comprehensive workflow for name mismatches, including a red flag UI, bank proof uploads, and role-based approval logic. (, , , ).
--   **Feature: SMTP Warning**: Added a dashboard banner to warn admins when SMTP is not configured. (, ).
--   **Bug Fix: Purchase Creation**: Fixed a backend model mismatch ( vs ) and a frontend rendering error ( on null) that blocked purchase creation. (, , ).
--   **Bug Fix: Constant Refreshing**: Drastically reduced app-wide polling and fixed dependency array issues in  hooks, resolving a constant refresh bug. (, ).
--   **Bug Fix: Permissions**: Enabled the Pay button for PE Manager and Finance roles on the Purchases page. ().
--   **Bug Fix: Deployment Blocker**: Fixed a  in .
--   **Bug Fix: Cloning**: Ensured documents are now copied when cloning a vendor to a client. ().
--   **Enhancement: Purchase Emails**: Implemented email notifications to vendors upon purchase creation. ().
--   **Enhancement: UI Cleanup**: Removed Revenue sections from the Dashboard and re-embedded the Sohini AI Assistant. ().
+-   **Feature: TCS Implementation**: Implemented a full TCS (Tax Collected at Source) workflow for vendor payments, including backend calculation logic (), a preview API, a new TCS Collected tab on the Finance page (), and a detailed UI in the payment dialog ().
+-   **Feature: Payment History**: Added a View Payments dialog to the Purchases page, showing a detailed history of all payments (tranches) made for a purchase order.
+-   **Feature: Role Enhancements**:
+    -   Granted PE Manager role full stock creation and management rights (, ).
+    -   Added new Regional Manager and Business Head roles throughout the application (, ).
+    -   Expanded Viewer role to have read-only access to all modules ().
+-   **Feature: Email Notifications**: Added email notifications for client auto-approval and for vendor-to-client (or vice-versa) conversions.
+-   **Bug Fix: Purchase Payment Failure**: Resolved a critical bug where recording a vendor payment would fail. The fix involved changing the backend endpoint to accept a Pydantic model in the request body instead of query parameters and fixing an ObjectId serialization error ().
+-   **Bug Fix: CML OCR Accuracy**: Improved the AI prompt for CML document processing to correctly extract the primary account holder's name instead of the father's name ().
+-   **Bug Fix: Deployment Version Reset**: Stabilized the application versioning by removing the  script that auto-incremented the build on every restart. The version is now static and only updates on a new build, and the full version string (including build number) is displayed in the UI (, ).
+-   **Bug Fix: Changelog Modal**: Reworked the changelog modal to be static (manually opened by clicking the version badge) and fixed its logic to correctly display all historical changes ().
+-   **Bug Fix: Proprietor Workflow**: Simplified the client creation process for proprietors by removing the mandatory Bank Declaration upload requirement ().
+-   **Enhancement: UI Completeness**: Analyzed backend/frontend endpoint usage and added the missing Employee Commissions tab to the Finance page ().
+-   **Enhancement: UI Layout**: Fixed the tab layout on the Finance page to be a single, scrollable row, making all tabs accessible ().
 
 **Earlier issues found/mentioned but not fixed**
 None.
 
 **Known issue recurrence from previous fork**
-N/A
+-   **Proprietor Workflow UI**: This was a recurring topic. The latest changes have simplified the flow significantly by removing the bank declaration step, which should resolve the previous confusion.
+-   **Versioning on Deployment**: The user repeatedly reported issues with the version resetting. The final fix of removing the  auto-increment script and making the version static (only changing on ) should have resolved this recurrence.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **PWA (Progressive Web App)**: Use of  for caching/offline capabilities and an enhanced  to make the web app installable.
--   **WebSockets**: Implemented a real-time group chat feature using FastAPI's WebSocket support, replacing a polling-based AI assistant.
--   **React State & Hooks**: Fixed performance issues by removing polling intervals from  and correcting dependency arrays.
--   **Conditional Rendering**: Extensive use of role-based checks (, , ) to conditionally render UI elements like buttons and warning flags.
--   **Mobile-First CSS**: Used Tailwind CSS responsive prefixes (, ) to adapt component layouts for mobile, such as the group chat button.
--   **API Feature Flags**: Added boolean flags (, ) to backend models to drive complex frontend UI logic.
+-   **Compliance Logic**: Implemented business logic based on Indian tax law (TCS under Section 194Q), including Financial Year-based calculations.
+-   **Pydantic Models**: Used to fix a critical backend bug by defining a strict request body schema for the payment endpoint, replacing unreliable query parameter parsing.
+-   **MongoDB ObjectId Serialization**: Debugged and fixed  responses caused by returning raw MongoDB documents containing non-serializable  types.
+-   **React State Management for Complex UI**: Managed state in the payment dialog for real-time TCS calculation and preview as the user types the payment amount.
+-   **Role-Based Access Control (RBAC)**: Expanded the existing RBAC system to add new roles and grant fine-grained permissions (e.g., PE Manager access to stocks, Viewer read-only access).
+-   **Deployment Stability**: Addressed a recurring deployment issue by modifying the build process ( scripts) to ensure versioning is stable and predictable.
 
 **key DB schema**
--   **clients**, **vendors**: Added new optional fields: , , .
--   **group_chat_messages**: (New collection) Stores messages with , , , , .
+-   **purchases**: The  array within each purchase document now contains new optional fields: , , .
+-   **users**: The  field can now accept new integer values:  (Regional Manager) and  (Business Head).
 
 **changes in tech stack**
--   No new technologies were added, but PWA principles were implemented using standard web technologies (Service Workers, Manifest JSON).
+None.
 
 **All files of reference**
-*    and : Core files for the complex proprietor workflow implementation.
-*    and : Backend support for the proprietor workflow.
-*    and : The new real-time group chat feature.
-*    and : Key files for the PWA implementation.
-*   : Contains the fix for the app-wide constant refresh bug.
-*   : Contains the deployment fix (JSON import) and the new WebSocket router.
+*   : Contains the core logic for the TCS calculation and the fix for the payment recording bug.
+*   : Contains the frontend implementation for the TCS UI, payment history dialog, and payment submission logic.
+*   : Contains the implementation for the new TCS Collected and Employee Commissions tabs.
+*    & : Key files for the new user roles.
+*   : Contains the fix for the version reset issue.
+*   : Contains the fix for the static changelog display.
 
 **Areas that need refactoring**:
--   The frontend pages  (now over 1800 lines), , and  are extremely large and complex. They should be broken down into smaller, more focused components to improve maintainability and reduce the risk of introducing bugs.
+-   The frontend pages , , and  have become significantly more complex and large. They handle a lot of state, API calls, and conditional rendering logic. They should be broken down into smaller, reusable components to improve maintainability.
 
 **key api endpoints**
--   : **(New)** Checks if SMTP is configured to show a UI warning.
--   : **(New)** Uploads the bank declaration for proprietor clients.
--   : **(Modified)** Now blocks PE Managers from approving proprietor clients if  is missing.
--   : **(Modified)** Now correctly copies documents when cloning.
--   : **(Modified)** Now sends a purchase_order_created email to the vendor.
--   : **(New)** WebSocket connection for the real-time group chat.
--   : **(New)** Endpoint to post a new message to the group chat.
+-   : **(Modified)** Now accepts a Pydantic model JSON body, calculates TCS, and correctly records payments.
+-   : **(New)** Provides a real-time preview of the TCS calculation for a given payment amount.
+-   : **(New)** Fetches all payments where TCS was collected, for display on the Finance page.
+-   : **(Modified)** Now enriches the response by calculating and adding  and  to each purchase document.
+-   , : **(Modified)** Role check updated to allow PE Manager (role 2) access.
+-   , : **(Modified)** Now trigger email notifications (which are logged but require SMTP config for delivery).
 
 **Critical Info for New Agent**
-1.  **Proprietor Workflow is Complex**: The client/vendor creation workflow for name mismatches is now multi-faceted. It starts with a manual checkbox, shows inline UI warnings, requires a bank proof upload, and has role-specific approval rules. Refer to  and  for the full logic.
-2.  **PWA is Implemented**: The app is now a Progressive Web App. An Install App button will appear for users on supported browsers. The core logic is in  and .
-3.  **Polling Was Replaced**: A major performance issue with constant refreshing was fixed by removing  polling from  and . The app now relies on WebSockets for real-time updates. Avoid re-introducing aggressive polling.
-4.  **Chat vs. AI Assistant**: The floating button is now a **Team Chat**. The Sohini AI assistant is an embedded component on the **Dashboard** page. They are two separate features.
+1.  **TCS Logic is Key**: The new TCS feature is a critical compliance component. It calculates 0.1% tax on the cumulative amount exceeding ₹50 lakhs paid to a single vendor within an Indian Financial Year (April 1 - March 31). The core logic resides in  in the  function and the  helper.
+2.  **Versioning is Now Stable**: The recurring issue of the app version resetting on deployment has been fixed. The  script in  was removed. The version is now only incremented via the  script, making it stable between restarts. The full version, including the build number, is now displayed in the UI.
+3.  **SMTP Configuration is Required for Emails**: The application has a fully functional email service that sends notifications for client approvals, purchase orders, etc. However, no SMTP credentials are configured. All email attempts are currently logged to the  database collection with a skipped status. To enable actual email delivery, an admin must use the Email Server Configuration page in the UI to provide valid credentials.
+4.  **Payment Workflow is Fixed**: The bug causing the screen to go blank when recording a vendor payment has been resolved. The backend now correctly handles a JSON request body and avoids  serialization errors. The frontend now also displays payment history for each purchase.
 
 **documents and test reports created in this job**
--    (Updated multiple times with completed features and bug fixes).
+-    (Updated with completed features)
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
--   10. : **IN PROGRESS**. The agent added a manual checkbox as a fix, pending user verification.
--   9. : **COMPLETED**.
--   8. : **RESOLVED**. Agent explained why it wasn't possible and implemented PWA instead.
--   7. : **COMPLETED**.
--   6. : **COMPLETED**. Agent verified the feature was working as intended.
--   5. : **COMPLETED**. A deployment-blocking error was found and fixed.
--   4. : **COMPLETED**. Agent added inline selection buttons.
--   3. : **COMPLETED**.
--   2. : **COMPLETED**.
--   1. : **COMPLETED**.
+-   10. : **COMPLETED**. Agent fixed the tab layout on the Finance page.
+-   9. : **COMPLETED**. Agent implemented payment history display and a TCS Collected tab in Finance.
+-   8. : **COMPLETED**. Agent implemented the full TCS calculation and UI workflow.
+-   7. : **COMPLETED**. Agent added missing email notifications and confirmed the system logs them, explaining that SMTP config is needed for delivery.
+-   6. : **COMPLETED**. Agent fixed the backend payment endpoint and the ObjectId serialization error.
+-   5. : **COMPLETED**. Agent updated the UI to always show the Proprietor tag if  is true.
+-   4. : **RESOLVED**. Agent confirmed the system is ready for SMTP configuration via the UI.
+-   3. : **COMPLETED**. Agent stabilized the versioning system by removing the  script.
+-   2. : **COMPLETED**. Agent verified that the new roles are present and functional in the user management UI.
+-   1. : **COMPLETED**. Agent performed an analysis and added the missing Employee Commissions tab to the Finance page.
 
 **Project Health Check:**
 -   **Broken**: None.
 -   **Mocked**: None.
--   **In Progress**: The proprietor selection workflow fix is pending user verification.
+-   **In Progress**: None.
 
 **3rd Party Integrations**
 -   **OpenAI via **: For Sohini AI Assistant. (Uses Emergent LLM Key)
@@ -157,16 +180,17 @@ N/A
 -   ****: For converting numbers to words in PDFs.
 
 **Testing status**
--   **Testing agent used after significant changes**: NO
+-   **Testing agent used after significant changes**: YES (at the beginning of the fork to verify the previous work).
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
 -   **Known regressions**: None.
 
 **Credentials to test flow:**
 -   **PE Desk**:  /  (Full access)
--   **PE Manager**:  /  (Vendor/Client access with create/edit/clone but no delete)
+-   **PE Manager**:  /  (Vendor/Client access with create/edit/clone and now stock management)
 -   **Finance**:  / 
 -   **Employee**:  / 
+-   **Viewer**: A new user with this role can be created to test read-only access.
 
 **What agent forgot to execute**
-The agent addressed all user requests and issues raised during this session.</analysis>
+The agent addressed all user requests and issues raised during this session. All planned future tasks from previous sessions remain on the backlog.</analysis>
