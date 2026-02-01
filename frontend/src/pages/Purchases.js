@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, ShoppingCart, TrendingUp, CreditCard, CheckCircle, Clock, Trash2, RefreshCw, Calculator } from 'lucide-react';
+import { Plus, ShoppingCart, TrendingUp, CreditCard, CheckCircle, Clock, Trash2, RefreshCw, Calculator, Eye, FileText, ExternalLink } from 'lucide-react';
 
 const Purchases = () => {
   const navigate = useNavigate();
