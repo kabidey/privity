@@ -228,12 +228,15 @@ const Stocks = () => {
 
   const handleEdit = (stock) => {
     setEditingStock(stock);
+    // Check if the sector is in the predefined list or is a custom one
+    const isCustomSector = stock.sector && !SECTORS.includes(stock.sector);
     setFormData({
       symbol: stock.symbol,
       name: stock.name,
       exchange: stock.exchange || 'UNLISTED/CCPS',
       isin_number: stock.isin_number || '',
-      sector: stock.sector || '',
+      sector: isCustomSector ? 'Others' : (stock.sector || ''),
+      customSector: isCustomSector ? stock.sector : '',
       product: stock.product || 'Equity',
       face_value: stock.face_value?.toString() || '',
     });
