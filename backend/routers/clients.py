@@ -151,6 +151,39 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
             {"client_id": client_id, "client_name": client_data.name}
         )
     
+    # Send welcome email if auto-approved (PE Level created)
+    if approval_status == "approved" and client_data.email:
+        entity_type = "vendor" if client_data.is_vendor else "client"
+        subject = f"Welcome - Your {entity_type.title()} Account is Active"
+        body = f"""Dear {client_data.name},
+
+Welcome to SMIFS Private Equity!
+
+Your {entity_type} account has been successfully created and is now active.
+
+Your Account Details:
+- Name: {client_data.name}
+- OTC UCC: {otc_ucc}
+- PAN: {client_data.pan_number}
+- DP ID: {client_data.dp_id}
+
+{"You can now receive purchase orders and stock transfer requests from us." if client_data.is_vendor else "You can now place orders and manage your portfolio with us."}
+
+If you have any questions, please contact our PE Desk.
+
+Best Regards,
+SMIFS Private Equity Team"""
+        
+        await send_email(
+            to_email=client_data.email,
+            subject=subject,
+            body=body,
+            template_key="welcome",
+            variables={"client_name": client_data.name, "otc_ucc": otc_ucc},
+            related_entity_type=entity_type,
+            related_entity_id=client_id
+        )
+    
     return Client(**{k: v for k, v in client_doc.items() if k != "_id"})
 
 
