@@ -430,7 +430,7 @@ async def approve_booking(
         
         if client and primary_email:
             confirmation_token = booking.get("client_confirmation_token")
-            frontend_url = os.environ.get('FRONTEND_URL', 'https://booking-portal-38.preview.emergentagent.com')
+            frontend_url = os.environ.get('FRONTEND_URL', 'https://privity-booking-1.preview.emergentagent.com')
             
             if is_loss_pending:
                 await send_templated_email(
