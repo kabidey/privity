@@ -271,9 +271,32 @@ async def login(
         details={"email": email}
     )
     
+    # Check login location for unusual activity (async)
+    try:
+        from services.geolocation_service import UnusualLoginDetector
+        location_check = await UnusualLoginDetector.check_login_location(
+            user_id=user["id"],
+            user_email=email,
+            ip_address=client_ip,
+            user_agent=user_agent
+        )
+        
+        # If unusual login detected, send enhanced alert
+        if location_check.get("is_unusual"):
+            asyncio.create_task(
+                SecurityAlertService.send_unusual_login_alert(
+                    user_email=email,
+                    user_name=user["name"],
+                    ip_address=client_ip,
+                    user_agent=user_agent,
+                    location_data=location_check
+                )
+            )
+    except Exception as e:
+        logger.error(f"Failed to check login location: {e}")
+    
     # Send login notification email to user (async)
     try:
-        import asyncio
         asyncio.create_task(
             SecurityAlertService.send_new_login_alert(
                 user_email=email,
