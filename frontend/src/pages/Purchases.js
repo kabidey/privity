@@ -25,10 +25,15 @@ const Purchases = () => {
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
     notes: '',
-    proof_url: ''
+    proof_url: '',
+    tcs_amount: null,
+    tcs_applicable: null
   });
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [uploadingProof, setUploadingProof] = useState(false);
+  const [tcsPreview, setTcsPreview] = useState(null);
+  const [tcsLoading, setTcsLoading] = useState(false);
+  const [tcsManualOverride, setTcsManualOverride] = useState(false);
   const [formData, setFormData] = useState({
     vendor_id: '',
     stock_id: '',
@@ -46,9 +51,31 @@ const Purchases = () => {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isFinance = currentUser.role === 3;
+  const isFinance = currentUser.role === 7;
   const canPay = isPELevel || isFinance; // PE Desk, PE Manager, and Finance can pay
   const canDelete = isPEDesk; // Only PE Desk can delete
+
+  // Fetch TCS preview when amount or date changes
+  const fetchTcsPreview = async (purchaseId, amount, paymentDate) => {
+    if (!amount || amount <= 0) {
+      setTcsPreview(null);
+      return;
+    }
+    
+    setTcsLoading(true);
+    try {
+      const params = new URLSearchParams({ amount: amount.toString() });
+      if (paymentDate) params.append('payment_date', paymentDate);
+      
+      const response = await api.get(`/purchases/${purchaseId}/tcs-preview?${params.toString()}`);
+      setTcsPreview(response.data);
+    } catch (error) {
+      console.error('Failed to fetch TCS preview:', error);
+      setTcsPreview(null);
+    } finally {
+      setTcsLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Only PE Desk and PE Manager can access Purchases
