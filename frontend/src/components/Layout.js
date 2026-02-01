@@ -617,6 +617,18 @@ const Layout = ({ children }) => {
           
           {/* Footer Actions */}
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 safe-area-inset-bottom">
+            {/* Contact Info */}
+            <div className="flex items-center justify-center gap-4 mb-3 text-xs text-gray-500 dark:text-gray-400">
+              <a href="tel:9089963000" className="flex items-center gap-1 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                <Phone className="h-3 w-3" />
+                <span>9089963000</span>
+              </a>
+              <a href="mailto:pe@smifs.com" className="flex items-center gap-1 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                <Mail className="h-3 w-3" />
+                <span>pe@smifs.com</span>
+              </a>
+            </div>
+            
             <div className="space-y-2">
               <button
                 onClick={() => {
