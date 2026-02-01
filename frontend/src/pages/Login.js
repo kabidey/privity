@@ -30,6 +30,12 @@ const Login = () => {
     name: '',
     pan_number: '',
   });
+  
+  // CAPTCHA state
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaQuestion, setCaptchaQuestion] = useState('');
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
 
   // Fetch SSO config on mount
   useEffect(() => {
