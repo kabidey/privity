@@ -474,6 +474,33 @@ const Login = () => {
                   />
                 </div>
               )}
+              
+              {/* CAPTCHA Section */}
+              {isLogin && captchaRequired && (
+                <div className="space-y-2 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <span className="text-sm font-medium text-amber-800 dark:text-amber-200">Security Verification Required</span>
+                  </div>
+                  <Label htmlFor="captcha" className="text-amber-800 dark:text-amber-200">
+                    {captchaQuestion}
+                  </Label>
+                  <Input
+                    id="captcha"
+                    data-testid="captcha-input"
+                    type="text"
+                    placeholder="Enter your answer"
+                    value={captchaAnswer}
+                    onChange={(e) => setCaptchaAnswer(e.target.value)}
+                    className="bg-white dark:bg-gray-800"
+                    required
+                  />
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    Solve the math problem to verify you're human
+                  </p>
+                </div>
+              )}
+              
               <Button
                 type="submit"
                 data-testid="submit-button"
