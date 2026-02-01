@@ -77,6 +77,23 @@ const DatabaseBackup = () => {
     }
   };
 
+  const handleCreateFullBackup = async () => {
+    if (!window.confirm('This will create a FULL backup of all database collections. The backup can be downloaded with all uploaded files. Continue?')) {
+      return;
+    }
+    
+    setCreatingFull(true);
+    try {
+      const response = await api.post('/database/backups/full');
+      toast.success(`Full backup created! ${response.data.backup.total_records} records from ${response.data.backup.collections_count} collections`);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create full backup');
+    } finally {
+      setCreatingFull(false);
+    }
+  };
+
   const handleRestore = async () => {
     if (!selectedBackup) return;
     
