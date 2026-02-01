@@ -23,6 +23,108 @@ from services.email_service import send_stock_transfer_request_email, send_email
 
 router = APIRouter(prefix="/purchases", tags=["Purchases"])
 
+# TCS Constants
+TCS_RATE = 0.001  # 0.1%
+TCS_THRESHOLD = 5000000  # 50 lakhs
+
+
+def get_indian_financial_year(date_str: str = None) -> tuple:
+    """Get Indian Financial Year (April to March) start and end dates"""
+    from datetime import datetime
+    
+    if date_str:
+        date = datetime.fromisoformat(date_str.replace('Z', '+00:00')) if 'T' in date_str else datetime.strptime(date_str, '%Y-%m-%d')
+    else:
+        date = datetime.now()
+    
+    year = date.year
+    month = date.month
+    
+    # Indian FY starts in April
+    if month >= 4:  # April to December - FY is current year to next year
+        fy_start = f"{year}-04-01"
+        fy_end = f"{year + 1}-03-31"
+    else:  # January to March - FY is previous year to current year
+        fy_start = f"{year - 1}-04-01"
+        fy_end = f"{year}-03-31"
+    
+    return fy_start, fy_end
+
+
+async def get_vendor_fy_payments(vendor_id: str, payment_date: str = None) -> float:
+    """Get total payments made to a vendor in the current Indian Financial Year"""
+    fy_start, fy_end = get_indian_financial_year(payment_date)
+    
+    # Get all purchases for this vendor
+    purchases = await db.purchases.find(
+        {"vendor_id": vendor_id},
+        {"_id": 0, "id": 1}
+    ).to_list(1000)
+    
+    purchase_ids = [p["id"] for p in purchases]
+    
+    if not purchase_ids:
+        return 0.0
+    
+    # Get all payments for these purchases within the financial year
+    pipeline = [
+        {
+            "$match": {
+                "purchase_id": {"$in": purchase_ids},
+                "payment_date": {"$gte": fy_start, "$lte": fy_end}
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total": {"$sum": "$amount"}
+            }
+        }
+    ]
+    
+    result = await db.purchase_payments.aggregate(pipeline).to_list(1)
+    
+    return result[0]["total"] if result else 0.0
+
+
+def calculate_tcs(payment_amount: float, cumulative_payments: float) -> dict:
+    """Calculate TCS based on payment amount and cumulative payments"""
+    # TCS applies only if cumulative payments exceed threshold
+    amount_above_threshold = (cumulative_payments + payment_amount) - TCS_THRESHOLD
+    
+    if amount_above_threshold <= 0:
+        # Total payments still under threshold
+        return {
+            "tcs_applicable": False,
+            "tcs_amount": 0.0,
+            "tcs_rate": TCS_RATE,
+            "threshold": TCS_THRESHOLD,
+            "cumulative_before": cumulative_payments,
+            "cumulative_after": cumulative_payments + payment_amount,
+            "amount_above_threshold": 0.0
+        }
+    
+    # Calculate how much of this payment is above threshold
+    if cumulative_payments >= TCS_THRESHOLD:
+        # Already above threshold, TCS on entire payment
+        tcs_applicable_amount = payment_amount
+    else:
+        # Partially above threshold
+        tcs_applicable_amount = amount_above_threshold
+    
+    tcs_amount = round(tcs_applicable_amount * TCS_RATE, 2)
+    
+    return {
+        "tcs_applicable": True,
+        "tcs_amount": tcs_amount,
+        "tcs_rate": TCS_RATE,
+        "threshold": TCS_THRESHOLD,
+        "cumulative_before": cumulative_payments,
+        "cumulative_after": cumulative_payments + payment_amount,
+        "amount_above_threshold": amount_above_threshold,
+        "tcs_applicable_amount": tcs_applicable_amount
+    }
+
 
 # Pydantic model for payment request
 class PaymentRequest(BaseModel):
@@ -32,6 +134,8 @@ class PaymentRequest(BaseModel):
     reference_number: Optional[str] = None
     notes: Optional[str] = None
     proof_url: Optional[str] = None
+    tcs_amount: Optional[float] = None  # Manual TCS override
+    tcs_applicable: Optional[bool] = None  # Manual TCS flag
 
 
 @router.post("", response_model=Purchase)
