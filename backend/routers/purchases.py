@@ -648,23 +648,46 @@ async def mark_dp_received(
         }}
     )
     
-    # Update inventory - add received quantity to available stock
+    # Update inventory - add received quantity and calculate weighted average price
     stock = await db.stocks.find_one({"id": purchase.get("stock_id")}, {"_id": 0})
     if stock:
-        # Update inventory with received quantity
+        new_quantity = purchase.get("quantity", 0)
+        new_total_value = purchase.get("total_amount", 0)
+        new_price_per_share = new_total_value / new_quantity if new_quantity > 0 else 0
+        
+        # Update inventory with received quantity and weighted average
         inventory = await db.inventory.find_one({"stock_id": purchase.get("stock_id")}, {"_id": 0})
         if inventory:
+            # Calculate new weighted average price
+            old_quantity = inventory.get("available_quantity", 0)
+            old_total_value = inventory.get("total_value", 0)
+            
+            # New totals
+            combined_quantity = old_quantity + new_quantity
+            combined_total_value = old_total_value + new_total_value
+            
+            # Weighted average price
+            weighted_avg_price = combined_total_value / combined_quantity if combined_quantity > 0 else 0
+            
             await db.inventory.update_one(
                 {"stock_id": purchase.get("stock_id")},
-                {"$inc": {"available_quantity": purchase.get("quantity", 0)}}
+                {"$set": {
+                    "available_quantity": combined_quantity,
+                    "total_value": combined_total_value,
+                    "weighted_avg_price": round(weighted_avg_price, 2),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
             )
         else:
             # Create new inventory record
+            weighted_avg_price = new_price_per_share
             await db.inventory.insert_one({
                 "id": str(uuid.uuid4()),
                 "stock_id": purchase.get("stock_id"),
-                "available_quantity": purchase.get("quantity", 0),
+                "available_quantity": new_quantity,
                 "blocked_quantity": 0,
+                "total_value": new_total_value,
+                "weighted_avg_price": round(weighted_avg_price, 2),
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
     
