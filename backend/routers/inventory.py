@@ -14,9 +14,41 @@ from utils.auth import get_current_user
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
 
+async def calculate_weighted_avg_for_stock(stock_id: str) -> dict:
+    """
+    Calculate weighted average price from all received purchases for a stock.
+    This ensures accurate pricing based on actual purchase history.
+    """
+    # Get all purchases for this stock that have been received (dp_status = 'received')
+    purchases = await db.purchases.find(
+        {"stock_id": stock_id, "dp_status": "received"},
+        {"_id": 0, "quantity": 1, "total_amount": 1, "price_per_share": 1}
+    ).to_list(10000)
+    
+    if not purchases:
+        return {"weighted_avg_price": 0, "total_value": 0, "total_purchased_qty": 0}
+    
+    total_quantity = 0
+    total_value = 0
+    
+    for p in purchases:
+        qty = p.get("quantity", 0)
+        amount = p.get("total_amount", 0)
+        total_quantity += qty
+        total_value += amount
+    
+    weighted_avg = total_value / total_quantity if total_quantity > 0 else 0
+    
+    return {
+        "weighted_avg_price": round(weighted_avg, 2),
+        "total_value": round(total_value, 2),
+        "total_purchased_qty": total_quantity
+    }
+
+
 @router.get("", response_model=List[InventoryModel])
 async def get_inventory(current_user: dict = Depends(get_current_user)):
-    """Get all inventory items with weighted average pricing"""
+    """Get all inventory items with dynamically calculated weighted average pricing"""
     inventory = await db.inventory.find({}, {"_id": 0}).to_list(10000)
     
     # Enrich with stock details
@@ -24,18 +56,26 @@ async def get_inventory(current_user: dict = Depends(get_current_user)):
     stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
     stock_map = {s["id"]: s for s in stocks}
     
+    result = []
     for item in inventory:
-        stock = stock_map.get(item.get("stock_id"), {})
+        stock_id = item.get("stock_id")
+        stock = stock_map.get(stock_id, {})
+        
+        # Skip orphaned inventory records (stock doesn't exist)
+        if not stock:
+            continue
+        
         item["stock_symbol"] = stock.get("symbol", "Unknown")
         item["stock_name"] = stock.get("name", "Unknown")
         
-        # Ensure weighted_avg_price and total_value exist (for backwards compatibility)
-        if "weighted_avg_price" not in item:
-            item["weighted_avg_price"] = 0
-        if "total_value" not in item:
-            item["total_value"] = 0
+        # ALWAYS calculate weighted average dynamically from purchases
+        calc = await calculate_weighted_avg_for_stock(stock_id)
+        item["weighted_avg_price"] = calc["weighted_avg_price"]
+        item["total_value"] = calc["total_value"]
+        
+        result.append(item)
     
-    return inventory
+    return result
 
 
 @router.get("/{stock_id}", response_model=InventoryModel)
