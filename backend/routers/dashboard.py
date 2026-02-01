@@ -302,6 +302,103 @@ async def get_employee_dashboard(current_user: dict = Depends(get_current_user))
     ).to_list(10000)
     
     # Calculate metrics
+
+
+# ============== Security Status ==============
+@router.get("/security-status")
+async def get_security_status(current_user: dict = Depends(get_current_user)):
+    """Get security status and recent security events (PE Desk only)"""
+    user_role = current_user.get("role", 6)
+    
+    # Only PE Desk can view security status
+    if user_role != 1:
+        return {"error": "Access denied"}
+    
+    from middleware.security import rate_limiter, login_tracker
+    
+    # Get recent security events from database
+    recent_events = await db.security_logs.find(
+        {},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(50).to_list(50)
+    
+    # Get failed login attempts in last hour
+    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    failed_logins_count = await db.security_logs.count_documents({
+        "event_type": "LOGIN_FAILED",
+        "timestamp": {"$gte": one_hour_ago}
+    })
+    
+    # Get blocked IPs
+    blocked_ips = list(rate_limiter.blocked_ips.keys())
+    
+    # Get locked accounts
+    locked_accounts = list(login_tracker.locked_accounts.keys())
+    
+    # Get login statistics for today
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    successful_logins_today = await db.security_logs.count_documents({
+        "event_type": "LOGIN_SUCCESS",
+        "timestamp": {"$regex": f"^{today}"}
+    })
+    failed_logins_today = await db.security_logs.count_documents({
+        "event_type": "LOGIN_FAILED",
+        "timestamp": {"$regex": f"^{today}"}
+    })
+    
+    return {
+        "security_status": "active",
+        "protections": {
+            "rate_limiting": True,
+            "login_attempt_tracking": True,
+            "security_headers": True,
+            "input_validation": True,
+            "xss_protection": True,
+            "sql_injection_protection": True
+        },
+        "statistics": {
+            "successful_logins_today": successful_logins_today,
+            "failed_logins_today": failed_logins_today,
+            "failed_logins_last_hour": failed_logins_count,
+            "blocked_ips_count": len(blocked_ips),
+            "locked_accounts_count": len(locked_accounts)
+        },
+        "blocked_ips": blocked_ips[:10],  # Show only first 10
+        "locked_accounts": locked_accounts[:10],  # Show only first 10
+        "recent_security_events": recent_events[:20]
+    }
+
+
+@router.post("/unblock-ip")
+async def unblock_ip(ip_address: str, current_user: dict = Depends(get_current_user)):
+    """Unblock an IP address (PE Desk only)"""
+    user_role = current_user.get("role", 6)
+    
+    if user_role != 1:
+        return {"error": "Access denied"}
+    
+    from middleware.security import rate_limiter
+    
+    if ip_address in rate_limiter.blocked_ips:
+        del rate_limiter.blocked_ips[ip_address]
+        return {"message": f"IP {ip_address} has been unblocked"}
+    
+    return {"message": f"IP {ip_address} was not blocked"}
+
+
+@router.post("/unlock-account")
+async def unlock_account(email: str, current_user: dict = Depends(get_current_user)):
+    """Unlock a locked account (PE Desk only)"""
+    user_role = current_user.get("role", 6)
+    
+    if user_role != 1:
+        return {"error": "Access denied"}
+    
+    from middleware.security import login_tracker
+    
+    login_tracker.clear_attempts(email)
+    return {"message": f"Account {email} has been unlocked"}
+
     total_bookings = len(my_bookings)
     open_bookings = len([b for b in my_bookings if b.get("status") == "open"])
     closed_bookings = len([b for b in my_bookings if b.get("status") == "closed"])
