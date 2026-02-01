@@ -400,11 +400,25 @@ export const NotificationProvider = ({ children }) => {
             const urgentTypes = ['booking_rejected', 'loss_booking', 'approval_needed', 'payment_overdue'];
             const isUrgent = urgentTypes.some(t => notification.type?.includes(t));
             
-            // Play sound for notifications
-            if (isUrgent) {
-              playUrgentSound();
-            } else {
-              playNotificationSound();
+            // Play sound for notifications (check localStorage directly for real-time state)
+            const soundPref = localStorage.getItem('privity_sound_enabled');
+            const isSoundEnabled = soundPref === null || soundPref === 'true';
+            
+            if (isSoundEnabled) {
+              if (isUrgent) {
+                playUrgentSound();
+              } else {
+                playNotificationSound();
+              }
+            }
+            
+            // Show browser notification if permission granted
+            if (Notification.permission === 'granted') {
+              showBrowserNotification(notification.title, {
+                body: notification.message,
+                tag: notification.id,
+                requireInteraction: isUrgent
+              });
             }
             
             // Trigger animation state for bell icon
