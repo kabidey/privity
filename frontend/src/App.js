@@ -113,31 +113,32 @@ function App() {
               element={
                 <PrivateRoute>
                   <NotificationProvider>
-                    <Layout>
-                      <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/clients" element={<Clients />} />
-                        <Route path="/clients/:clientId/portfolio" element={<ClientPortfolio />} />
-                        <Route path="/vendors" element={<Vendors />} />
-                        <Route path="/stocks" element={<Stocks />} />
-                        <Route path="/purchases" element={<Purchases />} />
-                        <Route path="/inventory" element={<Inventory />} />
-                        <Route path="/bookings" element={<Bookings />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/users" element={<UserManagement />} />
-                        <Route path="/analytics" element={<Analytics />} />
-                        <Route path="/email-templates" element={<EmailTemplates />} />
-                        <Route path="/email-logs" element={<EmailLogs />} />
-                        <Route path="/email-server" element={<EmailServerConfig />} />
-                        <Route path="/dp-transfer" element={<DPTransferClient />} />
-                        <Route path="/dp-receivables" element={<DPReceivables />} />
-                        <Route path="/dp-transfer-client" element={<DPTransferClient />} />
-                        <Route path="/database-backup" element={<DatabaseBackup />} />
-                        <Route path="/finance" element={<Finance />} />
-                        <Route path="/referral-partners" element={<ReferralPartners />} />
-                        <Route path="/company-master" element={<CompanyMaster />} />
-                        <Route path="/contract-notes" element={<ContractNotes />} />
-                        <Route path="/bulk-upload" element={<BulkUpload />} />
+                    <AgreementChecker>
+                      <Layout>
+                        <Routes>
+                          <Route path="/" element={<Dashboard />} />
+                          <Route path="/clients" element={<Clients />} />
+                          <Route path="/clients/:clientId/portfolio" element={<ClientPortfolio />} />
+                          <Route path="/vendors" element={<Vendors />} />
+                          <Route path="/stocks" element={<Stocks />} />
+                          <Route path="/purchases" element={<Purchases />} />
+                          <Route path="/inventory" element={<Inventory />} />
+                          <Route path="/bookings" element={<Bookings />} />
+                          <Route path="/reports" element={<Reports />} />
+                          <Route path="/users" element={<UserManagement />} />
+                          <Route path="/analytics" element={<Analytics />} />
+                          <Route path="/email-templates" element={<EmailTemplates />} />
+                          <Route path="/email-logs" element={<EmailLogs />} />
+                          <Route path="/email-server" element={<EmailServerConfig />} />
+                          <Route path="/dp-transfer" element={<DPTransferClient />} />
+                          <Route path="/dp-receivables" element={<DPReceivables />} />
+                          <Route path="/dp-transfer-client" element={<DPTransferClient />} />
+                          <Route path="/database-backup" element={<DatabaseBackup />} />
+                          <Route path="/finance" element={<Finance />} />
+                          <Route path="/referral-partners" element={<ReferralPartners />} />
+                          <Route path="/company-master" element={<CompanyMaster />} />
+                          <Route path="/contract-notes" element={<ContractNotes />} />
+                          <Route path="/bulk-upload" element={<BulkUpload />} />
                         <Route path="/business-partners" element={<BusinessPartners />} />
                         <Route path="/bp-dashboard" element={<BPDashboard />} />
                         <Route path="/rp-revenue" element={<RPRevenueDashboard />} />
