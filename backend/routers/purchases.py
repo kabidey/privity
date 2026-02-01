@@ -259,9 +259,24 @@ async def get_purchases(
     # Enrich with vendor and stock details
     vendor_ids = list(set(p["vendor_id"] for p in purchases))
     stock_ids = list(set(p["stock_id"] for p in purchases))
+    purchase_ids = [p["id"] for p in purchases]
     
     vendors = await db.clients.find({"id": {"$in": vendor_ids}}, {"_id": 0}).to_list(1000)
     stocks = await db.stocks.find({"id": {"$in": stock_ids}}, {"_id": 0}).to_list(1000)
+    
+    # Get all payments for these purchases
+    all_payments = await db.purchase_payments.find(
+        {"purchase_id": {"$in": purchase_ids}},
+        {"_id": 0, "purchase_id": 1, "amount": 1}
+    ).to_list(10000)
+    
+    # Calculate total paid per purchase
+    payments_by_purchase = {}
+    for payment in all_payments:
+        pid = payment["purchase_id"]
+        if pid not in payments_by_purchase:
+            payments_by_purchase[pid] = 0
+        payments_by_purchase[pid] += payment.get("amount", 0)
     
     vendor_map = {v["id"]: v for v in vendors}
     stock_map = {s["id"]: s for s in stocks}
@@ -274,6 +289,19 @@ async def get_purchases(
         # Add vendor_name and stock_symbol if not present
         p["vendor_name"] = p.get("vendor_name") or (vendor["name"] if vendor else "Unknown")
         p["stock_symbol"] = p.get("stock_symbol") or (stock["symbol"] if stock else "Unknown")
+        
+        # Calculate payment status
+        total_paid = payments_by_purchase.get(p["id"], 0)
+        total_amount = p.get("total_amount", 0)
+        
+        p["total_paid"] = total_paid
+        
+        if total_paid >= total_amount:
+            p["payment_status"] = "completed"
+        elif total_paid > 0:
+            p["payment_status"] = "partial"
+        else:
+            p["payment_status"] = "pending"
         
         enriched_purchases.append(Purchase(**p))
     
