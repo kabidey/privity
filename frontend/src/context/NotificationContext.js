@@ -379,6 +379,9 @@ export const NotificationProvider = ({ children }) => {
   // Manual test notification trigger
   const triggerTestNotification = useCallback(async () => {
     try {
+      // Play sound first (requires user interaction)
+      playNotificationSound();
+      
       const response = await api.post('/notifications/test', null, {
         params: {
           title: '🔔 Test Alert',
@@ -387,14 +390,18 @@ export const NotificationProvider = ({ children }) => {
         }
       });
       
-      // Manually handle the notification since WebSocket might not be connected
+      // The notification will come via WebSocket if connected
+      // Only manually add if WebSocket is not connected
       const notification = response.data.notification;
-      if (notification) {
-        setNotifications(prev => [notification, ...prev]);
+      if (notification && (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN)) {
+        setNotifications(prev => {
+          // Prevent duplicates
+          if (prev.find(n => n.id === notification.id)) return prev;
+          return [notification, ...prev];
+        });
         setUnreadCount(prev => prev + 1);
         addFloatingNotification(notification);
         setLatestNotification(notification);
-        playNotificationSound();
         setHasNewNotification(true);
         setTimeout(() => setHasNewNotification(false), 3000);
         
