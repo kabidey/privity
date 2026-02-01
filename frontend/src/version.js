@@ -12,12 +12,12 @@
  */
 
 const VERSION = {
-  major: 1,
-  minor: 2,
-  patch: 0,
-  build: 3,
-  timestamp: '2026-02-01T11:30:00.000Z',
-  formatted: 'v1.2.0'
+  major: 2,
+  minor: 0,
+  patch: 1,
+  build: 1,
+  timestamp: '2026-02-01T14:00:00.000Z',
+  formatted: 'v2.0.1'
 };
 
 // Version getter functions
