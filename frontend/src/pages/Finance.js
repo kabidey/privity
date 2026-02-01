@@ -15,7 +15,7 @@ import {
   Wallet, ArrowDownLeft, ArrowUpRight, FileSpreadsheet, 
   RefreshCw, TrendingUp, TrendingDown, DollarSign, FileText,
   ExternalLink, RotateCcw, CheckCircle, Clock, AlertCircle, XCircle,
-  Building, CreditCard, Edit, Users
+  Building, CreditCard, Edit, Users, Calculator
 } from 'lucide-react';
 
 const Finance = () => {
