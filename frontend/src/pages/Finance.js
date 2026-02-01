@@ -915,6 +915,97 @@ const Finance = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* TCS Collected Tab */}
+        <TabsContent value="tcs">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                TCS Collected (Section 194Q)
+              </CardTitle>
+              <CardDescription>
+                TCS @0.1% collected on vendor payments exceeding ₹50 lakhs in a Financial Year
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 md:p-6">
+              {tcsPayments.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calculator className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No TCS collected yet.</p>
+                  <p className="text-sm text-muted-foreground mt-1">TCS will appear here when vendor payments exceed ₹50L threshold.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  {/* TCS Summary */}
+                  <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg mb-4 mx-4">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total TCS Collected</p>
+                        <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">
+                          {formatCurrency(tcsPayments.reduce((sum, p) => sum + (p.tcs_amount || 0), 0))}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Payments (TCS)</p>
+                        <p className="text-2xl font-bold">
+                          {formatCurrency(tcsPayments.reduce((sum, p) => sum + (p.amount || 0), 0))}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Transactions</p>
+                        <p className="text-2xl font-bold">{tcsPayments.length}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Vendor</TableHead>
+                        <TableHead>PAN</TableHead>
+                        <TableHead>Stock</TableHead>
+                        <TableHead className="text-right">Payment</TableHead>
+                        <TableHead className="text-right">TCS @0.1%</TableHead>
+                        <TableHead className="text-right">Net Payment</TableHead>
+                        <TableHead>FY Cumulative</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {tcsPayments.map((payment) => (
+                        <TableRow key={payment.id} data-testid={`tcs-row-${payment.id}`}>
+                          <TableCell className="font-mono text-sm">
+                            {new Date(payment.payment_date).toLocaleDateString('en-IN')}
+                          </TableCell>
+                          <TableCell className="font-medium">{payment.vendor_name}</TableCell>
+                          <TableCell className="font-mono text-sm">{payment.vendor_pan}</TableCell>
+                          <TableCell className="font-mono">{payment.stock_symbol}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell>
+                          <TableCell className="text-right font-bold text-amber-600">
+                            {formatCurrency(payment.tcs_amount)}
+                          </TableCell>
+                          <TableCell className="text-right text-green-600">
+                            {formatCurrency(payment.net_payment)}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            <div>
+                              <span className="text-muted-foreground">After: </span>
+                              {formatCurrency(payment.vendor_fy_cumulative_after)}
+                            </div>
+                            <Badge variant="outline" className="text-xs mt-1">
+                              FY {payment.financial_year}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Employee Commission Dialog */}
