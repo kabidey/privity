@@ -477,37 +477,6 @@ async def get_login_map_data(
         "markers": list(location_groups.values()),
         "total_locations": len(location_groups)
     }
-        buying = b.get("buying_price", 0)
-        selling = b.get("selling_price", 0) or buying
-        total_revenue += qty * selling
-        total_profit += qty * (selling - buying)
-    
-    # My RPs (mapped to me)
-    my_rps = await db.referral_partners.find(
-        {"mapped_employee_id": user_id, "is_active": True},
-        {"_id": 0, "id": 1, "name": 1, "code": 1, "approval_status": 1}
-    ).to_list(100)
-    
-    # Recent bookings
-    recent_bookings = sorted(my_bookings, key=lambda x: x.get("created_at", ""), reverse=True)[:10]
-    
-    # This month's performance
-    this_month = datetime.now(timezone.utc).strftime("%Y-%m")
-    this_month_bookings = [b for b in my_bookings if b.get("created_at", "").startswith(this_month)]
-    
-    return {
-        "overview": {
-            "total_clients": len(my_clients),
-            "total_rps": len(my_rps),
-            "total_bookings": total_bookings,
-            "open_bookings": open_bookings,
-            "closed_bookings": closed_bookings,
-            "pending_approval": pending_approval
-        },
-        "performance": {
-            "total_revenue": total_revenue,
-            "total_profit": total_profit,
-            "this_month_bookings": len(this_month_bookings)
         },
         "my_clients": my_clients[:10],
         "my_rps": my_rps[:5],
