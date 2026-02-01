@@ -76,40 +76,47 @@ async def get_all_payments(
                     "recorded_by": payment.get("recorded_by_name", "")
                 })
     
-    # Get vendor payments from purchases
+    # Get vendor payments from purchase_payments collection
     if payment_type in [None, "vendor"]:
-        purchases = await db.purchases.find(
-            {"payments": {"$exists": True, "$ne": []}},
+        # Query the separate purchase_payments collection
+        vendor_payments = await db.purchase_payments.find(
+            {},
             {"_id": 0}
         ).to_list(10000)
         
-        for purchase in purchases:
-            vendor = await db.clients.find_one({"id": purchase["vendor_id"]}, {"_id": 0, "name": 1})
-            stock = await db.stocks.find_one({"id": purchase["stock_id"]}, {"_id": 0, "symbol": 1})
+        for payment in vendor_payments:
+            payment_date = payment.get("payment_date", "")
             
-            for payment in purchase.get("payments", []):
-                payment_date = payment.get("payment_date", "")
-                
-                # Date filter
-                if start_date and payment_date < start_date:
-                    continue
-                if end_date and payment_date > end_date:
-                    continue
+            # Date filter
+            if start_date and payment_date < start_date:
+                continue
+            if end_date and payment_date > end_date:
+                continue
+            
+            # Get purchase and vendor details
+            purchase_id = payment.get("purchase_id")
+            purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0, "vendor_id": 1, "stock_id": 1, "purchase_number": 1})
+            
+            if purchase:
+                vendor = await db.clients.find_one({"id": purchase.get("vendor_id")}, {"_id": 0, "name": 1})
+                stock = await db.stocks.find_one({"id": purchase.get("stock_id")}, {"_id": 0, "symbol": 1})
                 
                 all_payments.append({
                     "id": payment.get("id", str(uuid.uuid4())),
                     "type": "vendor",
                     "direction": "sent",
-                    "entity_id": purchase["vendor_id"],
+                    "entity_id": purchase.get("vendor_id"),
                     "entity_name": vendor["name"] if vendor else "Unknown",
-                    "reference_id": purchase["id"],
-                    "reference_number": purchase.get("purchase_number", purchase["id"][:8].upper()),
+                    "reference_id": purchase_id,
+                    "reference_number": purchase.get("purchase_number", purchase_id[:8].upper() if purchase_id else ""),
                     "stock_symbol": stock["symbol"] if stock else "Unknown",
                     "amount": payment.get("amount", 0),
                     "payment_date": payment_date,
                     "notes": payment.get("notes", ""),
                     "proof_url": payment.get("proof_url"),
-                    "recorded_by": payment.get("recorded_by_name", "")
+                    "recorded_by": payment.get("created_by", ""),
+                    "tcs_amount": payment.get("tcs_amount", 0),
+                    "tcs_applicable": payment.get("tcs_applicable", False)
                 })
     
     # Sort by date descending
