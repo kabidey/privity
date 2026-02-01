@@ -59,6 +59,16 @@ const Finance = () => {
   });
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
   const [selectedCommission, setSelectedCommission] = useState(null);
+  
+  // TCS Financial Year selection
+  const [selectedTcsFY, setSelectedTcsFY] = useState(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    return currentMonth >= 4 
+      ? `${currentYear}-${currentYear + 1}` 
+      : `${currentYear - 1}-${currentYear}`;
+  });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   // PE Level (1, 2) or Finance role (7) can access Finance page
