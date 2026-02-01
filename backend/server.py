@@ -153,9 +153,9 @@ async def startup_tasks():
 async def seed_admin_user():
     """Create default PE Desk super admin - ALWAYS ensures admin exists"""
     try:
-        pedesk_user = await db.users.find_one({"email": "pe@smifs.com"}, {"_id": 0})
+        pedesk_user = await db.users.find_one({"email": "pe@smifs.com"})
         
-        if pedesk_user:
+        if pedesk_user is not None:
             await db.users.update_one(
                 {"email": "pe@smifs.com"},
                 {"$set": {
@@ -166,8 +166,7 @@ async def seed_admin_user():
             )
             logging.info("PE Desk super admin password reset: pe@smifs.com")
         else:
-            admin_exists = await db.users.find_one({"role": {"$lte": 2}}, {"_id": 0})
-            
+            # Create new admin user
             admin_id = str(uuid.uuid4())
             admin_doc = {
                 "id": admin_id,
@@ -175,6 +174,7 @@ async def seed_admin_user():
                 "password": hash_password("Kutta@123"),
                 "name": "PE Desk Super Admin",
                 "role": 1,
+                "is_active": True,
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
             await db.users.insert_one(admin_doc)
