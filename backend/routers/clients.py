@@ -778,6 +778,58 @@ async def clone_client_vendor(
         }
     )
     
+    # Send email notification for conversion
+    entity_email = source.get("email")
+    if entity_email:
+        if target_type == "vendor":
+            # Client converted to Vendor
+            subject = f"Welcome as Vendor - {source['name']}"
+            body = f"""Dear {source['name']},
+
+We are pleased to inform you that your account has been registered as a Vendor in our system.
+
+Your Vendor Details:
+- Name: {source['name']}
+- OTC UCC: {otc_ucc}
+- PAN: {source['pan_number']}
+- DP ID: {source['dp_id']}
+
+You can now receive purchase orders and stock transfer requests from us.
+
+If you have any questions, please contact our PE Desk.
+
+Best Regards,
+SMIFS Private Equity Team"""
+        else:
+            # Vendor converted to Client
+            subject = f"Welcome as Client - {source['name']}"
+            body = f"""Dear {source['name']},
+
+We are pleased to inform you that your account has been registered as a Client in our system.
+
+Your Client Details:
+- Name: {source['name']}
+- OTC UCC: {otc_ucc}
+- PAN: {source['pan_number']}
+- DP ID: {source['dp_id']}
+
+You can now place orders and manage your portfolio with us.
+
+If you have any questions, please contact our PE Desk.
+
+Best Regards,
+SMIFS Private Equity Team"""
+        
+        await send_email(
+            to_email=entity_email,
+            subject=subject,
+            body=body,
+            template_key=f"{source_type}_to_{target_type}_conversion",
+            variables={"name": source["name"], "otc_ucc": otc_ucc, "pan_number": source["pan_number"]},
+            related_entity_type=target_type,
+            related_entity_id=new_id
+        )
+    
     return {
         "message": f"Successfully cloned {source_type} '{source['name']}' as {target_type}",
         "id": new_id,
