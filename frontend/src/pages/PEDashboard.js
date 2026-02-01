@@ -105,10 +105,28 @@ const PEDashboard = () => {
           </h1>
           <p className="text-gray-500">System-wide overview and pending actions</p>
         </div>
-        <Button variant="outline" onClick={fetchData}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          {isPEDesk && (
+            <Button 
+              variant="outline" 
+              onClick={handleClearCache}
+              disabled={clearingCache}
+              className="text-orange-600 border-orange-300 hover:bg-orange-50"
+              data-testid="pe-clear-cache-btn"
+            >
+              {clearingCache ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4 mr-2" />
+              )}
+              Clear Cache
+            </Button>
+          )}
+          <Button variant="outline" onClick={fetchData}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Pending Actions Alert */}
