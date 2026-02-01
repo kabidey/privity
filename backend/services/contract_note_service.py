@@ -35,7 +35,7 @@ def amount_to_words(amount: float) -> str:
             paise_words = num2words(paise, lang='en_IN').title()
             return f"{words} Rupees and {paise_words} Paise Only"
         return f"{words} Rupees Only"
-    except:
+    except (ValueError, TypeError):
         return f"INR {amount:,.2f}"
 
 
