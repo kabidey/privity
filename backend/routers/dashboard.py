@@ -399,15 +399,84 @@ async def unlock_account(email: str, current_user: dict = Depends(get_current_us
     login_tracker.clear_attempts(email)
     return {"message": f"Account {email} has been unlocked"}
 
-    total_bookings = len(my_bookings)
-    open_bookings = len([b for b in my_bookings if b.get("status") == "open"])
-    closed_bookings = len([b for b in my_bookings if b.get("status") == "closed"])
-    pending_approval = len([b for b in my_bookings if b.get("approval_status") in ["pending", "pending_loss_approval"]])
+
+@router.get("/login-locations")
+async def get_login_locations(
+    user_id: str = None,
+    hours: int = 24,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get login locations - PE Desk can view all, others can view their own"""
+    user_role = current_user.get("role", 6)
     
-    total_revenue = 0
-    total_profit = 0
-    for b in my_bookings:
-        qty = b.get("quantity", 0)
+    from services.geolocation_service import UnusualLoginDetector
+    
+    # If specific user requested, check permissions
+    if user_id:
+        if user_role not in [1, 2] and user_id != current_user["id"]:
+            return {"error": "Access denied"}
+        locations = await UnusualLoginDetector.get_user_login_locations(user_id, limit=50)
+    else:
+        # PE level can see unusual logins, others see their own
+        if user_role in [1, 2]:
+            locations = await UnusualLoginDetector.get_unusual_logins(hours=hours)
+        else:
+            locations = await UnusualLoginDetector.get_user_login_locations(
+                current_user["id"], limit=20
+            )
+    
+    return {
+        "locations": locations,
+        "count": len(locations)
+    }
+
+
+@router.get("/login-locations/map-data")
+async def get_login_map_data(
+    user_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get login locations formatted for map display"""
+    user_role = current_user.get("role", 6)
+    
+    # PE level only
+    if user_role not in [1, 2]:
+        return {"error": "Access denied"}
+    
+    query = {}
+    if user_id:
+        query["user_id"] = user_id
+    
+    # Get recent locations with coordinates
+    locations = await db.login_locations.find(
+        {**query, "lat": {"$ne": 0}},
+        {"_id": 0, "user_email": 1, "city": 1, "country": 1, "lat": 1, "lon": 1, 
+         "is_unusual": 1, "risk_level": 1, "timestamp": 1}
+    ).sort("timestamp", -1).limit(100).to_list(100)
+    
+    # Group by location for clustering
+    location_groups = {}
+    for loc in locations:
+        key = f"{loc.get('lat', 0):.2f},{loc.get('lon', 0):.2f}"
+        if key not in location_groups:
+            location_groups[key] = {
+                "lat": loc.get("lat"),
+                "lon": loc.get("lon"),
+                "city": loc.get("city"),
+                "country": loc.get("country"),
+                "logins": []
+            }
+        location_groups[key]["logins"].append({
+            "user": loc.get("user_email"),
+            "time": loc.get("timestamp"),
+            "is_unusual": loc.get("is_unusual", False),
+            "risk_level": loc.get("risk_level", "low")
+        })
+    
+    return {
+        "markers": list(location_groups.values()),
+        "total_locations": len(location_groups)
+    }
         buying = b.get("buying_price", 0)
         selling = b.get("selling_price", 0) or buying
         total_revenue += qty * selling
