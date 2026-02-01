@@ -829,6 +829,23 @@ async def mark_dp_received(
                 </div>
                 """
                 
+                # Read PDF file for attachment
+                attachment_content = None
+                pdf_path = f"/app{contract_note_doc['pdf_url']}"
+                try:
+                    with open(pdf_path, 'rb') as f:
+                        attachment_content = f.read()
+                except Exception as e:
+                    print(f"Warning: Could not read PDF file for attachment: {e}")
+                
+                attachments = []
+                if attachment_content:
+                    attachments = [{
+                        'filename': f"Purchase_Contract_Note_{contract_note_doc['contract_note_number'].replace('/', '_')}.pdf",
+                        'content': attachment_content,
+                        'content_type': 'application/pdf'
+                    }]
+                
                 await send_email(
                     to_email=vendor.get("email"),
                     subject=cn_subject,
@@ -844,7 +861,7 @@ async def mark_dp_received(
                     },
                     related_entity_type="vendor_contract_note",
                     related_entity_id=contract_note_doc["id"],
-                    attachment_path=f"/app{contract_note_doc['pdf_url']}"
+                    attachments=attachments if attachments else None
                 )
                 
                 # Update contract note email sent status
