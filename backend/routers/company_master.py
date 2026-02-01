@@ -182,6 +182,7 @@ async def update_company_master(
         "company_bank_account": data.company_bank_account,
         "company_bank_ifsc": data.company_bank_ifsc.upper() if data.company_bank_ifsc else None,
         "company_bank_branch": data.company_bank_branch,
+        "user_agreement_text": data.user_agreement_text,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "updated_by": current_user["name"]
     }
