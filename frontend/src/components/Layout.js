@@ -494,9 +494,12 @@ const Layout = ({ children }) => {
               {theme === 'light' ? <Moon className="h-5 w-5 text-gray-600" /> : <Sun className="h-5 w-5 text-gray-300" />}
             </button>
             <button
-              onClick={() => setSidebarOpen(true)}
+              onClick={() => {
+                console.log('Menu button clicked!');
+                setSidebarOpen(true);
+              }}
               data-testid="mobile-menu-button"
-              className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative z-[100]"
             >
               <Menu className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </button>
