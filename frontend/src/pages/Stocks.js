@@ -129,10 +129,18 @@ const Stocks = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Use custom sector if "Others" is selected
+      const sectorValue = formData.sector === 'Others' && formData.customSector 
+        ? formData.customSector 
+        : formData.sector;
+      
       const payload = {
         ...formData,
+        sector: sectorValue,
         face_value: formData.face_value ? parseFloat(formData.face_value) : null,
       };
+      // Remove customSector from payload as it's not needed in backend
+      delete payload.customSector;
 
       if (editingStock) {
         await api.put(`/stocks/${editingStock.id}`, payload);
