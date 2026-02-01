@@ -411,3 +411,79 @@ async def get_contract_note_by_booking(
     note["stock_symbol"] = stock.get("symbol") if stock else "Unknown"
     
     return {"exists": True, "note": note}
+
+
+@router.post("/regenerate/{note_id}")
+async def regenerate_contract_note(
+    note_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Regenerate an existing contract note PDF (PE Desk only)
+    Useful when client/stock details have been updated
+    """
+    user_role = current_user.get("role", 6)
+    
+    if user_role != 1:  # Only PE Desk
+        raise HTTPException(status_code=403, detail="Only PE Desk can regenerate contract notes")
+    
+    note = await db.contract_notes.find_one({"id": note_id}, {"_id": 0})
+    if not note:
+        raise HTTPException(status_code=404, detail="Contract note not found")
+    
+    booking_id = note.get("booking_id")
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Associated booking not found")
+    
+    try:
+        # Delete old PDF file
+        old_pdf_path = f"/app{note.get('pdf_url', '')}"
+        if os.path.exists(old_pdf_path):
+            os.remove(old_pdf_path)
+        
+        # Regenerate PDF
+        pdf_buffer = await generate_contract_note_pdf(booking)
+        
+        # Save new PDF
+        cn_dir = "/app/uploads/contract_notes"
+        os.makedirs(cn_dir, exist_ok=True)
+        
+        cn_number = note.get("contract_note_number", "CN")
+        filename = f"CN_{cn_number.replace('/', '_')}_{booking_id[:8]}.pdf"
+        filepath = os.path.join(cn_dir, filename)
+        
+        with open(filepath, "wb") as f:
+            f.write(pdf_buffer.getvalue())
+        
+        # Update contract note record
+        await db.contract_notes.update_one(
+            {"id": note_id},
+            {"$set": {
+                "pdf_url": f"/uploads/contract_notes/{filename}",
+                "regenerated_at": datetime.now(timezone.utc).isoformat(),
+                "regenerated_by": current_user["id"],
+                "regenerated_by_name": current_user["name"]
+            }}
+        )
+        
+        # Create audit log
+        await create_audit_log(
+            action="CONTRACT_NOTE_REGENERATED",
+            entity_type="contract_note",
+            entity_id=note_id,
+            user_id=current_user["id"],
+            user_name=current_user["name"],
+            user_role=user_role,
+            entity_name=cn_number,
+            details={"booking_id": booking_id}
+        )
+        
+        return {
+            "message": "Contract note regenerated successfully",
+            "contract_note_number": cn_number,
+            "pdf_url": f"/uploads/contract_notes/{filename}"
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to regenerate contract note: {str(e)}")
