@@ -477,11 +477,6 @@ async def get_login_map_data(
         "markers": list(location_groups.values()),
         "total_locations": len(location_groups)
     }
-        },
-        "my_clients": my_clients[:10],
-        "my_rps": my_rps[:5],
-        "recent_bookings": recent_bookings
-    }
 
 
 # ============== CLIENT DASHBOARD ==============
