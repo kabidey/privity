@@ -169,20 +169,35 @@ const Purchases = () => {
     
     setPaymentLoading(true);
     try {
-      await api.post(`/purchases/${paymentDialog.purchase.id}/payments`, {
+      const paymentData = {
         amount: parseFloat(paymentForm.amount),
         payment_date: paymentForm.payment_date,
         notes: paymentForm.notes || null,
         proof_url: paymentForm.proof_url || null
-      });
-      toast.success('Payment recorded! Vendor has been notified via email.');
+      };
+      
+      // Include TCS data if manual override is enabled
+      if (tcsManualOverride && paymentForm.tcs_applicable !== null) {
+        paymentData.tcs_applicable = paymentForm.tcs_applicable;
+        paymentData.tcs_amount = paymentForm.tcs_applicable ? parseFloat(paymentForm.tcs_amount || 0) : 0;
+      }
+      
+      await api.post(`/purchases/${paymentDialog.purchase.id}/payments`, paymentData);
+      
+      const tcsMsg = tcsPreview?.tcs_applicable ? ` TCS of ₹${tcsPreview.tcs_amount.toLocaleString('en-IN')} deducted.` : '';
+      toast.success(`Payment recorded!${tcsMsg} Vendor has been notified via email.`);
+      
       setPaymentDialog({ open: false, purchase: null });
       setPaymentForm({
         amount: '',
         payment_date: new Date().toISOString().split('T')[0],
         notes: '',
-        proof_url: ''
+        proof_url: '',
+        tcs_amount: null,
+        tcs_applicable: null
       });
+      setTcsPreview(null);
+      setTcsManualOverride(false);
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to record payment');
