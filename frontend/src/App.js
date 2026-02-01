@@ -154,6 +154,7 @@ function App() {
                           <Route path="/my-dashboard" element={<MyDashboard />} />
                           <Route path="/client-dashboard" element={<ClientDashboard />} />
                           <Route path="/research" element={<Research />} />
+                          <Route path="/security" element={<SecurityDashboard />} />
                         </Routes>
                       </Layout>
                       {/* Notification Permission Banner */}
