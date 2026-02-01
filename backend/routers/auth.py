@@ -6,6 +6,7 @@ import uuid
 import bcrypt
 import secrets
 import string
+import logging
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Request, Body
 
