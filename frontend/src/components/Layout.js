@@ -238,11 +238,12 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
   }
 
-  // Company Master & Bulk Upload & Database Backup - PE Desk only (role 1)
+  // Company Master & Bulk Upload & Database Backup & Security Dashboard - PE Desk only (role 1)
   if (user.role === 1) {
     menuItems.push({ icon: Building2, label: 'Company Master', path: '/company-master' });
     menuItems.push({ icon: Database, label: 'Database Backup', path: '/database-backup' });
     menuItems.push({ icon: Upload, label: 'Bulk Upload', path: '/bulk-upload' });
+    menuItems.push({ icon: Shield, label: 'Security Dashboard', path: '/security' });
   }
 
   // Business Partners - PE Level, Partners Desk, and Viewer
