@@ -489,18 +489,22 @@ const Purchases = () => {
             amount: '',
             payment_date: new Date().toISOString().split('T')[0],
             notes: '',
-            proof_url: ''
+            proof_url: '',
+            tcs_amount: null,
+            tcs_applicable: null
           });
+          setTcsPreview(null);
+          setTcsManualOverride(false);
         }
       }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-primary" />
               Record Vendor Payment
             </DialogTitle>
             <DialogDescription>
-              Record a payment for this purchase. The vendor will be notified via email.
+              Record a payment for this purchase. TCS @0.1% applies if FY payments exceed ₹50L.
             </DialogDescription>
           </DialogHeader>
           
@@ -534,7 +538,16 @@ const Purchases = () => {
                   min="0.01"
                   max={getRemainingAmount(paymentDialog.purchase)}
                   value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                  onChange={(e) => {
+                    setPaymentForm({ ...paymentForm, amount: e.target.value });
+                    // Debounce TCS preview fetch
+                    const amount = parseFloat(e.target.value);
+                    if (amount > 0) {
+                      fetchTcsPreview(paymentDialog.purchase.id, amount, paymentForm.payment_date);
+                    } else {
+                      setTcsPreview(null);
+                    }
+                  }}
                   placeholder={`Max: ₹${getRemainingAmount(paymentDialog.purchase).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
                   required
                 />
@@ -546,10 +559,112 @@ const Purchases = () => {
                   id="payment-date"
                   type="date"
                   value={paymentForm.payment_date}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, payment_date: e.target.value })}
+                  onChange={(e) => {
+                    setPaymentForm({ ...paymentForm, payment_date: e.target.value });
+                    // Refetch TCS preview with new date
+                    const amount = parseFloat(paymentForm.amount);
+                    if (amount > 0) {
+                      fetchTcsPreview(paymentDialog.purchase.id, amount, e.target.value);
+                    }
+                  }}
                   required
                 />
               </div>
+              
+              {/* TCS Section */}
+              {tcsLoading && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Calculating TCS...
+                </div>
+              )}
+              
+              {tcsPreview && !tcsLoading && (
+                <div className={`p-4 rounded-lg border ${tcsPreview.tcs_applicable ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm flex items-center gap-2">
+                      <Calculator className="h-4 w-4" />
+                      TCS Calculation (FY {tcsPreview.financial_year})
+                    </h4>
+                    <label className="flex items-center gap-2 text-xs">
+                      <input 
+                        type="checkbox" 
+                        checked={tcsManualOverride}
+                        onChange={(e) => {
+                          setTcsManualOverride(e.target.checked);
+                          if (e.target.checked) {
+                            setPaymentForm({
+                              ...paymentForm,
+                              tcs_applicable: tcsPreview.tcs_applicable,
+                              tcs_amount: tcsPreview.tcs_amount.toString()
+                            });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      Manual Override
+                    </label>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <span className="text-muted-foreground">Vendor FY Payments:</span>
+                    <span className="font-mono">₹{tcsPreview.cumulative_before.toLocaleString('en-IN')}</span>
+                    
+                    <span className="text-muted-foreground">This Payment:</span>
+                    <span className="font-mono">₹{tcsPreview.payment_amount.toLocaleString('en-IN')}</span>
+                    
+                    <span className="text-muted-foreground">Cumulative After:</span>
+                    <span className="font-mono">₹{tcsPreview.cumulative_after.toLocaleString('en-IN')}</span>
+                    
+                    <span className="text-muted-foreground">TCS Threshold:</span>
+                    <span className="font-mono">{tcsPreview.tcs_threshold_formatted}</span>
+                  </div>
+                  
+                  <div className="mt-3 pt-3 border-t border-current/20">
+                    {tcsManualOverride ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={paymentForm.tcs_applicable === true}
+                            onChange={(e) => setPaymentForm({ ...paymentForm, tcs_applicable: e.target.checked })}
+                            className="rounded"
+                            id="tcs-applicable-manual"
+                          />
+                          <Label htmlFor="tcs-applicable-manual" className="text-sm">Apply TCS</Label>
+                        </div>
+                        {paymentForm.tcs_applicable && (
+                          <div className="flex items-center gap-2">
+                            <Label className="text-sm">TCS Amount:</Label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={paymentForm.tcs_amount || ''}
+                              onChange={(e) => setPaymentForm({ ...paymentForm, tcs_amount: e.target.value })}
+                              className="w-32"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className={`text-sm font-medium ${tcsPreview.tcs_applicable ? 'text-amber-700 dark:text-amber-300' : 'text-green-700 dark:text-green-300'}`}>
+                            {tcsPreview.tcs_applicable 
+                              ? `TCS @${tcsPreview.tcs_rate_percent}% = ₹${tcsPreview.tcs_amount.toLocaleString('en-IN')}`
+                              : 'No TCS (Under threshold)'}
+                          </span>
+                          {tcsPreview.tcs_applicable && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Net Payment: ₹{tcsPreview.net_payment.toLocaleString('en-IN')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               
               <div className="space-y-2">
                 <Label htmlFor="payment-notes">Notes (Optional)</Label>
