@@ -830,6 +830,17 @@ rp_payments: {
   - "Export TCS Report" button on Finance page TCS tab (amber themed)
   - Report includes: Vendor PAN, Payment amounts, TCS amounts, FY cumulative tracking
   - Compliance-ready format for Section 194Q filing
+- [x] TCS Report Export Enhancement - COMPLETED (Feb 1, 2026)
+  - Added Financial Year dropdown selector to TCS tab
+  - Users can now export TCS reports for previous financial years (current + 5 past years)
+  - Export button dynamically shows selected FY (e.g., "Export FY 2023-2024")
+  - Selector shows: FY 2025-2026, 2024-2025, 2023-2024, 2022-2023, 2021-2022, 2020-2021
+- [x] Mobile Sidebar Menu Fix - VERIFIED WORKING (Feb 1, 2026)
+  - Confirmed mobile sidebar menu is functional (was reported broken in previous session)
+  - Hamburger menu opens sidebar on click
+  - All 27 menu items visible including "Database Backup"
+  - Sidebar is scrollable and navigation works correctly
+  - Sidebar auto-closes on route change
 
 ### P2 - Nice to Have
 - [x] Role-specific dashboards - COMPLETED (Jan 29, 2026)
