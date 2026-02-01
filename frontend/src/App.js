@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import FloatingNotifications from './components/FloatingNotifications';
 import NotificationDialog from './components/NotificationDialog';
+import NotificationPermissionBanner from './components/NotificationPermissionBanner';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import BookingConfirm from './pages/BookingConfirm';
