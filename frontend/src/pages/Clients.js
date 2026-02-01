@@ -1619,7 +1619,8 @@ const Clients = () => {
                                       }}
                                       disabled={uploadingBankProof === client.id}
                                     />
-                                </label>
+                                  </label>
+                                )
                               )}
                             </div>
                           )}
