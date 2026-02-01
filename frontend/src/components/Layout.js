@@ -366,38 +366,38 @@ const Layout = ({ children }) => {
           </div>
         </nav>
         
-        {/* Footer - Fixed at bottom */}
-        <div className="p-4 border-t border-gray-200/50 dark:border-gray-800/50 space-y-2 flex-shrink-0 bg-white/80 dark:bg-gray-900/80">
-          {/* Kill Switch - PE Desk Only */}
+        {/* Footer - Compact fixed at bottom */}
+        <div className="p-3 border-t border-gray-200/50 dark:border-gray-800/50 flex-shrink-0 bg-white/80 dark:bg-gray-900/80">
+          {/* Kill Switch - PE Desk Only - Inline */}
           <KillSwitch userRole={user.role} />
           
-          {/* Notifications */}
-          <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-            <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Notifications</span>
-            <NotificationBell />
+          {/* Compact user info row */}
+          <div className="flex items-center justify-between mt-2 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                isPELevel ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-gradient-to-br from-blue-500 to-indigo-500'
+              }`}>
+                {user.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-[100px]">{user.name?.split(' ')[0]}</span>
+                <span className="text-[10px] text-gray-500">{ROLE_NAMES[user.role]}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <button onClick={toggleTheme} className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" title="Toggle theme">
+                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </button>
+              <button onClick={() => navigate('/change-password')} className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" title="Change Password">
+                <Key className="h-4 w-4" />
+              </button>
+              <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600" title="Logout">
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-          
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            data-testid="theme-toggle"
-          >
-            <span className="flex items-center gap-3">
-              {theme === 'light' ? (
-                <Moon className="h-5 w-5" strokeWidth={1.5} />
-              ) : (
-                <Sun className="h-5 w-5" strokeWidth={1.5} />
-              )}
-              <span className="text-sm font-medium">{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
-            </span>
-            <ChevronRight className="h-4 w-4 text-gray-400" />
-          </button>
-          
-          {/* User Info - Enhanced */}
-          <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl">
-            <div className="flex items-center gap-3">
-              {/* User Avatar */}
+        </div>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm ${
                 isPELevel 
                   ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
