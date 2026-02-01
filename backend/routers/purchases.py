@@ -758,12 +758,113 @@ async def mark_dp_received(
                 related_entity_id=purchase_id
             )
     
+    # Generate Vendor Purchase Contract Note
+    contract_note_doc = None
+    try:
+        contract_note_doc = await create_and_save_vendor_contract_note(
+            purchase_id=purchase_id,
+            user_id=current_user["id"],
+            user_name=current_user["name"]
+        )
+        
+        # Send contract note email to vendor
+        if vendor and vendor.get("email") and contract_note_doc:
+            cn_template = await get_email_template("contract_note")
+            
+            if cn_template:
+                cn_subject = f"Purchase Contract Note - {contract_note_doc['contract_note_number']} | {stock.get('symbol', '') if stock else ''}"
+                
+                cn_body = f"""
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 30px; border-radius: 16px;">
+                    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div style="text-align: center; margin-bottom: 25px;">
+                            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px; border-radius: 12px; display: inline-block;">
+                                <h2 style="margin: 0; font-size: 20px;">📄 Purchase Contract Note</h2>
+                            </div>
+                        </div>
+                        
+                        <p style="font-size: 16px; color: #374151;">Dear <strong>{vendor.get('name', 'Vendor')}</strong>,</p>
+                        
+                        <p style="color: #4b5563; line-height: 1.7;">
+                            Please find attached the Purchase Contract Note for the stock transfer completed today.
+                        </p>
+                        
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e2e8f0;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 10px 0; color: #6b7280; width: 40%;">Contract Note No:</td>
+                                    <td style="padding: 10px 0; color: #111827; font-weight: 600;">{contract_note_doc['contract_note_number']}</td>
+                                </tr>
+                                <tr style="background: #f1f5f9;">
+                                    <td style="padding: 10px; color: #6b7280;">Purchase Order:</td>
+                                    <td style="padding: 10px; color: #111827; font-weight: 600;">{purchase.get('purchase_number', '')}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #6b7280;">Stock:</td>
+                                    <td style="padding: 10px 0; color: #111827;">{stock.get('symbol', '')} - {stock.get('name', '')}</td>
+                                </tr>
+                                <tr style="background: #f1f5f9;">
+                                    <td style="padding: 10px; color: #6b7280;">Quantity:</td>
+                                    <td style="padding: 10px; color: #111827; font-weight: 700;">{purchase.get('quantity', 0):,} shares</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: #6b7280;">Total Amount:</td>
+                                    <td style="padding: 10px 0; color: #059669; font-weight: 700;">₹{purchase.get('total_amount', 0):,.2f}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div style="background: #d1fae5; border-radius: 12px; padding: 15px; margin: 25px 0; border: 1px solid #6ee7b7;">
+                            <p style="color: #065f46; margin: 0; font-size: 14px;">
+                                <strong>📎 Attachment:</strong> The Purchase Contract Note PDF is attached to this email.
+                            </p>
+                        </div>
+                        
+                        <p style="color: #4b5563; line-height: 1.7;">
+                            Please download and retain the attached contract note for your records.
+                        </p>
+                        
+                        <p>Best regards,<br><strong>SMIFS Private Equity Team</strong></p>
+                    </div>
+                </div>
+                """
+                
+                await send_email(
+                    to_email=vendor.get("email"),
+                    subject=cn_subject,
+                    body=cn_body,
+                    template_key="vendor_contract_note",
+                    variables={
+                        "vendor_name": vendor.get("name"),
+                        "contract_note_number": contract_note_doc['contract_note_number'],
+                        "purchase_number": purchase.get("purchase_number"),
+                        "stock_symbol": stock.get("symbol") if stock else "",
+                        "quantity": purchase.get("quantity"),
+                        "total_amount": purchase.get("total_amount")
+                    },
+                    related_entity_type="vendor_contract_note",
+                    related_entity_id=contract_note_doc["id"],
+                    attachment_path=f"/app{contract_note_doc['pdf_url']}"
+                )
+                
+                # Update contract note email sent status
+                await db.vendor_contract_notes.update_one(
+                    {"id": contract_note_doc["id"]},
+                    {"$set": {"email_sent": True, "email_sent_at": datetime.now(timezone.utc).isoformat()}}
+                )
+    except Exception as e:
+        # Log error but don't fail the DP received operation
+        print(f"Warning: Failed to generate vendor contract note: {str(e)}")
+    
     return {
         "message": f"Stock received via {dp_type} and inventory updated",
         "dp_type": dp_type,
         "quantity": purchase.get("quantity"),
         "received_at": received_at,
-        "email_sent": bool(vendor and vendor.get("email"))
+        "email_sent": bool(vendor and vendor.get("email")),
+        "contract_note_generated": bool(contract_note_doc),
+        "contract_note_number": contract_note_doc.get("contract_note_number") if contract_note_doc else None,
+        "contract_note_pdf_url": contract_note_doc.get("pdf_url") if contract_note_doc else None
     }
 
 
