@@ -221,26 +221,33 @@ const Login = () => {
         toast.success('Account created! Check your email for login credentials.');
       }
     } catch (error) {
-      const errorData = error.response?.data;
+      const errorResponse = error.response?.data;
+      const errorDetail = errorResponse?.detail;
       
-      // Handle CAPTCHA requirement (status 428 or 401 with captcha_required)
-      if (error.response?.status === 428 || (errorData?.detail?.captcha_required)) {
-        const captchaData = error.response?.status === 428 ? errorData?.detail : errorData?.detail;
+      // Handle CAPTCHA requirement
+      // detail can be either a string or an object with captcha info
+      const isCaptchaRequired = 
+        error.response?.status === 428 || 
+        (typeof errorDetail === 'object' && errorDetail?.captcha_required);
+      
+      if (isCaptchaRequired) {
+        const captchaData = typeof errorDetail === 'object' ? errorDetail : {};
         setCaptchaRequired(true);
         setCaptchaToken(captchaData?.captcha_token || '');
         setCaptchaQuestion(captchaData?.captcha_question || '');
         setCaptchaAnswer('');
         
-        if (captchaData?.message) {
-          toast.error(captchaData.message);
-        } else {
-          toast.error('Please solve the CAPTCHA to continue');
-        }
+        const errorMessage = captchaData?.message || 'Please solve the CAPTCHA to continue';
+        toast.error(errorMessage);
       } else {
-        const message = typeof errorData?.detail === 'string' 
-          ? errorData.detail 
-          : errorData?.detail?.message || 'An error occurred';
+        // Regular error handling
+        const message = typeof errorDetail === 'string' 
+          ? errorDetail 
+          : errorDetail?.message || 'An error occurred';
         toast.error(message);
+        
+        // Clear CAPTCHA if error is not captcha related
+        // (but don't clear if we might need it next attempt)
       }
     } finally {
       setLoading(false);
