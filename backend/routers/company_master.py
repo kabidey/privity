@@ -155,6 +155,7 @@ By clicking "I Agree", you confirm that you have read, understood, and agree to 
         cml_nsdl_url=master.get("cml_nsdl_url"),
         cancelled_cheque_url=master.get("cancelled_cheque_url"),
         pan_card_url=master.get("pan_card_url"),
+        user_agreement_text=master.get("user_agreement_text"),
         updated_at=master.get("updated_at"),
         updated_by=master.get("updated_by")
     )
