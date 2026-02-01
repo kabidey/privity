@@ -523,13 +523,13 @@ const Layout = ({ children }) => {
 
       {/* iOS-style Mobile Sidebar Overlay */}
       <div 
-        className={`lg:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
+        className={`lg:hidden fixed inset-0 z-[10000] transition-opacity duration-300 ${
           sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
         {/* Backdrop */}
         <div 
-          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
         
