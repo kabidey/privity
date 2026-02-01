@@ -231,6 +231,7 @@ const UserManagement = () => {
                         <TableHead>Role</TableHead>
                         <TableHead>Reports To</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Agreement</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -273,6 +274,17 @@ const UserManagement = () => {
                             ) : (
                               <Badge className="bg-red-100 text-red-800">
                                 <UserX className="h-3 w-3 mr-1" />Inactive
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {user.agreement_accepted ? (
+                              <Badge className="bg-emerald-100 text-emerald-800" title={user.agreement_accepted_at ? `Accepted: ${new Date(user.agreement_accepted_at).toLocaleDateString()}` : ''}>
+                                <UserCheck className="h-3 w-3 mr-1" />Accepted
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-amber-100 text-amber-800">
+                                Pending
                               </Badge>
                             )}
                           </TableCell>
