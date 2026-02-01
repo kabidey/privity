@@ -229,7 +229,12 @@ export const NotificationProvider = ({ children }) => {
           // Handle notification event
           else if (data.event === 'notification') {
             const notification = data.data;
-            setNotifications(prev => [notification, ...prev]);
+            
+            // Prevent duplicates
+            setNotifications(prev => {
+              if (prev.find(n => n.id === notification.id)) return prev;
+              return [notification, ...prev];
+            });
             setUnreadCount(prev => prev + 1);
             
             // Store latest notification for dialog
@@ -239,22 +244,23 @@ export const NotificationProvider = ({ children }) => {
             const urgentTypes = ['booking_rejected', 'loss_booking', 'approval_needed', 'payment_overdue'];
             const isUrgent = urgentTypes.some(t => notification.type?.includes(t));
             
-            // Play sound only for urgent notifications (optional, can be disabled)
-            // Commented out to reduce noise - user requested less intrusive notifications
-            // if (isUrgent) {
-            //   playUrgentSound();
-            // }
+            // Play sound for notifications
+            if (isUrgent) {
+              playUrgentSound();
+            } else {
+              playNotificationSound();
+            }
             
             // Trigger animation state for bell icon
             setHasNewNotification(true);
             setTimeout(() => setHasNewNotification(false), 3000);
             
-            // Only add floating notification for critical items (loss, rejection)
-            if (notification.type?.includes('loss') || notification.type?.includes('rejected')) {
+            // Add floating notification for important items
+            if (notification.type?.includes('loss') || notification.type?.includes('rejected') || notification.type?.includes('approved') || notification.type?.includes('pending')) {
               addFloatingNotification(notification);
             }
             
-            // Show simple toast notification - single notification method
+            // Show simple toast notification
             const toastType = isUrgent ? 'error' : 'info';
             toast[toastType](notification.title, {
               description: notification.message,
