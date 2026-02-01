@@ -596,12 +596,9 @@ const Login = () => {
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
             <Code className="h-3 w-3" />
             Vive Coding by{' '}
-            <a 
-              href="mailto:somnath.dey@smifs.com" 
-              className="text-emerald-600 hover:text-emerald-700 hover:underline"
-            >
-              somnath.dey@smifs.com
-            </a>
+            <span className="text-emerald-600 font-medium">
+              Somnath Dey
+            </span>
           </p>
         </div>
       </div>
