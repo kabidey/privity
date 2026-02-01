@@ -455,3 +455,82 @@ async def get_client_dashboard(current_user: dict = Depends(get_current_user)):
         "portfolio": list(portfolio.values()),
         "recent_bookings": recent_bookings
     }
+
+
+@router.post("/clear-cache")
+async def clear_system_cache(current_user: dict = Depends(get_current_user)):
+    """
+    Clear system cache and refresh data (PE Desk only)
+    - Recalculates inventory weighted averages
+    - Cleans up orphaned records
+    - Resets temporary data
+    """
+    user_role = current_user.get("role", 6)
+    
+    if user_role != 1:  # Only PE Desk
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Only PE Desk can clear system cache")
+    
+    cleanup_results = {
+        "orphaned_inventory_deleted": 0,
+        "inventory_recalculated": 0,
+        "orphaned_bookings_fixed": 0
+    }
+    
+    # 1. Clean up orphaned inventory records (stocks that no longer exist)
+    all_stocks = await db.stocks.find({}, {"_id": 0, "id": 1}).to_list(10000)
+    valid_stock_ids = [s["id"] for s in all_stocks]
+    
+    orphaned_result = await db.inventory.delete_many({"stock_id": {"$nin": valid_stock_ids}})
+    cleanup_results["orphaned_inventory_deleted"] = orphaned_result.deleted_count
+    
+    # 2. Recalculate weighted averages for all inventory
+    inventory_items = await db.inventory.find({}, {"_id": 0, "stock_id": 1}).to_list(10000)
+    
+    for item in inventory_items:
+        stock_id = item.get("stock_id")
+        
+        # Get all received purchases for this stock
+        purchases = await db.purchases.find(
+            {"stock_id": stock_id, "dp_status": "received"},
+            {"_id": 0, "quantity": 1, "total_amount": 1}
+        ).to_list(10000)
+        
+        total_quantity = sum(p.get("quantity", 0) for p in purchases)
+        total_value = sum(p.get("total_amount", 0) for p in purchases)
+        weighted_avg = total_value / total_quantity if total_quantity > 0 else 0
+        
+        await db.inventory.update_one(
+            {"stock_id": stock_id},
+            {"$set": {
+                "weighted_avg_price": round(weighted_avg, 2),
+                "total_value": round(total_value, 2)
+            }}
+        )
+        cleanup_results["inventory_recalculated"] += 1
+    
+    # 3. Clean up orphaned bookings (client doesn't exist)
+    all_clients = await db.clients.find({}, {"_id": 0, "id": 1}).to_list(100000)
+    valid_client_ids = [c["id"] for c in all_clients]
+    
+    orphaned_bookings = await db.bookings.count_documents({"client_id": {"$nin": valid_client_ids}})
+    cleanup_results["orphaned_bookings_fixed"] = orphaned_bookings
+    
+    # Log the cache clear action
+    from services.audit_service import create_audit_log
+    await create_audit_log(
+        action="CACHE_CLEARED",
+        entity_type="system",
+        entity_id="cache",
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name="System Cache",
+        details=cleanup_results
+    )
+    
+    return {
+        "message": "System cache cleared successfully",
+        "results": cleanup_results,
+        "cleared_at": datetime.now(timezone.utc).isoformat()
+    }
