@@ -14,8 +14,15 @@ import api from '../utils/api';
 import { Plus, Pencil, Trash2, Package, Split, Gift, Play, AlertCircle, Lock, Bell, DollarSign, Send } from 'lucide-react';
 
 const SECTORS = [
-  'Banking', 'IT', 'Pharma', 'FMCG', 'Auto', 'Realty', 'Energy', 'Metals', 
-  'Telecom', 'Infrastructure', 'Media', 'Chemicals', 'Textiles', 'Others'
+  'Banking & Financial Services', 'IT & Technology', 'Pharmaceuticals & Healthcare', 
+  'FMCG & Consumer Goods', 'Automobile & Auto Ancillary', 'Real Estate & Construction',
+  'Oil & Gas', 'Power & Utilities', 'Metals & Mining', 'Telecom', 
+  'Infrastructure', 'Media & Entertainment', 'Chemicals & Fertilizers', 
+  'Textiles & Apparel', 'Cement & Building Materials', 'Capital Goods & Engineering',
+  'Aviation & Logistics', 'Hotels & Tourism', 'Education', 'Agriculture & Agri-Tech',
+  'E-commerce & Retail', 'Fintech', 'Renewable Energy', 'Defence & Aerospace',
+  'Food Processing', 'Packaging', 'Paper & Pulp', 'Shipping & Ports',
+  'Sugar', 'Tyres', 'Paints', 'Jewellery & Gems', 'Others'
 ];
 
 const PRODUCTS = ['Equity', 'Preference', 'Debenture', 'Warrant', 'Others'];
