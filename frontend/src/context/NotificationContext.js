@@ -173,7 +173,7 @@ const playUrgentSound = () => {
       playTone(1760, now + i * 0.25 + 0.1, 0.1);
     }
     
-    setTimeout(() => audioContext.close(), 1500);
+    // Don't close the shared audio context
   } catch (error) {
     console.error('Failed to play urgent sound:', error);
   }
@@ -196,9 +196,80 @@ export const NotificationProvider = ({ children }) => {
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const [latestNotification, setLatestNotification] = useState(null);
   const [peStatus, setPeStatus] = useState({ pe_online: false, message: 'Checking...', online_users: [] }); // PE availability status
+  const [notificationPermission, setNotificationPermission] = useState('default');
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showPermissionBanner, setShowPermissionBanner] = useState(false);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const peStatusCallbackRef = useRef(null); // Callback for external PE status updates
+
+  // Check and request notification permissions on mount
+  useEffect(() => {
+    const checkPermissions = async () => {
+      // Check if we've already asked
+      const hasAsked = localStorage.getItem('privity_notification_permission_asked');
+      
+      if ('Notification' in window) {
+        setNotificationPermission(Notification.permission);
+        
+        // Show banner if permission is default and we haven't asked yet
+        if (Notification.permission === 'default' && !hasAsked) {
+          setShowPermissionBanner(true);
+        }
+      }
+      
+      // Load sound preference
+      const soundPref = localStorage.getItem('privity_sound_enabled');
+      if (soundPref !== null) {
+        setSoundEnabled(soundPref === 'true');
+      }
+    };
+    
+    checkPermissions();
+  }, []);
+
+  // Request permissions and unlock audio
+  const requestPermissions = useCallback(async () => {
+    // Unlock audio first (requires user interaction)
+    await unlockAudio();
+    
+    // Request notification permission
+    const permission = await requestNotificationPermission();
+    setNotificationPermission(permission);
+    
+    // Mark that we've asked
+    localStorage.setItem('privity_notification_permission_asked', 'true');
+    setShowPermissionBanner(false);
+    
+    if (permission === 'granted') {
+      toast.success('Notifications enabled! You will now receive alerts with sound.');
+      // Play a test sound to confirm audio is working
+      playNotificationSound();
+    } else if (permission === 'denied') {
+      toast.error('Notification permission denied. You can enable it in browser settings.');
+    }
+    
+    return permission;
+  }, []);
+
+  // Toggle sound on/off
+  const toggleSound = useCallback((enabled) => {
+    setSoundEnabled(enabled);
+    localStorage.setItem('privity_sound_enabled', String(enabled));
+    if (enabled) {
+      unlockAudio();
+      playNotificationSound();
+      toast.success('Sound notifications enabled');
+    } else {
+      toast.info('Sound notifications disabled');
+    }
+  }, []);
+
+  // Dismiss permission banner
+  const dismissPermissionBanner = useCallback(() => {
+    setShowPermissionBanner(false);
+    localStorage.setItem('privity_notification_permission_asked', 'true');
+  }, []);
 
   // Register callback for PE status updates (used by Layout component)
   const onPeStatusChange = useCallback((callback) => {
