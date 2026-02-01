@@ -157,16 +157,25 @@ const Finance = () => {
     }
   };
 
+  // Generate list of available financial years (current + past 5 years)
+  const getAvailableFinancialYears = () => {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    const startYear = currentMonth >= 4 ? currentYear : currentYear - 1;
+    
+    const years = [];
+    for (let i = 0; i < 6; i++) {
+      const year = startYear - i;
+      years.push(`${year}-${year + 1}`);
+    }
+    return years;
+  };
+
   const handleExportTcs = async () => {
     setExportingTcs(true);
     try {
-      // Determine current Financial Year
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1; // JS months are 0-indexed
-      const currentYear = now.getFullYear();
-      const financialYear = currentMonth >= 4 
-        ? `${currentYear}-${currentYear + 1}` 
-        : `${currentYear - 1}-${currentYear}`;
+      const financialYear = selectedTcsFY;
 
       const response = await api.get(`/finance/tcs-export?financial_year=${financialYear}`, {
         responseType: 'blob'
@@ -180,7 +189,7 @@ const Finance = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success('TCS Report exported successfully');
+      toast.success(`TCS Report for FY ${financialYear} exported successfully`);
     } catch (error) {
       toast.error('Failed to export TCS Report');
     } finally {
