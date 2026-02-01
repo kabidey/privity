@@ -381,7 +381,7 @@ const Layout = ({ children }) => {
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-[100px]">{user.name?.split(' ')[0]}</span>
-                <span className="text-[10px] text-gray-500">{ROLE_NAMES[user.role]}</span>
+                <span className="text-[10px] text-gray-500">{user.role_name || 'User'}</span>
               </div>
             </div>
             <div className="flex items-center gap-1">
