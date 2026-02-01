@@ -189,7 +189,9 @@ async def login(login_data: UserLogin):
         pan_number=user.get("pan_number"),
         role=user.get("role", 5),
         role_name=ROLES.get(user.get("role", 5), "Viewer"),
-        created_at=user["created_at"]
+        created_at=user["created_at"],
+        agreement_accepted=user.get("agreement_accepted", False),
+        agreement_accepted_at=user.get("agreement_accepted_at")
     )
     
     return TokenResponse(token=token, user=user_response)
