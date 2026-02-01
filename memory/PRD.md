@@ -824,6 +824,12 @@ rp_payments: {
   - Shows "Email Service Not Configured" with clear message about affected features
   - Includes "Configure Email Settings" button for PE Desk users
   - Warning is dismissible and only shows when SMTP is not properly configured
+- [x] TCS Report Export - COMPLETED (Feb 1, 2026)
+  - Added `/api/finance/tcs-export` endpoint for Financial Year-wise TCS compliance report
+  - Two-sheet Excel report: Summary by Vendor + Detailed Transactions
+  - "Export TCS Report" button on Finance page TCS tab (amber themed)
+  - Report includes: Vendor PAN, Payment amounts, TCS amounts, FY cumulative tracking
+  - Compliance-ready format for Section 194Q filing
 
 ### P2 - Nice to Have
 - [x] Role-specific dashboards - COMPLETED (Jan 29, 2026)
