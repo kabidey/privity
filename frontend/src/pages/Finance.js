@@ -588,37 +588,39 @@ const Finance = () => {
 
       {/* Main Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="flex flex-wrap gap-1 h-auto p-1 mb-4">
-          <TabsTrigger value="all" className="text-xs px-3">All ({payments.length})</TabsTrigger>
-          <TabsTrigger value="client" className="text-xs px-3">
-            <ArrowDownLeft className="h-3 w-3 mr-1" />
-            Received
-          </TabsTrigger>
-          <TabsTrigger value="vendor" className="text-xs px-3">
-            <ArrowUpRight className="h-3 w-3 mr-1" />
-            Sent
-          </TabsTrigger>
-          <TabsTrigger value="refunds" data-testid="refunds-tab" className="text-xs px-3">
-            <RotateCcw className="h-3 w-3 mr-1" />
-            Refunds ({refundRequests.length})
-          </TabsTrigger>
-          <TabsTrigger value="rp-payments" data-testid="rp-payments-tab" className="text-xs px-3">
-            <CreditCard className="h-3 w-3 mr-1" />
-            RP ({rpPayments.length})
-          </TabsTrigger>
-          <TabsTrigger value="bp-payments" data-testid="bp-payments-tab" className="text-xs px-3">
-            <Building className="h-3 w-3 mr-1" />
-            BP ({bpPayments.length})
-          </TabsTrigger>
-          <TabsTrigger value="employee-commissions" data-testid="employee-commissions-tab" className="text-xs px-3">
-            <Users className="h-3 w-3 mr-1" />
-            Commissions ({employeeCommissions.length})
-          </TabsTrigger>
-          <TabsTrigger value="tcs" data-testid="tcs-tab" className="text-xs px-3">
-            <Calculator className="h-3 w-3 mr-1" />
-            TCS ({tcsPayments.length})
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto mb-4">
+          <TabsList className="inline-flex min-w-max gap-1 h-auto p-1 bg-muted/50">
+            <TabsTrigger value="all" className="text-xs px-3 whitespace-nowrap">All ({payments.length})</TabsTrigger>
+            <TabsTrigger value="client" className="text-xs px-3 whitespace-nowrap">
+              <ArrowDownLeft className="h-3 w-3 mr-1" />
+              Received
+            </TabsTrigger>
+            <TabsTrigger value="vendor" className="text-xs px-3 whitespace-nowrap">
+              <ArrowUpRight className="h-3 w-3 mr-1" />
+              Sent
+            </TabsTrigger>
+            <TabsTrigger value="refunds" data-testid="refunds-tab" className="text-xs px-3 whitespace-nowrap">
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Refunds ({refundRequests.length})
+            </TabsTrigger>
+            <TabsTrigger value="rp-payments" data-testid="rp-payments-tab" className="text-xs px-3 whitespace-nowrap">
+              <CreditCard className="h-3 w-3 mr-1" />
+              RP ({rpPayments.length})
+            </TabsTrigger>
+            <TabsTrigger value="bp-payments" data-testid="bp-payments-tab" className="text-xs px-3 whitespace-nowrap">
+              <Building className="h-3 w-3 mr-1" />
+              BP ({bpPayments.length})
+            </TabsTrigger>
+            <TabsTrigger value="employee-commissions" data-testid="employee-commissions-tab" className="text-xs px-3 whitespace-nowrap">
+              <Users className="h-3 w-3 mr-1" />
+              Commissions ({employeeCommissions.length})
+            </TabsTrigger>
+            <TabsTrigger value="tcs" data-testid="tcs-tab" className="text-xs px-3 whitespace-nowrap">
+              <Calculator className="h-3 w-3 mr-1" />
+              TCS ({tcsPayments.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="all">
           <PaymentTable payments={payments} formatCurrency={formatCurrency} formatDate={formatDate} />
