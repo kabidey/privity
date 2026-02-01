@@ -17,6 +17,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [smtpWarning, setSmtpWarning] = useState(null);
   const [dismissedSmtpWarning, setDismissedSmtpWarning] = useState(false);
+  const [clearingCache, setClearingCache] = useState(false);
   
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
