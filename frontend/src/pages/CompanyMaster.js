@@ -712,6 +712,56 @@ const CompanyMaster = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* User Agreement Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileCheck className="w-5 h-5" />
+            User Agreement / Terms of Use
+          </CardTitle>
+          <CardDescription>
+            Configure the terms and conditions that users must accept on first login
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="user_agreement_text">Agreement Text</Label>
+            <p className="text-sm text-gray-500 mb-2">
+              This text will be shown to users on their first login. They must accept these terms to continue using the application.
+            </p>
+            <Textarea
+              id="user_agreement_text"
+              value={formData.user_agreement_text}
+              onChange={(e) => setFormData({ ...formData, user_agreement_text: e.target.value })}
+              placeholder="Enter terms and conditions..."
+              rows={15}
+              className="font-mono text-sm"
+              data-testid="user-agreement-textarea"
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button 
+              onClick={handleSave} 
+              disabled={saving}
+              className="bg-emerald-600 hover:bg-emerald-700"
+              data-testid="save-agreement-btn"
+            >
+              {saving ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Agreement
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
