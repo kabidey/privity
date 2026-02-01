@@ -1,3 +1,5 @@
+Removed prebuild script
+Removed version:bump script
 {
   "name": "frontend",
   "version": "0.1.0",
@@ -59,10 +61,8 @@
   },
   "scripts": {
     "start": "craco start",
-    "prebuild": "node scripts/increment-version.js",
     "build": "craco build",
-    "test": "craco test",
-    "version:bump": "node scripts/increment-version.js"
+    "test": "craco test"
   },
   "browserslist": {
     "production": [
