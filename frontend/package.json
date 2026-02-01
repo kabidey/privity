@@ -1,5 +1,3 @@
-Removed prebuild script
-Removed version:bump script
 {
   "name": "frontend",
   "version": "0.1.0",
