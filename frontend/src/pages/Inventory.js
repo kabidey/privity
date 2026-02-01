@@ -165,8 +165,8 @@ const Inventory = () => {
                         <TableCell className="font-medium">{item.stock_name}</TableCell>
                         <TableCell className="mono text-lg">{item.available_quantity.toLocaleString('en-IN')}</TableCell>
                         <TableCell className="mono text-orange-600">{(item.blocked_quantity || 0).toLocaleString('en-IN')}</TableCell>
-                        <TableCell className="mono">₹{item.weighted_avg_price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
-                        <TableCell className="mono font-semibold">₹{item.total_value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
+                        <TableCell className="mono">₹{(item.weighted_avg_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
+                        <TableCell className="mono font-semibold">₹{(item.total_value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3 min-w-[150px]">
                             <Progress value={level.progress} className="h-2 flex-1" />
