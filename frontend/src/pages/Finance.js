@@ -556,35 +556,35 @@ const Finance = () => {
 
       {/* Main Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 max-w-3xl">
-          <TabsTrigger value="all">All ({payments.length})</TabsTrigger>
-          <TabsTrigger value="client">
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1 mb-4">
+          <TabsTrigger value="all" className="text-xs px-3">All ({payments.length})</TabsTrigger>
+          <TabsTrigger value="client" className="text-xs px-3">
             <ArrowDownLeft className="h-3 w-3 mr-1" />
             Received
           </TabsTrigger>
-          <TabsTrigger value="vendor">
+          <TabsTrigger value="vendor" className="text-xs px-3">
             <ArrowUpRight className="h-3 w-3 mr-1" />
             Sent
           </TabsTrigger>
-          <TabsTrigger value="refunds" data-testid="refunds-tab">
+          <TabsTrigger value="refunds" data-testid="refunds-tab" className="text-xs px-3">
             <RotateCcw className="h-3 w-3 mr-1" />
             Refunds ({refundRequests.length})
           </TabsTrigger>
-          <TabsTrigger value="rp-payments" data-testid="rp-payments-tab">
+          <TabsTrigger value="rp-payments" data-testid="rp-payments-tab" className="text-xs px-3">
             <CreditCard className="h-3 w-3 mr-1" />
-            RP Payments ({rpPayments.length})
+            RP ({rpPayments.length})
           </TabsTrigger>
-          <TabsTrigger value="bp-payments" data-testid="bp-payments-tab">
+          <TabsTrigger value="bp-payments" data-testid="bp-payments-tab" className="text-xs px-3">
             <Building className="h-3 w-3 mr-1" />
-            BP Payments ({bpPayments.length})
+            BP ({bpPayments.length})
           </TabsTrigger>
-          <TabsTrigger value="employee-commissions" data-testid="employee-commissions-tab">
+          <TabsTrigger value="employee-commissions" data-testid="employee-commissions-tab" className="text-xs px-3">
             <Users className="h-3 w-3 mr-1" />
-            Emp. Commissions ({employeeCommissions.length})
+            Commissions ({employeeCommissions.length})
           </TabsTrigger>
-          <TabsTrigger value="tcs" data-testid="tcs-tab">
+          <TabsTrigger value="tcs" data-testid="tcs-tab" className="text-xs px-3">
             <Calculator className="h-3 w-3 mr-1" />
-            TCS Collected
+            TCS ({tcsPayments.length})
           </TabsTrigger>
         </TabsList>
 
