@@ -22,6 +22,7 @@ const DatabaseBackup = () => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [creatingFull, setCreatingFull] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [uploading, setUploading] = useState(false);
