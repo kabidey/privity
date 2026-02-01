@@ -147,6 +147,37 @@ const Finance = () => {
     }
   };
 
+  const handleExportTcs = async () => {
+    setExportingTcs(true);
+    try {
+      // Determine current Financial Year
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1; // JS months are 0-indexed
+      const currentYear = now.getFullYear();
+      const financialYear = currentMonth >= 4 
+        ? `${currentYear}-${currentYear + 1}` 
+        : `${currentYear - 1}-${currentYear}`;
+
+      const response = await api.get(`/finance/tcs-export?financial_year=${financialYear}`, {
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `TCS_Report_FY${financialYear.replace('-', '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('TCS Report exported successfully');
+    } catch (error) {
+      toast.error('Failed to export TCS Report');
+    } finally {
+      setExportingTcs(false);
+    }
+  };
+
   const openRefundDialog = (refund) => {
     setSelectedRefund(refund);
     setRefundForm({
