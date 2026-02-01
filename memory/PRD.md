@@ -845,6 +845,14 @@ rp_payments: {
 ### P2 - Nice to Have
 - [x] Role-specific dashboards - COMPLETED (Jan 29, 2026)
 - [x] Sohini AI Assistant - COMPLETED (Jan 29, 2026)
+- [x] Security Dashboard Enhancement - COMPLETED (Feb 1, 2026)
+  - Created comprehensive Security Dashboard at `/security` route (PE Desk only)
+  - Overview tab with charts: Login Activity (area chart), Risk Distribution (pie chart), Event Types (bar chart), Login Locations by country (bar chart)
+  - Login Map tab with interactive OpenStreetMap showing geographic distribution of logins with color-coded risk markers
+  - Events tab showing recent security events table and unusual logins with alerts
+  - Management tab for Blocked IPs (with unblock action), Locked Accounts (with unlock action), and Security Configuration display
+  - Installed `leaflet` and `react-leaflet` for map visualization
+  - Real-time data from `/api/dashboard/security-status`, `/api/dashboard/login-locations`, `/api/dashboard/login-locations/map-data`
 - [ ] Two-Factor Authentication (TOTP)
 - [ ] Bulk booking closure feature
 - [ ] Configurable thresholds for loss-booking auto-approval
