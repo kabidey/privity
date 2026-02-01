@@ -4,7 +4,10 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { MessageCircle, X, Send, Users, Minimize2, Circle } from 'lucide-react';
+import { MessageCircle, X, Send, Users, Minimize2, Circle, GripHorizontal } from 'lucide-react';
+
+// Notification sound (base64 encoded short chime)
+const NOTIFICATION_SOUND = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYNgUFIAAAAAAAAAAAAAAAAAAAA//tQZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAETEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//tQZB4P8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
 
 const GroupChat = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,12 +18,36 @@ const GroupChat = () => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [showOnlineUsers, setShowOnlineUsers] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  
+  // Dragging state
+  const [position, setPosition] = useState({ x: null, y: null });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const dragStartOffset = useRef({ x: 0, y: 0 });
+  
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const audioRef = useRef(null);
+  const chatWindowRef = useRef(null);
   
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+  // Initialize audio for notification sound
+  useEffect(() => {
+    audioRef.current = new Audio(NOTIFICATION_SOUND);
+    audioRef.current.volume = 0.5;
+  }, []);
+
+  // Play notification sound
+  const playNotificationSound = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,6 +60,7 @@ const GroupChat = () => {
   useEffect(() => {
     if (isOpen && !isMinimized && inputRef.current) {
       inputRef.current.focus();
+      setUnreadCount(0); // Clear unread when chat is open
     }
   }, [isOpen, isMinimized]);
 
@@ -69,6 +97,16 @@ const GroupChat = () => {
           
           if (data.type === 'message') {
             setMessages(prev => [...prev, data.message]);
+            
+            // Play sound for messages from others
+            if (data.message.user_id !== currentUser.id) {
+              playNotificationSound();
+              
+              // Increment unread count if chat is closed or minimized
+              if (!isOpen || isMinimized) {
+                setUnreadCount(prev => prev + 1);
+              }
+            }
           } else if (data.type === 'system') {
             setMessages(prev => [...prev, {
               type: 'system',
@@ -89,9 +127,7 @@ const GroupChat = () => {
         console.log('Group chat WebSocket disconnected');
         setIsConnected(false);
         // Attempt reconnect after 3 seconds
-        if (isOpen) {
-          reconnectTimeoutRef.current = setTimeout(connectWebSocket, 3000);
-        }
+        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 3000);
       };
 
       wsRef.current.onerror = (error) => {
@@ -110,11 +146,13 @@ const GroupChat = () => {
     } catch (error) {
       console.error('Failed to connect WebSocket:', error);
     }
-  }, [isOpen]);
+  }, [currentUser.id, isOpen, isMinimized, playNotificationSound]);
 
-  // Connect when chat opens
+  // AUTO-LOGIN: Connect to WebSocket immediately when component mounts (user logs in)
   useEffect(() => {
-    if (isOpen) {
+    const token = localStorage.getItem('token');
+    if (token && currentUser.id) {
+      // Auto-connect to chat WebSocket
       loadChatHistory();
       connectWebSocket();
     }
@@ -127,7 +165,73 @@ const GroupChat = () => {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [isOpen, loadChatHistory, connectWebSocket]);
+  }, [currentUser.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Dragging handlers
+  const handleDragStart = (e) => {
+    if (e.target.closest('button') || e.target.closest('input')) return;
+    
+    setIsDragging(true);
+    const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+    
+    dragStartPos.current = { x: clientX, y: clientY };
+    
+    if (chatWindowRef.current) {
+      const rect = chatWindowRef.current.getBoundingClientRect();
+      dragStartOffset.current = {
+        x: position.x !== null ? position.x : rect.left,
+        y: position.y !== null ? position.y : rect.top
+      };
+    }
+    
+    e.preventDefault();
+  };
+
+  const handleDragMove = useCallback((e) => {
+    if (!isDragging) return;
+    
+    const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+    
+    const deltaX = clientX - dragStartPos.current.x;
+    const deltaY = clientY - dragStartPos.current.y;
+    
+    let newX = dragStartOffset.current.x + deltaX;
+    let newY = dragStartOffset.current.y + deltaY;
+    
+    // Keep within viewport bounds
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const chatWidth = chatWindowRef.current?.offsetWidth || 384;
+    const chatHeight = chatWindowRef.current?.offsetHeight || 450;
+    
+    newX = Math.max(0, Math.min(newX, windowWidth - chatWidth));
+    newY = Math.max(0, Math.min(newY, windowHeight - chatHeight));
+    
+    setPosition({ x: newX, y: newY });
+  }, [isDragging]);
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Add/remove event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+      window.addEventListener('touchmove', handleDragMove);
+      window.addEventListener('touchend', handleDragEnd);
+    }
+    
+    return () => {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+      window.removeEventListener('touchmove', handleDragMove);
+      window.removeEventListener('touchend', handleDragEnd);
+    };
+  }, [isDragging, handleDragMove, handleDragEnd]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isSending) return;
@@ -156,6 +260,9 @@ const GroupChat = () => {
 
   const toggleMinimize = () => {
     setIsMinimized(!isMinimized);
+    if (isMinimized) {
+      setUnreadCount(0); // Clear unread when expanding
+    }
   };
 
   const formatTime = (timestamp) => {
@@ -177,6 +284,12 @@ const GroupChat = () => {
     return colors[role] || colors[5];
   };
 
+  // Reset position when closing
+  const handleClose = () => {
+    setIsOpen(false);
+    setPosition({ x: null, y: null }); // Reset position when closed
+  };
+
   // Floating button when closed
   if (!isOpen) {
     return (
@@ -196,10 +309,17 @@ const GroupChat = () => {
             </div>
             <div className="text-left">
               <p className="font-semibold text-sm">Team Chat</p>
-              <p className="text-xs text-white/80 hidden md:block">Chat with everyone</p>
+              <p className="text-xs text-white/80 hidden md:block">
+                {isConnected ? `${onlineUsers.length} online` : 'Connecting...'}
+              </p>
             </div>
             <div className="flex items-center gap-1">
-              <Circle className="w-2 h-2 fill-green-400 text-green-400" />
+              {isConnected && <Circle className="w-2 h-2 fill-green-400 text-green-400" />}
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -207,21 +327,31 @@ const GroupChat = () => {
     );
   }
 
-  // Chat window
+  // Chat window - draggable
+  const chatStyle = position.x !== null && position.y !== null
+    ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' }
+    : {};
+
   return (
     <div 
-      className={`fixed z-[9999] transition-all duration-300 
-        bottom-4 left-2 right-2 md:left-auto md:right-6 md:bottom-28
+      ref={chatWindowRef}
+      className={`fixed z-[9999] transition-all ${isDragging ? '' : 'duration-300'}
+        ${position.x === null ? 'bottom-4 left-2 right-2 md:left-auto md:right-6 md:bottom-28' : ''}
         ${isMinimized ? 'md:w-72' : 'md:w-96'}
       `}
+      style={chatStyle}
       data-testid="group-chat-window"
     >
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 flex items-center justify-between">
+        {/* Header - Draggable area */}
+        <div 
+          className={`bg-gradient-to-r from-emerald-600 to-teal-600 p-4 flex items-center justify-between ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          onMouseDown={handleDragStart}
+          onTouchStart={handleDragStart}
+        >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center ring-2 ring-white/50">
-              <MessageCircle className="w-6 h-6 text-white" />
+              <GripHorizontal className="w-5 h-5 text-white/70" />
             </div>
             <div className="text-white">
               <h3 className="font-semibold flex items-center gap-2">
@@ -229,7 +359,7 @@ const GroupChat = () => {
                 {isConnected && <Circle className="w-2 h-2 fill-green-400 text-green-400" />}
               </h3>
               <p className="text-xs text-white/80">
-                {onlineUsers.length} online
+                {onlineUsers.length} online • Drag to move
               </p>
             </div>
           </div>
@@ -252,7 +382,7 @@ const GroupChat = () => {
               <Minimize2 className="w-4 h-4 text-white/80" />
             </button>
             <button 
-              onClick={() => setIsOpen(false)}
+              onClick={handleClose}
               className="p-2 hover:bg-white/20 rounded-full transition-colors"
               title="Close"
             >
