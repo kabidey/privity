@@ -553,6 +553,7 @@ rp_payments: {
 | /referral-partners | ReferralPartners | Referral Partner management |
 | /business-partners | BusinessPartners | Business Partner management (PE Level only) |
 | /bp-dashboard | BPDashboard | Business Partner revenue dashboard |
+| /security | SecurityDashboard | Security monitoring with charts, map, events (PE Desk only) |
 
 ## Test Reports
 - `/app/test_reports/iteration_27.json` - RP Approval Workflow (100% pass)
