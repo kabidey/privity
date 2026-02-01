@@ -368,6 +368,18 @@ const Layout = ({ children }) => {
         
         {/* Footer - Compact fixed at bottom */}
         <div className="p-3 border-t border-gray-200/50 dark:border-gray-800/50 flex-shrink-0 bg-white/80 dark:bg-gray-900/80">
+          {/* Contact Info */}
+          <div className="flex items-center justify-center gap-4 mb-2 text-xs text-gray-500 dark:text-gray-400">
+            <a href="tel:9089963000" className="flex items-center gap-1 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              <Phone className="h-3 w-3" />
+              <span>9089963000</span>
+            </a>
+            <a href="mailto:pe@smifs.com" className="flex items-center gap-1 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              <Mail className="h-3 w-3" />
+              <span>pe@smifs.com</span>
+            </a>
+          </div>
+          
           {/* Kill Switch - PE Desk Only - Inline */}
           <KillSwitch userRole={user.role} />
           
