@@ -164,18 +164,26 @@ async def register(user_data: UserCreate, request: Request = None):
 
 
 from middleware.security import login_tracker, SecurityAuditLogger
+from services.captcha_service import captcha_service, SecurityAlertService
 
 @router.post("/login", response_model=TokenResponse)
-async def login(login_data: UserLogin, request: Request = None):
+async def login(
+    login_data: UserLogin, 
+    request: Request = None,
+    captcha_token: str = None,
+    captcha_answer: str = None
+):
     """Login user and return JWT token"""
     email = login_data.email.lower().strip()
     
     # Get client IP for security tracking
     client_ip = "unknown"
+    user_agent = "unknown"
     if request:
         client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or \
                     request.headers.get("X-Real-IP", "") or \
                     (request.client.host if request.client else "unknown")
+        user_agent = request.headers.get("User-Agent", "unknown")
     
     # Check if account is locked due to too many failed attempts
     is_locked, remaining_seconds = login_tracker.is_account_locked(email)
@@ -190,11 +198,35 @@ async def login(login_data: UserLogin, request: Request = None):
             detail=f"Account temporarily locked due to too many failed attempts. Try again in {remaining_seconds // 60} minutes."
         )
     
+    # Check if CAPTCHA is required (after 3 failed attempts)
+    failed_attempts = login_tracker.get_failed_attempts_count(email)
+    if failed_attempts >= 3:
+        # CAPTCHA is required
+        if not captcha_token or not captcha_answer:
+            # Generate new CAPTCHA challenge
+            challenge = captcha_service.generate_challenge(email)
+            raise HTTPException(
+                status_code=428,  # Precondition Required
+                detail={
+                    "message": "CAPTCHA verification required",
+                    "captcha_required": True,
+                    **challenge
+                }
+            )
+        
+        # Verify CAPTCHA
+        is_valid, captcha_message = captcha_service.verify_challenge(captcha_token, captcha_answer, email)
+        if not is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail=captcha_message
+            )
+    
     user = await db.users.find_one({"email": email}, {"_id": 0})
     
     if not user or not verify_password(login_data.password, user["password"]):
-        # Record failed attempt
-        remaining_attempts = login_tracker.record_failed_attempt(email)
+        # Record failed attempt with IP
+        remaining_attempts = login_tracker.record_failed_attempt(email, client_ip)
         
         await SecurityAuditLogger.log_security_event(
             "LOGIN_FAILED",
@@ -202,11 +234,23 @@ async def login(login_data: UserLogin, request: Request = None):
             details={"email": email, "remaining_attempts": remaining_attempts}
         )
         
-        if remaining_attempts > 0:
+        # Check if CAPTCHA will be required next time
+        new_failed_count = login_tracker.get_failed_attempts_count(email)
+        response_detail = f"Invalid email or password. {remaining_attempts} attempts remaining."
+        
+        if new_failed_count >= 3 and remaining_attempts > 0:
+            # Generate CAPTCHA for next attempt
+            challenge = captcha_service.generate_challenge(email)
             raise HTTPException(
-                status_code=401, 
-                detail=f"Invalid email or password. {remaining_attempts} attempts remaining."
+                status_code=401,
+                detail={
+                    "message": response_detail,
+                    "captcha_required": True,
+                    **challenge
+                }
             )
+        elif remaining_attempts > 0:
+            raise HTTPException(status_code=401, detail=response_detail)
         else:
             raise HTTPException(
                 status_code=401, 
@@ -223,6 +267,20 @@ async def login(login_data: UserLogin, request: Request = None):
         user_id=user["id"],
         details={"email": email}
     )
+    
+    # Send login notification email to user (async)
+    try:
+        import asyncio
+        asyncio.create_task(
+            SecurityAlertService.send_new_login_alert(
+                user_email=email,
+                user_name=user["name"],
+                ip_address=client_ip,
+                user_agent=user_agent
+            )
+        )
+    except Exception as e:
+        logger.error(f"Failed to send login notification: {e}")
     
     # Create audit log for login
     await create_audit_log(
