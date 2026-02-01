@@ -57,6 +57,7 @@ const Stocks = () => {
     exchange: 'UNLISTED/CCPS',
     isin_number: '',
     sector: '',
+    customSector: '',
     product: 'Equity',
     face_value: '',
   });
