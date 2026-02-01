@@ -98,7 +98,8 @@ const CompanyMaster = () => {
         company_bank_name: data.company_bank_name || '',
         company_bank_account: data.company_bank_account || '',
         company_bank_ifsc: data.company_bank_ifsc || '',
-        company_bank_branch: data.company_bank_branch || ''
+        company_bank_branch: data.company_bank_branch || '',
+        user_agreement_text: data.user_agreement_text || ''
       });
       
       setDocuments({
