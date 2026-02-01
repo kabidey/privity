@@ -237,6 +237,96 @@ async def update_refund_request(
     return {"message": f"Refund request updated to {update_data.status}"}
 
 
+@router.get("/finance/tcs-payments")
+async def get_tcs_payments(
+    financial_year: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all vendor payments with TCS deducted."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access TCS data")
+    
+    # Build query for payments with TCS
+    query = {"tcs_applicable": True}
+    
+    if financial_year:
+        query["financial_year"] = financial_year
+    
+    payments = await db.purchase_payments.find(query, {"_id": 0}).sort("payment_date", -1).to_list(1000)
+    
+    # Enrich with vendor details
+    enriched_payments = []
+    for payment in payments:
+        vendor_id = payment.get("vendor_id")
+        purchase_id = payment.get("purchase_id")
+        
+        vendor = await db.clients.find_one({"id": vendor_id}, {"_id": 0, "name": 1, "pan_number": 1})
+        purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0, "stock_symbol": 1, "stock_name": 1})
+        
+        enriched_payments.append({
+            **payment,
+            "vendor_name": vendor.get("name") if vendor else "Unknown",
+            "vendor_pan": vendor.get("pan_number") if vendor else "Unknown",
+            "stock_symbol": purchase.get("stock_symbol") if purchase else "Unknown",
+            "stock_name": purchase.get("stock_name") if purchase else "Unknown"
+        })
+    
+    return enriched_payments
+
+
+@router.get("/finance/tcs-summary")
+async def get_tcs_summary(
+    financial_year: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get TCS summary grouped by vendor."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access TCS data")
+    
+    # Get current FY if not specified
+    if not financial_year:
+        now = datetime.now()
+        if now.month >= 4:
+            financial_year = f"{now.year}-{now.year + 1}"
+        else:
+            financial_year = f"{now.year - 1}-{now.year}"
+    
+    # Aggregate TCS by vendor
+    pipeline = [
+        {"$match": {"tcs_applicable": True, "financial_year": financial_year}},
+        {"$group": {
+            "_id": "$vendor_id",
+            "total_tcs": {"$sum": "$tcs_amount"},
+            "total_payments": {"$sum": "$amount"},
+            "payment_count": {"$sum": 1}
+        }}
+    ]
+    
+    results = await db.purchase_payments.aggregate(pipeline).to_list(1000)
+    
+    # Enrich with vendor details
+    summary = []
+    for result in results:
+        vendor = await db.clients.find_one({"id": result["_id"]}, {"_id": 0, "name": 1, "pan_number": 1})
+        summary.append({
+            "vendor_id": result["_id"],
+            "vendor_name": vendor.get("name") if vendor else "Unknown",
+            "vendor_pan": vendor.get("pan_number") if vendor else "Unknown",
+            "total_tcs": result["total_tcs"],
+            "total_payments": result["total_payments"],
+            "payment_count": result["payment_count"],
+            "financial_year": financial_year
+        })
+    
+    return {
+        "financial_year": financial_year,
+        "total_tcs_collected": sum(s["total_tcs"] for s in summary),
+        "total_payments": sum(s["total_payments"] for s in summary),
+        "vendor_count": len(summary),
+        "vendors": sorted(summary, key=lambda x: x["total_tcs"], reverse=True)
+    }
+
+
 @router.put("/finance/refund-requests/{request_id}/bank-details")
 async def update_refund_bank_details(
     request_id: str,
