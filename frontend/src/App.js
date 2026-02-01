@@ -102,6 +102,8 @@ function App() {
                         <Route path="/research" element={<Research />} />
                       </Routes>
                     </Layout>
+                    {/* Notification Permission Banner */}
+                    <NotificationPermissionBanner />
                     {/* Floating Notifications at bottom right */}
                     <FloatingNotifications />
                     {/* Dialog for important notifications */}
