@@ -615,7 +615,14 @@ export const NotificationProvider = ({ children }) => {
     connectWebSocket,
     playNotificationSound,
     playUrgentSound,
-    triggerTestNotification
+    triggerTestNotification,
+    // Permission management
+    notificationPermission,
+    soundEnabled,
+    showPermissionBanner,
+    requestPermissions,
+    toggleSound,
+    dismissPermissionBanner
   };
 
   return (
