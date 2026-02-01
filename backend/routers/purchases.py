@@ -253,6 +253,9 @@ async def add_purchase_payment(
     
     await db.purchase_payments.insert_one(payment_doc)
     
+    # Remove MongoDB _id from response
+    payment_doc.pop("_id", None)
+    
     # Update purchase payment status
     new_total_paid = total_paid + amount
     if new_total_paid >= purchase.get("total_amount", 0):
