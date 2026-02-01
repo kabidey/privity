@@ -122,6 +122,23 @@ const ContractNotes = () => {
     }
   };
 
+  const handleRegenerate = async (noteId) => {
+    if (!window.confirm('Are you sure you want to regenerate this contract note? The existing PDF will be replaced.')) {
+      return;
+    }
+    
+    setRegenerating(noteId);
+    try {
+      const response = await api.post(`/contract-notes/regenerate/${noteId}`);
+      toast.success(response.data.message);
+      fetchNotes(); // Refresh to show updated data
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to regenerate contract note');
+    } finally {
+      setRegenerating(null);
+    }
+  };
+
   const viewNoteDetail = (note) => {
     setSelectedNote(note);
     setDetailOpen(true);
