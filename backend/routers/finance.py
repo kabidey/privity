@@ -270,8 +270,14 @@ async def get_tcs_payments(
         vendor = await db.clients.find_one({"id": vendor_id}, {"_id": 0, "name": 1, "pan_number": 1})
         purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0, "stock_symbol": 1, "stock_name": 1})
         
+        # Calculate net_payment if not present
+        amount = payment.get("amount", 0)
+        tcs_amount = payment.get("tcs_amount", 0)
+        net_payment = payment.get("net_payment", amount - tcs_amount)
+        
         enriched_payments.append({
             **payment,
+            "net_payment": net_payment,
             "vendor_name": vendor.get("name") if vendor else "Unknown",
             "vendor_pan": vendor.get("pan_number") if vendor else "Unknown",
             "stock_symbol": purchase.get("stock_symbol") if purchase else "Unknown",
