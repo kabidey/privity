@@ -31,6 +31,7 @@ BACKUP_COLLECTIONS = [
     "clients", 
     "stocks",
     "purchases",
+    "purchase_payments",
     "bookings",
     "inventory",
     "corporate_actions",
@@ -45,12 +46,26 @@ BACKUP_COLLECTIONS = [
     "bp_otps",
     "company_master",
     "contract_notes",
+    "vendor_contract_notes",
     "employee_commissions",
     "counters",
     "password_resets",
     "refund_requests",
     "sohini_chats",
+    "group_chat_messages",
+    "research_reports",
     "system_settings",
+]
+
+# File directories to include in backup
+FILE_DIRECTORIES = [
+    "contract_notes",
+    "vendor_contract_notes",
+    "company",
+    "bp_documents",
+    "insider_forms",
+    "referral_partners",
+    "research",
 ]
 
 
