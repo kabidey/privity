@@ -841,7 +841,7 @@ async def export_finance_excel(
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except (TypeError, AttributeError):
                 pass
         ws.column_dimensions[column].width = min(max_length + 2, 50)
     
