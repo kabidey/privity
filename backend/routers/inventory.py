@@ -16,7 +16,7 @@ router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
 @router.get("", response_model=List[InventoryModel])
 async def get_inventory(current_user: dict = Depends(get_current_user)):
-    """Get all inventory items"""
+    """Get all inventory items with weighted average pricing"""
     inventory = await db.inventory.find({}, {"_id": 0}).to_list(10000)
     
     # Enrich with stock details
@@ -28,6 +28,12 @@ async def get_inventory(current_user: dict = Depends(get_current_user)):
         stock = stock_map.get(item.get("stock_id"), {})
         item["stock_symbol"] = stock.get("symbol", "Unknown")
         item["stock_name"] = stock.get("name", "Unknown")
+        
+        # Ensure weighted_avg_price and total_value exist (for backwards compatibility)
+        if "weighted_avg_price" not in item:
+            item["weighted_avg_price"] = 0
+        if "total_value" not in item:
+            item["total_value"] = 0
     
     return inventory
 
