@@ -33,6 +33,7 @@ class CompanyMasterCreate(BaseModel):
     company_bank_account: Optional[str] = None
     company_bank_ifsc: Optional[str] = None
     company_bank_branch: Optional[str] = None
+    user_agreement_text: Optional[str] = None
 
 
 class CompanyMasterResponse(BaseModel):
@@ -56,6 +57,8 @@ class CompanyMasterResponse(BaseModel):
     cml_nsdl_url: Optional[str] = None
     cancelled_cheque_url: Optional[str] = None
     pan_card_url: Optional[str] = None
+    # User Agreement
+    user_agreement_text: Optional[str] = None
     # Metadata
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
