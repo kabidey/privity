@@ -72,7 +72,7 @@ class LoginAttemptTracker:
         self.lockout_duration = 900  # 15 minutes
         self.attempt_window = 300  # 5 minutes
         
-    def record_failed_attempt(self, identifier: str) -> int:
+    def record_failed_attempt(self, identifier: str, ip_address: str = None) -> int:
         """Record a failed login attempt, return remaining attempts"""
         now = time.time()
         window_start = now - self.attempt_window
@@ -91,8 +91,34 @@ class LoginAttemptTracker:
         if attempts >= self.max_attempts:
             self.locked_accounts[identifier] = now + self.lockout_duration
             logger.warning(f"Account locked due to too many failed attempts: {identifier}")
+            
+            # Send security alert email (async, fire and forget)
+            import asyncio
+            try:
+                from services.captcha_service import SecurityAlertService
+                asyncio.create_task(
+                    SecurityAlertService.send_account_locked_alert(
+                        email=identifier,
+                        ip_address=ip_address or "unknown",
+                        lockout_minutes=self.lockout_duration // 60
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Failed to send account locked alert: {e}")
         
         return max(0, self.max_attempts - attempts)
+    
+    def get_failed_attempts_count(self, identifier: str) -> int:
+        """Get current failed attempts count for an identifier"""
+        now = time.time()
+        window_start = now - self.attempt_window
+        
+        # Count attempts within window
+        attempts = [
+            attempt for attempt in self.failed_attempts.get(identifier, [])
+            if attempt > window_start
+        ]
+        return len(attempts)
     
     def is_account_locked(self, identifier: str) -> tuple[bool, int]:
         """Check if account is locked, return (is_locked, remaining_seconds)"""
