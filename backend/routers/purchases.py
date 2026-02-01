@@ -186,15 +186,22 @@ async def get_purchase_payments(
 @router.post("/{purchase_id}/payments")
 async def add_purchase_payment(
     purchase_id: str,
-    amount: float,
-    payment_date: str,
-    payment_mode: str = "bank_transfer",
-    reference_number: Optional[str] = None,
-    notes: Optional[str] = None,
+    payment_data: dict,
     current_user: dict = Depends(get_current_user)
 ):
     """Add a payment tranche to a purchase"""
     user_role = current_user.get("role", 6)
+    
+    # Extract payment data from body
+    amount = payment_data.get("amount")
+    payment_date = payment_data.get("payment_date")
+    payment_mode = payment_data.get("payment_mode", "bank_transfer")
+    reference_number = payment_data.get("reference_number")
+    notes = payment_data.get("notes")
+    proof_url = payment_data.get("proof_url")
+    
+    if not amount or not payment_date:
+        raise HTTPException(status_code=400, detail="Amount and payment_date are required")
     
     if not is_pe_level(user_role):
         raise HTTPException(status_code=403, detail="Only PE level can add payments")
