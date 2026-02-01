@@ -1000,5 +1000,87 @@ DEFAULT_EMAIL_TEMPLATES = {
         """,
         "variables": ["client_name", "booking_number", "stock_symbol", "stock_name", "quantity", "dp_type", "transfer_date", "t2_date"],
         "is_active": True
+    },
+    
+    # Vendor Stock Receipt Confirmation - sent when DP is received from vendor
+    "vendor_stock_received": {
+        "key": "vendor_stock_received",
+        "name": "Stock Receipt Confirmation to Vendor",
+        "subject": "Stock Receipt Confirmed - {{stock_symbol}} | {{purchase_number}}",
+        "body": """
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 30px; border-radius: 16px;">
+            <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px; border-radius: 12px; display: inline-block;">
+                        <h2 style="margin: 0; font-size: 22px;">✓ Stock Receipt Confirmed</h2>
+                    </div>
+                </div>
+                
+                <p style="font-size: 16px; color: #374151;">Dear <strong>{{vendor_name}}</strong>,</p>
+                
+                <p style="color: #4b5563; line-height: 1.7;">
+                    We are pleased to confirm that we have <strong style="color: #059669;">successfully received</strong> the shares you transferred to us. 
+                    Thank you for the prompt transfer.
+                </p>
+                
+                <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #e2e8f0;">
+                    <h3 style="margin: 0 0 15px 0; color: #064E3B; border-bottom: 2px solid #10b981; padding-bottom: 8px;">
+                        📦 Receipt Details
+                    </h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; width: 40%;">Purchase Order:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{purchase_number}}</td>
+                        </tr>
+                        <tr style="background: #f1f5f9; margin: 5px 0;">
+                            <td style="padding: 10px; color: #6b7280; border-radius: 6px 0 0 6px;">Stock Symbol:</td>
+                            <td style="padding: 10px; color: #111827; font-weight: 600; border-radius: 0 6px 6px 0;">{{stock_symbol}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Stock Name:</td>
+                            <td style="padding: 10px 0; color: #111827;">{{stock_name}}</td>
+                        </tr>
+                        <tr style="background: #f1f5f9; margin: 5px 0;">
+                            <td style="padding: 10px; color: #6b7280; border-radius: 6px 0 0 6px;">ISIN:</td>
+                            <td style="padding: 10px; color: #111827; font-family: monospace; border-radius: 0 6px 6px 0;">{{isin_number}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Quantity Received:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 700; font-size: 18px;">{{quantity}} shares</td>
+                        </tr>
+                        <tr style="background: #f1f5f9; margin: 5px 0;">
+                            <td style="padding: 10px; color: #6b7280; border-radius: 6px 0 0 6px;">Received Via:</td>
+                            <td style="padding: 10px; border-radius: 0 6px 6px 0;">
+                                <span style="background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 14px;">{{dp_type}}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Receipt Date:</td>
+                            <td style="padding: 10px 0; color: #111827;">{{received_date}}</td>
+                        </tr>
+                        <tr style="background: #f1f5f9; margin: 5px 0;">
+                            <td style="padding: 10px; color: #6b7280; border-radius: 6px 0 0 6px;">Total Amount Paid:</td>
+                            <td style="padding: 10px; color: #059669; font-weight: 700; font-size: 16px; border-radius: 0 6px 6px 0;">₹{{total_amount}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #d1fae5; border-radius: 12px; padding: 15px; margin: 25px 0; border: 1px solid #6ee7b7;">
+                    <p style="color: #065f46; margin: 0; font-size: 14px;">
+                        <strong>✓ Transaction Complete:</strong> This purchase order has been fully settled. 
+                        The shares have been added to our inventory.
+                    </p>
+                </div>
+                
+                <p style="color: #4b5563; line-height: 1.7;">
+                    We appreciate your business and look forward to future transactions with you.
+                </p>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity Team</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["vendor_name", "purchase_number", "stock_symbol", "stock_name", "isin_number", "quantity", "dp_type", "received_date", "total_amount"],
+        "is_active": True
     }
 }
