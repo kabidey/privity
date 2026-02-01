@@ -298,6 +298,45 @@ async def get_purchase_payments(
     return payments
 
 
+@router.get("/{purchase_id}/tcs-preview")
+async def get_tcs_preview(
+    purchase_id: str,
+    amount: float,
+    payment_date: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get TCS calculation preview for a payment amount"""
+    purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
+    if not purchase:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+    
+    vendor_id = purchase.get("vendor_id")
+    vendor = await db.clients.find_one({"id": vendor_id, "is_vendor": True}, {"_id": 0, "name": 1, "pan_number": 1})
+    
+    # Get cumulative payments for this vendor in FY
+    cumulative_payments = await get_vendor_fy_payments(vendor_id, payment_date)
+    
+    # Calculate TCS
+    tcs_info = calculate_tcs(amount, cumulative_payments)
+    
+    # Get FY info
+    fy_start, fy_end = get_indian_financial_year(payment_date)
+    
+    return {
+        "vendor_name": vendor.get("name") if vendor else "Unknown",
+        "vendor_pan": vendor.get("pan_number") if vendor else "Unknown",
+        "payment_amount": amount,
+        "financial_year": f"{fy_start[:4]}-{fy_end[:4]}",
+        "fy_start": fy_start,
+        "fy_end": fy_end,
+        "tcs_rate_percent": TCS_RATE * 100,
+        "tcs_threshold": TCS_THRESHOLD,
+        "tcs_threshold_formatted": "₹50,00,000",
+        **tcs_info,
+        "net_payment": round(amount - tcs_info["tcs_amount"], 2) if tcs_info["tcs_applicable"] else amount
+    }
+
+
 @router.post("/{purchase_id}/payments")
 async def add_purchase_payment(
     purchase_id: str,
