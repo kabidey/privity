@@ -427,6 +427,25 @@ app.add_middleware(
 )
 
 # ====================
+# Security Middleware
+# ====================
+
+from middleware.security import (
+    SecurityHeadersMiddleware,
+    RateLimitMiddleware,
+    RequestValidationMiddleware
+)
+
+# Add security headers to all responses
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Rate limiting to prevent brute force and DDoS
+app.add_middleware(RateLimitMiddleware)
+
+# Request validation and sanitization
+app.add_middleware(RequestValidationMiddleware)
+
+# ====================
 # Kill Switch Middleware
 # ====================
 
