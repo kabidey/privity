@@ -356,9 +356,13 @@ async def add_purchase_payment(
     tranche_number = len(existing_payments) + 1
     payment_id = str(uuid.uuid4())
     
+    # Get Indian FY info
+    fy_start, fy_end = get_indian_financial_year(payment_date)
+    
     payment_doc = {
         "id": payment_id,
         "purchase_id": purchase_id,
+        "vendor_id": vendor_id,
         "tranche_number": tranche_number,
         "amount": amount,
         "payment_date": payment_date,
@@ -366,6 +370,16 @@ async def add_purchase_payment(
         "reference_number": reference_number,
         "notes": notes,
         "proof_url": proof_url,
+        # TCS fields
+        "tcs_applicable": tcs_applicable,
+        "tcs_amount": tcs_amount if tcs_applicable else 0.0,
+        "tcs_rate": TCS_RATE,
+        "tcs_threshold": TCS_THRESHOLD,
+        "vendor_fy_cumulative_before": cumulative_vendor_payments,
+        "vendor_fy_cumulative_after": cumulative_vendor_payments + amount,
+        "financial_year": f"{fy_start[:4]}-{fy_end[:4]}",
+        # Net payment (amount - TCS)
+        "net_payment": round(amount - (tcs_amount if tcs_applicable else 0), 2),
         "status": "completed",
         "created_by": current_user["id"],
         "created_at": datetime.now(timezone.utc).isoformat()
