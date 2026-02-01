@@ -584,35 +584,50 @@ const Layout = ({ children }) => {
             </div>
           </div>
           
-          {/* Navigation - Grid of Big Buttons */}
-          <nav className="flex-1 p-4 overflow-y-auto max-h-[calc(100vh-220px)]" data-testid="mobile-sidebar-nav">
-            <div className="grid grid-cols-3 gap-3">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path ||
-                  (item.path !== '/' && location.pathname.startsWith(item.path));
-                return (
-                  <button
-                    key={item.path}
-                    data-testid={`mobile-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                    onClick={() => {
-                      navigate(item.path);
-                      setSidebarOpen(false);
-                    }}
-                    className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-200 active:scale-95 min-h-[80px] ${
-                      isActive
-                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
-                        : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 border border-gray-100 dark:border-gray-700'
-                    }`}
-                  >
-                    <Icon className={`h-6 w-6 mb-1.5 ${isActive ? 'text-white' : ''}`} strokeWidth={1.5} />
-                    <span className={`text-[10px] font-medium text-center leading-tight ${isActive ? 'text-white' : ''}`}>
-                      {item.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Navigation - Dynamic Grid of Buttons (No Scroll) */}
+          <nav className="flex-1 p-2 flex flex-col" data-testid="mobile-sidebar-nav">
+            {(() => {
+              // Calculate optimal grid layout based on item count
+              const itemCount = menuItems.length;
+              const cols = itemCount > 20 ? 4 : itemCount > 12 ? 4 : 3;
+              const rows = Math.ceil(itemCount / cols);
+              
+              return (
+                <div 
+                  className={`grid gap-1.5 h-full`}
+                  style={{
+                    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                    gridTemplateRows: `repeat(${rows}, 1fr)`
+                  }}
+                >
+                  {menuItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path ||
+                      (item.path !== '/' && location.pathname.startsWith(item.path));
+                    return (
+                      <button
+                        key={item.path}
+                        data-testid={`mobile-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                        onClick={() => {
+                          navigate(item.path);
+                          setSidebarOpen(false);
+                        }}
+                        className={`flex flex-col items-center justify-center p-1 rounded-xl transition-all duration-200 active:scale-95 ${
+                          isActive
+                            ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/30'
+                            : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400'
+                        }`}
+                      >
+                        <Icon className={`h-5 w-5 ${isActive ? 'text-white' : ''}`} strokeWidth={1.5} />
+                        <span className={`text-[8px] font-medium text-center leading-tight mt-0.5 line-clamp-2 ${isActive ? 'text-white' : ''}`}>
+                          {item.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </nav>
           
           {/* Footer Actions */}
