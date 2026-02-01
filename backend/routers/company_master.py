@@ -474,3 +474,94 @@ async def delete_company_document(
     )
     
     return {"message": f"{document_type.replace('_', ' ').title()} deleted successfully"}
+
+
+
+# ============== Public Endpoint for User Agreement ==============
+@router.get("/user-agreement")
+async def get_user_agreement():
+    """
+    Get user agreement text (public - no auth required)
+    Used to show agreement to users on first login
+    """
+    master = await db.company_master.find_one({"_id": "company_settings"})
+    
+    default_agreement = """TERMS OF USE AND USER AGREEMENT
+
+By accessing and using the PRIVITY Share Booking System, you agree to the following terms and conditions:
+
+1. CONFIDENTIALITY
+You agree to maintain the confidentiality of all information accessed through this system.
+
+2. AUTHORIZED USE
+This system is intended solely for authorized business purposes.
+
+3. COMPLIANCE
+You agree to comply with all applicable laws, regulations, and company policies.
+
+By clicking "I Agree", you confirm that you have read, understood, and agree to these terms."""
+    
+    if not master:
+        return {"user_agreement_text": default_agreement}
+    
+    return {"user_agreement_text": master.get("user_agreement_text") or default_agreement}
+
+
+@router.post("/accept-agreement")
+async def accept_user_agreement(current_user: dict = Depends(get_current_user)):
+    """
+    Accept user agreement - marks user as having accepted the agreement
+    """
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {
+            "$set": {
+                "agreement_accepted": True,
+                "agreement_accepted_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="USER_AGREEMENT_ACCEPTED",
+        entity_type="user",
+        entity_id=current_user["id"],
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
+        entity_name=current_user["name"],
+        details={"action": "User accepted terms and conditions"}
+    )
+    
+    return {"message": "Agreement accepted successfully", "agreement_accepted": True}
+
+
+@router.post("/decline-agreement")
+async def decline_user_agreement(current_user: dict = Depends(get_current_user)):
+    """
+    Decline user agreement - marks user as having declined and logs out
+    """
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {
+            "$set": {
+                "agreement_accepted": False,
+                "agreement_declined_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="USER_AGREEMENT_DECLINED",
+        entity_type="user",
+        entity_id=current_user["id"],
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
+        entity_name=current_user["name"],
+        details={"action": "User declined terms and conditions"}
+    )
+    
+    return {"message": "Agreement declined. You will be logged out.", "agreement_accepted": False}
