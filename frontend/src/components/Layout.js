@@ -584,9 +584,9 @@ const Layout = ({ children }) => {
             </div>
           </div>
           
-          {/* Navigation */}
-          <nav className="flex-1 p-3 overflow-y-auto max-h-[calc(100vh-220px)]" data-testid="mobile-sidebar-nav">
-            <div className="space-y-0.5">
+          {/* Navigation - Grid of Big Buttons */}
+          <nav className="flex-1 p-4 overflow-y-auto max-h-[calc(100vh-220px)]" data-testid="mobile-sidebar-nav">
+            <div className="grid grid-cols-3 gap-3">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path ||
@@ -594,22 +594,21 @@ const Layout = ({ children }) => {
                 return (
                   <button
                     key={item.path}
-                    data-testid={`mobile-nav-${item.label.toLowerCase()}`}
+                    data-testid={`mobile-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                     onClick={() => {
                       navigate(item.path);
                       setSidebarOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 active:scale-[0.98] ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-200 active:scale-95 min-h-[80px] ${
                       isActive
-                        ? 'bg-emerald-500 text-white'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 border border-gray-100 dark:border-gray-700'
                     }`}
                   >
-                    <span className="flex items-center gap-3">
-                      <Icon className="h-5 w-5" strokeWidth={1.5} />
-                      <span className="font-medium">{item.label}</span>
+                    <Icon className={`h-6 w-6 mb-1.5 ${isActive ? 'text-white' : ''}`} strokeWidth={1.5} />
+                    <span className={`text-[10px] font-medium text-center leading-tight ${isActive ? 'text-white' : ''}`}>
+                      {item.label}
                     </span>
-                    <ChevronRight className={`h-4 w-4 ${isActive ? 'text-white/70' : 'text-gray-400'}`} />
                   </button>
                 );
               })}
