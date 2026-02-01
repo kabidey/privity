@@ -154,7 +154,7 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
                 logo_img = Image(logo_path, width=1.5*cm, height=1.5*cm)
                 logo_img.hAlign = 'LEFT'
                 header_content.append(logo_img)
-            except Exception as e:
+            except Exception:
                 # If logo fails to load, skip it
                 pass
     
