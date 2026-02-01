@@ -20,6 +20,7 @@ from models import Purchase, PurchaseCreate
 from utils.auth import get_current_user
 from services.audit_service import create_audit_log
 from services.email_service import send_stock_transfer_request_email, send_email, get_email_template
+from services.contract_note_service import create_and_save_vendor_contract_note
 
 router = APIRouter(prefix="/purchases", tags=["Purchases"])
 
