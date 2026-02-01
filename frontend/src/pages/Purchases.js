@@ -47,6 +47,8 @@ const Purchases = () => {
     totalValue: 0,
     totalQuantity: 0,
   });
+  const [paymentsDialog, setPaymentsDialog] = useState({ open: false, purchase: null, payments: [] });
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
@@ -54,6 +56,20 @@ const Purchases = () => {
   const isFinance = currentUser.role === 7;
   const canPay = isPELevel || isFinance; // PE Desk, PE Manager, and Finance can pay
   const canDelete = isPEDesk; // Only PE Desk can delete
+
+  // Fetch payments for a purchase
+  const fetchPayments = async (purchase) => {
+    setPaymentsLoading(true);
+    try {
+      const response = await api.get(`/purchases/${purchase.id}/payments`);
+      setPaymentsDialog({ open: true, purchase, payments: response.data || [] });
+    } catch (error) {
+      toast.error('Failed to fetch payments');
+      setPaymentsDialog({ open: true, purchase, payments: [] });
+    } finally {
+      setPaymentsLoading(false);
+    }
+  };
 
   // Fetch TCS preview when amount or date changes
   const fetchTcsPreview = async (purchaseId, amount, paymentDate) => {
