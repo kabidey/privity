@@ -58,17 +58,25 @@ const AgreementChecker = ({ children }) => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    checkAgreement();
-  }, []);
+    // Small delay to ensure localStorage is ready
+    const timer = setTimeout(() => {
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          // Show agreement if user exists and hasn't accepted it yet
+          if (user && user.id && user.agreement_accepted !== true) {
+            setShowAgreement(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking agreement:', error);
+      }
+      setChecking(false);
+    }, 100);
 
-  const checkAgreement = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    // Show agreement if user hasn't accepted it yet
-    if (user.id && !user.agreement_accepted) {
-      setShowAgreement(true);
-    }
-    setChecking(false);
-  };
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleAccept = () => {
     setShowAgreement(false);
@@ -78,21 +86,17 @@ const AgreementChecker = ({ children }) => {
     // Will redirect to login via the modal
   };
 
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
-      </div>
-    );
-  }
-
+  // Don't block rendering - show content immediately
+  // Agreement modal will overlay if needed
   return (
     <>
-      <UserAgreementModal 
-        isOpen={showAgreement} 
-        onAccept={handleAccept} 
-        onDecline={handleDecline} 
-      />
+      {showAgreement && (
+        <UserAgreementModal 
+          isOpen={showAgreement} 
+          onAccept={handleAccept} 
+          onDecline={handleDecline} 
+        />
+      )}
       {children}
     </>
   );
