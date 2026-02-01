@@ -24,6 +24,7 @@ const Finance = () => {
   const [rpPayments, setRpPayments] = useState([]);
   const [bpPayments, setBpPayments] = useState([]);
   const [employeeCommissions, setEmployeeCommissions] = useState([]);
+  const [tcsPayments, setTcsPayments] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
