@@ -15,6 +15,23 @@ export const getCurrentBuildInfo = () => {
 
 const CHANGELOG = [
   {
+    version: 'v2.0.1',
+    date: '2026-02-01',
+    title: 'Notification System Overhaul & Finance Enhancements',
+    changes: [
+      { type: 'feature', description: 'Notification Sound System - Browser permission request for audio playback' },
+      { type: 'feature', description: 'Sound Toggle - Enable/disable notification sounds from notification bell' },
+      { type: 'feature', description: 'Browser Notifications - Native browser notification support with permission request' },
+      { type: 'feature', description: 'TCS FY Selector - Export TCS reports for any financial year (current + 5 previous years)' },
+      { type: 'feature', description: 'Permission Banner - Prompts new users to enable notifications on first login' },
+      { type: 'improvement', description: 'Audio Context Management - Singleton audio context for reliable sound playback' },
+      { type: 'improvement', description: 'Notification Bell UI - Added sound toggle, test button, and enable permissions button' },
+      { type: 'fix', description: 'Mobile Sidebar - Verified working correctly with all 27 menu items accessible' },
+      { type: 'fix', description: 'Duplicate Notifications - Prevented same notification from appearing twice' },
+      { type: 'fix', description: 'WebSocket Sound - Re-enabled sound for WebSocket notifications' },
+    ]
+  },
+  {
     version: 'v1.2.0',
     date: '2026-01-31',
     title: 'Stable Release - Role Hierarchy & Finance Updates',
