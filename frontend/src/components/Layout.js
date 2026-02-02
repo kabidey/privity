@@ -55,7 +55,8 @@ import {
   Send,
   BookOpen,
   Phone,
-  DollarSign
+  DollarSign,
+  HardDrive
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
