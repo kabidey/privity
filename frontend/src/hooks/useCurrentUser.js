@@ -8,6 +8,7 @@ export const ROLES = {
   VIEWER: 4,
   PARTNERS_DESK: 5,
   BUSINESS_PARTNER: 6,
+  EMPLOYEE: 7,
 };
 
 // Role names for display
@@ -18,6 +19,7 @@ export const ROLE_NAMES = {
   4: 'Viewer',
   5: 'Partners Desk',
   6: 'Business Partner',
+  7: 'Employee',
 };
 
 // Hook to get current user info
