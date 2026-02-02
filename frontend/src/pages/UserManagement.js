@@ -19,6 +19,7 @@ const ROLES = {
   4: { name: 'Viewer', color: 'bg-gray-100 text-gray-800' },
   5: { name: 'Partners Desk', color: 'bg-pink-100 text-pink-800' },
   6: { name: 'Business Partner', color: 'bg-orange-100 text-orange-800' },
+  7: { name: 'Employee', color: 'bg-blue-100 text-blue-800' },
 };
 
 const HIERARCHY_LEVELS = {
