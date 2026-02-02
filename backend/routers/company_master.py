@@ -218,7 +218,7 @@ async def upload_company_document(
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Upload company document (PE Desk only)
+    Upload company document (PE Desk only) - Stored in GridFS for persistence
     
     document_type: cml_cdsl, cml_nsdl, cancelled_cheque, pan_card
     """
@@ -240,27 +240,45 @@ async def upload_company_document(
             detail=f"Invalid file type. Allowed: {', '.join(allowed_extensions)}"
         )
     
+    # Read file content
+    content = await file.read()
+    
     # Generate unique filename
     filename = f"{document_type}_{uuid.uuid4().hex[:8]}{file_ext}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
     
-    # Save file
+    # Upload to GridFS for persistent storage
+    file_id = await upload_file_to_gridfs(
+        content,
+        filename,
+        file.content_type or "application/octet-stream",
+        {
+            "category": "company_documents",
+            "doc_type": document_type,
+            "uploaded_by": current_user.get("id"),
+            "uploaded_by_name": current_user.get("name")
+        }
+    )
+    
+    # Generate URL using GridFS
+    file_url = get_file_url(file_id)
+    
+    # Also save locally for backward compatibility
+    file_path = os.path.join(UPLOAD_DIR, filename)
     try:
         with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            buffer.write(content)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+        print(f"Warning: Local file save failed: {e}")
     
-    # Generate URL
-    file_url = f"/uploads/company/{filename}"
-    
-    # Update database
+    # Update database with GridFS file_id and URL
     url_field = f"{document_type}_url"
+    file_id_field = f"{document_type}_file_id"
     await db.company_master.update_one(
         {"_id": "company_settings"},
         {
             "$set": {
                 url_field: file_url,
+                file_id_field: file_id,
                 "updated_at": datetime.now(timezone.utc).isoformat(),
                 "updated_by": current_user["name"]
             }
