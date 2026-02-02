@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Shield, AlertTriangle, MapPin, Lock, Unlock, Ban, CheckCircle2,
   Activity, Globe, Server, Users, Clock, TrendingUp, RefreshCw,
