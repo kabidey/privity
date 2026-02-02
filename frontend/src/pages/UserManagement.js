@@ -388,15 +388,27 @@ const UserManagement = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            {user.is_active !== false ? (
-                              <Badge className="bg-green-100 text-green-800">
-                                <UserCheck className="h-3 w-3 mr-1" />Active
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-red-100 text-red-800">
-                                <UserX className="h-3 w-3 mr-1" />Inactive
-                              </Badge>
-                            )}
+                            <div className="flex flex-col gap-1">
+                              {user.is_active !== false ? (
+                                <Badge className="bg-green-100 text-green-800 w-fit">
+                                  <UserCheck className="h-3 w-3 mr-1" />Active
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-red-100 text-red-800 w-fit">
+                                  <UserX className="h-3 w-3 mr-1" />Inactive
+                                </Badge>
+                              )}
+                              {/* Agreement acceptance indicator */}
+                              {user.agreement_accepted ? (
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 w-fit text-xs">
+                                  Agreement ✓
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 w-fit text-xs">
+                                  No Agreement
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
