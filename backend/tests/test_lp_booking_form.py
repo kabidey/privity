@@ -29,8 +29,9 @@ class TestLPBookingForm:
         })
         assert response.status_code == 200, f"PE Desk login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data, "No access_token in response"
-        return data["access_token"]
+        # API returns 'token' not 'access_token'
+        assert "token" in data, f"No token in response: {data.keys()}"
+        return data["token"]
     
     @pytest.fixture(scope="class")
     def auth_headers(self, pe_desk_token):
@@ -248,7 +249,7 @@ class TestLPLabelsAndDisplay:
             "password": PE_DESK_PASSWORD
         })
         assert response.status_code == 200
-        return response.json()["access_token"]
+        return response.json()["token"]
     
     @pytest.fixture(scope="class")
     def auth_headers(self, pe_desk_token):
