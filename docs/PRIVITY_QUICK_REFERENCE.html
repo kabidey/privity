@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PRIVITY Quick Reference Card</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            padding: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981, #14b8a6);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .card h3 {
+            color: #10b981;
+            font-size: 13px;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #10b981;
+        }
+        table { width: 100%; font-size: 10px; }
+        td { padding: 3px 5px; vertical-align: top; }
+        .task { font-weight: 600; }
+        .steps { color: #4b5563; }
+        .status-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .green { background: #10b981; }
+        .yellow { background: #f59e0b; }
+        .red { background: #ef4444; }
+        .formula {
+            background: #1a1a2e;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-family: monospace;
+            margin: 8px 0;
+        }
+        .contact {
+            background: linear-gradient(135deg, #10b981, #14b8a6);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .contact strong { font-size: 12px; }
+        .full-width { grid-column: span 2; }
+        ul { padding-left: 15px; margin: 5px 0; }
+        li { margin: 2px 0; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>PRIVITY</h1>
+    <div>Quick Reference Card - Share Booking System</div>
+</div>
+
+<div class="grid">
+    <!-- Common Tasks -->
+    <div class="card">
+        <h3>📋 Common Tasks</h3>
+        <table>
+            <tr>
+                <td class="task">Add Client</td>
+                <td class="steps">Clients → Add Client → Fill Form → Submit</td>
+            </tr>
+            <tr>
+                <td class="task">Create Booking</td>
+                <td class="steps">Bookings → Create → Select Client & Stock → Submit</td>
+            </tr>
+            <tr>
+                <td class="task">Check Inventory</td>
+                <td class="steps">Inventory → View Available Stocks</td>
+            </tr>
+            <tr>
+                <td class="task">View Reports</td>
+                <td class="steps">Reports → Select Date Range → Export</td>
+            </tr>
+            <tr>
+                <td class="task">Track Payments</td>
+                <td class="steps">Finance → View Payment Status</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Status Indicators -->
+    <div class="card">
+        <h3>🚦 Status Indicators</h3>
+        <p><strong>Client Status:</strong></p>
+        <ul>
+            <li><span class="status-dot green"></span> Approved - Can place bookings</li>
+            <li><span class="status-dot yellow"></span> Pending - Awaiting approval</li>
+            <li><span class="status-dot red"></span> Rejected - See comments</li>
+        </ul>
+        <p style="margin-top: 8px;"><strong>PE Support:</strong></p>
+        <ul>
+            <li><span class="status-dot green"></span> Online - Immediate help available</li>
+            <li><span class="status-dot red"></span> Offline - Leave message</li>
+        </ul>
+    </div>
+
+    <!-- Booking Workflow -->
+    <div class="card">
+        <h3>📊 Booking Workflow</h3>
+        <div style="text-align: center; font-size: 10px; margin: 5px 0;">
+            <strong>Created</strong> → Client Confirm → <strong>PE Approval</strong> → DP Transfer → <strong>Complete</strong>
+        </div>
+        <p style="margin-top: 8px;"><strong>Booking Statuses:</strong></p>
+        <ul>
+            <li><strong>Pending</strong> - Awaiting client/PE action</li>
+            <li><strong>Confirmed</strong> - Approved, awaiting transfer</li>
+            <li><strong>Completed</strong> - Transaction done</li>
+            <li><strong>Rejected</strong> - Denied by PE/Client</li>
+        </ul>
+    </div>
+
+    <!-- Revenue Formula -->
+    <div class="card">
+        <h3>💰 Revenue Calculation</h3>
+        <div class="formula">Revenue = (Sell Price - Landing Price) × Qty</div>
+        <p><strong>Example:</strong></p>
+        <ul>
+            <li>Sell: ₹150 | LP: ₹120 | Qty: 100</li>
+            <li><strong>Revenue: ₹3,000</strong></li>
+        </ul>
+        <p style="margin-top: 5px; font-size: 9px; color: #6b7280;">
+            * Landing Price (LP) is the buying price shown to you
+        </p>
+    </div>
+
+    <!-- Do's and Don'ts -->
+    <div class="card full-width">
+        <h3>✅ Do's & ❌ Don'ts</h3>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <strong style="color: #10b981;">✅ DO:</strong>
+                <ul>
+                    <li>Verify client details before booking</li>
+                    <li>Check inventory availability first</li>
+                    <li>Double-check quantity and price</li>
+                    <li>Follow up on pending confirmations</li>
+                </ul>
+            </div>
+            <div style="flex: 1;">
+                <strong style="color: #ef4444;">❌ DON'T:</strong>
+                <ul>
+                    <li>Create duplicate bookings</li>
+                    <li>Book more than available stock</li>
+                    <li>Skip client confirmation step</li>
+                    <li>Share your login credentials</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="contact">
+    <strong>📞 Need Help? Contact PE Desk</strong><br>
+    📧 pe@smifs.com &nbsp;|&nbsp; 📱 9088963000
+</div>
+
+<p style="text-align: center; margin-top: 10px; font-size: 9px; color: #9ca3af;">
+    PRIVITY v2.0 | © 2026 SMIFS Limited
+</p>
+
+</body>
+</html>
