@@ -20,6 +20,7 @@ from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
 from services.email_service import send_templated_email, send_email, get_email_template
 from services.ocr_service import process_document_ocr
+from services.file_storage import upload_file_to_gridfs, get_file_url
 
 router = APIRouter(tags=["Clients"])
 
