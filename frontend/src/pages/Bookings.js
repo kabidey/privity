@@ -1163,7 +1163,7 @@ const Bookings = () => {
                               </>
                             )}
                             {/* Regular booking approval buttons */}
-                            {isPEDesk && booking.approval_status === 'pending' && (
+                            {isPELevel && booking.approval_status === 'pending' && (
                               <>
                                 <Button variant="ghost" size="sm" onClick={() => handleApprove(booking.id, true)} className="text-green-600" title="Approve">
                                   <CheckCircle className="h-4 w-4" />
