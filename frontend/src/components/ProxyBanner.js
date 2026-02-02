@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, User, ArrowLeft, X } from 'lucide-react';
+import { AlertTriangle, User, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import api from '../utils/api';
@@ -11,7 +10,6 @@ import api from '../utils/api';
  */
 const ProxyBanner = ({ proxySession, onEndProxy }) => {
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   if (!proxySession?.is_proxy) return null;
 
@@ -24,8 +22,9 @@ const ProxyBanner = ({ proxySession, onEndProxy }) => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
-      // Clear proxy session
+      // Clear proxy session and original user
       localStorage.removeItem('proxy_session');
+      localStorage.removeItem('original_user');
       
       toast.success('Returned to your account');
       
@@ -34,11 +33,16 @@ const ProxyBanner = ({ proxySession, onEndProxy }) => {
         onEndProxy(response.data);
       }
       
-      // Reload page to refresh all components
-      window.location.href = '/';
+      // Force full page reload to clear all cached state
+      window.location.replace('/');
     } catch (error) {
-      toast.error('Failed to end proxy session');
       console.error('Proxy logout error:', error);
+      toast.error('Failed to end proxy session. Try refreshing the page.');
+      
+      // Fallback: Clear local storage and redirect anyway
+      localStorage.removeItem('proxy_session');
+      localStorage.removeItem('original_user');
+      window.location.replace('/login');
     } finally {
       setLoading(false);
     }
