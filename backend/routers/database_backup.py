@@ -89,6 +89,8 @@ class BackupMetadata(BaseModel):
     includes_files: bool = False
     files_count: int = 0
     files_size_bytes: int = 0
+    includes_gridfs: bool = False  # New: indicates if GridFS files are included
+    gridfs_files_count: int = 0
 
 
 class RestoreRequest(BaseModel):
