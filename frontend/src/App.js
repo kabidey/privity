@@ -212,6 +212,7 @@ function App() {
                       {/* PWA Install Prompt */}
                       <InstallPWA />
                     </AgreementChecker>
+                    </ProxyWrapper>
                   </NotificationProvider>
                 </PrivateRoute>
               }
