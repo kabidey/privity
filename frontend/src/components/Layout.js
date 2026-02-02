@@ -277,6 +277,9 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: LayoutDashboard, label: 'My Dashboard', path: '/bp-dashboard' });
   }
 
+  // Help & Tutorial - visible to all users
+  menuItems.push({ icon: HelpCircle, label: 'Help & Tutorial', path: '/help' });
+
   // Determine if current user is PE level (for styling user avatar)
   const isPELevel = user.role === 1 || user.role === 2;
   
