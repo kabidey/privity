@@ -801,3 +801,303 @@ async def restore_from_file(
         raise HTTPException(status_code=400, detail=f"Invalid JSON in backup file: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing backup file: {str(e)}")
+
+
+
+# ============== GridFS File Backup/Restore Endpoints ==============
+
+@router.post("/backups/gridfs")
+async def create_gridfs_backup(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Create a backup of all GridFS files (PE Desk only).
+    This exports GridFS file metadata and data for persistent backup.
+    
+    Returns a downloadable ZIP file containing all GridFS files with metadata.
+    """
+    if not is_pe_desk_only(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk can create GridFS backups")
+    
+    try:
+        # Create ZIP in memory
+        zip_buffer = io.BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Get all files from GridFS
+            files_metadata = []
+            total_files = 0
+            total_size = 0
+            
+            async for file_doc in db["fs.files"].find({}):
+                file_id = str(file_doc["_id"])
+                filename = file_doc.get("filename", f"file_{file_id}")
+                metadata = file_doc.get("metadata", {})
+                length = file_doc.get("length", 0)
+                
+                try:
+                    # Download file content from GridFS
+                    content, _ = await download_file_from_gridfs(file_id)
+                    
+                    # Add file to ZIP
+                    zip_path = f"gridfs_files/{metadata.get('category', 'uncategorized')}/{filename}"
+                    zip_file.writestr(zip_path, content)
+                    
+                    # Store metadata
+                    files_metadata.append({
+                        "file_id": file_id,
+                        "filename": filename,
+                        "category": metadata.get("category"),
+                        "entity_id": metadata.get("entity_id"),
+                        "doc_type": metadata.get("doc_type"),
+                        "content_type": metadata.get("content_type"),
+                        "length": length,
+                        "upload_date": str(file_doc.get("uploadDate", "")),
+                        "original_filename": metadata.get("original_filename"),
+                        "zip_path": zip_path
+                    })
+                    
+                    total_files += 1
+                    total_size += length
+                    
+                except Exception as e:
+                    files_metadata.append({
+                        "file_id": file_id,
+                        "filename": filename,
+                        "error": str(e)
+                    })
+            
+            # Add metadata JSON
+            backup_metadata = {
+                "backup_type": "gridfs_files",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_by": current_user["name"],
+                "total_files": total_files,
+                "total_size_bytes": total_size,
+                "files": files_metadata
+            }
+            zip_file.writestr("gridfs_metadata.json", json.dumps(backup_metadata, indent=2, default=str))
+        
+        # Return ZIP file for download
+        zip_buffer.seek(0)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f'attachment; filename="gridfs_backup_{timestamp}.zip"'
+            }
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating GridFS backup: {str(e)}")
+
+
+@router.post("/restore/gridfs")
+async def restore_gridfs_from_backup(
+    file: UploadFile = File(...),
+    skip_existing: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Restore GridFS files from a backup ZIP (PE Desk only).
+    
+    Args:
+        file: ZIP file containing GridFS backup
+        skip_existing: If True, skip files that already exist in GridFS
+    """
+    if not is_pe_desk_only(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk can restore GridFS files")
+    
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Please upload a ZIP file")
+    
+    try:
+        content = await file.read()
+        zip_buffer = io.BytesIO(content)
+        
+        restored_count = 0
+        skipped_count = 0
+        errors = []
+        
+        with zipfile.ZipFile(zip_buffer, 'r') as zip_file:
+            # Read metadata
+            if "gridfs_metadata.json" not in zip_file.namelist():
+                raise HTTPException(status_code=400, detail="Invalid backup: missing gridfs_metadata.json")
+            
+            metadata_content = zip_file.read("gridfs_metadata.json")
+            metadata = json.loads(metadata_content)
+            
+            # Restore each file
+            for file_info in metadata.get("files", []):
+                if file_info.get("error"):
+                    continue
+                
+                zip_path = file_info.get("zip_path")
+                if not zip_path or zip_path not in zip_file.namelist():
+                    errors.append(f"File not found in backup: {file_info.get('filename')}")
+                    continue
+                
+                # Check if file already exists
+                existing = await db["fs.files"].find_one({"_id": file_info.get("file_id")})
+                if existing and skip_existing:
+                    skipped_count += 1
+                    continue
+                
+                try:
+                    # Read file content from ZIP
+                    file_content = zip_file.read(zip_path)
+                    
+                    # Re-upload to GridFS
+                    new_file_id = await upload_file_to_gridfs(
+                        file_content,
+                        file_info.get("filename"),
+                        file_info.get("content_type", "application/octet-stream"),
+                        {
+                            "category": file_info.get("category"),
+                            "entity_id": file_info.get("entity_id"),
+                            "doc_type": file_info.get("doc_type"),
+                            "original_filename": file_info.get("original_filename"),
+                            "restored_from_backup": True,
+                            "original_file_id": file_info.get("file_id"),
+                            "restored_at": datetime.now(timezone.utc).isoformat()
+                        }
+                    )
+                    
+                    # Update references in database if entity_id exists
+                    entity_id = file_info.get("entity_id")
+                    category = file_info.get("category")
+                    doc_type = file_info.get("doc_type")
+                    
+                    if entity_id and category:
+                        new_url = get_file_url(new_file_id)
+                        
+                        # Update references based on category
+                        if category == "client_documents":
+                            await db.clients.update_one(
+                                {"id": entity_id, "documents.doc_type": doc_type},
+                                {"$set": {
+                                    "documents.$.file_id": new_file_id,
+                                    "documents.$.file_url": new_url
+                                }}
+                            )
+                        elif category == "company_documents" or category == "company_logo":
+                            await db.company_master.update_one(
+                                {"_id": "company_settings"},
+                                {"$set": {
+                                    f"{doc_type}_file_id": new_file_id,
+                                    f"{doc_type}_url": new_url
+                                }}
+                            )
+                        elif category == "rp_documents":
+                            await db.referral_partners.update_one(
+                                {"id": entity_id},
+                                {"$set": {
+                                    f"{doc_type}_file_id": new_file_id,
+                                    f"{doc_type}_url": new_url
+                                }}
+                            )
+                        elif category == "bp_documents":
+                            await db.business_partners.update_one(
+                                {"id": entity_id, "documents.doc_type": doc_type},
+                                {"$set": {
+                                    "documents.$.file_id": new_file_id,
+                                    "documents.$.file_url": new_url
+                                }}
+                            )
+                        elif category == "research_reports":
+                            await db.research_reports.update_one(
+                                {"id": entity_id},
+                                {"$set": {
+                                    "file_id": new_file_id,
+                                    "file_url": new_url
+                                }}
+                            )
+                        elif category == "contract_notes":
+                            await db.contract_notes.update_one(
+                                {"id": entity_id},
+                                {"$set": {
+                                    "file_id": new_file_id,
+                                    "pdf_url": new_url
+                                }}
+                            )
+                    
+                    restored_count += 1
+                    
+                except Exception as e:
+                    errors.append(f"Error restoring {file_info.get('filename')}: {str(e)}")
+        
+        # Log the restore action
+        await db.audit_logs.insert_one({
+            "id": str(uuid.uuid4()),
+            "action": "GRIDFS_RESTORE",
+            "entity_type": "database",
+            "entity_id": "gridfs",
+            "user_id": current_user["id"],
+            "user_name": current_user["name"],
+            "user_role": current_user.get("role", 5),
+            "details": {
+                "restored_count": restored_count,
+                "skipped_count": skipped_count,
+                "errors_count": len(errors)
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "message": "GridFS restore completed",
+            "restored_count": restored_count,
+            "skipped_count": skipped_count,
+            "errors": errors[:10] if errors else []  # Return first 10 errors
+        }
+    
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid JSON in backup file: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error restoring GridFS files: {str(e)}")
+
+
+@router.get("/gridfs/stats")
+async def get_gridfs_stats(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get GridFS storage statistics (PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view GridFS stats")
+    
+    # Count total files
+    total_files = await db["fs.files"].count_documents({})
+    
+    # Get total size
+    pipeline = [
+        {"$group": {"_id": None, "total_size": {"$sum": "$length"}}}
+    ]
+    size_result = await db["fs.files"].aggregate(pipeline).to_list(1)
+    total_size = size_result[0]["total_size"] if size_result else 0
+    
+    # Count by category
+    category_pipeline = [
+        {"$group": {
+            "_id": "$metadata.category",
+            "count": {"$sum": 1},
+            "size": {"$sum": "$length"}
+        }},
+        {"$sort": {"count": -1}}
+    ]
+    categories = await db["fs.files"].aggregate(category_pipeline).to_list(100)
+    
+    return {
+        "total_files": total_files,
+        "total_size_bytes": total_size,
+        "total_size_mb": round(total_size / (1024 * 1024), 2),
+        "by_category": [
+            {
+                "category": c["_id"] or "uncategorized",
+                "count": c["count"],
+                "size_bytes": c["size"],
+                "size_mb": round(c["size"] / (1024 * 1024), 2)
+            }
+            for c in categories
+        ]
+    }
