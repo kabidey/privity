@@ -211,6 +211,8 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
 @router.put("/{user_id}/hierarchy")
 async def update_user_hierarchy(user_id: str, hierarchy_data: HierarchyUpdate, current_user: dict = Depends(get_current_user)):
     """Update user hierarchy (PE Level only)"""
+    from services.hierarchy_service import get_manager_chain
+    
     if not is_pe_level(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update user hierarchy")
     
@@ -234,6 +236,15 @@ async def update_user_hierarchy(user_id: str, hierarchy_data: HierarchyUpdate, c
         manager = await db.users.find_one({"id": hierarchy_data.reports_to})
         if not manager:
             raise HTTPException(status_code=400, detail="Manager not found")
+        
+        # Check for circular reference: ensure user_id is not in the manager's chain
+        manager_chain = await get_manager_chain(hierarchy_data.reports_to)
+        if any(m["id"] == user_id for m in manager_chain):
+            raise HTTPException(
+                status_code=400, 
+                detail="Cannot assign this manager - it would create a circular reporting structure"
+            )
+        
         update_data["reports_to"] = hierarchy_data.reports_to
     else:
         update_data["reports_to"] = None
