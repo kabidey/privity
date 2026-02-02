@@ -182,7 +182,14 @@ const UserManagement = () => {
   };
 
   const resetForm = () => {
-    setFormData({ email: '', password: '', name: '', role: 5 });
+    setFormData({ email: '', password: '', name: '', role: 5, hierarchy_level: 1, reports_to: '' });
+  };
+
+  const openHierarchyDialog = (user) => {
+    setSelectedUser(user);
+    setSelectedHierarchyLevel(user.hierarchy_level || 1);
+    setSelectedManagerId(user.reports_to || user.manager_id || '');
+    setHierarchyDialogOpen(true);
   };
 
   const openDeleteDialog = (user) => {
