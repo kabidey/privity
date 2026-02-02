@@ -178,6 +178,57 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             detail="This stock is blocked (IPO/RTA) and not available for booking"
         )
     
+    # ============== DUPLICATE BOOKING PREVENTION ==============
+    # Check for duplicate bookings with same client, stock, quantity, and booking date
+    # Also check for recent bookings (within 30 seconds) to prevent accidental double-clicks
+    from datetime import timedelta
+    
+    # Check 1: Exact duplicate (same client, stock, quantity, date) that is not voided
+    exact_duplicate = await db.bookings.find_one({
+        "client_id": booking_data.client_id,
+        "stock_id": booking_data.stock_id,
+        "quantity": booking_data.quantity,
+        "booking_date": booking_data.booking_date,
+        "is_voided": {"$ne": True}
+    }, {"_id": 0, "booking_number": 1, "created_at": 1})
+    
+    if exact_duplicate:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Duplicate booking detected! A booking with the same client, stock, quantity, and date already exists: {exact_duplicate.get('booking_number', 'Unknown')}"
+        )
+    
+    # Check 2: Recent duplicate (same client, stock within last 30 seconds) - prevents double-clicks
+    thirty_seconds_ago = (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()
+    recent_duplicate = await db.bookings.find_one({
+        "client_id": booking_data.client_id,
+        "stock_id": booking_data.stock_id,
+        "created_by": current_user["id"],
+        "created_at": {"$gte": thirty_seconds_ago},
+        "is_voided": {"$ne": True}
+    }, {"_id": 0, "booking_number": 1})
+    
+    if recent_duplicate:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A booking for this client and stock was just created: {recent_duplicate.get('booking_number', 'Unknown')}. Please wait before creating another booking."
+        )
+    
+    # Check 3: Same client + stock with pending approval (prevents multiple pending bookings for same stock)
+    pending_same_stock = await db.bookings.find_one({
+        "client_id": booking_data.client_id,
+        "stock_id": booking_data.stock_id,
+        "approval_status": "pending",
+        "is_voided": {"$ne": True}
+    }, {"_id": 0, "booking_number": 1})
+    
+    if pending_same_stock:
+        raise HTTPException(
+            status_code=400,
+            detail=f"There is already a pending booking for this client and stock: {pending_same_stock.get('booking_number', 'Unknown')}. Please approve or reject it first."
+        )
+    # ============== END DUPLICATE BOOKING PREVENTION ==============
+    
     # HIGH-CONCURRENCY: Atomic inventory check
     is_available, available_qty, weighted_avg = await check_stock_availability(
         booking_data.stock_id, 
