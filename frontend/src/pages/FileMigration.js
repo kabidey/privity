@@ -54,18 +54,16 @@ const FileMigration = () => {
   const handleFileUpload = async (file, entityType, entityId, docType) => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('entity_type', entityType);
-    formData.append('entity_id', entityId);
-    formData.append('doc_type', docType);
 
     setUploading(`${entityId}-${docType}`);
     try {
-      await api.post('/files/re-upload', formData, {
+      await api.post(`/files/reupload/${entityType}/${entityId}?doc_type=${encodeURIComponent(docType)}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success('File uploaded successfully!');
       // Refresh the list
       await scanMissingFiles();
+      await fetchStats();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to upload file');
     } finally {
