@@ -375,6 +375,9 @@ from routers.group_chat import router as group_chat_router
 # File Storage (GridFS)
 from routers.files import router as files_router
 
+# Two-Factor Authentication
+from routers.two_factor import router as two_factor_router
+
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
