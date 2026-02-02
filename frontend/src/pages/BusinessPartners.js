@@ -54,7 +54,7 @@ const BusinessPartners = () => {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
   const isPEDesk = currentUser.role === 1;
-  const isPartnersDesk = currentUser.role === 9;
+  const isPartnersDesk = currentUser.role === 5;  // Partners Desk role
   const canAccessBP = isPELevel || isPartnersDesk;
   const canDeleteBP = isPEDesk; // Only PE Desk can delete
 
