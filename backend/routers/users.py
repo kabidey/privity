@@ -91,12 +91,17 @@ async def get_users(current_user: dict = Depends(get_current_user)):
     if not is_pe_level(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view users")
     users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
-    return [User(**{
-        **u, 
-        "role_name": ROLES.get(u.get("role", 6), "Viewer"),
-        "agreement_accepted": u.get("agreement_accepted", False),
-        "agreement_accepted_at": u.get("agreement_accepted_at")
-    }) for u in users]
+    
+    result = []
+    for u in users:
+        enriched = await enrich_user_with_hierarchy(u)
+        result.append(User(**{
+            **enriched, 
+            "role_name": ROLES.get(u.get("role", 6), "Viewer"),
+            "agreement_accepted": u.get("agreement_accepted", False),
+            "agreement_accepted_at": u.get("agreement_accepted_at")
+        }))
+    return result
 
 
 @router.post("")
