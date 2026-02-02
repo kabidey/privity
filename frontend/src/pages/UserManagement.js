@@ -306,9 +306,9 @@ const UserManagement = () => {
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead>Hierarchy Level</TableHead>
                         <TableHead>Reports To</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Agreement</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -321,7 +321,7 @@ const UserManagement = () => {
                             <Select
                               value={String(user.role)}
                               onValueChange={(value) => handleRoleChange(user.id, parseInt(value))}
-                              disabled={user.email === 'pedesk@smifs.com'}
+                              disabled={user.email === 'pe@smifs.com'}
                             >
                               <SelectTrigger className="w-36">
                                 <SelectValue />
@@ -334,10 +334,20 @@ const UserManagement = () => {
                             </Select>
                           </TableCell>
                           <TableCell>
-                            {user.manager_name ? (
+                            {/* Show hierarchy level with color badge */}
+                            {user.role && ![1, 2, 6, 7, 8, 9].includes(user.role) ? (
+                              <Badge className={HIERARCHY_LEVELS[user.hierarchy_level || 1]?.color || 'bg-gray-100'}>
+                                {HIERARCHY_LEVELS[user.hierarchy_level || 1]?.name || 'Employee'}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">N/A</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {user.reports_to_name || user.manager_name ? (
                               <Badge variant="outline" className="font-normal">
                                 <Link2 className="h-3 w-3 mr-1" />
-                                {user.manager_name}
+                                {user.reports_to_name || user.manager_name}
                               </Badge>
                             ) : (
                               <span className="text-muted-foreground text-sm">—</span>
@@ -354,10 +364,6 @@ const UserManagement = () => {
                               </Badge>
                             )}
                           </TableCell>
-                          <TableCell>
-                            {user.agreement_accepted ? (
-                              <Badge className="bg-emerald-100 text-emerald-800" title={user.agreement_accepted_at ? `Accepted: ${new Date(user.agreement_accepted_at).toLocaleDateString()}` : ''}>
-                                <UserCheck className="h-3 w-3 mr-1" />Accepted
                               </Badge>
                             ) : (
                               <Badge className="bg-amber-100 text-amber-800">
