@@ -847,9 +847,13 @@ async def clone_client_vendor(
         raise HTTPException(status_code=404, detail="Source client/vendor not found")
     
     is_currently_vendor = source.get("is_vendor", False)
+    source_type = "vendor" if is_currently_vendor else "client"
+    
+    # Check if this is already the target type
     if (target_type == "vendor" and is_currently_vendor) or (target_type == "client" and not is_currently_vendor):
         raise HTTPException(status_code=400, detail=f"This is already a {target_type}")
     
+    # Check if a clone already exists (by PAN and target type)
     existing = await db.clients.find_one({
         "pan_number": source["pan_number"],
         "is_vendor": target_type == "vendor"
@@ -858,40 +862,100 @@ async def clone_client_vendor(
     if existing:
         raise HTTPException(
             status_code=400, 
-            detail=f"A {target_type} with PAN {source['pan_number']} already exists"
+            detail=f"A {target_type} with PAN {source['pan_number']} already exists (OTC UCC: {existing.get('otc_ucc', 'N/A')}). Cannot create duplicate."
+        )
+    
+    # Check if this entity was already cloned to prevent re-cloning
+    already_cloned = await db.clients.find_one({
+        "cloned_from_id": client_id,
+        "is_vendor": target_type == "vendor"
+    }, {"_id": 0})
+    
+    if already_cloned:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"This {source_type} has already been cloned as a {target_type} (OTC UCC: {already_cloned.get('otc_ucc', 'N/A')}). Cannot clone again."
         )
     
     new_id = str(uuid.uuid4())
     otc_ucc = await generate_otc_ucc()
-    source_type = "vendor" if is_currently_vendor else "client"
     
+    # Deep copy documents with all fields
+    cloned_documents = []
+    for doc in source.get("documents", []):
+        cloned_doc_entry = {
+            "doc_type": doc.get("doc_type"),
+            "file_path": doc.get("file_path"),
+            "file_url": doc.get("file_url"),
+            "gridfs_id": doc.get("gridfs_id"),
+            "original_filename": doc.get("original_filename"),
+            "uploaded_at": doc.get("uploaded_at"),
+            "uploaded_by": doc.get("uploaded_by"),
+            "upload_date": doc.get("upload_date"),
+            "ocr_data": doc.get("ocr_data"),
+            "ocr_status": doc.get("ocr_status"),
+            "ocr_processed_at": doc.get("ocr_processed_at"),
+        }
+        cloned_documents.append(cloned_doc_entry)
+    
+    # Deep copy bank accounts
+    cloned_bank_accounts = []
+    for acc in source.get("bank_accounts", []):
+        cloned_acc = {
+            "account_name": acc.get("account_name"),
+            "bank_name": acc.get("bank_name"),
+            "account_number": acc.get("account_number"),
+            "ifsc_code": acc.get("ifsc_code"),
+            "branch": acc.get("branch"),
+            "is_primary": acc.get("is_primary", False),
+        }
+        cloned_bank_accounts.append(cloned_acc)
+    
+    # Create cloned document with ALL fields
     cloned_doc = {
         "id": new_id,
         "otc_ucc": otc_ucc,
+        # Basic info
         "name": source["name"],
         "email": source.get("email"),
+        "email_secondary": source.get("email_secondary"),
+        "email_tertiary": source.get("email_tertiary"),
         "phone": source.get("phone"),
         "mobile": source.get("mobile"),
         "pan_number": source["pan_number"],
-        "dp_id": source["dp_id"],
+        # DP info
+        "dp_id": source.get("dp_id"),
         "dp_type": source.get("dp_type", "outside"),
         "trading_ucc": source.get("trading_ucc"),
+        # Address
         "address": source.get("address"),
         "pin_code": source.get("pin_code"),
-        "bank_accounts": source.get("bank_accounts", []),
+        # Banking
+        "bank_accounts": cloned_bank_accounts,
+        # Type flags
         "is_vendor": target_type == "vendor",
         "is_active": True,
+        "is_suspended": False,
+        "suspension_reason": None,
+        "suspended_at": None,
+        "suspended_by": None,
+        "suspended_by_name": None,
         "approval_status": "approved",
-        "documents": source.get("documents", []),  # Copy documents from source
+        "approved_by": current_user["id"],
+        "approved_at": datetime.now(timezone.utc).isoformat(),
+        # Documents - deep copied
+        "documents": cloned_documents,
+        # Proprietor flags
         "is_proprietor": source.get("is_proprietor", False),
         "has_name_mismatch": source.get("has_name_mismatch", False),
         "bank_proof_url": source.get("bank_proof_url"),
         "bank_proof_uploaded_by": source.get("bank_proof_uploaded_by"),
         "bank_proof_uploaded_at": source.get("bank_proof_uploaded_at"),
+        # Creator info
         "user_id": current_user["id"],
         "created_by": current_user["id"],
         "created_by_role": current_user.get("role", 1),
-        # Auto-map to creator for cloned entities
+        # Auto-map to creator
         "mapped_employee_id": current_user["id"],
         "mapped_employee_name": current_user["name"],
         "mapped_employee_email": current_user.get("email"),
