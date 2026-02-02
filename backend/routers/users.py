@@ -131,6 +131,8 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(get_cu
         "password": hash_password(user_data.password),
         "name": user_data.name,
         "role": user_data.role,
+        "hierarchy_level": user_data.hierarchy_level,
+        "reports_to": user_data.reports_to,
         "is_active": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user["id"]
@@ -145,7 +147,10 @@ async def create_user(user_data: UserCreate, current_user: dict = Depends(get_cu
             "email": user_data.email.lower(),
             "name": user_data.name,
             "role": user_data.role,
-            "role_name": ROLES.get(user_data.role, "Viewer")
+            "role_name": ROLES.get(user_data.role, "Viewer"),
+            "hierarchy_level": user_data.hierarchy_level,
+            "hierarchy_level_name": HIERARCHY_LEVELS.get(user_data.hierarchy_level, "Employee"),
+            "reports_to": user_data.reports_to
         }
     }
 
