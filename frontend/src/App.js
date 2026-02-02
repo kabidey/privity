@@ -42,6 +42,7 @@ import MyDashboard from './pages/MyDashboard';
 import Research from './pages/Research';
 import ClientDashboard from './pages/ClientDashboard';
 import SecurityDashboard from './pages/SecurityDashboard';
+import PEDeskHitReport from './pages/PEDeskHitReport';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
