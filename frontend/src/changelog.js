@@ -15,6 +15,22 @@ export const getCurrentBuildInfo = () => {
 
 const CHANGELOG = [
   {
+    version: 'v4.1.0',
+    date: '2026-02-02',
+    title: 'Two-Factor Authentication (TOTP)',
+    changes: [
+      { type: 'security', description: 'Two-Factor Authentication (2FA) - Enable TOTP-based 2FA using authenticator apps (Google Authenticator, Authy, Microsoft Authenticator)' },
+      { type: 'feature', description: 'Account Security Page - Dedicated page for managing 2FA settings, password, and account info' },
+      { type: 'feature', description: 'QR Code Generation - Scan QR code with authenticator app for easy setup' },
+      { type: 'feature', description: 'Manual Secret Entry - Option to manually enter secret key for TOTP apps' },
+      { type: 'feature', description: 'Backup Codes - 10 one-time backup codes for account recovery if device is lost' },
+      { type: 'feature', description: 'Regenerate Backup Codes - Generate new backup codes (invalidates old ones)' },
+      { type: 'feature', description: 'Security Tips - In-app security recommendations for users' },
+      { type: 'security', description: 'Password Confirmation - All 2FA operations require password verification' },
+      { type: 'security', description: 'Audit Logging - 2FA enable/disable/verify events are logged for security monitoring' },
+    ]
+  },
+  {
     version: 'v4.0.0',
     date: '2026-02-02',
     title: 'User Hierarchy & Client Mapping Overhaul',
