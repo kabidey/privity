@@ -14,6 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Plus, Pencil, Trash2, Clock, CheckCircle, XCircle, AlertCircle, 
   CreditCard, IndianRupee, Calendar, Receipt, Building2, TrendingDown, Download, FileSpreadsheet,
@@ -64,17 +65,22 @@ const Bookings = () => {
   });
   const [uploadingProof, setUploadingProof] = useState(false);
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
-  const isPEManager = currentUser.role === 2;
-  const isPELevel = isPEDesk || isPEManager;
-  const canRecordPayments = isPELevel;
-  const isFinance = currentUser.role === 3;
-  const isViewer = currentUser.role === 4;
-  const isPartnersDesk = currentUser.role === 5;
-  const isBusinessPartner = currentUser.role === 6 || currentUser.is_bp;
-  const isEmployee = currentUser.role === 7;
-  const canEditLandingPrice = isPELevel; // Only PE Desk and PE Manager can edit landing price
+  // Use centralized role utility
+  const {
+    user: currentUser,
+    isPEDesk,
+    isPEManager,
+    isPELevel,
+    isFinance,
+    isViewer,
+    isPartnersDesk,
+    isBusinessPartner,
+    isEmployee,
+    canRecordPayments,
+    canEditLandingPrice,
+    canDelete,
+    canModify,
+  } = useCurrentUser();
 
   useEffect(() => {
     fetchData();
