@@ -232,36 +232,70 @@ const UserManagement = () => {
     }
   };
 
-  // Group users by hierarchy for the hierarchy view
-  const buildHierarchy = () => {
-    const businessHeads = users.filter(u => u.role === 11);
-    const regionalManagers = users.filter(u => u.role === 10);
-    const zonalManagers = users.filter(u => u.role === 3);
-    const managersData = users.filter(u => u.role === 4);
-    const employees = users.filter(u => u.role === 5);
-    const peUsers = users.filter(u => u.role <= 2);
-    const viewers = users.filter(u => u.role === 6);
-    const financeUsers = users.filter(u => u.role === 7);
-    const partnersDesk = users.filter(u => u.role === 9);
+  // Group users by hierarchy level for the hierarchy view
+  // Hierarchy levels: 1=Employee, 2=Manager, 3=Zonal Head, 4=Regional Manager, 5=Business Head
+  const buildHierarchyTree = () => {
+    // Get users by hierarchy level
+    const businessHeads = users.filter(u => u.hierarchy_level === 5);
+    const regionalManagers = users.filter(u => u.hierarchy_level === 4);
+    const zonalHeads = users.filter(u => u.hierarchy_level === 3);
+    const managers = users.filter(u => u.hierarchy_level === 2);
+    const employees = users.filter(u => u.hierarchy_level === 1 || !u.hierarchy_level);
+    
+    // Get PE Level users (by role, not hierarchy)
+    const peUsers = users.filter(u => u.role === 1 || u.role === 2);
 
-    return { businessHeads, regionalManagers, zonalManagers, managers: managersData, employees, peUsers, viewers, financeUsers, partnersDesk };
+    return { businessHeads, regionalManagers, zonalHeads, managers, employees, peUsers };
   };
 
-  const hierarchy = buildHierarchy();
+  const hierarchyTree = buildHierarchyTree();
 
-  const getSubordinates = (managerId) => {
-    return users.filter(u => u.manager_id === managerId);
+  // Get direct reports for a user (based on reports_to field)
+  const getDirectReports = (userId) => {
+    return users.filter(u => u.reports_to === userId);
   };
 
-  const canAssignManager = (user) => {
-    // Only Employees and Managers can be assigned to a manager
-    return user.role === 4 || user.role === 5;
+  // Build tree structure recursively
+  const renderUserNode = (user, level = 0) => {
+    const directReports = getDirectReports(user.id);
+    const hierarchyLevelName = HIERARCHY_LEVELS[user.hierarchy_level] || { name: 'Employee' };
+    const roleName = ROLES[user.role]?.name || 'Unknown';
+    
+    return (
+      <div key={user.id} className={`${level > 0 ? 'ml-6 border-l-2 border-gray-200 pl-4' : ''}`}>
+        <div className="flex items-center gap-2 py-2">
+          <div className="flex items-center gap-2">
+            <Badge className={HIERARCHY_LEVELS[user.hierarchy_level]?.color || 'bg-gray-100 text-gray-700'}>
+              {hierarchyLevelName.name}
+            </Badge>
+            <span className="font-medium">{user.name}</span>
+            <Badge variant="outline" className="text-xs">
+              {roleName}
+            </Badge>
+          </div>
+          {directReports.length > 0 && (
+            <span className="text-xs text-muted-foreground">
+              ({directReports.length} direct reports)
+            </span>
+          )}
+        </div>
+        {directReports.length > 0 && (
+          <div className="space-y-1">
+            {directReports.map(report => renderUserNode(report, level + 1))}
+          </div>
+        )}
+      </div>
+    );
   };
 
-  const getAssignmentLabel = (role) => {
-    if (role === 5) return 'Assign to Manager';
-    if (role === 4) return 'Assign to Zonal Manager';
-    return 'Assign';
+  // Get top-level users (those who don't report to anyone)
+  const getTopLevelUsers = () => {
+    return users.filter(u => !u.reports_to && (u.hierarchy_level >= 2 || u.role <= 2));
+  };
+
+  // Get unassigned users (hierarchy level 1 with no reports_to)
+  const getUnassignedUsers = () => {
+    return users.filter(u => !u.reports_to && (u.hierarchy_level === 1 || !u.hierarchy_level) && u.role > 2);
   };
 
   return (
