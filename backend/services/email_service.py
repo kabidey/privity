@@ -793,6 +793,7 @@ async def send_payment_request_email(
     nsdl_cml_url = company_master.get("cml_nsdl_url")
     cdsl_cml_url = company_master.get("cml_cdsl_url")
     pan_card_url = company_master.get("pan_card_url")
+    cancelled_cheque_url = company_master.get("cancelled_cheque_url")
     
     # Build attachments list
     attachments = []
@@ -808,10 +809,20 @@ async def send_payment_request_email(
                 if os.path.exists(local_path):
                     async with aiofiles.open(local_path, 'rb') as f:
                         content = await f.read()
+                    # Determine content type based on file extension
+                    ext = url.split('.')[-1].lower() if '.' in url else ''
+                    if ext in ['pdf']:
+                        content_type = 'application/pdf'
+                    elif ext in ['png']:
+                        content_type = 'image/png'
+                    elif ext in ['jpg', 'jpeg']:
+                        content_type = 'image/jpeg'
+                    else:
+                        content_type = 'application/octet-stream'
                     return {
                         'filename': filename,
                         'content': content,
-                        'content_type': 'application/pdf' if filename.endswith('.pdf') else 'image/png'
+                        'content_type': content_type
                     }
             # Handle external URLs
             elif url.startswith("http"):
@@ -830,12 +841,14 @@ async def send_payment_request_email(
     
     # Load company documents as attachments
     if nsdl_cml_url:
-        doc = await load_document(nsdl_cml_url, "NSDL_CML.pdf")
+        ext = nsdl_cml_url.split('.')[-1].lower() if '.' in nsdl_cml_url else 'pdf'
+        doc = await load_document(nsdl_cml_url, f"NSDL_CML.{ext}")
         if doc:
             attachments.append(doc)
     
     if cdsl_cml_url:
-        doc = await load_document(cdsl_cml_url, "CDSL_CML.pdf")
+        ext = cdsl_cml_url.split('.')[-1].lower() if '.' in cdsl_cml_url else 'pdf'
+        doc = await load_document(cdsl_cml_url, f"CDSL_CML.{ext}")
         if doc:
             attachments.append(doc)
     
@@ -844,6 +857,18 @@ async def send_payment_request_email(
         doc = await load_document(pan_card_url, f"Company_PAN_Card.{ext}")
         if doc:
             attachments.append(doc)
+    
+    if cancelled_cheque_url:
+        ext = cancelled_cheque_url.split('.')[-1].lower() if '.' in cancelled_cheque_url else 'pdf'
+        doc = await load_document(cancelled_cheque_url, f"Cancelled_Cheque.{ext}")
+        if doc:
+            attachments.append(doc)
+    
+    # Log attachment details
+    if attachments:
+        logging.info(f"Payment request email will have {len(attachments)} attachment(s): {[a['filename'] for a in attachments]}")
+    else:
+        logging.warning("No company master documents found to attach to payment request email")
     
     # Build email subject
     subject = f"Payment Request - Booking {booking_number} | {stock.get('symbol', 'N/A')}"
