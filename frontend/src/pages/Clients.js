@@ -1533,6 +1533,7 @@ const Clients = () => {
             )}
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {canMapClients && pendingClients.length > 0 && (
