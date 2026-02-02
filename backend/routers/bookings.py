@@ -108,9 +108,14 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     Booking permissions:
     - PE Desk/PE Manager: Can book for any client
     - All other roles: Can only book for clients mapped to them
+    - Viewers: Cannot create bookings (read-only access)
     """
     user_role = current_user.get("role", 7)
     user_id = current_user.get("id")
+    
+    # Viewer restriction - Viewers cannot create bookings
+    check_viewer_restriction(user_role, "create bookings")
+    
     is_business_partner = user_role == 6 or current_user.get("is_bp", False)
     bp_info = None
     
