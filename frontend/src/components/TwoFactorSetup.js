@@ -116,7 +116,15 @@ const TwoFactorSetup = ({ open, onOpenChange, onSetupComplete }) => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent 
+        className="sm:max-w-[500px]"
+        onInteractOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => {
+          // Allow escape to close only when not loading
+          if (loading) e.preventDefault();
+        }}
+      >
         {/* Step 1: Password Confirmation */}
         {setupStep === 'initial' && (
           <>
