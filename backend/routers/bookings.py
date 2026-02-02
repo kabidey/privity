@@ -104,13 +104,20 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     
     This endpoint uses atomic inventory operations to prevent race conditions
     when multiple users try to book the same stock simultaneously.
+    
+    Booking permissions:
+    - PE Desk/PE Manager: Can book for any client
+    - All other roles: Can only book for clients mapped to them
     """
-    user_role = current_user.get("role", 5)
-    is_business_partner = user_role == 8 or current_user.get("is_bp", False)
+    user_role = current_user.get("role", 7)
+    user_id = current_user.get("id")
+    is_business_partner = user_role == 6 or current_user.get("is_bp", False)
     bp_info = None
     
     # Permission check - Business Partners can create bookings
-    if user_role == 4 or is_business_partner:  # Employee or Business Partner
+    if is_business_partner:
+        check_permission(current_user, "create_bookings")
+    elif not is_pe_level(user_role):
         check_permission(current_user, "create_bookings")
     else:
         check_permission(current_user, "manage_bookings")
@@ -150,10 +157,14 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             detail=f"Client is suspended and cannot be used for bookings. Reason: {client.get('suspension_reason', 'No reason provided')}"
         )
     
-    # Employee can only book for their own clients
-    if user_role == 4:
-        if client.get("mapped_employee_id") != current_user["id"] and client.get("created_by") != current_user["id"]:
-            raise HTTPException(status_code=403, detail="You can only create bookings for your own clients")
+    # BOOKING RESTRICTION: Non-PE users can only book for clients mapped to them
+    if not is_pe_level(user_role):
+        mapped_employee_id = client.get("mapped_employee_id")
+        if mapped_employee_id != user_id:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"You can only create bookings for clients mapped to you. This client is mapped to someone else."
+            )
     
     # Verify stock exists
     stock = await db.stocks.find_one({"id": booking_data.stock_id}, {"_id": 0})
