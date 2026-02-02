@@ -1434,7 +1434,8 @@ async def add_payment_tranche(
         "total_paid": new_total_paid,
         "remaining": remaining - amount,
         "payment_complete": is_complete,
-        "dp_transfer_ready": is_complete
+        "dp_transfer_ready": is_complete,
+        "client_confirmation_status": "accepted" if is_first_payment else booking.get("client_confirmation_status", "pending")
     }
 
 
