@@ -54,7 +54,7 @@ async def _recalculate_inventory_internal(stock_id: str) -> Dict[str, Any]:
     
     # Calculate blocked quantity (approved bookings not yet transferred)
     blocked_qty = sum(
-        b["quantity"] for b in bookings 
+        b.get("quantity", 0) for b in bookings 
         if b.get("approval_status") == "approved" 
         and not b.get("is_voided", False)
         and not b.get("stock_transferred", False)
@@ -62,7 +62,7 @@ async def _recalculate_inventory_internal(stock_id: str) -> Dict[str, Any]:
     
     # Calculate transferred quantity (completed sales)
     transferred_qty = sum(
-        b["quantity"] for b in bookings 
+        b.get("quantity", 0) for b in bookings 
         if b.get("stock_transferred") == True
         and not b.get("is_voided", False)
     )
