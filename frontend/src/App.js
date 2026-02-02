@@ -206,6 +206,7 @@ function App() {
                           <Route path="/pe-desk-hit" element={<PEDeskHitReport />} />
                           <Route path="/file-migration" element={<FileMigration />} />
                           <Route path="/help" element={<HelpTutorial />} />
+                          <Route path="/account-security" element={<AccountSecurity />} />
                         </Routes>
                       </Layout>
                       {/* Notification Permission Banner */}
