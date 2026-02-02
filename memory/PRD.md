@@ -76,6 +76,41 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Refreshes booking data after successful deletion
 **Testing**: Verified via curl and screenshot - Delete buttons visible, deletion works correctly.
 
+#### ✅ Centralized Role Utility - COMPLETED (Feb 02, 2026)
+**Feature**: Create a single, shared utility for role checks across the frontend
+**Implementation**:
+- **Created `/app/frontend/src/utils/roles.js`**:
+  - Role constants: `ROLE_IDS`, `ROLE_NAMES`
+  - Role check functions: `isPELevel()`, `isPEDesk()`, `isPEManager()`, `isFinance()`, `isViewer()`, `isPartnersDesk()`, `isBusinessPartner()`, `isEmployee()`
+  - Permission check functions: `canRecordPayments()`, `canDeletePayments()`, `canApproveBookings()`, `canEditLandingPrice()`, `canManageUsers()`, `canDelete()`, `canModify()`, `canDownload()`, `hasFinanceAccess()`, `canManageBusinessPartners()`, `canViewAllBookings()`
+  - Helper: `getUserRoleFlags()` returns all role flags in one object
+- **Enhanced `/app/frontend/src/hooks/useCurrentUser.js`**:
+  - Integrated with centralized roles utility
+  - Returns all role and permission flags
+  - Listens for storage changes (login/logout in other tabs)
+  - Maintains backward compatibility with existing code
+- **Updated key pages to use centralized utility**:
+  - `Bookings.js` - Now uses `useCurrentUser()` hook
+  - `Clients.js` - Now uses `useCurrentUser()` hook
+  - `Dashboard.js` - Now uses `useCurrentUser()` hook
+  - `Finance.js` - Now uses `useCurrentUser()` hook
+**Benefits**:
+- Single source of truth for role definitions (synced with backend/config.py)
+- Prevents hardcoded role IDs scattered across components
+- Easy to add new roles or permissions
+- Consistent role checking across the application
+**Usage Example**:
+```javascript
+import { useCurrentUser } from '../hooks/useCurrentUser';
+
+const MyComponent = () => {
+  const { isPELevel, canApproveBookings, isViewer } = useCurrentUser();
+  
+  if (isViewer) return <ReadOnlyView />;
+  if (canApproveBookings) return <ApproveButton />;
+};
+```
+
 #### ✅ Email Confirmation Flow - VERIFIED WORKING (Feb 02, 2026)
 **Reported Issue**: Emails not properly formatted and client confirmation link broken.
 **Verification**:
