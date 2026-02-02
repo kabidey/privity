@@ -46,6 +46,7 @@ ROLES = {
     4: "Viewer",
     5: "Partners Desk",
     6: "Business Partner",
+    7: "Employee",
 }
 
 # Role Permissions
@@ -59,6 +60,7 @@ ROLE_PERMISSIONS = {
     4: ["view_all"],  # Viewer - View all modules but no create/edit/delete/download
     5: ["view_own", "create_bookings", "view_clients", "create_clients", "manage_business_partners", "view_bp_revenue", "add_business_partners"],  # Partners Desk - BP management
     6: ["view_own", "create_bookings", "view_clients", "create_clients", "view_bp_dashboard", "view_bp_reports"],  # Business Partner - own dashboard
+    7: ["view_own", "create_bookings", "view_clients", "create_clients"],  # Employee - basic access
 }
 
 
