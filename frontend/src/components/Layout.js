@@ -246,6 +246,11 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Shield, label: 'Security Dashboard', path: '/security' });
   }
 
+  // PE Desk HIT Report - PE Level only (role 1 or 2)
+  if (user.role === 1 || user.role === 2) {
+    menuItems.push({ icon: DollarSign, label: 'PE HIT Report', path: '/pe-desk-hit' });
+  }
+
   // Business Partners - PE Level, Partners Desk, and Viewer
   if (user.role === 1 || user.role === 2 || user.role === 9 || isViewer) {
     menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
