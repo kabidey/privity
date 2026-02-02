@@ -21,7 +21,7 @@ class UserCreate(BaseModel):
     email: str
     password: str
     name: str
-    role: int = 4  # Default to Viewer
+    role: int = 7  # Default to Employee
     hierarchy_level: int = 1  # Default to Employee level
     reports_to: Optional[str] = None  # Manager's user ID
 
