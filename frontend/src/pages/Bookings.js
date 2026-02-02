@@ -666,14 +666,14 @@ const Bookings = () => {
                 </Select>
               </div>
               
-              {/* Show Average Price prominently when stock is selected */}
+              {/* Show Landing Price prominently when stock is selected */}
               {formData.stock_id && selectedInventory && (
-                <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                <div className="p-4 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium opacity-90">Current Average Price</p>
+                      <p className="text-sm font-medium opacity-90">Landing Price (Buying Price)</p>
                       <p className="text-3xl font-bold">
-                        {formatCurrency(selectedInventory.weightedAvgPrice)}
+                        {formatCurrency(selectedInventory.landingPrice)}
                       </p>
                     </div>
                     <div className="text-right">
