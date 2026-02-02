@@ -641,11 +641,11 @@ const Bookings = () => {
                 <Select 
                   value={formData.stock_id} 
                   onValueChange={(value) => {
-                    const avgPrice = getWeightedAvgPrice(value);
+                    const landingPrice = getLandingPrice(value);
                     setFormData({ 
                       ...formData, 
                       stock_id: value,
-                      buying_price: avgPrice > 0 ? avgPrice.toFixed(2) : ''
+                      buying_price: landingPrice > 0 ? landingPrice.toFixed(2) : ''
                     });
                   }} 
                   required
