@@ -50,6 +50,7 @@ import {
   Upload,
   TrendingUp,
   Shield,
+  ShieldCheck,
   User,
   ArrowDownToLine,
   Send,
