@@ -285,9 +285,6 @@ const Layout = ({ children }) => {
 
   // Help & Tutorial - visible to all users
   menuItems.push({ icon: HelpCircle, label: 'Help & Tutorial', path: '/help' });
-
-  // Determine if current user is PE level (for styling user avatar)
-  const isPELevel = user.role === 1 || user.role === 2;
   
   // PE availability status (from server - are any PE users online?)
   const isPeAvailable = peStatus.pe_online;
