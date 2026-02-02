@@ -54,7 +54,8 @@ import {
   ArrowDownToLine,
   Send,
   BookOpen,
-  Phone
+  Phone,
+  DollarSign
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
