@@ -54,6 +54,11 @@ Build a Share Booking System for managing client share bookings, inventory track
   - `POST /auth/2fa/regenerate-backup-codes` - Generates new backup codes (invalidates old)
   - `POST /auth/2fa/disable` - Disables 2FA with password confirmation
   - `GET /auth/2fa/check-required` - Checks if 2FA is required for current user
+- **Frontend 2FA Setup Page** (`/app/frontend/src/pages/TwoFactorSetupPage.js`):
+  - Dedicated route `/2fa-setup` for 2FA setup wizard
+  - 4-step wizard: Password → QR Code → Verify → Backup Codes
+  - Progress bar showing current step
+  - Auto-redirects if 2FA already enabled
 - **Frontend Account Security Page** (`/app/frontend/src/pages/AccountSecurity.js`):
   - Dedicated page for security settings
   - 2FA Settings card with enable/disable functionality
