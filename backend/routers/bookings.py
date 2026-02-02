@@ -1485,6 +1485,172 @@ async def delete_payment_tranche(
     return {"message": f"Payment tranche {tranche_number} deleted successfully"}
 
 
+# ============== CLIENT BOOKING CONFIRMATION (Public Endpoint) ==============
+
+@router.get("/booking-confirm/{booking_id}/{token}/accept")
+async def client_confirm_booking_accept(booking_id: str, token: str):
+    """
+    Client accepts booking via email link (public endpoint - no auth required).
+    This is called when client clicks "I Confirm" in the email.
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found or has been cancelled")
+    
+    # Verify the confirmation token
+    if booking.get("client_confirmation_token") != token:
+        raise HTTPException(status_code=400, detail="Invalid or expired confirmation link")
+    
+    # Check if already confirmed
+    if booking.get("client_confirmation_status") == "accepted":
+        return {
+            "status": "accepted",
+            "message": "This booking has already been confirmed",
+            "booking_number": booking.get("booking_number")
+        }
+    
+    if booking.get("client_confirmation_status") == "denied":
+        raise HTTPException(status_code=400, detail="This booking has already been denied by the client")
+    
+    # Check booking approval status
+    if booking.get("approval_status") != "approved":
+        return {
+            "status": "pending_approval",
+            "message": "This booking is still pending internal approval",
+            "booking_number": booking.get("booking_number")
+        }
+    
+    # Check if booking is voided
+    if booking.get("is_voided"):
+        raise HTTPException(status_code=400, detail="This booking has been cancelled")
+    
+    # Update booking with client confirmation
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {
+            "$set": {
+                "client_confirmation_status": "accepted",
+                "client_confirmed": True,
+                "client_confirmed_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    # Notify booking creator
+    if booking.get("created_by"):
+        await create_notification(
+            booking["created_by"],
+            "client_confirmed_booking",
+            f"Client has confirmed booking {booking.get('booking_number')}",
+            {"booking_id": booking_id}
+        )
+    
+    # Create audit log
+    from services.audit_service import create_audit_log
+    await create_audit_log(
+        action="CLIENT_CONFIRMED_BOOKING",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id="client",
+        user_name="Client",
+        user_role=0,
+        entity_name=booking.get("booking_number"),
+        details={"confirmation": "accepted"}
+    )
+    
+    return {
+        "status": "accepted",
+        "message": "Thank you! Your booking has been confirmed successfully.",
+        "booking_number": booking.get("booking_number")
+    }
+
+
+@router.post("/booking-confirm/{booking_id}/{token}/deny")
+async def client_deny_booking(booking_id: str, token: str, reason: Optional[str] = None):
+    """
+    Client denies booking via email link (public endpoint - no auth required).
+    """
+    # Try to get reason from body if not in query
+    if not reason:
+        from fastapi import Request
+        # reason will be in the request body
+        pass
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found or has been cancelled")
+    
+    # Verify the confirmation token
+    if booking.get("client_confirmation_token") != token:
+        raise HTTPException(status_code=400, detail="Invalid or expired confirmation link")
+    
+    # Check if already processed
+    if booking.get("client_confirmation_status") == "accepted":
+        raise HTTPException(status_code=400, detail="This booking has already been confirmed and cannot be denied")
+    
+    if booking.get("client_confirmation_status") == "denied":
+        return {
+            "status": "denied",
+            "message": "This booking has already been denied",
+            "booking_number": booking.get("booking_number")
+        }
+    
+    # Check if booking is voided
+    if booking.get("is_voided"):
+        raise HTTPException(status_code=400, detail="This booking has been cancelled")
+    
+    # Update booking with client denial
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {
+            "$set": {
+                "client_confirmation_status": "denied",
+                "client_confirmed": False,
+                "client_denied_at": datetime.now(timezone.utc).isoformat(),
+                "client_denial_reason": reason or "No reason provided"
+            }
+        }
+    )
+    
+    # Notify booking creator and PE Desk
+    if booking.get("created_by"):
+        await create_notification(
+            booking["created_by"],
+            "client_denied_booking",
+            f"Client has denied booking {booking.get('booking_number')}" + (f": {reason}" if reason else ""),
+            {"booking_id": booking_id, "reason": reason}
+        )
+    
+    # Notify PE roles
+    await notify_roles(
+        [1, 2],  # PE Desk and PE Manager
+        "client_denied_booking",
+        f"Client denied booking {booking.get('booking_number')}",
+        {"booking_id": booking_id, "reason": reason}
+    )
+    
+    # Create audit log
+    from services.audit_service import create_audit_log
+    await create_audit_log(
+        action="CLIENT_DENIED_BOOKING",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id="client",
+        user_name="Client",
+        user_role=0,
+        entity_name=booking.get("booking_number"),
+        details={"confirmation": "denied", "reason": reason}
+    )
+    
+    return {
+        "status": "denied",
+        "message": "The booking has been cancelled as per your request.",
+        "booking_number": booking.get("booking_number")
+    }
+
+
 @router.put("/bookings/{booking_id}/confirm-transfer")
 async def confirm_stock_transfer(
     booking_id: str,
