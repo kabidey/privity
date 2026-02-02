@@ -15,13 +15,10 @@ import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, Chev
 const ROLES = {
   1: { name: 'PE Desk', color: 'bg-purple-100 text-purple-800' },
   2: { name: 'PE Manager', color: 'bg-indigo-100 text-indigo-800' },
-  3: { name: 'Zonal Manager', color: 'bg-blue-100 text-blue-800' },
-  4: { name: 'Manager', color: 'bg-green-100 text-green-800' },
-  5: { name: 'Employee', color: 'bg-yellow-100 text-yellow-800' },
-  6: { name: 'Finance', color: 'bg-emerald-100 text-emerald-800' },
-  7: { name: 'Viewer', color: 'bg-gray-100 text-gray-800' },
-  8: { name: 'Business Partner', color: 'bg-orange-100 text-orange-800' },
-  9: { name: 'Partners Desk', color: 'bg-pink-100 text-pink-800' }
+  3: { name: 'Finance', color: 'bg-emerald-100 text-emerald-800' },
+  4: { name: 'Viewer', color: 'bg-gray-100 text-gray-800' },
+  5: { name: 'Partners Desk', color: 'bg-pink-100 text-pink-800' },
+  6: { name: 'Business Partner', color: 'bg-orange-100 text-orange-800' },
 };
 
 const HIERARCHY_LEVELS = {
