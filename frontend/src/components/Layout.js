@@ -350,9 +350,9 @@ const Layout = ({ children }) => {
           </div>
         </div>
         
-        {/* Navigation - Scrollable area */}
+        {/* Navigation - Grid of Buttons (same as mobile) */}
         <nav className="flex-1 p-3 overflow-y-auto min-h-0" data-testid="sidebar-nav">
-          <div className="space-y-0.5">
+          <div className="grid grid-cols-3 gap-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
@@ -360,16 +360,18 @@ const Layout = ({ children }) => {
               return (
                 <button
                   key={item.path}
-                  data-testid={`nav-${item.label.toLowerCase()}`}
+                  data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                   onClick={() => navigate(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 active:scale-95 aspect-square ${
                     isActive
-                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/50 active:scale-[0.98]'
+                      ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
+                      : 'bg-gray-50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400'
                   }`}
                 >
-                  <Icon className="h-5 w-5" strokeWidth={1.5} />
-                  <span className="font-medium text-sm">{item.label}</span>
+                  <Icon className={`h-6 w-6 ${isActive ? 'text-white' : ''}`} strokeWidth={1.5} />
+                  <span className={`text-[10px] font-medium text-center leading-tight mt-1.5 line-clamp-2 ${isActive ? 'text-white' : ''}`}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
