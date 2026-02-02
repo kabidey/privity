@@ -380,12 +380,13 @@ async def upload_company_logo(
         user_name=current_user["name"],
         user_role=current_user.get("role", 1),
         entity_name="Company Master Settings",
-        details={"filename": filename}
+        details={"filename": filename, "file_id": file_id}
     )
     
     return {
         "message": "Company logo uploaded successfully",
         "url": file_url,
+        "file_id": file_id,
         "filename": filename
     }
 
