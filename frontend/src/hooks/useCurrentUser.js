@@ -1,28 +1,42 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  ROLE_IDS,
+  ROLE_NAMES,
+  getRoleName,
+  isPELevel as checkIsPELevel,
+  isPEDesk as checkIsPEDesk,
+  isPEManager as checkIsPEManager,
+  isFinance as checkIsFinance,
+  isViewer as checkIsViewer,
+  isPartnersDesk as checkIsPartnersDesk,
+  isBusinessPartner as checkIsBusinessPartner,
+  isEmployee as checkIsEmployee,
+  canRecordPayments as checkCanRecordPayments,
+  canDeletePayments as checkCanDeletePayments,
+  canApproveBookings as checkCanApproveBookings,
+  canEditLandingPrice as checkCanEditLandingPrice,
+  canManageUsers as checkCanManageUsers,
+  canDelete as checkCanDelete,
+  canModify as checkCanModify,
+  canDownload as checkCanDownload,
+  hasFinanceAccess as checkHasFinanceAccess,
+  canManageBusinessPartners as checkCanManageBusinessPartners,
+  canViewAllBookings as checkCanViewAllBookings,
+} from '../utils/roles';
 
-// Role constants - Roles are independent of hierarchy
-export const ROLES = {
-  PE_DESK: 1,
-  PE_MANAGER: 2,
-  FINANCE: 3,
-  VIEWER: 4,
-  PARTNERS_DESK: 5,
-  BUSINESS_PARTNER: 6,
-  EMPLOYEE: 7,
-};
+// Re-export role constants for backward compatibility
+export const ROLES = ROLE_IDS;
+export { ROLE_NAMES };
 
-// Role names for display
-export const ROLE_NAMES = {
-  1: 'PE Desk',
-  2: 'PE Manager',
-  3: 'Finance',
-  4: 'Viewer',
-  5: 'Partners Desk',
-  6: 'Business Partner',
-  7: 'Employee',
-};
-
-// Hook to get current user info
+/**
+ * Hook to get current user info with all role checks
+ * This is the primary way components should check roles
+ * 
+ * @example
+ * const { user, isPELevel, canApproveBookings, isViewer } = useCurrentUser();
+ * if (isViewer) return <ReadOnlyView />;
+ * if (canApproveBookings) return <ApproveButton />;
+ */
 export function useCurrentUser() {
   const [user, setUser] = useState(null);
   
@@ -35,23 +49,63 @@ export function useCurrentUser() {
         console.error('Failed to parse user data');
       }
     }
+    
+    // Listen for storage changes (e.g., login/logout in another tab)
+    const handleStorageChange = (e) => {
+      if (e.key === 'user') {
+        if (e.newValue) {
+          try {
+            setUser(JSON.parse(e.newValue));
+          } catch (err) {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
   
-  const isPELevel = user?.role === ROLES.PE_DESK || user?.role === ROLES.PE_MANAGER;
-  const isPEDesk = user?.role === ROLES.PE_DESK;
-  const isPEManager = user?.role === ROLES.PE_MANAGER;
-  const isFinance = user?.role === ROLES.FINANCE;
-  const isViewer = user?.role === ROLES.VIEWER;
-  const isPartnersDesk = user?.role === ROLES.PARTNERS_DESK;
-  const isBusinessPartner = user?.role === ROLES.BUSINESS_PARTNER;
+  const role = user?.role || 7; // Default to Employee
+  
+  // Role checks
+  const isPELevel = checkIsPELevel(role);
+  const isPEDesk = checkIsPEDesk(role);
+  const isPEManager = checkIsPEManager(role);
+  const isFinance = checkIsFinance(role);
+  const isViewer = checkIsViewer(role);
+  const isPartnersDesk = checkIsPartnersDesk(role);
+  const isBusinessPartner = checkIsBusinessPartner(role, user);
+  const isEmployee = checkIsEmployee(role);
+  
+  // Permission checks
+  const canRecordPayments = checkCanRecordPayments(role);
+  const canDeletePayments = checkCanDeletePayments(role);
+  const canApproveBookings = checkCanApproveBookings(role);
+  const canEditLandingPrice = checkCanEditLandingPrice(role);
+  const canManageUsers = checkCanManageUsers(role);
+  const canDelete = checkCanDelete(role);
+  const canModify = checkCanModify(role);
+  const canDownload = checkCanDownload(role);
+  const hasFinanceAccess = checkHasFinanceAccess(role);
+  const canManageBusinessPartners = checkCanManageBusinessPartners(role);
+  const canViewAllBookings = checkCanViewAllBookings(role);
+  
+  // Legacy compatibility
   const canManageVendors = isPEDesk || isPEManager;
   const canDeleteVendors = isPEDesk;
   const canUploadResearch = isPELevel;
   
   return {
+    // User data
     user,
-    role: user?.role,
-    roleName: ROLE_NAMES[user?.role] || 'Unknown',
+    role,
+    roleName: getRoleName(role),
+    
+    // Role checks
     isPELevel,
     isPEDesk,
     isPEManager,
@@ -59,13 +113,36 @@ export function useCurrentUser() {
     isViewer,
     isPartnersDesk,
     isBusinessPartner,
+    isEmployee,
+    
+    // Permission checks
+    canRecordPayments,
+    canDeletePayments,
+    canApproveBookings,
+    canEditLandingPrice,
+    canManageUsers,
+    canDelete,
+    canModify,
+    canDownload,
+    hasFinanceAccess,
+    canManageBusinessPartners,
+    canViewAllBookings,
+    
+    // Legacy compatibility
     canManageVendors,
     canDeleteVendors,
     canUploadResearch,
   };
 }
 
-// Utility to get user synchronously (for non-hook contexts)
+/**
+ * Utility to get user synchronously (for non-hook contexts)
+ * Use this in event handlers or non-React code
+ * 
+ * @example
+ * const user = getCurrentUser();
+ * if (isPEDesk(user?.role)) { ... }
+ */
 export function getCurrentUser() {
   const userData = localStorage.getItem('user');
   if (!userData) return null;
@@ -76,7 +153,11 @@ export function getCurrentUser() {
   }
 }
 
-// Check if user has required role
+/**
+ * Check if user has required role(s)
+ * @param {number|number[]} requiredRoles - Single role ID or array of role IDs
+ * @returns {boolean}
+ */
 export function hasRole(requiredRoles) {
   const user = getCurrentUser();
   if (!user) return false;
@@ -86,10 +167,13 @@ export function hasRole(requiredRoles) {
   return user.role === requiredRoles;
 }
 
-// Check if user is at PE level (roles 1-3)
+/**
+ * Check if current user is at PE level
+ * @deprecated Use useCurrentUser().isPELevel instead
+ */
 export function isPELevel() {
   const user = getCurrentUser();
-  return user?.role <= 3;
+  return checkIsPELevel(user?.role || 7);
 }
 
 export default useCurrentUser;
