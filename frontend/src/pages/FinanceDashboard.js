@@ -18,7 +18,8 @@ const FinanceDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const hasAccess = currentUser.role === 1 || currentUser.role === 2 || currentUser.role === 7;
+  // Finance access: PE Desk (1), PE Manager (2), or Finance role (3)
+  const hasAccess = currentUser.role === 1 || currentUser.role === 2 || currentUser.role === 3;
 
   useEffect(() => {
     if (!hasAccess) {
