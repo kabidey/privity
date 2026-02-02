@@ -717,6 +717,61 @@ const UserManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Proxy Login Dialog */}
+      <Dialog open={proxyDialogOpen} onOpenChange={setProxyDialogOpen}>
+        <DialogContent data-testid="proxy-login-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-amber-600" />
+              Login as User
+            </DialogTitle>
+            <DialogDescription>
+              You are about to view the application as another user. All your actions will be logged.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="py-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-amber-800">
+                  <strong>Warning:</strong> While in proxy mode, you will see the app exactly as{' '}
+                  <strong>{selectedUser.name}</strong> sees it. You can make changes on their behalf.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="text-sm text-gray-500">User</span>
+                  <span className="font-medium">{selectedUser.name}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="text-sm text-gray-500">Email</span>
+                  <span className="text-sm">{selectedUser.email}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="text-sm text-gray-500">Role</span>
+                  <Badge className={ROLES[selectedUser.role]?.color}>
+                    {ROLES[selectedUser.role]?.name || 'Unknown'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProxyDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleProxyLogin} 
+              disabled={proxyLoading}
+              className="bg-amber-600 hover:bg-amber-700"
+              data-testid="confirm-proxy-login"
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              {proxyLoading ? 'Switching...' : `Login as ${selectedUser?.name}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
