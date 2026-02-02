@@ -277,7 +277,8 @@ async def websocket_group_chat(websocket: WebSocket, token: str = None):
         3: "Finance",
         4: "Viewer",
         5: "Partners Desk",
-        6: "Business Partner"
+        6: "Business Partner",
+        7: "Employee"
     }
     
     user_info = {
