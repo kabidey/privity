@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRIVITY Employee User Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #1a1a2e;
+            background: #fff;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .cover-page {
+            text-align: center;
+            padding: 100px 40px;
+            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 60px;
+            page-break-after: always;
+        }
+        
+        .cover-page h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: 4px;
+        }
+        
+        .cover-page .subtitle {
+            font-size: 24px;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        
+        .cover-page .version {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 60px;
+        }
+        
+        h1 {
+            color: #10b981;
+            font-size: 28px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #10b981;
+        }
+        
+        h2 {
+            color: #1a1a2e;
+            font-size: 22px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        
+        h3 {
+            color: #374151;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .toc {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            color: #10b981;
+        }
+        
+        .toc ol {
+            padding-left: 24px;
+        }
+        
+        .toc li {
+            margin-bottom: 8px;
+        }
+        
+        .toc a {
+            color: #1a1a2e;
+            text-decoration: none;
+        }
+        
+        .toc a:hover {
+            color: #10b981;
+        }
+        
+        .screenshot {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .screenshot-caption {
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+        
+        .note {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .note-title {
+            font-weight: 600;
+            color: #10b981;
+            margin-bottom: 8px;
+        }
+        
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-title {
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 8px;
+        }
+        
+        .step {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: #10b981;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        th {
+            background: #10b981;
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        
+        code {
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+        }
+        
+        .formula-box {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d3748 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-size: 18px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+        
+        .role-card {
+            display: inline-block;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin: 8px;
+        }
+        
+        .role-card .role-name {
+            font-weight: 600;
+            color: #10b981;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-green { background: #10b981; }
+        .status-yellow { background: #f59e0b; }
+        .status-red { background: #ef4444; }
+        
+        .contact-box {
+            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .contact-box h3 {
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .contact-info {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        ul, ol {
+            padding-left: 24px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .do-dont {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .do-box, .dont-box {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        
+        .do-box {
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+        }
+        
+        .dont-box {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+        }
+        
+        .do-box h4 { color: #10b981; }
+        .dont-box h4 { color: #ef4444; }
+        
+        @media print {
+            body { padding: 20px; }
+            .cover-page { padding: 60px 20px; }
+            .screenshot { max-height: 400px; object-fit: contain; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Cover Page -->
+<div class="cover-page">
+    <h1>PRIVITY</h1>
+    <div class="subtitle">Employee User Guide</div>
+    <p>Complete Tutorial for Using the Share Booking System</p>
+    <div class="version">
+        Version 1.0 | February 2026<br>
+        © SMIFS Limited
+    </div>
+</div>
+
+<!-- Table of Contents -->
+<div class="toc">
+    <h2>📑 Table of Contents</h2>
+    <ol>
+        <li><a href="#getting-started">Getting Started</a></li>
+        <li><a href="#dashboard">Dashboard Overview</a></li>
+        <li><a href="#clients">Managing Clients</a></li>
+        <li><a href="#bookings">Creating Bookings</a></li>
+        <li><a href="#inventory">Viewing Inventory</a></li>
+        <li><a href="#reports">Reports & Analytics</a></li>
+        <li><a href="#notifications">Notifications & Alerts</a></li>
+        <li><a href="#tips">Tips & Best Practices</a></li>
+        <li><a href="#faq">Frequently Asked Questions</a></li>
+    </ol>
+</div>
+
+<div class="page-break"></div>
+
+<!-- Section 1: Getting Started -->
+<h1 id="getting-started">1. Getting Started</h1>
+
+<h2>1.1 Logging In</h2>
+
+<div class="step">
+    <span class="step-number">1</span> Open your web browser and navigate to the PRIVITY application URL
+</div>
+<div class="step">
+    <span class="step-number">2</span> Enter your registered <strong>Email Address</strong>
+</div>
+<div class="step">
+    <span class="step-number">3</span> Enter your <strong>Password</strong>
+</div>
+<div class="step">
+    <span class="step-number">4</span> Click <strong>"Sign In"</strong>
+</div>
+
+<img src="screenshots/01_login.png" alt="Login Page" class="screenshot">
+<p class="screenshot-caption">Figure 1: PRIVITY Login Page</p>
+
+<div class="note">
+    <div class="note-title">💡 First Time Login</div>
+    <ul>
+        <li>You will be asked to accept the User Agreement</li>
+        <li>Optionally change your default password for security</li>
+        <li>Read and accept the terms to proceed</li>
+    </ul>
+</div>
+
+<h2>1.2 Understanding the Interface</h2>
+
+<p>After logging in, you'll see:</p>
+<ul>
+    <li><strong>Sidebar Menu</strong> (Left): Navigation to all modules - displayed as icon buttons</li>
+    <li><strong>Header Bar</strong> (Top on Mobile): App title, theme toggle, notifications</li>
+    <li><strong>Main Content Area</strong>: Current page content</li>
+    <li><strong>PE Status Indicator</strong>: Shows if PE Desk support is available</li>
+</ul>
+
+<table>
+    <tr>
+        <th>Indicator</th>
+        <th>Meaning</th>
+    </tr>
+    <tr>
+        <td><span class="status-indicator status-green"></span> Green</td>
+        <td>PE Support is Available - You can get immediate help</td>
+    </tr>
+    <tr>
+        <td><span class="status-indicator status-red"></span> Red</td>
+        <td>PE Support is Offline - Leave a message or try later</td>
+    </tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- Section 2: Dashboard -->
+<h1 id="dashboard">2. Dashboard Overview</h1>
+
+<p>The Dashboard provides a quick snapshot of your activities and the system's overall status.</p>
+
+<img src="screenshots/02_dashboard.png" alt="Dashboard" class="screenshot">
+<p class="screenshot-caption">Figure 2: PRIVITY Dashboard</p>
+
+<h2>Key Metrics Displayed</h2>
+<ul>
+    <li><strong>Total Bookings</strong>: Pending, Confirmed, and Completed counts</li>
+    <li><strong>Today's Activities</strong>: Recent actions and updates</li>
+    <li><strong>Quick Actions</strong>: Buttons to common tasks</li>
+    <li><strong>Revenue Summary</strong>: Your earnings overview (based on role)</li>
+</ul>
+
+<div class="note">
+    <div class="note-title">💡 Navigation Tip</div>
+    Click any card or metric to navigate directly to the detailed view. Use the sidebar menu buttons to switch between different modules.
+</div>
+
+<div class="page-break"></div>
+
+<!-- Section 3: Managing Clients -->
+<h1 id="clients">3. Managing Clients</h1>
+
+<h2>3.1 Viewing Clients</h2>
+
+<div class="step">
+    <span class="step-number">1</span> Click <strong>"Clients"</strong> in the sidebar menu
+</div>
+<div class="step">
+    <span class="step-number">2</span> View the list of all clients with status indicators
+</div>
+
+<img src="screenshots/03_clients.png" alt="Clients Page" class="screenshot">
+<p class="screenshot-caption">Figure 3: Clients Management Page</p>
+
+<h3>Client Status Colors</h3>
+<table>
+    <tr>
+        <th>Status</th>
+        <th>Color</th>
+        <th>Meaning</th>
+    </tr>
+    <tr>
+        <td>Approved</td>
+        <td><span class="status-indicator status-green"></span> Green</td>
+        <td>Client is active and can place bookings</td>
+    </tr>
+    <tr>
+        <td>Pending</td>
+        <td><span class="status-indicator status-yellow"></span> Yellow</td>
+        <td>Awaiting PE Desk approval</td>
+    </tr>
+    <tr>
+        <td>Rejected</td>
+        <td><span class="status-indicator status-red"></span> Red</td>
+        <td>Application was rejected - see comments</td>
+    </tr>
+</table>
+
+<h2>3.2 Adding a New Client</h2>
+
+<div class="step">
+    <span class="step-number">1</span> Click <strong>"Add Client"</strong> button (top right corner)
+</div>
+<div class="step">
+    <span class="step-number">2</span> Select the <strong>Client Type</strong>: Proprietor, Partnership, Company, HUF, Trust, etc.
+</div>
+<div class="step">
+    <span class="step-number">3</span> Fill in required details: Name, PAN, Mobile, Email
+</div>
+<div class="step">
+    <span class="step-number">4</span> Enter <strong>Bank Details</strong>: Account Number, IFSC Code, Bank Name
+</div>
+<div class="step">
+    <span class="step-number">5</span> Enter <strong>Demat Details</strong>: DP ID, Client ID, BO ID
+</div>
+<div class="step">
+    <span class="step-number">6</span> Upload required documents (Aadhar, PAN Card)
+</div>
+<div class="step">
+    <span class="step-number">7</span> Click <strong>"Submit for Approval"</strong>
+</div>
+
+<div class="warning">
+    <div class="warning-title">⚠️ Important</div>
+    <ul>
+        <li>PAN number must be unique - no duplicates allowed</li>
+        <li>Client requires PE Desk approval before bookings can be made</li>
+        <li>Keep all documents ready before starting the form</li>
+    </ul>
+</div>
+
+<div class="page-break"></div>
+
+<!-- Section 4: Creating Bookings -->
+<h1 id="bookings">4. Creating Bookings</h1>
+
+<h2>4.1 Creating a New Booking</h2>
+
+<img src="screenshots/04_bookings.png" alt="Bookings Page" class="screenshot">
+<p class="screenshot-caption">Figure 4: Bookings Management Page</p>
+
+<div class="step">
+    <span class="step-number">1</span> Click <strong>"Bookings"</strong> in the sidebar
+</div>
+<div class="step">
+    <span class="step-number">2</span> Click <strong>"Create Booking"</strong> button
+</div>
+<div class="step">
+    <span class="step-number">3</span> <strong>Select Client</strong>: Choose from approved clients dropdown
+</div>
+<div class="step">
+    <span class="step-number">4</span> <strong>Select Stock</strong>: Choose the stock to book
+</div>
+<div class="step">
+    <span class="step-number">5</span> Enter <strong>Quantity</strong>: Number of shares
+</div>
+<div class="step">
+    <span class="step-number">6</span> Enter <strong>Selling Price</strong>: Price per share
+</div>
+<div class="step">
+    <span class="step-number">7</span> Click <strong>"Create Booking"</strong> to submit
+</div>
+
+<div class="note">
+    <div class="note-title">💡 Landing Price Display</div>
+    When you select a stock, you'll see a green box showing:
+    <ul>
+        <li><strong>Landing Price (LP)</strong>: The buying price for calculations</li>
+        <li><strong>Available Stock</strong>: How many shares are available</li>
+        <li><strong>Revenue Preview</strong>: Calculated profit based on your selling price</li>
+    </ul>
+</div>
+
+<h2>4.2 Booking Workflow</h2>
+
+<p>After creation, a booking goes through these stages:</p>
+
+<div class="formula-box">
+    Created → Client Confirmation → PE Approval → DP Transfer → Completed
+</div>
+
+<table>
+    <tr>
+        <th>Stage</th>
+        <th>Description</th>
+        <th>Action Required</th>
+    </tr>
+    <tr>
+        <td>Client Confirmation</td>
+        <td>Client receives email/WhatsApp to confirm</td>
+        <td>Wait for client response</td>
+    </tr>
+    <tr>
+        <td>PE Approval</td>
+        <td>PE Desk reviews the booking</td>
+        <td>Automatic - no action needed</td>
+    </tr>
+    <tr>
+        <td>DP Transfer</td>
+        <td>Shares transferred to client's demat</td>
+        <td>PE Desk handles this</td>
+    </tr>
+    <tr>
+        <td>Completed</td>
+        <td>Transaction finalized</td>
+        <td>Done!</td>
+    </tr>
+</table>
+
+<h2>4.3 Understanding Revenue Calculation</h2>
+
+<div class="formula-box">
+    Revenue = (Selling Price - Landing Price) × Quantity
+</div>
+
+<p><strong>Example:</strong></p>
+<ul>
+    <li>Selling Price: ₹150</li>
+    <li>Landing Price: ₹120</li>
+    <li>Quantity: 100 shares</li>
+    <li><strong>Revenue: (150 - 120) × 100 = ₹3,000</strong></li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- Section 5: Inventory -->
+<h1 id="inventory">5. Viewing Inventory</h1>
+
+<p>Click <strong>"Inventory"</strong> in the sidebar to view all available stocks.</p>
+
+<img src="screenshots/05_inventory.png" alt="Inventory Page" class="screenshot">
+<p class="screenshot-caption">Figure 5: Inventory Dashboard</p>
+
+<h2>Understanding the Columns</h2>
+
+<table>
+    <tr>
+        <th>Column</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>Stock Symbol</td>
+        <td>Trading symbol (e.g., TESTSTOCK)</td>
+    </tr>
+    <tr>
+        <td>Available Qty</td>
+        <td>Shares available for new bookings</td>
+    </tr>
+    <tr>
+        <td>Blocked Qty</td>
+        <td>Shares reserved for pending bookings</td>
+    </tr>
+    <tr>
+        <td>LP (Landing Price)</td>
+        <td>Customer-facing price per share</td>
+    </tr>
+    <tr>
+        <td>LP Value</td>
+        <td>Total value at landing price</td>
+    </tr>
+</table>
+
+<div class="note">
+    <div class="note-title">💡 For Employees</div>
+    You will see the <strong>Landing Price (LP)</strong> as the buying price. This is the price used for all booking calculations.
+</div>
+
+<div class="page-break"></div>
+
+<!-- Section 6: Reports -->
+<h1 id="reports">6. Reports & Analytics</h1>
+
+<h2>6.1 P&L Reports</h2>
+
+<img src="screenshots/06_reports.png" alt="Reports Page" class="screenshot">
+<p class="screenshot-caption">Figure 6: Reports Dashboard</p>
+
+<div class="step">
+    <span class="step-number">1</span> Click <strong>"Reports"</strong> in the sidebar
+</div>
+<div class="step">
+    <span class="step-number">2</span> Select your desired <strong>date range</strong>
+</div>
+<div class="step">
+    <span class="step-number">3</span> Apply additional filters (Stock, Client, Status)
+</div>
+<div class="step">
+    <span class="step-number">4</span> View the profit/loss summary
+</div>
+
+<h2>6.2 Export Options</h2>
+<ul>
+    <li><strong>Export Excel</strong>: Download as spreadsheet for further analysis</li>
+    <li><strong>Export PDF</strong>: Download printable report</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- Section 7: Notifications -->
+<h1 id="notifications">7. Notifications & Alerts</h1>
+
+<h2>7.1 Real-Time Notifications</h2>
+
+<p>PRIVITY sends instant notifications for:</p>
+<ul>
+    <li>New booking confirmations</li>
+    <li>Approval status changes</li>
+    <li>Payment receipts</li>
+    <li>Important system alerts</li>
+</ul>
+
+<h2>7.2 Notification Bell</h2>
+<ul>
+    <li>Click the 🔔 icon in the header</li>
+    <li>Red badge shows unread notification count</li>
+    <li>Click any notification to view details</li>
+</ul>
+
+<h2>7.3 Floating Notifications</h2>
+
+<table>
+    <tr>
+        <th>Border Color</th>
+        <th>Meaning</th>
+    </tr>
+    <tr>
+        <td><span class="status-indicator status-green"></span> Green</td>
+        <td>Success message</td>
+    </tr>
+    <tr>
+        <td><span class="status-indicator status-red"></span> Red</td>
+        <td>Error or rejection</td>
+    </tr>
+    <tr>
+        <td><span class="status-indicator status-yellow"></span> Yellow</td>
+        <td>Pending action required</td>
+    </tr>
+    <tr>
+        <td style="color: #3b82f6;">● Blue</td>
+        <td>Information</td>
+    </tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- Section 8: Tips -->
+<h1 id="tips">8. Tips & Best Practices</h1>
+
+<h2>8.1 For Efficient Booking</h2>
+
+<div class="do-dont">
+    <div class="do-box">
+        <h4>✅ DO</h4>
+        <ul>
+            <li>Verify client details before booking</li>
+            <li>Check available inventory first</li>
+            <li>Double-check quantity and price</li>
+            <li>Save client's preferred contact method</li>
+            <li>Follow up on pending confirmations</li>
+        </ul>
+    </div>
+    <div class="dont-box">
+        <h4>❌ DON'T</h4>
+        <ul>
+            <li>Create duplicate bookings</li>
+            <li>Book more than available quantity</li>
+            <li>Skip client confirmation</li>
+            <li>Modify completed bookings</li>
+            <li>Share login credentials</li>
+        </ul>
+    </div>
+</div>
+
+<h2>8.2 For Client Management</h2>
+<ul>
+    <li>Keep client documents up to date</li>
+    <li>Verify bank details before payment requests</li>
+    <li>Note special instructions in comments field</li>
+    <li>Follow up on pending approvals</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- Section 9: FAQ -->
+<h1 id="faq">9. Frequently Asked Questions</h1>
+
+<h3>Q: I forgot my password. What should I do?</h3>
+<p><strong>A:</strong> Click "Forgot Password" on the login page and follow the email instructions. Or contact PE Desk for assistance.</p>
+
+<h3>Q: Why can't I create a booking for a client?</h3>
+<p><strong>A:</strong> The client must be in "Approved" status. Check if the client is pending approval from PE Desk.</p>
+
+<h3>Q: How do I know if PE support is available?</h3>
+<p><strong>A:</strong> Look at the status indicator under the PRIVITY logo - Green means available, Red means offline.</p>
+
+<h3>Q: Can I edit a booking after creation?</h3>
+<p><strong>A:</strong> Only before client confirmation. Contact PE Desk for changes after confirmation.</p>
+
+<h3>Q: Why is my booking showing "Loss"?</h3>
+<p><strong>A:</strong> If selling price is less than landing price, it's a loss booking. These require additional approval from PE Desk.</p>
+
+<h3>Q: How do I export data?</h3>
+<p><strong>A:</strong> Most pages have "Export Excel" or "Export PDF" buttons in the top right. Click to download.</p>
+
+<div class="contact-box">
+    <h3>📞 Need Help?</h3>
+    <div class="contact-info">📧 Email: pe@smifs.com</div>
+    <div class="contact-info">📱 Phone: 9088963000</div>
+    <p style="margin-top: 20px; opacity: 0.9;">
+        <span class="status-indicator status-green"></span> PE Online - Immediate Support<br>
+        <span class="status-indicator status-red"></span> PE Offline - Leave Message
+    </p>
+</div>
+
+<hr style="margin: 40px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+<p style="text-align: center; color: #6b7280; font-size: 14px;">
+    <strong>PRIVITY Employee User Guide</strong><br>
+    Version 1.0 | February 2026<br>
+    © 2026 SMIFS Limited. All Rights Reserved.
+</p>
+
+</body>
+</html>
