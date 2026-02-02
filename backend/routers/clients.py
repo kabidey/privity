@@ -573,7 +573,11 @@ async def update_client_employee_mapping(
     
     await db.clients.update_one(
         {"id": client_id},
-        {"$set": {"mapped_employee_id": employee_id}}
+        {"$set": {
+            "mapped_employee_id": employee_id,
+            "mapped_employee_name": employee.get("name"),
+            "mapped_employee_email": employee.get("email")
+        }}
     )
     
     return {"message": f"Client mapped to {employee['name']} successfully"}
