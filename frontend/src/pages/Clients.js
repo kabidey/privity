@@ -565,11 +565,7 @@ const Clients = () => {
       } else {
         const response = await api.post('/clients', submitData);
         clientId = response.data.id;
-        if (isEmployee) {
-          toast.success('Client created - pending approval');
-        } else {
-          toast.success('Client created successfully');
-        }
+        toast.success('Client created successfully');
       }
       
       const hasDocuments = Object.values(docFiles).some(f => f !== null);
@@ -580,7 +576,7 @@ const Clients = () => {
       setDialogOpen(false);
       resetForm();
       fetchClients();
-      if (isManager) fetchPendingClients();
+      if (canMapClients) fetchPendingClients();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'An error occurred');
     } finally {
