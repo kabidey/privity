@@ -110,23 +110,12 @@ const TwoFactorSetup = ({ open, onOpenChange, onSetupComplete }) => {
       onSetupComplete();
     }
     setTimeout(() => {
-      setOpen(false);
-      resetState();
+      handleOpenChange(false);
     }, 2000);
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      setOpen(isOpen);
-      if (!isOpen) resetState();
-    }}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2" data-testid="enable-2fa-btn">
-          <Shield className="h-4 w-4" />
-          Enable Two-Factor Authentication
-        </Button>
-      </DialogTrigger>
-
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         {/* Step 1: Password Confirmation */}
         {setupStep === 'initial' && (
