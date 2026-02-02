@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Wallet, ArrowDownLeft, ArrowUpRight, FileSpreadsheet, 
   RefreshCw, TrendingUp, TrendingDown, DollarSign, FileText,
