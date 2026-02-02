@@ -1567,15 +1567,11 @@ async def client_confirm_booking_accept(booking_id: str, token: str):
 
 
 @router.post("/booking-confirm/{booking_id}/{token}/deny")
-async def client_deny_booking(booking_id: str, token: str, reason: Optional[str] = None):
+async def client_deny_booking(booking_id: str, token: str, body: Optional[dict] = None):
     """
     Client denies booking via email link (public endpoint - no auth required).
     """
-    # Try to get reason from body if not in query
-    if not reason:
-        from fastapi import Request
-        # reason will be in the request body
-        pass
+    reason = body.get("reason") if body else None
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     
