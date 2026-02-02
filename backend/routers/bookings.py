@@ -6,6 +6,7 @@ to prevent race conditions during simultaneous booking requests.
 """
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone, timedelta
 import uuid
