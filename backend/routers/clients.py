@@ -667,25 +667,6 @@ async def upload_bank_proof(
         "ocr_data": None
     }
     
-    # Update client with bank proof URL
-    bank_proof_url = f"/api/clients/{client_id}/documents/{filename}"
-    update_data = {
-        "bank_proof_url": bank_proof_url,
-        "bank_proof_uploaded_by": current_user["id"],
-        "bank_proof_uploaded_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.clients.update_one({"id": client_id}, {"$set": update_data})
-    
-    # Also add to documents array for consistency
-    doc_record = {
-        "doc_type": "bank_proof",
-        "filename": filename,
-        "file_path": str(file_path),
-        "upload_date": datetime.now(timezone.utc).isoformat(),
-        "ocr_data": None
-    }
-    
     await db.clients.update_one(
         {"id": client_id},
         {"$push": {"documents": doc_record}}
@@ -700,12 +681,13 @@ async def upload_bank_proof(
         user_name=current_user["name"],
         user_role=user_role,
         entity_name=client["name"],
-        details={"filename": filename, "is_proprietor": True, "has_name_mismatch": True}
+        details={"filename": filename, "file_id": file_id, "is_proprietor": True, "has_name_mismatch": True}
     )
     
     return {
         "message": "Bank proof uploaded successfully", 
         "bank_proof_url": bank_proof_url,
+        "file_id": file_id,
         "uploaded_by": current_user["name"],
         "uploaded_at": update_data["bank_proof_uploaded_at"]
     }
