@@ -433,6 +433,24 @@ const Bookings = () => {
     }
   };
 
+  const handleDeletePayment = async (bookingId, trancheNumber) => {
+    if (!window.confirm(`Are you sure you want to delete payment tranche ${trancheNumber}?`)) {
+      return;
+    }
+    
+    try {
+      await api.delete(`/bookings/${bookingId}/payments/${trancheNumber}`);
+      toast.success(`Payment tranche ${trancheNumber} deleted successfully`);
+      
+      // Refresh booking data
+      const response = await api.get(`/bookings/${bookingId}`);
+      setSelectedBooking(response.data);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete payment');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       client_id: '',
