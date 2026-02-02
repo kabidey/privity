@@ -156,7 +156,7 @@ const Bookings = () => {
     const sellingPrice = parseFloat(formData.selling_price) || 0;
     const buyingPrice = formData.buying_price 
       ? parseFloat(formData.buying_price) 
-      : getWeightedAvgPrice(formData.stock_id);
+      : getLandingPrice(formData.stock_id);
     
     if (buyingPrice === 0 || qty === 0) return null;
     
