@@ -47,6 +47,22 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Enhanced response to include `dp_transfer_ready` status
 **Testing**: 100% pass rate - Payment dialog opens correctly, form submission works, toast confirmation shows success.
 
+#### ✅ Payment Status Updates Fix - COMPLETED (Feb 02, 2026)
+**Bug 1**: After full payment, "DP Ready" badge was not showing
+**Bug 2**: After first payment, "Client Accepted" status was not showing
+**Root Cause**: 
+- Backend was setting `dp_status = "ready"` but frontend checks `dp_transfer_ready`
+- First payment wasn't automatically updating `client_confirmation_status`
+**Fix**:
+- Modified `add_payment_tranche` endpoint in `backend/routers/bookings.py`:
+  - Sets `client_confirmation_status = "accepted"` on first payment
+  - Sets both `dp_status = "ready"` AND `dp_transfer_ready = True` on full payment
+- Updated `BookingWithDetails` model in `backend/models/__init__.py` to include:
+  - `payment_complete: bool`
+  - `dp_status: Optional[str]`
+  - `dp_ready_at: Optional[str]`
+**Testing**: Verified via screenshot - "Client Accepted" and "DP Ready" badges display correctly.
+
 #### ✅ Email Confirmation Flow - VERIFIED WORKING (Feb 02, 2026)
 **Reported Issue**: Emails not properly formatted and client confirmation link broken.
 **Verification**:
