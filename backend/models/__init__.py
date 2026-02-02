@@ -264,6 +264,8 @@ class Inventory(BaseModel):
     blocked_quantity: int = 0  # Blocked for approved bookings pending transfer
     weighted_avg_price: float  # Calculated only from non-blocked stock
     total_value: float
+    landing_price: Optional[float] = None  # LP - Landing Price (set by PE Desk)
+    lp_total_value: Optional[float] = None  # Total value based on LP (for PE Level view)
 
 
 # ============== Payment Models ==============
