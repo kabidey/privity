@@ -400,8 +400,8 @@ const UserManagement = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
-                              {/* Hierarchy Management Button - for Employee/Manager/etc roles */}
-                              {![1, 2, 6, 7, 8, 9].includes(user.role) && (
+                              {/* Hierarchy Management Button - for all users except Business Partners */}
+                              {user.role !== 6 && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -411,17 +411,6 @@ const UserManagement = () => {
                                   className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                                 >
                                   <Users className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {canAssignManager(user) && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => openAssignDialog(user)}
-                                  title={getAssignmentLabel(user.role)}
-                                  data-testid={`assign-manager-${user.id}`}
-                                >
-                                  <Link2 className="h-4 w-4" />
                                 </Button>
                               )}
                               {/* Proxy Login - PE Desk only, not for self or other PE Desk */}
