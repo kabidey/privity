@@ -97,10 +97,12 @@ async def get_inventory(current_user: dict = Depends(get_current_user)):
         
         # Get landing price (or default to WAP if not set)
         landing_price = item.get("landing_price")
+        logger.info(f"Stock {stock_id} - LP from DB: {landing_price}, WAP calculated: {calc['weighted_avg_price']}")
         if landing_price is None or landing_price <= 0:
             landing_price = calc["weighted_avg_price"]
         
-        item["landing_price"] = round(landing_price, 2)
+        item["landing_price"] = round(landing_price, 2) if landing_price else 0.0
+        logger.info(f"Stock {stock_id} - Final LP: {item['landing_price']}")
         
         # Calculate total value based on landing price for non-PE users
         if is_pe:
