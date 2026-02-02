@@ -546,3 +546,182 @@ async def reset_password(data: PasswordResetVerify, request: Request):
     )
     
     return {"message": "Password reset successfully"}
+
+
+
+# ============== Proxy Login (PE Desk Only) ==============
+
+class ProxyLoginRequest(BaseModel):
+    target_user_id: str
+
+from pydantic import BaseModel
+
+@router.post("/proxy-login")
+async def proxy_login(
+    data: ProxyLoginRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    PE Desk can log in as any other user to view/manage their account.
+    Creates a special token that includes proxy information.
+    """
+    # Only PE Desk (role 1) can use proxy login
+    if current_user.get("role", 6) != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can use proxy login")
+    
+    # Get target user
+    target_user = await db.users.find_one({"id": data.target_user_id}, {"_id": 0, "password": 0})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Target user not found")
+    
+    # Cannot proxy as yourself
+    if target_user["id"] == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot proxy as yourself")
+    
+    # Create audit log
+    await create_audit_log(
+        action="PROXY_LOGIN",
+        entity_type="user",
+        entity_id=target_user["id"],
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 1),
+        entity_name=target_user["name"],
+        details={
+            "proxy_as": target_user["email"],
+            "proxy_as_name": target_user["name"],
+            "proxy_as_role": target_user.get("role")
+        },
+        ip_address=request.client.host if request.client else None
+    )
+    
+    # Create token with proxy information embedded
+    from utils.auth import create_proxy_token
+    token = create_proxy_token(
+        target_user_id=target_user["id"],
+        target_user_email=target_user["email"],
+        proxy_user_id=current_user["id"],
+        proxy_user_email=current_user["email"],
+        proxy_user_name=current_user["name"]
+    )
+    
+    # Return proxy session info
+    return {
+        "token": token,
+        "user": {
+            "id": target_user["id"],
+            "email": target_user["email"],
+            "name": target_user["name"],
+            "role": target_user.get("role", 5),
+            "role_name": ROLES.get(target_user.get("role", 5), "Viewer"),
+            "pan_number": target_user.get("pan_number"),
+            "created_at": target_user.get("created_at"),
+            "agreement_accepted": target_user.get("agreement_accepted", False)
+        },
+        "proxy_session": {
+            "is_proxy": True,
+            "original_user": {
+                "id": current_user["id"],
+                "email": current_user["email"],
+                "name": current_user["name"],
+                "role": current_user.get("role", 1),
+                "role_name": ROLES.get(current_user.get("role", 1), "PE Desk")
+            }
+        }
+    }
+
+
+@router.post("/proxy-logout")
+async def proxy_logout(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    End proxy session and return to original PE Desk account.
+    """
+    # Check if this is a proxy session
+    proxy_info = current_user.get("proxy_info")
+    if not proxy_info:
+        raise HTTPException(status_code=400, detail="Not in a proxy session")
+    
+    # Get the original PE Desk user
+    original_user = await db.users.find_one(
+        {"id": proxy_info.get("proxy_user_id")}, 
+        {"_id": 0, "password": 0}
+    )
+    if not original_user:
+        raise HTTPException(status_code=404, detail="Original user not found")
+    
+    # Create audit log
+    await create_audit_log(
+        action="PROXY_LOGOUT",
+        entity_type="user",
+        entity_id=current_user["id"],
+        user_id=proxy_info.get("proxy_user_id"),
+        user_name=proxy_info.get("proxy_user_name"),
+        user_role=1,
+        entity_name=current_user["name"],
+        details={
+            "ended_proxy_as": current_user["email"],
+            "ended_proxy_as_name": current_user["name"]
+        },
+        ip_address=request.client.host if request.client else None
+    )
+    
+    # Create fresh token for original user
+    from utils.auth import create_token
+    token = create_token(original_user["id"], original_user["email"])
+    
+    return {
+        "token": token,
+        "user": {
+            "id": original_user["id"],
+            "email": original_user["email"],
+            "name": original_user["name"],
+            "role": original_user.get("role", 1),
+            "role_name": ROLES.get(original_user.get("role", 1), "PE Desk"),
+            "pan_number": original_user.get("pan_number"),
+            "created_at": original_user.get("created_at"),
+            "agreement_accepted": original_user.get("agreement_accepted", False)
+        },
+        "message": "Proxy session ended"
+    }
+
+
+@router.get("/proxy-status")
+async def get_proxy_status(current_user: dict = Depends(get_current_user)):
+    """
+    Check if current session is a proxy session.
+    """
+    proxy_info = current_user.get("proxy_info")
+    
+    if proxy_info:
+        return {
+            "is_proxy": True,
+            "viewing_as": {
+                "id": current_user["id"],
+                "email": current_user["email"],
+                "name": current_user["name"],
+                "role": current_user.get("role"),
+                "role_name": ROLES.get(current_user.get("role", 5), "Viewer")
+            },
+            "original_user": {
+                "id": proxy_info.get("proxy_user_id"),
+                "email": proxy_info.get("proxy_user_email"),
+                "name": proxy_info.get("proxy_user_name"),
+                "role": 1,
+                "role_name": "PE Desk"
+            }
+        }
+    
+    return {
+        "is_proxy": False,
+        "current_user": {
+            "id": current_user["id"],
+            "email": current_user["email"],
+            "name": current_user["name"],
+            "role": current_user.get("role"),
+            "role_name": ROLES.get(current_user.get("role", 5), "Viewer")
+        }
+    }
