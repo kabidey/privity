@@ -49,6 +49,11 @@ class User(BaseModel):
     created_at: str
     agreement_accepted: Optional[bool] = False
     agreement_accepted_at: Optional[str] = None
+    # Hierarchy fields
+    hierarchy_level: Optional[int] = 1  # 1=Employee, 2=Manager, 3=Zonal Head, 4=Regional Manager, 5=Business Head
+    hierarchy_level_name: Optional[str] = "Employee"
+    reports_to: Optional[str] = None  # User ID of the manager
+    reports_to_name: Optional[str] = None  # Manager's name for display
 
 
 class TokenResponse(BaseModel):
