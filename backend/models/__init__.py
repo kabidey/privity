@@ -371,8 +371,11 @@ class Booking(BaseModel):
     payments: List[PaymentTranche] = []
     total_paid: float = 0
     payment_status: str = "pending"
+    payment_complete: bool = False
     payment_completed_at: Optional[str] = None
+    dp_status: Optional[str] = None
     dp_transfer_ready: bool = False
+    dp_ready_at: Optional[str] = None
     # Void tracking
     is_voided: bool = False
     voided_at: Optional[str] = None
@@ -442,8 +445,11 @@ class BookingWithDetails(BaseModel):
     payments: List[PaymentTranche] = []
     total_paid: float = 0
     payment_status: str = "pending"
+    payment_complete: bool = False
     payment_completed_at: Optional[str] = None
+    dp_status: Optional[str] = None
     dp_transfer_ready: bool = False
+    dp_ready_at: Optional[str] = None
     # Void tracking
     is_voided: bool = False
     voided_at: Optional[str] = None
