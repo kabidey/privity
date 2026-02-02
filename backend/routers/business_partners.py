@@ -16,6 +16,7 @@ from database import db
 from routers.auth import get_current_user, create_audit_log
 from config import is_pe_level, ROLES, can_manage_business_partners, is_partners_desk
 from services.email_service import send_email, generate_otp
+from services.file_storage import upload_file_to_gridfs, get_file_url
 
 router = APIRouter(prefix="/business-partners", tags=["Business Partners"])
 
