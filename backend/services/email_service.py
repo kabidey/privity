@@ -979,12 +979,13 @@ async def send_payment_request_email(
                 </table>
             </div>
             
+            {documents_html}
+            
             <!-- Important Notes -->
             <div style="background: #fef3c7; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #fcd34d;">
                 <h3 style="color: #92400e; margin: 0 0 10px 0; font-size: 14px;">⚠️ Important Notes:</h3>
                 <ul style="color: #78350f; margin: 0; padding-left: 20px; line-height: 1.8;">
                     <li>Please mention your <strong>Booking Reference ({booking_number})</strong> in the payment remarks</li>
-                    <li>Attached are our company documents (NSDL CML, CDSL CML, PAN Card, Cancelled Cheque) for your reference</li>
                     <li>After making the payment, please share the payment confirmation with your relationship manager</li>
                     <li>Stock transfer will be initiated within 2-3 business days after payment confirmation</li>
                 </ul>
