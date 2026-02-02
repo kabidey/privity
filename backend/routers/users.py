@@ -208,7 +208,113 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
     return {"message": "User updated successfully"}
 
 
-@router.put("/{user_id}/role")
+@router.put("/{user_id}/hierarchy")
+async def update_user_hierarchy(user_id: str, hierarchy_data: HierarchyUpdate, current_user: dict = Depends(get_current_user)):
+    """Update user hierarchy (PE Level only)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update user hierarchy")
+    
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if hierarchy_data.hierarchy_level not in HIERARCHY_LEVELS:
+        raise HTTPException(status_code=400, detail="Invalid hierarchy level")
+    
+    update_data = {
+        "hierarchy_level": hierarchy_data.hierarchy_level,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user["id"]
+    }
+    
+    # Handle reports_to
+    if hierarchy_data.reports_to:
+        if hierarchy_data.reports_to == user_id:
+            raise HTTPException(status_code=400, detail="User cannot report to themselves")
+        manager = await db.users.find_one({"id": hierarchy_data.reports_to})
+        if not manager:
+            raise HTTPException(status_code=400, detail="Manager not found")
+        update_data["reports_to"] = hierarchy_data.reports_to
+    else:
+        update_data["reports_to"] = None
+    
+    await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    return {"message": "User hierarchy updated successfully"}
+
+
+@router.get("/hierarchy/levels")
+async def get_hierarchy_levels(current_user: dict = Depends(get_current_user)):
+    """Get available hierarchy levels"""
+    return [{"level": k, "name": v} for k, v in HIERARCHY_LEVELS.items()]
+
+
+@router.get("/hierarchy/potential-managers")
+async def get_potential_managers(current_user: dict = Depends(get_current_user)):
+    """Get list of users who can be managers (hierarchy level > 1 or PE Level)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Get users with hierarchy level > 1 or PE roles
+    users = await db.users.find(
+        {"$or": [
+            {"hierarchy_level": {"$gt": 1}},
+            {"role": {"$in": [1, 2]}}
+        ]},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "hierarchy_level": 1, "role": 1}
+    ).to_list(1000)
+    
+    return [{
+        "id": u["id"],
+        "name": u["name"],
+        "email": u["email"],
+        "hierarchy_level": u.get("hierarchy_level", 1),
+        "hierarchy_level_name": HIERARCHY_LEVELS.get(u.get("hierarchy_level", 1), "Employee")
+    } for u in users]
+
+
+@router.get("/team/subordinates")
+async def get_my_subordinates(current_user: dict = Depends(get_current_user)):
+    """Get all subordinates under current user"""
+    from services.hierarchy_service import get_all_subordinates
+    
+    subordinate_ids = await get_all_subordinates(current_user["id"])
+    
+    if not subordinate_ids:
+        return []
+    
+    users = await db.users.find(
+        {"id": {"$in": subordinate_ids}},
+        {"_id": 0, "password": 0}
+    ).to_list(1000)
+    
+    result = []
+    for u in users:
+        enriched = await enrich_user_with_hierarchy(u)
+        enriched["role_name"] = ROLES.get(u.get("role", 6), "Viewer")
+        result.append(enriched)
+    
+    return result
+
+
+@router.get("/team/direct-reports")
+async def get_my_direct_reports(current_user: dict = Depends(get_current_user)):
+    """Get users who directly report to current user"""
+    users = await db.users.find(
+        {"reports_to": current_user["id"]},
+        {"_id": 0, "password": 0}
+    ).to_list(1000)
+    
+    result = []
+    for u in users:
+        enriched = await enrich_user_with_hierarchy(u)
+        enriched["role_name"] = ROLES.get(u.get("role", 6), "Viewer")
+        result.append(enriched)
+    
+    return result
+
+
+@router.get("/{user_id}/role")
 async def update_user_role(user_id: str, role: int, current_user: dict = Depends(get_current_user)):
     """Update user role (PE Level)"""
     if not is_pe_level(current_user.get("role", 6)):
