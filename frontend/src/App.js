@@ -44,6 +44,7 @@ import ClientDashboard from './pages/ClientDashboard';
 import SecurityDashboard from './pages/SecurityDashboard';
 import PEDeskHitReport from './pages/PEDeskHitReport';
 import FileMigration from './pages/FileMigration';
+import HelpTutorial from './pages/HelpTutorial';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
