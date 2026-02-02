@@ -66,11 +66,15 @@ const Bookings = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
-  const isZonalManager = currentUser.role === 2;
-  const canRecordPayments = isPEDesk || isZonalManager;
-  const isEmployee = currentUser.role === 4 || currentUser.role === 5; // Employee or Viewer
-  const canEditLandingPrice = isPEDesk || isZonalManager; // Only PE Desk and Zonal Manager can edit landing price
-  const isBusinessPartner = currentUser.role === 8 || currentUser.is_bp; // Business Partner role
+  const isPEManager = currentUser.role === 2;
+  const isPELevel = isPEDesk || isPEManager;
+  const canRecordPayments = isPELevel;
+  const isFinance = currentUser.role === 3;
+  const isViewer = currentUser.role === 4;
+  const isPartnersDesk = currentUser.role === 5;
+  const isBusinessPartner = currentUser.role === 6 || currentUser.is_bp;
+  const isEmployee = currentUser.role === 7;
+  const canEditLandingPrice = isPELevel; // Only PE Desk and PE Manager can edit landing price
 
   useEffect(() => {
     fetchData();
