@@ -13,11 +13,11 @@
 
 const VERSION = {
   major: 4,
-  minor: 0,
+  minor: 1,
   patch: 0,
   build: 0,
-  timestamp: '2026-02-02T10:00:00.000Z',
-  formatted: 'v4.0.0'
+  timestamp: '2026-02-02T13:45:00.000Z',
+  formatted: 'v4.1.0'
 };
 
 // Version getter functions
