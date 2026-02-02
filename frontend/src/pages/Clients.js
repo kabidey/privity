@@ -1648,7 +1648,7 @@ const Clients = () => {
                       </TableCell>
                       <TableCell className="text-sm hidden lg:table-cell">{client.mobile || client.phone || '-'}</TableCell>
                       <TableCell>{getStatusBadge(client)}</TableCell>
-                      {!isEmployee && (
+                      {canMapClients && (
                         <TableCell>
                           {client.mapped_employee_name ? <Badge variant="secondary">{client.mapped_employee_name}</Badge> : <span className="text-xs text-muted-foreground">Not mapped</span>}
                         </TableCell>
