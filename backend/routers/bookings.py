@@ -1505,10 +1505,11 @@ async def delete_payment_tranche(
         update_data["client_confirmation_status"] = "pending"
         update_data["client_confirmed_at"] = None
     
-    # If payment is no longer complete, reset DP ready status
+    # ALWAYS reset DP ready status when any payment is deleted
+    # DP Ready should only be true when payment is 100% complete
+    update_data["dp_status"] = "ready" if is_complete else None
+    update_data["dp_transfer_ready"] = is_complete
     if not is_complete:
-        update_data["dp_status"] = None
-        update_data["dp_transfer_ready"] = False
         update_data["dp_ready_at"] = None
     
     await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
@@ -1517,7 +1518,9 @@ async def delete_payment_tranche(
         "message": f"Payment tranche {tranche_number} deleted successfully",
         "total_paid": new_total_paid,
         "remaining": total_amount - new_total_paid,
-        "payment_complete": is_complete
+        "payment_complete": is_complete,
+        "dp_transfer_ready": is_complete,
+        "dp_status": "ready" if is_complete else None
     }
 
 
