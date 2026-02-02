@@ -1,7 +1,7 @@
 """
 Database Backup and Restore Router
 Handles database backup creation, listing, and restoration (PE Desk only)
-Includes support for backing up uploaded files
+Includes support for backing up uploaded files from GridFS
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -19,10 +19,11 @@ import base64
 from database import db
 from routers.auth import get_current_user
 from config import is_pe_level, is_pe_desk_only
+from services.file_storage import upload_file_to_gridfs, download_file_from_gridfs, get_file_url
 
 router = APIRouter(prefix="/database", tags=["Database Management"])
 
-# Upload directory path
+# Upload directory path (for backward compatibility)
 UPLOADS_DIR = "/app/uploads"
 
 # Collections to backup - comprehensive list
@@ -55,6 +56,12 @@ BACKUP_COLLECTIONS = [
     "group_chat_messages",
     "research_reports",
     "system_settings",
+]
+
+# GridFS collections for file backup
+GRIDFS_COLLECTIONS = [
+    "fs.files",
+    "fs.chunks"
 ]
 
 # File directories to include in backup
