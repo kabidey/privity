@@ -439,11 +439,9 @@ async def get_user_hierarchy(current_user: dict = Depends(get_current_user)):
 
 @router.put("/{user_id}/assign-manager")
 async def assign_manager(user_id: str, manager_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
-    """Assign a user to a manager (PE Level only)
+    """Assign a user to a manager (PE Level only) using reports_to field.
     
-    Rules:
-    - Employee (role 5) can be assigned to Manager (role 4)
-    - Manager (role 4) can be assigned to Zonal Manager (role 3)
+    The new hierarchy system uses hierarchy_level and reports_to instead of role-based hierarchy.
     """
     if not is_pe_level(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can assign managers")
@@ -457,7 +455,7 @@ async def assign_manager(user_id: str, manager_id: Optional[str] = None, current
     if manager_id is None or manager_id == "":
         await db.users.update_one(
             {"id": user_id},
-            {"$unset": {"manager_id": ""}}
+            {"$set": {"reports_to": None}, "$unset": {"manager_id": ""}}
         )
         return {"message": f"Manager assignment removed for {user['name']}"}
     
@@ -466,40 +464,35 @@ async def assign_manager(user_id: str, manager_id: Optional[str] = None, current
     if not manager:
         raise HTTPException(status_code=404, detail="Manager not found")
     
-    # Validate hierarchy rules
-    user_role = user.get("role", 6)
-    manager_role = manager.get("role", 6)
-    
-    # Employee (5) -> Manager (4)
-    if user_role == 5 and manager_role != 4:
-        raise HTTPException(status_code=400, detail="Employees can only be assigned to Managers")
-    
-    # Manager (4) -> Zonal Manager (3)
-    if user_role == 4 and manager_role != 3:
-        raise HTTPException(status_code=400, detail="Managers can only be assigned to Zonal Managers")
-    
-    # Zonal Manager (3) -> Cannot be assigned (top of hierarchy below PE)
-    if user_role == 3:
-        raise HTTPException(status_code=400, detail="Zonal Managers cannot be assigned to other managers")
-    
-    # PE roles cannot be assigned
-    if user_role in [1, 2]:
-        raise HTTPException(status_code=400, detail="PE Desk and PE Manager cannot be assigned to managers")
-    
     # Prevent self-assignment
     if user_id == manager_id:
         raise HTTPException(status_code=400, detail="Cannot assign user to themselves")
     
-    # Update assignment
+    # PE roles cannot be assigned to managers
+    user_role = user.get("role", 6)
+    if user_role in [1, 2]:
+        raise HTTPException(status_code=400, detail="PE Desk and PE Manager cannot be assigned to managers")
+    
+    # Validate hierarchy level - user should be lower than manager
+    user_level = user.get("hierarchy_level", 1)
+    manager_level = manager.get("hierarchy_level", 1)
+    manager_role = manager.get("role", 6)
+    
+    # Manager must be higher level or PE role
+    if not is_pe_level(manager_role) and manager_level <= user_level:
+        raise HTTPException(status_code=400, detail="Manager must be at a higher hierarchy level than the user")
+    
+    # Update assignment - use reports_to (and keep manager_id for backward compatibility)
     await db.users.update_one(
         {"id": user_id},
-        {"$set": {"manager_id": manager_id}}
+        {"$set": {"reports_to": manager_id, "manager_id": manager_id}}
     )
     
     return {
-        "message": f"{user['name']} assigned to {manager['name']}",
+        "message": f"{user['name']} now reports to {manager['name']}",
         "user_id": user_id,
-        "manager_id": manager_id
+        "manager_id": manager_id,
+        "reports_to": manager_id
     }
 
 
