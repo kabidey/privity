@@ -54,6 +54,24 @@ async def get_company_info():
     }
 
 
+async def get_mapped_employee_email(client_id: str) -> Optional[str]:
+    """Get the mapped employee's email for a client (for CC in communications)"""
+    from database import db
+    try:
+        client = await db.clients.find_one({"id": client_id}, {"_id": 0, "mapped_employee_id": 1, "mapped_employee_email": 1})
+        if client:
+            # First check if mapped_employee_email is directly stored
+            if client.get("mapped_employee_email"):
+                return client["mapped_employee_email"]
+            # Otherwise, fetch from users collection
+            if client.get("mapped_employee_id"):
+                user = await db.users.find_one({"id": client["mapped_employee_id"]}, {"_id": 0, "email": 1})
+                return user.get("email") if user else None
+    except Exception as e:
+        logging.error(f"Error getting mapped employee email: {e}")
+    return None
+
+
 def wrap_email_with_branding(body: str, company_info: dict) -> str:
     """Wrap email body with company logo header and footer"""
     
