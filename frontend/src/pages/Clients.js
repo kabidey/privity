@@ -1520,7 +1520,7 @@ const Clients = () => {
         </Dialog>
       </div>
 
-      {isManager && pendingClients.length > 0 && (
+      {canMapClients && pendingClients.length > 0 && (
         <div className="mb-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList>
