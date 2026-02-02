@@ -181,7 +181,6 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     # ============== DUPLICATE BOOKING PREVENTION ==============
     # Check for duplicate bookings with same client, stock, quantity, and booking date
     # Also check for recent bookings (within 30 seconds) to prevent accidental double-clicks
-    from datetime import timedelta
     
     # Check 1: Exact duplicate (same client, stock, quantity, date) that is not voided
     exact_duplicate = await db.bookings.find_one({
