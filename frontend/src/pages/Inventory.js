@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Package, TrendingUp, AlertTriangle, Trash2, Edit2, Check, X, DollarSign } from 'lucide-react';
 
 const Inventory = () => {
@@ -23,10 +24,7 @@ const Inventory = () => {
     lowStockCount: 0,
   });
   
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
-  const isPEManager = currentUser.role === 2;
-  const isPELevel = isPEDesk || isPEManager; // PE Desk or PE Manager
+  const { isPEDesk, isPEManager, isPELevel } = useCurrentUser();
 
   useEffect(() => {
     fetchInventory();

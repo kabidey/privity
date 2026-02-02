@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Shield, Clock, Users, AlertTriangle, FileText, CheckCircle, 
   TrendingUp, Activity, RefreshCw, ArrowRight, UserCheck, Briefcase
@@ -17,9 +18,7 @@ const PEDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [clearingCache, setClearingCache] = useState(false);
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isPEDesk = currentUser.role === 1;
+  const { isPELevel, isPEDesk } = useCurrentUser();
 
   useEffect(() => {
     if (!isPELevel) {

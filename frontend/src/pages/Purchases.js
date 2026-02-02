@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Plus, ShoppingCart, TrendingUp, CreditCard, CheckCircle, Clock, Trash2, RefreshCw, Calculator, Eye, FileText, ExternalLink } from 'lucide-react';
 
 const Purchases = () => {
@@ -50,12 +51,8 @@ const Purchases = () => {
   const [paymentsDialog, setPaymentsDialog] = useState({ open: false, purchase: null, payments: [] });
   const [paymentsLoading, setPaymentsLoading] = useState(false);
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isFinance = currentUser.role === 7;
+  const { isPEDesk, isPELevel, isFinance, canDelete, hasFinanceAccess } = useCurrentUser();
   const canPay = isPELevel || isFinance; // PE Desk, PE Manager, and Finance can pay
-  const canDelete = isPEDesk; // Only PE Desk can delete
 
   // Fetch payments for a purchase
   const fetchPayments = async (purchase) => {

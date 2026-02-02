@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Banknote, TrendingUp, TrendingDown, RefreshCw, ArrowRight,
   Wallet, CreditCard, AlertCircle, CheckCircle, Clock, IndianRupee
@@ -17,9 +18,8 @@ const FinanceDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  // Finance access: PE Desk (1), PE Manager (2), or Finance role (3)
-  const hasAccess = currentUser.role === 1 || currentUser.role === 2 || currentUser.role === 3;
+  const { hasFinanceAccess } = useCurrentUser();
+  const hasAccess = hasFinanceAccess;
 
   useEffect(() => {
     if (!hasAccess) {
