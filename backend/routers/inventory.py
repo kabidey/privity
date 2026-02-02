@@ -120,6 +120,9 @@ async def get_inventory(current_user: dict = Depends(get_current_user)):
 @router.get("/{stock_id}", response_model=InventoryModel)
 async def get_inventory_item(stock_id: str, current_user: dict = Depends(get_current_user)):
     """Get inventory for a specific stock"""
+    user_role = current_user.get("role", 6)
+    is_pe = is_pe_level(user_role)
+    
     inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
     if not inventory:
         raise HTTPException(status_code=404, detail="Inventory not found")
@@ -130,7 +133,109 @@ async def get_inventory_item(stock_id: str, current_user: dict = Depends(get_cur
         inventory["stock_symbol"] = stock.get("symbol", "Unknown")
         inventory["stock_name"] = stock.get("name", "Unknown")
     
+    # Calculate WAP
+    calc = await calculate_weighted_avg_for_stock(stock_id)
+    
+    # Get landing price (or default to WAP)
+    landing_price = inventory.get("landing_price")
+    if landing_price is None or landing_price <= 0:
+        landing_price = calc["weighted_avg_price"]
+    
+    inventory["landing_price"] = round(landing_price, 2)
+    
+    if is_pe:
+        inventory["weighted_avg_price"] = calc["weighted_avg_price"]
+        inventory["total_value"] = calc["total_value"]
+    else:
+        # Non-PE users see LP as the price
+        inventory["weighted_avg_price"] = landing_price
+        inventory["total_value"] = round(inventory.get("available_quantity", 0) * landing_price, 2)
+    
     return inventory
+
+
+@router.get("/{stock_id}/landing-price")
+async def get_landing_price(stock_id: str, current_user: dict = Depends(get_current_user)):
+    """Get the landing price for a stock (used by booking to get buying price)"""
+    inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+    if not inventory:
+        raise HTTPException(status_code=404, detail="Inventory not found")
+    
+    # Calculate WAP
+    calc = await calculate_weighted_avg_for_stock(stock_id)
+    
+    # Get landing price (or default to WAP)
+    landing_price = inventory.get("landing_price")
+    if landing_price is None or landing_price <= 0:
+        landing_price = calc["weighted_avg_price"]
+    
+    return {
+        "stock_id": stock_id,
+        "landing_price": round(landing_price, 2),
+        "available_quantity": inventory.get("available_quantity", 0)
+    }
+
+
+@router.put("/{stock_id}/landing-price")
+async def update_landing_price(
+    stock_id: str,
+    data: UpdateLandingPriceRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update landing price for a stock (PE Desk only).
+    Landing Price (LP) is the price shown to non-PE users and used for booking revenue calculation.
+    """
+    user_role = current_user.get("role", 6)
+    
+    if user_role != 1:  # Only PE Desk
+        raise HTTPException(status_code=403, detail="Only PE Desk can update landing price")
+    
+    if data.landing_price <= 0:
+        raise HTTPException(status_code=400, detail="Landing price must be greater than 0")
+    
+    # Check inventory exists
+    inventory = await db.inventory.find_one({"stock_id": stock_id})
+    if not inventory:
+        raise HTTPException(status_code=404, detail="Inventory not found")
+    
+    # Get stock info for audit
+    stock = await db.stocks.find_one({"id": stock_id}, {"_id": 0, "symbol": 1, "name": 1})
+    
+    # Update landing price
+    result = await db.inventory.update_one(
+        {"stock_id": stock_id},
+        {"$set": {
+            "landing_price": round(data.landing_price, 2),
+            "landing_price_updated_at": datetime.now(timezone.utc).isoformat(),
+            "landing_price_updated_by": current_user["id"],
+            "landing_price_updated_by_name": current_user["name"]
+        }}
+    )
+    
+    # Create audit log
+    from services.audit_service import create_audit_log
+    await create_audit_log(
+        action="LANDING_PRICE_UPDATE",
+        entity_type="inventory",
+        entity_id=stock_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name=stock.get("symbol", stock_id) if stock else stock_id,
+        details={
+            "stock_symbol": stock.get("symbol") if stock else None,
+            "stock_name": stock.get("name") if stock else None,
+            "new_landing_price": data.landing_price,
+            "old_landing_price": inventory.get("landing_price")
+        }
+    )
+    
+    return {
+        "message": "Landing price updated successfully",
+        "stock_id": stock_id,
+        "landing_price": round(data.landing_price, 2)
+    }
 
 
 @router.delete("/{stock_id}")
