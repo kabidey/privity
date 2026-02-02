@@ -161,8 +161,9 @@ function App() {
               element={
                 <PrivateRoute>
                   <NotificationProvider>
-                    <AgreementChecker>
-                      <Layout>
+                    <ProxyWrapper>
+                      <AgreementChecker>
+                        <Layout>
                         <Routes>
                           <Route path="/" element={<Dashboard />} />
                           <Route path="/clients" element={<Clients />} />
