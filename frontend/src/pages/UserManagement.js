@@ -828,6 +828,76 @@ const UserManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Hierarchy Management Dialog */}
+      <Dialog open={hierarchyDialogOpen} onOpenChange={setHierarchyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-600" />
+              Manage Hierarchy for {selectedUser?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Set the hierarchy level and reporting structure for this user.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Hierarchy Level</Label>
+              <Select
+                value={String(selectedHierarchyLevel)}
+                onValueChange={(value) => setSelectedHierarchyLevel(parseInt(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(HIERARCHY_LEVELS).map(([level, { name }]) => (
+                    <SelectItem key={level} value={level}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Employee → Manager → Zonal Head → Regional Manager → Business Head
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Reports To</Label>
+              <Select
+                value={selectedManagerId || 'none'}
+                onValueChange={(value) => setSelectedManagerId(value === 'none' ? '' : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select manager" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— No Manager —</SelectItem>
+                  {potentialManagers
+                    .filter(m => m.id !== selectedUser?.id)
+                    .map((manager) => (
+                      <SelectItem key={manager.id} value={manager.id}>
+                        {manager.name} ({manager.hierarchy_level_name})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Select who this user reports to in the organizational hierarchy.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHierarchyDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateHierarchy} className="bg-blue-600 hover:bg-blue-700">
+              Save Hierarchy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
