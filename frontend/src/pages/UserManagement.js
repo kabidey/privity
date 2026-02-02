@@ -179,7 +179,7 @@ const UserManagement = () => {
   };
 
   const resetForm = () => {
-    setFormData({ email: '', password: '', name: '', role: 5, hierarchy_level: 1, reports_to: '' });
+    setFormData({ email: '', password: '', name: '', role: 4, hierarchy_level: 1, reports_to: '' });
   };
 
   const openHierarchyDialog = (user) => {
