@@ -551,10 +551,10 @@ async def reset_password(data: PasswordResetVerify, request: Request):
 
 # ============== Proxy Login (PE Desk Only) ==============
 
-class ProxyLoginRequest(BaseModel):
-    target_user_id: str
+from pydantic import BaseModel as PydanticBaseModel
 
-from pydantic import BaseModel
+class ProxyLoginRequest(PydanticBaseModel):
+    target_user_id: str
 
 @router.post("/proxy-login")
 async def proxy_login(
