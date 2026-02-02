@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,30 +20,15 @@ import {
   CheckCircle2, 
   Loader2,
   Copy,
-  ShieldCheck,
-  Smartphone,
-  ArrowLeft,
-  ArrowRight
+  ShieldCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../utils/api';
 
 const TwoFactorSettings = () => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // Setup flow states
-  const [setupMode, setSetupMode] = useState(false);
-  const [setupStep, setSetupStep] = useState(1); // 1: password, 2: qr code, 3: verify, 4: backup codes
-  const [setupPassword, setSetupPassword] = useState('');
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
-  const [secretKey, setSecretKey] = useState('');
-  const [backupCodes, setBackupCodes] = useState([]);
-  const [totpCode, setTotpCode] = useState('');
-  const [setupLoading, setSetupLoading] = useState(false);
-  const [setupError, setSetupError] = useState('');
-  const [copiedSecret, setCopiedSecret] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState(null);
   
   // Disable dialog states
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
