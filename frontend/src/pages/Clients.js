@@ -1855,7 +1855,11 @@ const Clients = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleDownloadDocument(selectedClientDocs.id, doc.filename || doc.original_filename || doc.doc_type)}
+                          onClick={() => handleDownloadDocument(
+                            selectedClientDocs.id, 
+                            doc.filename || doc.original_filename || doc.doc_type,
+                            doc.gridfs_id
+                          )}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <Download className="h-4 w-4 mr-1" />
