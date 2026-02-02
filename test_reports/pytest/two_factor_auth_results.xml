@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="10" skipped="1" tests="21" time="14.661" timestamp="2026-02-02T13:47:29.289372+00:00" hostname="agent-env-a7b3b792-641d-4a24-ba73-37628362cb95"><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_status_without_auth" time="0.114" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_status_with_auth" time="0.467" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_enable_without_auth" time="0.048" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_enable_wrong_password" time="0.541" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_enable_success" time="2.753" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_verify_setup_without_pending" time="0.278"><skipped type="pytest.skip" message="Setup is pending, cannot test this case">/app/backend/tests/test_two_factor_auth.py:155: Setup is pending, cannot test this case</skipped></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_verify_setup_invalid_code" time="2.822" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_verify_setup_success" time="2.832" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_verify_when_not_enabled" time="0.544" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_verify_invalid_code" time="2.808" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_verify_success" time="0.313"><failure message="AssertionError: Expected 200, got 401: {&quot;detail&quot;:&quot;Invalid or expired TOTP code&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_two_factor_auth.py:327: in test_2fa_verify_success
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
+E   AssertionError: Expected 200, got 401: {"detail":"Invalid or expired TOTP code"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_use_backup_code_when_not_enabled" time="0.531" /><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_use_backup_code_invalid" time="0.036"><failure message="AssertionError: Login failed&#10;assert False&#10; +  where False = login()&#10; +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f5250&gt;.login">backend/tests/test_two_factor_auth.py:359: in test_2fa_use_backup_code_invalid
+    assert self.login(), "Login failed"
+E   AssertionError: Login failed
+E   assert False
+E    +  where False = login()
+E    +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f5250&gt;.login</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_regenerate_backup_codes_when_not_enabled" time="0.037"><failure message="AssertionError: Login failed&#10;assert False&#10; +  where False = login()&#10; +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f5e90&gt;.login">backend/tests/test_two_factor_auth.py:387: in test_2fa_regenerate_backup_codes_when_not_enabled
+    assert self.login(), "Login failed"
+E   AssertionError: Login failed
+E   assert False
+E    +  where False = login()
+E    +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f5e90&gt;.login</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_regenerate_backup_codes_wrong_password" time="0.036"><failure message="AssertionError: Login failed&#10;assert False&#10; +  where False = login()&#10; +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f69d0&gt;.login">backend/tests/test_two_factor_auth.py:407: in test_2fa_regenerate_backup_codes_wrong_password
+    assert self.login(), "Login failed"
+E   AssertionError: Login failed
+E   assert False
+E    +  where False = login()
+E    +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f69d0&gt;.login</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_regenerate_backup_codes_success" time="0.037"><failure message="AssertionError: Login failed&#10;assert False&#10; +  where False = login()&#10; +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f72d0&gt;.login">backend/tests/test_two_factor_auth.py:433: in test_2fa_regenerate_backup_codes_success
+    assert self.login(), "Login failed"
+E   AssertionError: Login failed
+E   assert False
+E    +  where False = login()
+E    +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f72d0&gt;.login</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_disable_when_not_enabled" time="0.096"><failure message="AssertionError: Login failed&#10;assert False&#10; +  where False = login()&#10; +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8892cfdd0&gt;.login">backend/tests/test_two_factor_auth.py:468: in test_2fa_disable_when_not_enabled
+    assert self.login(), "Login failed"
+E   AssertionError: Login failed
+E   assert False
+E    +  where False = login()
+E    +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8892cfdd0&gt;.login</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_disable_wrong_password" time="0.036"><failure message="AssertionError: Login failed&#10;assert False&#10; +  where False = login()&#10; +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8892ccd50&gt;.login">backend/tests/test_two_factor_auth.py:488: in test_2fa_disable_wrong_password
+    assert self.login(), "Login failed"
+E   AssertionError: Login failed
+E   assert False
+E    +  where False = login()
+E    +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8892ccd50&gt;.login</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_disable_success" time="0.036"><failure message="AssertionError: Login failed&#10;assert False&#10; +  where False = login()&#10; +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f6c90&gt;.login">backend/tests/test_two_factor_auth.py:514: in test_2fa_disable_success
+    assert self.login(), "Login failed"
+E   AssertionError: Login failed
+E   assert False
+E    +  where False = login()
+E    +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f6c90&gt;.login</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuth" name="test_2fa_check_required" time="0.037"><failure message="AssertionError: Login failed&#10;assert False&#10; +  where False = login()&#10; +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f5ad0&gt;.login">backend/tests/test_two_factor_auth.py:552: in test_2fa_check_required
+    assert self.login(), "Login failed"
+E   AssertionError: Login failed
+E   assert False
+E    +  where False = login()
+E    +    where login = &lt;test_two_factor_auth.TestTwoFactorAuth object at 0xfdd8894f5ad0&gt;.login</failure></testcase><testcase classname="backend.tests.test_two_factor_auth.TestTwoFactorAuthFullFlow" name="test_full_2fa_flow" time="0.034"><failure message="AssertionError: Login failed: {&quot;detail&quot;:&quot;Too many requests. Please try again later.&quot;}&#10;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code">backend/tests/test_two_factor_auth.py:580: in test_full_2fa_flow
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Too many requests. Please try again later."}
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</failure></testcase></testsuite></testsuites>
