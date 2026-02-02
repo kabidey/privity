@@ -1180,7 +1180,7 @@ const Bookings = () => {
                                 </Button>
                               </>
                             )}
-                            {canRecordPayments && booking.approval_status === 'approved' && 
+                            {!isViewer && canRecordPayments && booking.approval_status === 'approved' && 
                              booking.selling_price && !booking.dp_transfer_ready && (
                               <Button 
                                 variant="outline" 
@@ -1200,12 +1200,12 @@ const Bookings = () => {
                                 DP Ready
                               </Badge>
                             )}
-                            {/* Edit button - not for employees */}
-                            {!isEmployee && (
+                            {/* Edit button - not for employees or viewers */}
+                            {!isEmployee && !isViewer && (
                               <Button variant="ghost" size="sm" onClick={() => handleEdit(booking)}><Pencil className="h-4 w-4" /></Button>
                             )}
                             {/* Void button - PE Desk only, not for transferred bookings */}
-                            {isPEDesk && !booking.stock_transferred && !booking.is_voided && (
+                            {isPEDesk && !isViewer && !booking.stock_transferred && !booking.is_voided && (
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
