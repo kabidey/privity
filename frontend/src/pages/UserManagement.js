@@ -476,21 +476,22 @@ const UserManagement = () => {
           </Card>
         </TabsContent>
 
-        {/* Hierarchy Tab */}
+        {/* Hierarchy Tab - Tree View */}
         <TabsContent value="hierarchy">
           <div className="space-y-6">
-            {/* PE Users */}
-            {hierarchy.peUsers.length > 0 && (
+            {/* PE Users (by role) */}
+            {hierarchyTree.peUsers.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Shield className="h-5 w-5 text-purple-600" />
                     PE Level Users
                   </CardTitle>
+                  <CardDescription>Users with PE Desk or PE Manager role</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {hierarchy.peUsers.map(user => (
+                    {hierarchyTree.peUsers.map(user => (
                       <Badge key={user.id} className={ROLES[user.role]?.color || 'bg-gray-100'}>
                         {user.name} ({ROLES[user.role]?.name})
                       </Badge>
@@ -500,149 +501,63 @@ const UserManagement = () => {
               </Card>
             )}
 
-            {/* Zonal Managers with their teams */}
-            {hierarchy.zonalManagers.length > 0 && (
+            {/* Hierarchy Tree */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  Organization Hierarchy Tree
+                </CardTitle>
+                <CardDescription>Reporting structure based on hierarchy levels (Employee → Manager → Zonal Head → Regional Manager → Business Head)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {getTopLevelUsers().length > 0 ? (
+                  <div className="space-y-4">
+                    {getTopLevelUsers().map(user => renderUserNode(user, 0))}
+                  </div>
+                ) : (
+                  <p className="text-center py-4 text-muted-foreground">
+                    No hierarchy structure defined yet. Use the "Set Hierarchy" button on users to build the reporting structure.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Unassigned Users */}
+            {getUnassignedUsers().length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Building className="h-5 w-5 text-blue-600" />
-                    Zonal Managers & Teams
+                  <CardTitle className="text-lg flex items-center gap-2 text-amber-600">
+                    <Unlink className="h-5 w-5" />
+                    Unassigned Users
                   </CardTitle>
+                  <CardDescription>These users are not assigned to any manager in the hierarchy</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {hierarchy.zonalManagers.map(zm => {
-                    const zmManagers = getSubordinates(zm.id);
-                    return (
-                      <div key={zm.id} className="border rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Badge className={ROLES[3]?.color}>{zm.name}</Badge>
-                          <span className="text-sm text-muted-foreground">
-                            ({zmManagers.length} direct reports)
-                          </span>
-                        </div>
-                        
-                        {zmManagers.length > 0 ? (
-                          <div className="ml-4 space-y-3">
-                            {zmManagers.map(manager => {
-                              const managerEmployees = getSubordinates(manager.id);
-                              return (
-                                <div key={manager.id} className="border-l-2 border-green-300 pl-4">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <ChevronRight className="h-4 w-4 text-green-600" />
-                                    <Badge className={ROLES[4]?.color}>{manager.name}</Badge>
-                                    <span className="text-sm text-muted-foreground">
-                                      ({managerEmployees.length} employees)
-                                    </span>
-                                  </div>
-                                  {managerEmployees.length > 0 && (
-                                    <div className="ml-6 flex flex-wrap gap-1">
-                                      {managerEmployees.map(emp => (
-                                        <Badge key={emp.id} variant="outline" className="text-xs">
-                                          {emp.name}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <p className="ml-4 text-sm text-muted-foreground">No managers assigned</p>
-                        )}
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {getUnassignedUsers().map(user => (
+                      <div key={user.id} className="flex items-center gap-2 border rounded-lg px-3 py-2">
+                        <Badge className={ROLES[user.role]?.color || 'bg-gray-100'}>
+                          {user.name}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          ({ROLES[user.role]?.name || 'Unknown'})
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openHierarchyDialog(user)}
+                          className="h-6 px-2"
+                        >
+                          <Link2 className="h-3 w-3 mr-1" />
+                          Set Hierarchy
+                        </Button>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             )}
-
-            {/* Unassigned Managers */}
-            {(() => {
-              const unassignedManagers = hierarchy.managers.filter(m => !m.manager_id);
-              if (unassignedManagers.length === 0) return null;
-              return (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2 text-amber-600">
-                      <Unlink className="h-5 w-5" />
-                      Unassigned Managers
-                    </CardTitle>
-                    <CardDescription>These managers are not assigned to any Zonal Manager</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {unassignedManagers.map(manager => {
-                        const managerEmployees = getSubordinates(manager.id);
-                        return (
-                          <div key={manager.id} className="border rounded-lg p-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Badge className={ROLES[4]?.color}>{manager.name}</Badge>
-                                <span className="text-sm text-muted-foreground">
-                                  ({managerEmployees.length} employees)
-                                </span>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => openAssignDialog(manager)}
-                              >
-                                <Link2 className="h-3 w-3 mr-1" />
-                                Assign
-                              </Button>
-                            </div>
-                            {managerEmployees.length > 0 && (
-                              <div className="mt-2 ml-4 flex flex-wrap gap-1">
-                                {managerEmployees.map(emp => (
-                                  <Badge key={emp.id} variant="outline" className="text-xs">
-                                    {emp.name}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })()}
-
-            {/* Unassigned Employees */}
-            {(() => {
-              const unassignedEmployees = hierarchy.employees.filter(e => !e.manager_id);
-              if (unassignedEmployees.length === 0) return null;
-              return (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2 text-amber-600">
-                      <Unlink className="h-5 w-5" />
-                      Unassigned Employees
-                    </CardTitle>
-                    <CardDescription>These employees are not assigned to any Manager</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {unassignedEmployees.map(emp => (
-                        <div key={emp.id} className="flex items-center gap-1 border rounded-lg px-3 py-2">
-                          <Badge className={ROLES[5]?.color}>{emp.name}</Badge>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => openAssignDialog(emp)}
-                            className="h-6 w-6 p-0"
-                          >
-                            <Link2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })()}
           </div>
         </TabsContent>
       </Tabs>
