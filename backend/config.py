@@ -74,22 +74,22 @@ def is_pe_desk_only(role: int) -> bool:
 
 def has_finance_access(role: int) -> bool:
     """Check if user has access to Finance page (PE Level or Finance role)"""
-    return role in [1, 2, 7]
+    return role in [1, 2, 3]
 
 
 def can_manage_finance(role: int) -> bool:
     """Check if user can manage finance operations (update refunds etc.)"""
-    return role in [1, 2, 7]
+    return role in [1, 2, 3]
 
 
 def can_manage_business_partners(role: int) -> bool:
     """Check if user can manage Business Partners (PE Level or Partners Desk)"""
-    return role in [1, 2, 9]
+    return role in [1, 2, 5]
 
 
 def is_partners_desk(role: int) -> bool:
     """Check if user is Partners Desk"""
-    return role == 9
+    return role == 5
 
 
 # Allowed email domains for registration
