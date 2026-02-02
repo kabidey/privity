@@ -527,7 +527,7 @@ async def upload_client_document(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload a document for a client with OCR processing."""
+    """Upload a document for a client with OCR processing. Stored in GridFS for persistence."""
     user_role = current_user.get("role", 5)
     
     # Allow both manage_clients (managers+) and create_clients (employees) to upload docs
@@ -544,27 +544,45 @@ async def upload_client_document(
         if not client:
             raise HTTPException(status_code=404, detail="Client not found")
     
-    # Create client directory
-    client_dir = UPLOAD_DIR / client_id
-    client_dir.mkdir(exist_ok=True)
+    # Read file content
+    content = await file.read()
     
-    # Save file
+    # Generate filename
     file_ext = Path(file.filename).suffix
     filename = f"{doc_type}_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{file_ext}"
+    
+    # Upload to GridFS for persistent storage
+    file_id = await upload_file_to_gridfs(
+        content,
+        filename,
+        file.content_type or "application/octet-stream",
+        {
+            "category": "client_documents",
+            "entity_id": client_id,
+            "doc_type": doc_type,
+            "uploaded_by": current_user.get("id"),
+            "uploaded_by_name": current_user.get("name")
+        }
+    )
+    
+    # Also save locally for OCR processing (temporary)
+    client_dir = UPLOAD_DIR / client_id
+    client_dir.mkdir(exist_ok=True)
     file_path = client_dir / filename
     
     async with aiofiles.open(file_path, 'wb') as f:
-        content = await file.read()
         await f.write(content)
     
     # Process OCR
     ocr_data = await process_document_ocr(str(file_path), doc_type)
     
-    # Update client document record
+    # Update client document record with GridFS file_id
     doc_record = {
         "doc_type": doc_type,
         "filename": filename,
-        "file_path": str(file_path),
+        "file_id": file_id,  # GridFS file ID for persistent access
+        "file_url": get_file_url(file_id),  # URL to access file
+        "file_path": str(file_path),  # Local path (may not persist)
         "upload_date": datetime.now(timezone.utc).isoformat(),
         "ocr_data": ocr_data
     }
