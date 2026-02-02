@@ -193,41 +193,72 @@ async def get_clients(
     search: Optional[str] = None,
     is_vendor: Optional[bool] = None,
     pending_approval: Optional[bool] = None,
+    include_unmapped: Optional[bool] = False,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all clients with optional filters."""
+    """Get all clients with optional filters based on hierarchy."""
+    from services.hierarchy_service import get_team_user_ids
+    
     query = {}
     user_role = current_user.get("role", 5)
     user_id = current_user.get("id")
+    hierarchy_level = current_user.get("hierarchy_level", 1)
     
-    # Employee and Finance role restrictions
-    if user_role in [4, 7]:
+    # PE Level sees everything
+    if is_pe_level(user_role):
+        if is_vendor is not None:
+            query["is_vendor"] = is_vendor
+    # Finance role sees all clients (no vendors)
+    elif user_role == 6:
+        query["is_vendor"] = False
+    # Viewer sees all but read-only
+    elif user_role == 7:
+        if is_vendor is not None:
+            query["is_vendor"] = is_vendor
+    # Employee/Manager/Zonal/Regional/Business Head - use hierarchy
+    else:
         if is_vendor == True:
             raise HTTPException(status_code=403, detail="You do not have access to vendors")
         query["is_vendor"] = False
-        # Employees can only see their own clients (Finance sees all)
-        if user_role == 4:
-            query["$or"] = [
-                {"mapped_employee_id": user_id},
-                {"created_by": user_id}
-            ]
-    else:
-        if is_vendor is not None:
-            query["is_vendor"] = is_vendor
+        
+        # Get team user IDs based on hierarchy
+        team_ids = await get_team_user_ids(user_id, include_self=True)
+        
+        # Filter clients by team
+        query["$or"] = [
+            {"mapped_employee_id": {"$in": team_ids}},
+            {"created_by": {"$in": team_ids}}
+        ]
     
-    # Pending approval filter (for admins)
-    if pending_approval and user_role <= 3:
+    # Pending approval filter (for PE Level only)
+    if pending_approval and is_pe_level(user_role):
         query["approval_status"] = "pending"
+    
+    # Unmapped clients - only PE Level can see
+    if include_unmapped and is_pe_level(user_role):
+        # Remove the team filter and add unmapped filter
+        if "$or" in query:
+            existing_or = query.pop("$or")
+            query["$or"] = existing_or + [
+                {"mapped_employee_id": None},
+                {"mapped_employee_id": {"$exists": False}},
+                {"mapped_employee_id": ""}
+            ]
     
     # Search filter
     if search:
         search_regex = {"$regex": search, "$options": "i"}
-        query["$or"] = [
+        search_conditions = [
             {"name": search_regex},
             {"pan_number": search_regex},
             {"email": search_regex},
             {"phone": search_regex}
         ]
+        if "$or" in query:
+            # Combine with existing $or using $and
+            query = {"$and": [{"$or": query["$or"]}, {"$or": search_conditions}]}
+        else:
+            query["$or"] = search_conditions
     
     clients = await db.clients.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     return [Client(**c) for c in clients]
