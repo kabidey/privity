@@ -1868,6 +1868,7 @@ const Clients = () => {
                             <Eye className="h-4 w-4" />
                           </Button>
                         )}
+                        {!isViewer && (
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -1881,6 +1882,7 @@ const Clients = () => {
                           <Download className="h-4 w-4 mr-1" />
                           Download
                         </Button>
+                        )}
                       </div>
                     </div>
                   ))}
