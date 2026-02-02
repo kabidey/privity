@@ -782,7 +782,7 @@ const Clients = () => {
       
       toast.success('Bank proof uploaded successfully');
       fetchClients();
-      if (isManager) fetchPendingClients();
+      if (canMapClients) fetchPendingClients();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to upload bank proof');
     } finally {
