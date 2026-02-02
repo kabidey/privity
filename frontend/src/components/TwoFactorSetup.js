@@ -5,7 +5,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +13,7 @@ import { AlertCircle, CheckCircle2, Copy, Shield, Smartphone, Key, Loader2 } fro
 import { toast } from 'sonner';
 import api from '../utils/api';
 
-const TwoFactorSetup = ({ onSetupComplete }) => {
-  const [open, setOpen] = useState(false);
+const TwoFactorSetup = ({ open, onOpenChange, onSetupComplete }) => {
   const [setupStep, setSetupStep] = useState('initial'); // initial, qrcode, verify, backup, complete
   const [password, setPassword] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
@@ -37,6 +35,13 @@ const TwoFactorSetup = ({ onSetupComplete }) => {
     setError('');
     setCopiedIndex(null);
     setCopiedSecret(false);
+  };
+
+  const handleOpenChange = (isOpen) => {
+    if (!isOpen) {
+      resetState();
+    }
+    onOpenChange(isOpen);
   };
 
   const handleInitiateSetup = async () => {
