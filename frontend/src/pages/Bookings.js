@@ -715,7 +715,7 @@ const Bookings = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Landing Price {!canEditLandingPrice ? '(Current Avg)' : ''}</Label>
+                  <Label>Landing Price (Buying Price) {!canEditLandingPrice ? '' : '(Editable)'}</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -729,7 +729,7 @@ const Bookings = () => {
                   />
                   {!canEditLandingPrice && formData.buying_price && (
                     <p className="text-xs text-muted-foreground">
-                      Based on current weighted average price
+                      Based on Landing Price (set by PE Desk)
                     </p>
                   )}
                 </div>
