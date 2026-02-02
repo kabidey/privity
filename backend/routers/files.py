@@ -151,3 +151,281 @@ async def list_files(
     """
     files = await list_files_by_category(category, entity_id)
     return {"files": files, "count": len(files)}
+
+
+# ============== Missing Files Scanner & Re-upload (PE Desk/Manager Only) ==============
+
+@router.get("/scan/missing")
+async def scan_missing_files(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Scan database for references to files that are not in GridFS (PE Desk/Manager only).
+    Returns a list of entities with missing files that need re-upload.
+    """
+    user_role = current_user.get("role", 6)
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can scan for missing files")
+    
+    missing_files = []
+    
+    # Scan clients for missing documents
+    async for client in db.clients.find({"documents": {"$exists": True, "$ne": []}}, {"_id": 0}):
+        for doc in client.get("documents", []):
+            file_id = doc.get("file_id")
+            if file_id:
+                metadata = await get_file_metadata(file_id)
+                if not metadata:
+                    missing_files.append({
+                        "entity_type": "client",
+                        "entity_id": client.get("id"),
+                        "entity_name": client.get("name"),
+                        "doc_type": doc.get("doc_type"),
+                        "file_id": file_id,
+                        "original_filename": doc.get("filename")
+                    })
+            elif doc.get("file_path") and not doc.get("file_id"):
+                # Old document without GridFS - needs migration
+                missing_files.append({
+                    "entity_type": "client",
+                    "entity_id": client.get("id"),
+                    "entity_name": client.get("name"),
+                    "doc_type": doc.get("doc_type"),
+                    "file_id": None,
+                    "original_filename": doc.get("filename"),
+                    "needs_migration": True
+                })
+    
+    # Scan company master for missing documents
+    company = await db.company_master.find_one({"_id": "company_settings"})
+    if company:
+        doc_fields = ["logo", "cml_cdsl", "cml_nsdl", "cancelled_cheque", "pan_card"]
+        for field in doc_fields:
+            file_id = company.get(f"{field}_file_id")
+            if file_id:
+                metadata = await get_file_metadata(file_id)
+                if not metadata:
+                    missing_files.append({
+                        "entity_type": "company_master",
+                        "entity_id": "company_settings",
+                        "entity_name": "Company Master",
+                        "doc_type": field,
+                        "file_id": file_id
+                    })
+    
+    # Scan referral partners for missing documents
+    async for rp in db.referral_partners.find({}, {"_id": 0}):
+        doc_fields = ["pan_card", "aadhar_card", "cancelled_cheque"]
+        for field in doc_fields:
+            file_id = rp.get(f"{field}_file_id")
+            if file_id:
+                metadata = await get_file_metadata(file_id)
+                if not metadata:
+                    missing_files.append({
+                        "entity_type": "referral_partner",
+                        "entity_id": rp.get("id"),
+                        "entity_name": rp.get("name"),
+                        "doc_type": field,
+                        "file_id": file_id
+                    })
+    
+    # Scan business partners for missing documents
+    async for bp in db.business_partners.find({"documents": {"$exists": True, "$ne": []}}, {"_id": 0}):
+        for doc in bp.get("documents", []):
+            file_id = doc.get("file_id")
+            if file_id:
+                metadata = await get_file_metadata(file_id)
+                if not metadata:
+                    missing_files.append({
+                        "entity_type": "business_partner",
+                        "entity_id": bp.get("id"),
+                        "entity_name": bp.get("name"),
+                        "doc_type": doc.get("doc_type"),
+                        "file_id": file_id
+                    })
+    
+    # Scan research reports for missing files
+    async for report in db.research_reports.find({"file_id": {"$exists": True}}, {"_id": 0}):
+        file_id = report.get("file_id")
+        if file_id:
+            metadata = await get_file_metadata(file_id)
+            if not metadata:
+                missing_files.append({
+                    "entity_type": "research_report",
+                    "entity_id": report.get("id"),
+                    "entity_name": report.get("title"),
+                    "doc_type": "research_report",
+                    "file_id": file_id,
+                    "original_filename": report.get("file_name")
+                })
+    
+    # Scan contract notes for missing PDFs
+    async for cn in db.contract_notes.find({"file_id": {"$exists": True}}, {"_id": 0}):
+        file_id = cn.get("file_id")
+        if file_id:
+            metadata = await get_file_metadata(file_id)
+            if not metadata:
+                missing_files.append({
+                    "entity_type": "contract_note",
+                    "entity_id": cn.get("id"),
+                    "entity_name": cn.get("contract_note_number"),
+                    "doc_type": "contract_note_pdf",
+                    "file_id": file_id
+                })
+    
+    return {
+        "missing_files": missing_files,
+        "total_missing": len(missing_files),
+        "message": f"Found {len(missing_files)} missing files that need re-upload"
+    }
+
+
+@router.post("/reupload/{entity_type}/{entity_id}")
+async def reupload_file(
+    entity_type: str,
+    entity_id: str,
+    doc_type: str = Query(..., description="Document type to re-upload"),
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Re-upload a missing file for an entity (PE Desk/Manager only).
+    This is used to restore files that were lost during redeployment.
+    """
+    user_role = current_user.get("role", 6)
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can re-upload files")
+    
+    content = await file.read()
+    
+    # Upload to GridFS
+    file_id = await upload_file_to_gridfs(
+        content,
+        file.filename,
+        file.content_type or "application/octet-stream",
+        {
+            "category": f"{entity_type}_documents",
+            "entity_id": entity_id,
+            "doc_type": doc_type,
+            "uploaded_by": current_user.get("id"),
+            "uploaded_by_name": current_user.get("name"),
+            "is_reupload": True
+        }
+    )
+    
+    file_url = get_file_url(file_id)
+    
+    # Update the appropriate collection
+    if entity_type == "client":
+        # Update client document
+        await db.clients.update_one(
+            {"id": entity_id, "documents.doc_type": doc_type},
+            {"$set": {
+                "documents.$.file_id": file_id,
+                "documents.$.file_url": file_url,
+                "documents.$.reuploaded_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
+            }}
+        )
+    
+    elif entity_type == "company_master":
+        # Update company master document
+        await db.company_master.update_one(
+            {"_id": "company_settings"},
+            {"$set": {
+                f"{doc_type}_file_id": file_id,
+                f"{doc_type}_url": file_url
+            }}
+        )
+    
+    elif entity_type == "referral_partner":
+        # Update referral partner document
+        await db.referral_partners.update_one(
+            {"id": entity_id},
+            {"$set": {
+                f"{doc_type}_file_id": file_id,
+                f"{doc_type}_url": file_url
+            }}
+        )
+    
+    elif entity_type == "business_partner":
+        # Update business partner document
+        await db.business_partners.update_one(
+            {"id": entity_id, "documents.doc_type": doc_type},
+            {"$set": {
+                "documents.$.file_id": file_id,
+                "documents.$.file_url": file_url
+            }}
+        )
+    
+    elif entity_type == "research_report":
+        # Update research report
+        await db.research_reports.update_one(
+            {"id": entity_id},
+            {"$set": {
+                "file_id": file_id,
+                "file_url": file_url
+            }}
+        )
+    
+    elif entity_type == "contract_note":
+        # Update contract note
+        await db.contract_notes.update_one(
+            {"id": entity_id},
+            {"$set": {
+                "file_id": file_id,
+                "pdf_url": file_url
+            }}
+        )
+    
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown entity type: {entity_type}")
+    
+    return {
+        "success": True,
+        "message": f"File re-uploaded successfully for {entity_type}/{entity_id}",
+        "file_id": file_id,
+        "file_url": file_url
+    }
+
+
+@router.get("/stats")
+async def get_file_stats(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get file storage statistics (PE Desk/Manager only).
+    """
+    user_role = current_user.get("role", 6)
+    if not is_pe_level(user_role):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view file stats")
+    
+    # Count files in GridFS
+    total_files = await db.fs.files.count_documents({})
+    
+    # Get total size
+    pipeline = [
+        {"$group": {"_id": None, "total_size": {"$sum": "$length"}}}
+    ]
+    size_result = await db.fs.files.aggregate(pipeline).to_list(1)
+    total_size = size_result[0]["total_size"] if size_result else 0
+    
+    # Count by category
+    category_pipeline = [
+        {"$group": {"_id": "$metadata.category", "count": {"$sum": 1}, "size": {"$sum": "$length"}}}
+    ]
+    categories = await db.fs.files.aggregate(category_pipeline).to_list(100)
+    
+    return {
+        "total_files": total_files,
+        "total_size_bytes": total_size,
+        "total_size_mb": round(total_size / (1024 * 1024), 2),
+        "by_category": [
+            {
+                "category": c["_id"] or "uncategorized",
+                "count": c["count"],
+                "size_mb": round(c["size"] / (1024 * 1024), 2)
+            }
+            for c in categories
+        ]
+    }
+
