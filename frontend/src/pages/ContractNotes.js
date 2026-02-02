@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   FileText, 
   Search, 
@@ -41,9 +42,7 @@ const ContractNotes = () => {
   });
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isPEDesk = currentUser.role === 1;
+  const { isPELevel, isPEDesk } = useCurrentUser();
 
   useEffect(() => {
     if (!isPELevel) {

@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Building2, 
   Save, 
@@ -69,8 +70,7 @@ const CompanyMaster = () => {
     pan_card: useRef(null)
   };
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
+  const { isPEDesk } = useCurrentUser();
 
   useEffect(() => {
     if (!isPEDesk) {

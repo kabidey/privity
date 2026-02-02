@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   ArrowDownToLine, 
   CheckCircle2, 
@@ -34,8 +35,8 @@ const DPReceivables = () => {
   const [selectedDPType, setSelectedDPType] = useState('');
   const [confirming, setConfirming] = useState(false);
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const canAccess = currentUser.role === 1 || currentUser.role === 2;
+  const { isPELevel } = useCurrentUser();
+  const canAccess = isPELevel;
 
   useEffect(() => {
     if (!canAccess) {
