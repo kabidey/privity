@@ -325,7 +325,7 @@ async def get_my_direct_reports(current_user: dict = Depends(get_current_user)):
     return result
 
 
-@router.get("/{user_id}/role")
+@router.put("/{user_id}/role")
 async def update_user_role(user_id: str, role: int, current_user: dict = Depends(get_current_user)):
     """Update user role (PE Level)"""
     if not is_pe_level(current_user.get("role", 6)):
