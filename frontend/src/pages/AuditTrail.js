@@ -158,12 +158,12 @@ const AuditTrail = () => {
 
   const getRoleBadge = (roleName) => {
     const colors = {
-      'PE Desk': 'bg-red-100 text-red-800',
-      'PE Manager': 'bg-orange-100 text-orange-800',
-      'Zonal Manager': 'bg-amber-100 text-amber-800',
-      'Manager': 'bg-yellow-100 text-yellow-800',
-      'Employee': 'bg-green-100 text-green-800',
-      'Client': 'bg-blue-100 text-blue-800',
+      'PE Desk': 'bg-purple-100 text-purple-800',
+      'PE Manager': 'bg-indigo-100 text-indigo-800',
+      'Finance': 'bg-emerald-100 text-emerald-800',
+      'Viewer': 'bg-gray-100 text-gray-800',
+      'Partners Desk': 'bg-pink-100 text-pink-800',
+      'Business Partner': 'bg-orange-100 text-orange-800',
     };
     const color = colors[roleName] || 'bg-gray-100 text-gray-800';
     return <Badge variant="outline" className={color}>{roleName}</Badge>;
