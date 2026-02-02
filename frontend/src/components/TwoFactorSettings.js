@@ -29,6 +29,7 @@ const TwoFactorSettings = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [copiedIndex, setCopiedIndex] = useState(null);
   
   // Disable dialog states
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
@@ -58,79 +59,6 @@ const TwoFactorSettings = () => {
     fetchStatus();
   }, []);
 
-  // Setup flow handlers
-  const handleStartSetup = () => {
-    setSetupMode(true);
-    setSetupStep(1);
-    setSetupPassword('');
-    setSetupError('');
-  };
-
-  const handleCancelSetup = () => {
-    setSetupMode(false);
-    setSetupStep(1);
-    setSetupPassword('');
-    setQrCodeUrl('');
-    setSecretKey('');
-    setBackupCodes([]);
-    setTotpCode('');
-    setSetupError('');
-  };
-
-  const handlePasswordSubmit = async () => {
-    if (!setupPassword) {
-      setSetupError('Password is required');
-      return;
-    }
-
-    setSetupLoading(true);
-    setSetupError('');
-
-    try {
-      const response = await api.post('/auth/2fa/enable', { password: setupPassword });
-      setQrCodeUrl(response.data.qr_code_url);
-      setSecretKey(response.data.secret_key);
-      setBackupCodes(response.data.backup_codes);
-      setSetupStep(2);
-    } catch (err) {
-      setSetupError(err.response?.data?.detail || 'Failed to initiate 2FA setup');
-    } finally {
-      setSetupLoading(false);
-    }
-  };
-
-  const handleVerifyTotp = async () => {
-    if (totpCode.length !== 6) {
-      setSetupError('Please enter a 6-digit code');
-      return;
-    }
-
-    setSetupLoading(true);
-    setSetupError('');
-
-    try {
-      await api.post('/auth/2fa/verify-setup', { totp_code: totpCode });
-      setSetupStep(4);
-    } catch (err) {
-      setSetupError(err.response?.data?.detail || 'Invalid code. Please try again.');
-    } finally {
-      setSetupLoading(false);
-    }
-  };
-
-  const handleSetupComplete = () => {
-    toast.success('Two-factor authentication enabled successfully!');
-    handleCancelSetup();
-    fetchStatus();
-  };
-
-  const copySecretKey = () => {
-    navigator.clipboard.writeText(secretKey);
-    setCopiedSecret(true);
-    toast.success('Secret key copied');
-    setTimeout(() => setCopiedSecret(false), 2000);
-  };
-
   const copyBackupCode = (code, index) => {
     navigator.clipboard.writeText(code);
     setCopiedIndex(index);
@@ -138,8 +66,7 @@ const TwoFactorSettings = () => {
   };
 
   const copyAllBackupCodes = () => {
-    const codes = setupStep === 4 ? backupCodes : newBackupCodes;
-    navigator.clipboard.writeText(codes.join('\n'));
+    navigator.clipboard.writeText(newBackupCodes.join('\n'));
     toast.success('All backup codes copied');
   };
 
@@ -199,236 +126,6 @@ const TwoFactorSettings = () => {
     );
   }
 
-  // Render setup flow
-  if (setupMode) {
-    return (
-      <Card data-testid="2fa-setup-card">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-emerald-600" />
-              Enable Two-Factor Authentication
-            </CardTitle>
-            <Button variant="ghost" size="sm" onClick={handleCancelSetup}>
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Cancel
-            </Button>
-          </div>
-          <CardDescription>
-            Step {setupStep} of 4: {
-              setupStep === 1 ? 'Confirm Password' :
-              setupStep === 2 ? 'Scan QR Code' :
-              setupStep === 3 ? 'Verify Code' :
-              'Save Backup Codes'
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Step 1: Password Confirmation */}
-          {setupStep === 1 && (
-            <>
-              <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">How it works:</h4>
-                <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                  <li>1. Confirm your password</li>
-                  <li>2. Scan QR code with your authenticator app</li>
-                  <li>3. Enter the 6-digit code to verify</li>
-                  <li>4. Save your backup codes securely</li>
-                </ul>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="setup-password">Confirm your password</Label>
-                <Input
-                  id="setup-password"
-                  type="password"
-                  placeholder="Enter your current password"
-                  value={setupPassword}
-                  onChange={(e) => setSetupPassword(e.target.value)}
-                  disabled={setupLoading}
-                  data-testid="2fa-password-input"
-                  onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                />
-              </div>
-
-              {setupError && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 rounded-md">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm">{setupError}</span>
-                </div>
-              )}
-
-              <Button
-                onClick={handlePasswordSubmit}
-                disabled={setupLoading || !setupPassword}
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
-                data-testid="2fa-continue-btn"
-              >
-                {setupLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    Continue
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </>
-          )}
-
-          {/* Step 2: QR Code */}
-          {setupStep === 2 && (
-            <>
-              <div className="text-center">
-                <Smartphone className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
-                </p>
-              </div>
-
-              <div className="flex justify-center">
-                <div className="p-4 bg-white rounded-lg shadow-sm border">
-                  <img
-                    src={qrCodeUrl}
-                    alt="2FA QR Code"
-                    className="w-48 h-48"
-                    data-testid="2fa-qr-code"
-                  />
-                </div>
-              </div>
-
-              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm">
-                <p className="text-gray-600 dark:text-gray-400 mb-2">Can't scan? Enter this key manually:</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-white dark:bg-gray-800 p-2 rounded font-mono text-xs break-all">
-                    {secretKey}
-                  </code>
-                  <Button variant="ghost" size="sm" onClick={copySecretKey}>
-                    {copiedSecret ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              <Button
-                onClick={() => setSetupStep(3)}
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
-              >
-                I've Scanned the QR Code
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </>
-          )}
-
-          {/* Step 3: Verify TOTP */}
-          {setupStep === 3 && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="totp-code">Enter 6-digit code from your authenticator app</Label>
-                <Input
-                  id="totp-code"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="000000"
-                  maxLength={6}
-                  value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                  disabled={setupLoading}
-                  className="font-mono text-center text-2xl tracking-widest"
-                  data-testid="2fa-code-input"
-                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyTotp()}
-                />
-              </div>
-
-              {setupError && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 rounded-md">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm">{setupError}</span>
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setSetupStep(2)} className="flex-1">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                <Button
-                  onClick={handleVerifyTotp}
-                  disabled={setupLoading || totpCode.length !== 6}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                  data-testid="2fa-verify-btn"
-                >
-                  {setupLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    'Verify'
-                  )}
-                </Button>
-              </div>
-            </>
-          )}
-
-          {/* Step 4: Backup Codes */}
-          {setupStep === 4 && (
-            <>
-              <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg flex items-start gap-2">
-                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-amber-800 dark:text-amber-200">
-                  <strong>Important:</strong> Save these backup codes in a safe place. Each code can only be used once.
-                </div>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-2">
-                {backupCodes.map((code, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded"
-                  >
-                    <code className="font-mono text-sm">{code}</code>
-                    <button
-                      onClick={() => copyBackupCode(code, index)}
-                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                    >
-                      {copiedIndex === index ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Copy className="h-4 w-4 text-gray-400" />
-                      )}
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <Button variant="outline" onClick={copyAllBackupCodes} className="w-full">
-                <Copy className="h-4 w-4 mr-2" />
-                Copy All Backup Codes
-              </Button>
-
-              <Button
-                onClick={handleSetupComplete}
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
-                data-testid="2fa-complete-btn"
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                I've Saved My Backup Codes
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Normal view (not in setup mode)
   return (
     <Card data-testid="2fa-settings-card">
       <CardHeader>
@@ -507,9 +204,8 @@ const TwoFactorSettings = () => {
             </>
           ) : (
             <Button 
-              variant="outline" 
-              className="gap-2" 
-              onClick={handleStartSetup}
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700" 
+              onClick={() => navigate('/2fa-setup')}
               data-testid="enable-2fa-btn"
             >
               <Shield className="h-4 w-4" />
