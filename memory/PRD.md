@@ -1205,6 +1205,24 @@ rp_payments: {
 - `/app/frontend/src/pages/Inventory.js` - LP/WAP display and editing
 - `/app/frontend/src/pages/PEDeskHitReport.js` - New page
 - `/app/frontend/src/pages/FileMigration.js` - New page
+
+
+#### ✅ Booking Form LP Integration - VERIFIED (Feb 2, 2026)
+**Testing Status:** 100% backend + frontend pass rate (iteration_46)
+
+**Implementation Verified:**
+- Booking form displays green gradient showing "Landing Price (Buying Price)" when stock selected
+- LP value is shown prominently (e.g., ₹98.22)
+- Available stock count displayed alongside LP
+- PE Desk users see "(Editable)" suffix and can modify LP
+- Non-PE users see read-only LP field
+- Bookings table column renamed from "Buying Price" to "Landing Price"
+- Backend stores: `buying_price` (LP), `landing_price` (explicit), `weighted_avg_price` (for HIT report)
+- Backend enforces LP for Employee/Manager roles (cannot override)
+
+**Files Modified:**
+- `/app/frontend/src/pages/Bookings.js` - Renamed `getWeightedAvgPrice` → `getLandingPrice`, updated form display
+
 - `/app/frontend/src/App.js` - Added routes
 - `/app/frontend/src/components/Layout.js` - Added navigation
 
