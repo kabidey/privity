@@ -25,7 +25,8 @@ const Inventory = () => {
   
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPEDesk = currentUser.role === 1;
-  const isPELevel = currentUser.role <= 2; // PE Desk or PE Manager
+  const isPEManager = currentUser.role === 2;
+  const isPELevel = isPEDesk || isPEManager; // PE Desk or PE Manager
 
   useEffect(() => {
     fetchInventory();
