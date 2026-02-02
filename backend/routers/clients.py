@@ -288,7 +288,19 @@ async def get_clients(
             query["$or"] = search_conditions
     
     clients = await db.clients.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
-    return [Client(**c) for c in clients]
+    
+    # Add can_book field to each client
+    # PE Level can book for any client, others can only book for clients mapped to them
+    result = []
+    for c in clients:
+        client_data = dict(c)
+        if is_pe_level(user_role):
+            client_data["can_book"] = True
+        else:
+            client_data["can_book"] = (c.get("mapped_employee_id") == user_id)
+        result.append(Client(**client_data))
+    
+    return result
 
 
 @router.get("/clients/pending-approval", response_model=List[Client])
