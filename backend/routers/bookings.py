@@ -186,11 +186,18 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
             detail="Selling price is required and must be greater than 0"
         )
     
-    # Determine buying price
-    if user_role == 4:  # Employee must use weighted average
-        buying_price = weighted_avg
+    # Get Landing Price (LP) from inventory - this is what non-PE users see and use
+    inventory = await db.inventory.find_one({"stock_id": booking_data.stock_id}, {"_id": 0})
+    landing_price = inventory.get("landing_price") if inventory else None
+    if landing_price is None or landing_price <= 0:
+        landing_price = weighted_avg  # Default to WAP if LP not set
+    
+    # Determine buying price - Use Landing Price (LP) instead of WAP
+    if user_role in [5, 4]:  # Employee/Manager must use landing price
+        buying_price = landing_price
     else:
-        buying_price = booking_data.buying_price if booking_data.buying_price else weighted_avg
+        # PE Desk/PE Manager can override but default to LP
+        buying_price = booking_data.buying_price if booking_data.buying_price else landing_price
     
     if buying_price is None or buying_price <= 0:
         raise HTTPException(
