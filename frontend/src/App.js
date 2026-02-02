@@ -46,6 +46,7 @@ import PEDeskHitReport from './pages/PEDeskHitReport';
 import FileMigration from './pages/FileMigration';
 import HelpTutorial from './pages/HelpTutorial';
 import AccountSecurity from './pages/AccountSecurity';
+import TwoFactorSetupPage from './pages/TwoFactorSetupPage';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
