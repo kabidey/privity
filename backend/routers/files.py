@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Query
 from fastapi.responses import StreamingResponse, Response
 from typing import Optional
 import io
-from auth import get_current_user
+from utils.auth import get_current_user
 from services.file_storage import (
     upload_file_to_gridfs,
     download_file_from_gridfs,
