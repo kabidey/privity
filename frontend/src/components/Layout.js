@@ -283,6 +283,9 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: LayoutDashboard, label: 'My Dashboard', path: '/bp-dashboard' });
   }
 
+  // Account Security - visible to all users (2FA settings, change password)
+  menuItems.push({ icon: ShieldCheck, label: 'Account Security', path: '/account-security' });
+
   // Help & Tutorial - visible to all users
   menuItems.push({ icon: HelpCircle, label: 'Help & Tutorial', path: '/help' });
   
