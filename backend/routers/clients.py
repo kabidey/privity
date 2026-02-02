@@ -601,7 +601,7 @@ async def upload_bank_proof(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload bank proof document for proprietor clients with name mismatch (PE Level only)."""
+    """Upload bank proof document for proprietor clients with name mismatch (PE Level only). Stored in GridFS."""
     user_role = current_user.get("role", 6)
     
     # Only PE Desk and PE Manager can upload bank proof
@@ -616,18 +616,56 @@ async def upload_bank_proof(
     if not client.get("is_proprietor") or not client.get("has_name_mismatch"):
         raise HTTPException(status_code=400, detail="Bank proof upload is only required for proprietor clients with name mismatch")
     
-    # Create client directory
-    client_dir = UPLOAD_DIR / client_id
-    client_dir.mkdir(exist_ok=True)
+    # Read file content
+    content = await file.read()
     
-    # Save file
+    # Generate filename
     file_ext = Path(file.filename).suffix
     filename = f"bank_proof_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{file_ext}"
+    
+    # Upload to GridFS for persistent storage
+    file_id = await upload_file_to_gridfs(
+        content,
+        filename,
+        file.content_type or "application/octet-stream",
+        {
+            "category": "client_bank_proof",
+            "entity_id": client_id,
+            "doc_type": "bank_proof",
+            "uploaded_by": current_user.get("id"),
+            "uploaded_by_name": current_user.get("name")
+        }
+    )
+    
+    # Also save locally (for backward compatibility)
+    client_dir = UPLOAD_DIR / client_id
+    client_dir.mkdir(exist_ok=True)
     file_path = client_dir / filename
     
     async with aiofiles.open(file_path, 'wb') as f:
-        content = await file.read()
         await f.write(content)
+    
+    # Update client with bank proof URL (use GridFS URL)
+    bank_proof_url = get_file_url(file_id)
+    update_data = {
+        "bank_proof_url": bank_proof_url,
+        "bank_proof_file_id": file_id,
+        "bank_proof_uploaded_by": current_user["id"],
+        "bank_proof_uploaded_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.clients.update_one({"id": client_id}, {"$set": update_data})
+    
+    # Also add to documents array for consistency
+    doc_record = {
+        "doc_type": "bank_proof",
+        "filename": filename,
+        "file_id": file_id,
+        "file_url": bank_proof_url,
+        "file_path": str(file_path),
+        "upload_date": datetime.now(timezone.utc).isoformat(),
+        "ocr_data": None
+    }
     
     # Update client with bank proof URL
     bank_proof_url = f"/api/clients/{client_id}/documents/{filename}"
