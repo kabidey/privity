@@ -406,53 +406,33 @@ class UserMapping(BaseModel):
 @router.get("/hierarchy")
 async def get_user_hierarchy(current_user: dict = Depends(get_current_user)):
     """Get all users with their hierarchy mappings (PE Level or for own subordinates)"""
+    from services.hierarchy_service import get_all_subordinates
+    
     user_role = current_user.get("role", 6)
+    user_id = current_user.get("id")
     
     # PE Level can see all users
     if is_pe_level(user_role):
         users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
-    # Manager can see their employees
-    elif user_role == 4:
-        users = await db.users.find(
-            {"$or": [{"id": current_user["id"]}, {"manager_id": current_user["id"]}]},
-            {"_id": 0, "password": 0}
-        ).to_list(1000)
-    # Zonal Manager can see their managers and those managers' employees
-    elif user_role == 3:
-        # Get direct reports (managers)
-        direct_reports = await db.users.find(
-            {"manager_id": current_user["id"]},
-            {"_id": 0, "password": 0}
-        ).to_list(100)
-        direct_report_ids = [u["id"] for u in direct_reports]
-        
-        # Get employees of those managers
-        employees = await db.users.find(
-            {"manager_id": {"$in": direct_report_ids}},
-            {"_id": 0, "password": 0}
-        ).to_list(1000)
-        
-        # Get self
-        self_user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0, "password": 0})
-        
-        users = [self_user] + direct_reports + employees if self_user else direct_reports + employees
     else:
-        users = [await db.users.find_one({"id": current_user["id"]}, {"_id": 0, "password": 0})]
-        users = [u for u in users if u]
+        # Get subordinates using new hierarchy
+        subordinate_ids = await get_all_subordinates(user_id)
+        all_ids = [user_id] + subordinate_ids
+        
+        users = await db.users.find(
+            {"id": {"$in": all_ids}},
+            {"_id": 0, "password": 0}
+        ).to_list(1000)
     
-    # Add role_name and manager_name to each user
+    # Enrich with hierarchy info
     result = []
-    user_map = {u["id"]: u for u in users}
-    all_users = await db.users.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
-    all_user_map = {u["id"]: u["name"] for u in all_users}
-    
     for user in users:
-        user_data = {
-            **user,
-            "role_name": ROLES.get(user.get("role", 6), "Viewer"),
-            "manager_name": all_user_map.get(user.get("manager_id")) if user.get("manager_id") else None
-        }
-        result.append(user_data)
+        enriched = await enrich_user_with_hierarchy(user)
+        enriched["role_name"] = ROLES.get(user.get("role", 6), "Viewer")
+        # Keep backward compatibility - copy reports_to to manager_id
+        enriched["manager_id"] = user.get("reports_to")
+        enriched["manager_name"] = enriched.get("reports_to_name")
+        result.append(enriched)
     
     return result
 
