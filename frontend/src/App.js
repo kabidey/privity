@@ -208,6 +208,7 @@ function App() {
                           <Route path="/file-migration" element={<FileMigration />} />
                           <Route path="/help" element={<HelpTutorial />} />
                           <Route path="/account-security" element={<AccountSecurity />} />
+                          <Route path="/2fa-setup" element={<TwoFactorSetupPage />} />
                         </Routes>
                       </Layout>
                       {/* Notification Permission Banner */}
