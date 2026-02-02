@@ -1686,7 +1686,7 @@ const Clients = () => {
                         <Button variant="ghost" size="sm" onClick={() => navigate(`/clients/${client.id}/portfolio`)} title="View Portfolio">
                           <PieChart className="h-4 w-4" />
                         </Button>
-                        {isAdmin && (
+                        {canMapClients && (
                           <Button variant="ghost" size="sm" onClick={() => handleMapping(client)} title="Map to Employee">
                             <UserCog className="h-4 w-4" />
                           </Button>
