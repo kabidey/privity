@@ -20,6 +20,7 @@ from services.contract_note_service import (
     generate_contract_note_number
 )
 from services.email_service import send_email
+from services.file_storage import upload_file_to_gridfs, get_file_url
 
 router = APIRouter(prefix="/contract-notes", tags=["Contract Notes"])
 
