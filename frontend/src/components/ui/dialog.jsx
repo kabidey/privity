@@ -16,7 +16,7 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-[10001] bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props} />
@@ -30,7 +30,7 @@ const DialogContent = React.forwardRef(({ className, children, hideCloseButton =
       ref={ref}
       className={cn(
         // Base styles - mobile first (bottom sheet style)
-        "fixed z-50 grid gap-4 border bg-background shadow-lg duration-200",
+        "fixed z-[10002] grid gap-4 border bg-background shadow-lg duration-200",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         // Mobile: bottom sheet that slides up
         "inset-x-0 bottom-0 rounded-t-2xl p-4 max-h-[90vh] overflow-y-auto",
