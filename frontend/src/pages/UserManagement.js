@@ -305,6 +305,7 @@ const UserManagement = () => {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>PAN</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Hierarchy Level</TableHead>
                         <TableHead>Reports To</TableHead>
@@ -317,6 +318,7 @@ const UserManagement = () => {
                         <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
                           <TableCell className="font-medium">{user.name}</TableCell>
                           <TableCell className="text-sm">{user.email}</TableCell>
+                          <TableCell className="font-mono text-xs">{user.pan_number || '-'}</TableCell>
                           <TableCell>
                             <Select
                               value={String(user.role)}
