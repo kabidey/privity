@@ -119,9 +119,6 @@ async def get_inventory(current_user: dict = Depends(get_current_user)):
         
         result.append(item)
     
-    print(f"DEBUG: Returning {len(result)} inventory items")
-    if result:
-        print(f"DEBUG: First item landing_price: {result[0].get('landing_price')}")
     return result
 
 
