@@ -886,6 +886,16 @@ const Vendors = () => {
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2 flex-wrap">
                         {vendor.name}
+                        {/* Cloned badge - visible to all */}
+                        {vendor.is_cloned && (
+                          <span 
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
+                            title={`Cloned from ${vendor.cloned_from_type || 'client/vendor'}`}
+                          >
+                            <Copy className="h-3 w-3" />
+                            Cloned
+                          </span>
+                        )}
                         {/* Red flag for proprietor with name mismatch - visible to PE Desk/Manager */}
                         {isPELevel && vendor.is_proprietor && vendor.has_name_mismatch && (
                           <div className="flex items-center gap-1">
