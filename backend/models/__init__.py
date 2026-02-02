@@ -95,11 +95,19 @@ class BankAccount(BaseModel):
 
 
 class ClientDocument(BaseModel):
+    model_config = ConfigDict(extra="ignore")
     doc_type: str  # pan_card, cml_copy, cancelled_cheque
-    filename: str
-    file_path: str = ""
-    upload_date: str
+    filename: Optional[str] = None
+    original_filename: Optional[str] = None
+    file_path: Optional[str] = None
+    file_url: Optional[str] = None
+    gridfs_id: Optional[str] = None
+    upload_date: Optional[str] = None
+    uploaded_at: Optional[str] = None
+    uploaded_by: Optional[str] = None
     ocr_data: Optional[Dict[str, Any]] = None
+    ocr_status: Optional[str] = None
+    ocr_processed_at: Optional[str] = None
 
 
 class ClientCreate(BaseModel):
