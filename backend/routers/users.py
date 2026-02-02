@@ -71,17 +71,17 @@ async def enrich_user_with_hierarchy(user: dict) -> dict:
 # ============== Employee Endpoints (for Partners Desk) ==============
 @router.get("/employees")
 async def get_employees(current_user: dict = Depends(get_current_user)):
-    """Get list of employees for BP linking (PE Level or Partners Desk)"""
-    if not can_manage_business_partners(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Access denied")
+    """Get list of all users for client mapping (PE Level only)"""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view employee list for mapping")
     
-    # Return only employees (roles 3-7) for BP linking
+    # Return all users for client mapping
     users = await db.users.find(
-        {"role": {"$in": [3, 4, 5, 6, 7]}},
+        {},
         {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
     ).to_list(1000)
     
-    return [{"id": u["id"], "name": u["name"], "email": u["email"], "role": u.get("role", 5), "role_name": ROLES.get(u.get("role", 5), "Employee")} for u in users]
+    return [{"id": u["id"], "name": u["name"], "email": u["email"], "role": u.get("role", 7), "role_name": ROLES.get(u.get("role", 7), "Employee")} for u in users]
 
 
 # ============== User Endpoints ==============
