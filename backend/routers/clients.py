@@ -225,39 +225,38 @@ async def get_clients(
     include_unmapped: Optional[bool] = False,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all clients with optional filters based on hierarchy."""
-    from services.hierarchy_service import get_team_user_ids
-    
+    """Get all clients with optional filters based on role and mapping."""
     query = {}
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 7)
     user_id = current_user.get("id")
-    hierarchy_level = current_user.get("hierarchy_level", 1)
     
-    # PE Level sees everything
+    # Role-based access:
+    # 1 (PE Desk), 2 (PE Manager) - See all clients/vendors
+    # 3 (Finance) - See all clients (no vendors)
+    # 4 (Viewer) - See all clients/vendors (read-only)
+    # 5 (Partners Desk) - See only clients mapped to them
+    # 6 (Business Partner) - See only clients mapped to them
+    # 7 (Employee) - See only clients mapped to them
+    
     if is_pe_level(user_role):
+        # PE Level sees everything
         if is_vendor is not None:
             query["is_vendor"] = is_vendor
-    # Finance role sees all clients (no vendors)
-    elif user_role == 6:
+    elif user_role == 3:
+        # Finance sees all clients (no vendors)
         query["is_vendor"] = False
-    # Viewer sees all but read-only
-    elif user_role == 7:
+    elif user_role == 4:
+        # Viewer sees all (read-only)
         if is_vendor is not None:
             query["is_vendor"] = is_vendor
-    # Employee/Manager/Zonal/Regional/Business Head - use hierarchy
     else:
+        # All other roles (Partners Desk, Business Partner, Employee) - see only mapped clients
         if is_vendor == True:
             raise HTTPException(status_code=403, detail="You do not have access to vendors")
         query["is_vendor"] = False
         
-        # Get team user IDs based on hierarchy
-        team_ids = await get_team_user_ids(user_id, include_self=True)
-        
-        # Filter clients by team
-        query["$or"] = [
-            {"mapped_employee_id": {"$in": team_ids}},
-            {"created_by": {"$in": team_ids}}
-        ]
+        # Only show clients mapped to this user
+        query["mapped_employee_id"] = user_id
     
     # Pending approval filter (for PE Level only)
     if pending_approval and is_pe_level(user_role):
