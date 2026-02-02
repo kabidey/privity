@@ -207,20 +207,24 @@ async def bulk_upload_stocks(
 
 
 # ============== Inventory Endpoints ==============
-@router.get("/inventory", response_model=List[Inventory])
-async def get_inventory(current_user: dict = Depends(get_current_user)):
-    """Get current inventory"""
-    inventory = await db.inventory.find({}, {"_id": 0}).to_list(10000)
-    return [Inventory(**i) for i in inventory]
+# NOTE: These legacy endpoints are DEPRECATED. Use /api/inventory instead (from inventory_router)
+# which includes proper LP/WAP logic for role-based visibility.
+# Keeping these commented for backwards compatibility reference only.
+
+# @router.get("/inventory", response_model=List[Inventory])
+# async def get_inventory(current_user: dict = Depends(get_current_user)):
+#     """Get current inventory"""
+#     inventory = await db.inventory.find({}, {"_id": 0}).to_list(10000)
+#     return [Inventory(**i) for i in inventory]
 
 
-@router.get("/inventory/{stock_id}", response_model=Inventory)
-async def get_stock_inventory(stock_id: str, current_user: dict = Depends(get_current_user)):
-    """Get inventory for a specific stock"""
-    inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
-    if not inventory:
-        raise HTTPException(status_code=404, detail="Inventory not found")
-    return Inventory(**inventory)
+# @router.get("/inventory/{stock_id}", response_model=Inventory)
+# async def get_stock_inventory(stock_id: str, current_user: dict = Depends(get_current_user)):
+#     """Get inventory for a specific stock"""
+#     inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+#     if not inventory:
+#         raise HTTPException(status_code=404, detail="Inventory not found")
+#     return Inventory(**inventory)
 
 
 # ============== Corporate Actions Endpoints ==============
