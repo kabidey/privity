@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Users, 
   Plus, 
@@ -51,12 +52,9 @@ const BusinessPartners = () => {
     cancelled_cheque: useRef(null)
   };
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isPEDesk = currentUser.role === 1;
-  const isPartnersDesk = currentUser.role === 5;  // Partners Desk role
-  const canAccessBP = isPELevel || isPartnersDesk;
-  const canDeleteBP = isPEDesk; // Only PE Desk can delete
+  const { isPELevel, isPEDesk, isPartnersDesk, canManageBusinessPartners, canDelete } = useCurrentUser();
+  const canAccessBP = canManageBusinessPartners;
+  const canDeleteBP = canDelete;
 
   const [formData, setFormData] = useState({
     name: '',

@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   History, Search, Filter, Eye, RefreshCw, User, Calendar, 
   Activity, FileText, Users, BarChart3, Clock, Shield
@@ -38,8 +39,7 @@ const AuditTrail = () => {
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
   const [statsDays, setStatsDays] = useState(7);
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const { isPELevel } = useCurrentUser();
 
   useEffect(() => {
     if (!isPELevel) {

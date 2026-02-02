@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Upload, 
   Download, 
@@ -31,8 +32,7 @@ const BulkUpload = () => {
   const [activeTab, setActiveTab] = useState('clients');
   const fileInputRef = useRef(null);
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
+  const { isPEDesk } = useCurrentUser();
 
   const entityConfig = {
     clients: {
