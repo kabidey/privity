@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import api from '../utils/api';
 import { toast } from 'sonner';
 import SohiniAssistant from '../components/SohiniAssistant';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,10 +20,9 @@ const Dashboard = () => {
   const [dismissedSmtpWarning, setDismissedSmtpWarning] = useState(false);
   const [clearingCache, setClearingCache] = useState(false);
   
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isPEDesk = currentUser.role === 1;
-  const isNotBP = currentUser.role !== 6; // Business Partner is role 6
+  // Use centralized role utility
+  const { user: currentUser, isPELevel, isPEDesk, isBusinessPartner } = useCurrentUser();
+  const isNotBP = !isBusinessPartner;
 
   useEffect(() => {
     fetchData();
@@ -30,7 +30,7 @@ const Dashboard = () => {
     if (isPELevel) {
       checkSmtpStatus();
     }
-  }, []);
+  }, [isPELevel]);
 
   const checkSmtpStatus = async () => {
     try {
