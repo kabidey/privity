@@ -958,6 +958,8 @@ const Clients = () => {
             {isEmployee ? 'Manage your clients' : 'Manage clients with documents and employee mapping'}
           </p>
         </div>
+        {/* Add Client button - hidden for Viewers */}
+        {!isViewer && (
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button className="rounded-sm w-full sm:w-auto" data-testid="add-client-button">
