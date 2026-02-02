@@ -74,6 +74,21 @@ def is_pe_desk_only(role: int) -> bool:
     return role == 1
 
 
+def is_viewer(role: int) -> bool:
+    """Check if user is Viewer (read-only access, no create/edit/delete/download)"""
+    return role == 4
+
+
+def check_viewer_restriction(role: int, action: str = "perform this action"):
+    """Raise HTTPException if user is a Viewer trying to modify data"""
+    if is_viewer(role):
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Viewers are not allowed to {action}. Contact an administrator if you need additional permissions."
+        )
+
+
 def has_finance_access(role: int) -> bool:
     """Check if user has access to Finance page (PE Level or Finance role)"""
     return role in [1, 2, 3]
