@@ -19,23 +19,43 @@ import {
   CheckCircle2, 
   Loader2,
   Copy,
-  ShieldCheck
+  ShieldCheck,
+  Smartphone,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import TwoFactorSetup from './TwoFactorSetup';
 
 const TwoFactorSettings = () => {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [disableDialogOpen, setDisableDialogOpen] = useState(false);
-  const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
-  const [setupDialogOpen, setSetupDialogOpen] = useState(false);
-  const [password, setPassword] = useState('');
-  const [actionLoading, setActionLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [newBackupCodes, setNewBackupCodes] = useState([]);
+  
+  // Setup flow states
+  const [setupMode, setSetupMode] = useState(false);
+  const [setupStep, setSetupStep] = useState(1); // 1: password, 2: qr code, 3: verify, 4: backup codes
+  const [setupPassword, setSetupPassword] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [secretKey, setSecretKey] = useState('');
+  const [backupCodes, setBackupCodes] = useState([]);
+  const [totpCode, setTotpCode] = useState('');
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [setupError, setSetupError] = useState('');
+  const [copiedSecret, setCopiedSecret] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
+  
+  // Disable dialog states
+  const [disableDialogOpen, setDisableDialogOpen] = useState(false);
+  const [disablePassword, setDisablePassword] = useState('');
+  const [disableLoading, setDisableLoading] = useState(false);
+  const [disableError, setDisableError] = useState('');
+  
+  // Regenerate dialog states
+  const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
+  const [regeneratePassword, setRegeneratePassword] = useState('');
+  const [regenerateLoading, setRegenerateLoading] = useState(false);
+  const [regenerateError, setRegenerateError] = useState('');
+  const [newBackupCodes, setNewBackupCodes] = useState([]);
 
   const fetchStatus = async () => {
     try {
@@ -52,48 +72,77 @@ const TwoFactorSettings = () => {
     fetchStatus();
   }, []);
 
-  const handleDisable2FA = async () => {
-    if (!password) {
-      setError('Password is required');
+  // Setup flow handlers
+  const handleStartSetup = () => {
+    setSetupMode(true);
+    setSetupStep(1);
+    setSetupPassword('');
+    setSetupError('');
+  };
+
+  const handleCancelSetup = () => {
+    setSetupMode(false);
+    setSetupStep(1);
+    setSetupPassword('');
+    setQrCodeUrl('');
+    setSecretKey('');
+    setBackupCodes([]);
+    setTotpCode('');
+    setSetupError('');
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!setupPassword) {
+      setSetupError('Password is required');
       return;
     }
 
-    setActionLoading(true);
-    setError('');
+    setSetupLoading(true);
+    setSetupError('');
 
     try {
-      await api.post('/auth/2fa/disable', { password });
-      toast.success('Two-factor authentication disabled');
-      setDisableDialogOpen(false);
-      setPassword('');
-      fetchStatus();
+      const response = await api.post('/auth/2fa/enable', { password: setupPassword });
+      setQrCodeUrl(response.data.qr_code_url);
+      setSecretKey(response.data.secret_key);
+      setBackupCodes(response.data.backup_codes);
+      setSetupStep(2);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to disable 2FA');
+      setSetupError(err.response?.data?.detail || 'Failed to initiate 2FA setup');
     } finally {
-      setActionLoading(false);
+      setSetupLoading(false);
     }
   };
 
-  const handleRegenerateBackupCodes = async () => {
-    if (!password) {
-      setError('Password is required');
+  const handleVerifyTotp = async () => {
+    if (totpCode.length !== 6) {
+      setSetupError('Please enter a 6-digit code');
       return;
     }
 
-    setActionLoading(true);
-    setError('');
+    setSetupLoading(true);
+    setSetupError('');
 
     try {
-      const response = await api.post('/auth/2fa/regenerate-backup-codes', { password });
-      setNewBackupCodes(response.data.backup_codes);
-      toast.success('New backup codes generated');
-      setPassword('');
-      fetchStatus();
+      await api.post('/auth/2fa/verify-setup', { totp_code: totpCode });
+      setSetupStep(4);
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to regenerate backup codes');
+      setSetupError(err.response?.data?.detail || 'Invalid code. Please try again.');
     } finally {
-      setActionLoading(false);
+      setSetupLoading(false);
     }
+  };
+
+  const handleSetupComplete = () => {
+    toast.success('Two-factor authentication enabled successfully!');
+    handleCancelSetup();
+    fetchStatus();
+  };
+
+  const copySecretKey = () => {
+    navigator.clipboard.writeText(secretKey);
+    setCopiedSecret(true);
+    toast.success('Secret key copied');
+    setTimeout(() => setCopiedSecret(false), 2000);
   };
 
   const copyBackupCode = (code, index) => {
@@ -103,8 +152,55 @@ const TwoFactorSettings = () => {
   };
 
   const copyAllBackupCodes = () => {
-    navigator.clipboard.writeText(newBackupCodes.join('\n'));
+    const codes = setupStep === 4 ? backupCodes : newBackupCodes;
+    navigator.clipboard.writeText(codes.join('\n'));
     toast.success('All backup codes copied');
+  };
+
+  // Disable 2FA handler
+  const handleDisable2FA = async () => {
+    if (!disablePassword) {
+      setDisableError('Password is required');
+      return;
+    }
+
+    setDisableLoading(true);
+    setDisableError('');
+
+    try {
+      await api.post('/auth/2fa/disable', { password: disablePassword });
+      toast.success('Two-factor authentication disabled');
+      setDisableDialogOpen(false);
+      setDisablePassword('');
+      fetchStatus();
+    } catch (err) {
+      setDisableError(err.response?.data?.detail || 'Failed to disable 2FA');
+    } finally {
+      setDisableLoading(false);
+    }
+  };
+
+  // Regenerate backup codes handler
+  const handleRegenerateBackupCodes = async () => {
+    if (!regeneratePassword) {
+      setRegenerateError('Password is required');
+      return;
+    }
+
+    setRegenerateLoading(true);
+    setRegenerateError('');
+
+    try {
+      const response = await api.post('/auth/2fa/regenerate-backup-codes', { password: regeneratePassword });
+      setNewBackupCodes(response.data.backup_codes);
+      toast.success('New backup codes generated');
+      setRegeneratePassword('');
+      fetchStatus();
+    } catch (err) {
+      setRegenerateError(err.response?.data?.detail || 'Failed to regenerate backup codes');
+    } finally {
+      setRegenerateLoading(false);
+    }
   };
 
   if (loading) {
@@ -117,6 +213,236 @@ const TwoFactorSettings = () => {
     );
   }
 
+  // Render setup flow
+  if (setupMode) {
+    return (
+      <Card data-testid="2fa-setup-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-emerald-600" />
+              Enable Two-Factor Authentication
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={handleCancelSetup}>
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Cancel
+            </Button>
+          </div>
+          <CardDescription>
+            Step {setupStep} of 4: {
+              setupStep === 1 ? 'Confirm Password' :
+              setupStep === 2 ? 'Scan QR Code' :
+              setupStep === 3 ? 'Verify Code' :
+              'Save Backup Codes'
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Step 1: Password Confirmation */}
+          {setupStep === 1 && (
+            <>
+              <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">How it works:</h4>
+                <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                  <li>1. Confirm your password</li>
+                  <li>2. Scan QR code with your authenticator app</li>
+                  <li>3. Enter the 6-digit code to verify</li>
+                  <li>4. Save your backup codes securely</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="setup-password">Confirm your password</Label>
+                <Input
+                  id="setup-password"
+                  type="password"
+                  placeholder="Enter your current password"
+                  value={setupPassword}
+                  onChange={(e) => setSetupPassword(e.target.value)}
+                  disabled={setupLoading}
+                  data-testid="2fa-password-input"
+                  onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                />
+              </div>
+
+              {setupError && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 rounded-md">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm">{setupError}</span>
+                </div>
+              )}
+
+              <Button
+                onClick={handlePasswordSubmit}
+                disabled={setupLoading || !setupPassword}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                data-testid="2fa-continue-btn"
+              >
+                {setupLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+
+          {/* Step 2: QR Code */}
+          {setupStep === 2 && (
+            <>
+              <div className="text-center">
+                <Smartphone className="h-8 w-8 mx-auto mb-2 text-emerald-600" />
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <div className="p-4 bg-white rounded-lg shadow-sm border">
+                  <img
+                    src={qrCodeUrl}
+                    alt="2FA QR Code"
+                    className="w-48 h-48"
+                    data-testid="2fa-qr-code"
+                  />
+                </div>
+              </div>
+
+              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm">
+                <p className="text-gray-600 dark:text-gray-400 mb-2">Can't scan? Enter this key manually:</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-white dark:bg-gray-800 p-2 rounded font-mono text-xs break-all">
+                    {secretKey}
+                  </code>
+                  <Button variant="ghost" size="sm" onClick={copySecretKey}>
+                    {copiedSecret ? (
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <Button
+                onClick={() => setSetupStep(3)}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+              >
+                I've Scanned the QR Code
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </>
+          )}
+
+          {/* Step 3: Verify TOTP */}
+          {setupStep === 3 && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="totp-code">Enter 6-digit code from your authenticator app</Label>
+                <Input
+                  id="totp-code"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="000000"
+                  maxLength={6}
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                  disabled={setupLoading}
+                  className="font-mono text-center text-2xl tracking-widest"
+                  data-testid="2fa-code-input"
+                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyTotp()}
+                />
+              </div>
+
+              {setupError && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 rounded-md">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm">{setupError}</span>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setSetupStep(2)} className="flex-1">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button
+                  onClick={handleVerifyTotp}
+                  disabled={setupLoading || totpCode.length !== 6}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                  data-testid="2fa-verify-btn"
+                >
+                  {setupLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    'Verify'
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Step 4: Backup Codes */}
+          {setupStep === 4 && (
+            <>
+              <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>Important:</strong> Save these backup codes in a safe place. Each code can only be used once.
+                </div>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-2">
+                {backupCodes.map((code, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded"
+                  >
+                    <code className="font-mono text-sm">{code}</code>
+                    <button
+                      onClick={() => copyBackupCode(code, index)}
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    >
+                      {copiedIndex === index ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <Button variant="outline" onClick={copyAllBackupCodes} className="w-full">
+                <Copy className="h-4 w-4 mr-2" />
+                Copy All Backup Codes
+              </Button>
+
+              <Button
+                onClick={handleSetupComplete}
+                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                data-testid="2fa-complete-btn"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                I've Saved My Backup Codes
+              </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Normal view (not in setup mode)
   return (
     <Card data-testid="2fa-settings-card">
       <CardHeader>
@@ -197,7 +523,7 @@ const TwoFactorSettings = () => {
             <Button 
               variant="outline" 
               className="gap-2" 
-              onClick={() => setSetupDialogOpen(true)}
+              onClick={handleStartSetup}
               data-testid="enable-2fa-btn"
             >
               <Shield className="h-4 w-4" />
@@ -206,28 +532,16 @@ const TwoFactorSettings = () => {
           )}
         </div>
 
-        {/* 2FA Setup Dialog - Always mounted to prevent unmounting issues */}
-        {!status?.enabled && (
-          <TwoFactorSetup 
-            open={setupDialogOpen} 
-            onOpenChange={setSetupDialogOpen}
-            onSetupComplete={() => {
-              setSetupDialogOpen(false);
-              fetchStatus();
-            }} 
-          />
-        )}
-
         {/* Disable 2FA Dialog */}
         <Dialog open={disableDialogOpen} onOpenChange={setDisableDialogOpen}>
-          <DialogContent>
+          <DialogContent onInteractOutside={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-red-600">
                 <ShieldOff className="h-5 w-5" />
                 Disable Two-Factor Authentication
               </DialogTitle>
               <DialogDescription>
-                This will remove the extra security layer from your account. You can re-enable it anytime.
+                This will remove the extra security layer from your account.
               </DialogDescription>
             </DialogHeader>
 
@@ -245,17 +559,16 @@ const TwoFactorSettings = () => {
                   id="disable-password"
                   type="password"
                   placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={actionLoading}
-                  data-testid="disable-2fa-password"
+                  value={disablePassword}
+                  onChange={(e) => setDisablePassword(e.target.value)}
+                  disabled={disableLoading}
                 />
               </div>
 
-              {error && (
+              {disableError && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 rounded-md">
                   <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm">{error}</span>
+                  <span className="text-sm">{disableError}</span>
                 </div>
               )}
 
@@ -264,8 +577,8 @@ const TwoFactorSettings = () => {
                   variant="outline"
                   onClick={() => {
                     setDisableDialogOpen(false);
-                    setPassword('');
-                    setError('');
+                    setDisablePassword('');
+                    setDisableError('');
                   }}
                   className="flex-1"
                 >
@@ -274,11 +587,10 @@ const TwoFactorSettings = () => {
                 <Button
                   variant="destructive"
                   onClick={handleDisable2FA}
-                  disabled={actionLoading || !password}
+                  disabled={disableLoading || !disablePassword}
                   className="flex-1"
-                  data-testid="confirm-disable-2fa-btn"
                 >
-                  {actionLoading ? (
+                  {disableLoading ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Disabling...
@@ -297,11 +609,11 @@ const TwoFactorSettings = () => {
           setRegenerateDialogOpen(open);
           if (!open) {
             setNewBackupCodes([]);
-            setPassword('');
-            setError('');
+            setRegeneratePassword('');
+            setRegenerateError('');
           }
         }}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px]" onInteractOutside={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Key className="h-5 w-5 text-emerald-600" />
@@ -310,20 +622,13 @@ const TwoFactorSettings = () => {
               <DialogDescription>
                 {newBackupCodes.length > 0 
                   ? 'Save these codes securely. Previous backup codes are now invalid.'
-                  : 'This will invalidate all existing backup codes and generate new ones.'}
+                  : 'This will invalidate all existing backup codes.'}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 mt-4">
               {newBackupCodes.length > 0 ? (
                 <>
-                  <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
-                    <p className="text-sm text-amber-800 dark:text-amber-200">
-                      <AlertCircle className="h-4 w-4 inline mr-1" />
-                      Previous backup codes no longer work. Save these new codes now.
-                    </p>
-                  </div>
-
                   <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 space-y-2">
                     {newBackupCodes.map((code, index) => (
                       <div
@@ -376,17 +681,16 @@ const TwoFactorSettings = () => {
                       id="regen-password"
                       type="password"
                       placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      disabled={actionLoading}
-                      data-testid="regen-backup-password"
+                      value={regeneratePassword}
+                      onChange={(e) => setRegeneratePassword(e.target.value)}
+                      disabled={regenerateLoading}
                     />
                   </div>
 
-                  {error && (
+                  {regenerateError && (
                     <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 rounded-md">
                       <AlertCircle className="h-4 w-4" />
-                      <span className="text-sm">{error}</span>
+                      <span className="text-sm">{regenerateError}</span>
                     </div>
                   )}
 
@@ -395,8 +699,8 @@ const TwoFactorSettings = () => {
                       variant="outline"
                       onClick={() => {
                         setRegenerateDialogOpen(false);
-                        setPassword('');
-                        setError('');
+                        setRegeneratePassword('');
+                        setRegenerateError('');
                       }}
                       className="flex-1"
                     >
@@ -404,11 +708,10 @@ const TwoFactorSettings = () => {
                     </Button>
                     <Button
                       onClick={handleRegenerateBackupCodes}
-                      disabled={actionLoading || !password}
+                      disabled={regenerateLoading || !regeneratePassword}
                       className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-                      data-testid="confirm-regen-btn"
                     >
-                      {actionLoading ? (
+                      {regenerateLoading ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Generating...
