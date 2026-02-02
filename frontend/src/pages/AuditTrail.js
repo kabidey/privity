@@ -164,6 +164,7 @@ const AuditTrail = () => {
       'Viewer': 'bg-gray-100 text-gray-800',
       'Partners Desk': 'bg-pink-100 text-pink-800',
       'Business Partner': 'bg-orange-100 text-orange-800',
+      'Employee': 'bg-blue-100 text-blue-800',
     };
     const color = colors[roleName] || 'bg-gray-100 text-gray-800';
     return <Badge variant="outline" className={color}>{roleName}</Badge>;
