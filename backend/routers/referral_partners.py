@@ -344,7 +344,7 @@ async def upload_rp_documents(
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Upload documents for a referral partner.
+    Upload documents for a referral partner. Stored in GridFS for persistence.
     Document types: pan_card, aadhar_card, cancelled_cheque
     """
     if document_type not in ["pan_card", "aadhar_card", "cancelled_cheque"]:
@@ -357,28 +357,49 @@ async def upload_rp_documents(
     if not rp:
         raise HTTPException(status_code=404, detail="Referral Partner not found")
     
-    # Create upload directory
-    upload_path = Path(UPLOAD_DIR) / "referral_partners" / rp_id
-    upload_path.mkdir(parents=True, exist_ok=True)
+    # Read file content
+    content = await file.read()
     
     # Generate filename
     file_ext = os.path.splitext(file.filename)[1]
     filename = f"{document_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}{file_ext}"
+    
+    # Upload to GridFS for persistent storage
+    file_id = await upload_file_to_gridfs(
+        content,
+        filename,
+        file.content_type or "application/octet-stream",
+        {
+            "category": "rp_documents",
+            "entity_id": rp_id,
+            "doc_type": document_type,
+            "rp_name": rp.get("name"),
+            "uploaded_by": current_user.get("id"),
+            "uploaded_by_name": current_user.get("name")
+        }
+    )
+    
+    # Also save locally for backward compatibility
+    upload_path = Path(UPLOAD_DIR) / "referral_partners" / rp_id
+    upload_path.mkdir(parents=True, exist_ok=True)
     file_path = upload_path / filename
     
-    # Save file
-    async with aiofiles.open(file_path, "wb") as f:
-        content = await file.read()
-        await f.write(content)
+    try:
+        async with aiofiles.open(file_path, "wb") as f:
+            await f.write(content)
+    except Exception as e:
+        print(f"Warning: Local file save failed: {e}")
     
-    # Update database
+    # Update database with GridFS URL
     url_field = f"{document_type}_url"
-    relative_path = f"/api/uploads/referral_partners/{rp_id}/{filename}"
+    file_id_field = f"{document_type}_file_id"
+    gridfs_url = get_file_url(file_id)
     
     await db.referral_partners.update_one(
         {"id": rp_id},
         {"$set": {
-            url_field: relative_path,
+            url_field: gridfs_url,
+            file_id_field: file_id,
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "updated_by": current_user["id"]
         }}
@@ -386,7 +407,8 @@ async def upload_rp_documents(
     
     return {
         "message": f"{document_type.replace('_', ' ').title()} uploaded successfully",
-        "url": relative_path
+        "url": gridfs_url,
+        "file_id": file_id
     }
 
 
