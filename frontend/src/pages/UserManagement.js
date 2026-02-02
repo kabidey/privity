@@ -15,14 +15,21 @@ import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, Chev
 const ROLES = {
   1: { name: 'PE Desk', color: 'bg-purple-100 text-purple-800' },
   2: { name: 'PE Manager', color: 'bg-indigo-100 text-indigo-800' },
-  11: { name: 'Business Head', color: 'bg-rose-100 text-rose-800' },
-  10: { name: 'Regional Manager', color: 'bg-cyan-100 text-cyan-800' },
   3: { name: 'Zonal Manager', color: 'bg-blue-100 text-blue-800' },
   4: { name: 'Manager', color: 'bg-green-100 text-green-800' },
   5: { name: 'Employee', color: 'bg-yellow-100 text-yellow-800' },
-  6: { name: 'Viewer', color: 'bg-gray-100 text-gray-800' },
-  7: { name: 'Finance', color: 'bg-emerald-100 text-emerald-800' },
+  6: { name: 'Finance', color: 'bg-emerald-100 text-emerald-800' },
+  7: { name: 'Viewer', color: 'bg-gray-100 text-gray-800' },
+  8: { name: 'Business Partner', color: 'bg-orange-100 text-orange-800' },
   9: { name: 'Partners Desk', color: 'bg-pink-100 text-pink-800' }
+};
+
+const HIERARCHY_LEVELS = {
+  1: { name: 'Employee', color: 'bg-gray-100 text-gray-700' },
+  2: { name: 'Manager', color: 'bg-green-100 text-green-700' },
+  3: { name: 'Zonal Head', color: 'bg-blue-100 text-blue-700' },
+  4: { name: 'Regional Manager', color: 'bg-cyan-100 text-cyan-700' },
+  5: { name: 'Business Head', color: 'bg-purple-100 text-purple-700' }
 };
 
 const UserManagement = () => {
@@ -33,17 +40,22 @@ const UserManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [hierarchyDialogOpen, setHierarchyDialogOpen] = useState(false);
   const [proxyDialogOpen, setProxyDialogOpen] = useState(false);
   const [proxyLoading, setProxyLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedManagerId, setSelectedManagerId] = useState('');
+  const [selectedHierarchyLevel, setSelectedHierarchyLevel] = useState(1);
   const [availableManagers, setAvailableManagers] = useState([]);
+  const [potentialManagers, setPotentialManagers] = useState([]);
   const [newPassword, setNewPassword] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
-    role: 5
+    role: 5,
+    hierarchy_level: 1,
+    reports_to: ''
   });
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
