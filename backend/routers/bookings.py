@@ -1353,13 +1353,20 @@ async def delete_booking(booking_id: str, current_user: dict = Depends(get_curre
     return {"message": "Booking deleted successfully"}
 
 
+class PaymentRecordRequest(BaseModel):
+    """Request model for recording a payment tranche"""
+    amount: float
+    payment_date: Optional[str] = None
+    payment_mode: str = "bank_transfer"
+    reference_number: Optional[str] = None
+    notes: Optional[str] = None
+    proof_url: Optional[str] = None
+
+
 @router.post("/bookings/{booking_id}/payments")
 async def add_payment_tranche(
     booking_id: str,
-    amount: float = Query(...),
-    payment_mode: str = Query("bank_transfer"),
-    reference_number: str = Query(None),
-    notes: str = Query(None),
+    payment_data: PaymentRecordRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """Add a payment tranche to a booking."""
@@ -1374,6 +1381,7 @@ async def add_payment_tranche(
     current_paid = sum(p.get("amount", 0) for p in payments)
     remaining = total_amount - current_paid
     
+    amount = payment_data.amount
     if amount > remaining + 0.01:
         raise HTTPException(
             status_code=400,
@@ -1384,9 +1392,11 @@ async def add_payment_tranche(
     payment = {
         "tranche_number": tranche_number,
         "amount": amount,
-        "payment_mode": payment_mode,
-        "reference_number": reference_number,
-        "notes": notes,
+        "payment_mode": payment_data.payment_mode,
+        "payment_date": payment_data.payment_date or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "reference_number": payment_data.reference_number,
+        "notes": payment_data.notes,
+        "proof_url": payment_data.proof_url,
         "recorded_by": current_user["id"],
         "recorded_by_name": current_user["name"],
         "recorded_at": datetime.now(timezone.utc).isoformat()
@@ -1415,7 +1425,8 @@ async def add_payment_tranche(
         "tranche_number": tranche_number,
         "total_paid": new_total_paid,
         "remaining": remaining - amount,
-        "payment_complete": is_complete
+        "payment_complete": is_complete,
+        "dp_transfer_ready": is_complete
     }
 
 
