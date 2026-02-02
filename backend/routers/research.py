@@ -89,13 +89,31 @@ async def upload_research_report(
     report_id = str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     safe_filename = f"{stock['symbol']}_{timestamp}_{report_id[:8]}{file_ext}"
+    
+    # Upload to GridFS for persistent storage
+    file_id = await upload_file_to_gridfs(
+        content,
+        safe_filename,
+        file.content_type or "application/octet-stream",
+        {
+            "category": "research_reports",
+            "entity_id": stock_id,
+            "report_id": report_id,
+            "stock_symbol": stock.get("symbol"),
+            "uploaded_by": current_user.get("id"),
+            "uploaded_by_name": current_user.get("name")
+        }
+    )
+    
+    # Also save locally for backward compatibility
     file_path = os.path.join(RESEARCH_UPLOADS_DIR, safe_filename)
+    try:
+        async with aiofiles.open(file_path, 'wb') as f:
+            await f.write(content)
+    except Exception as e:
+        print(f"Warning: Local file save failed: {e}")
     
-    # Save file
-    async with aiofiles.open(file_path, 'wb') as f:
-        await f.write(content)
-    
-    # Create report record
+    # Create report record with GridFS file_id
     report = {
         "id": report_id,
         "stock_id": stock_id,
@@ -104,7 +122,8 @@ async def upload_research_report(
         "title": title,
         "description": description,
         "report_type": report_type,
-        "file_url": f"/uploads/research/{safe_filename}",
+        "file_id": file_id,  # GridFS file ID for persistent access
+        "file_url": get_file_url(file_id),  # GridFS URL
         "file_name": file.filename,
         "file_size": file_size,
         "uploaded_by": current_user["id"],
