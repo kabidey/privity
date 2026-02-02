@@ -1405,6 +1405,7 @@ async def add_payment_tranche(
     
     new_total_paid = current_paid + amount
     is_complete = abs(new_total_paid - total_amount) < 0.01
+    is_first_payment = len(payments) == 0
     
     update_data = {
         "$push": {"payments": payment},
@@ -1414,9 +1415,15 @@ async def add_payment_tranche(
         }
     }
     
+    # First payment implies client has accepted - update client_confirmation_status
+    if is_first_payment:
+        update_data["$set"]["client_confirmation_status"] = "accepted"
+        update_data["$set"]["client_confirmed_at"] = datetime.now(timezone.utc).isoformat()
+    
     # If payment is complete, mark as DP Ready for transfer
     if is_complete:
         update_data["$set"]["dp_status"] = "ready"
+        update_data["$set"]["dp_transfer_ready"] = True
         update_data["$set"]["dp_ready_at"] = datetime.now(timezone.utc).isoformat()
     
     await db.bookings.update_one({"id": booking_id}, update_data)
