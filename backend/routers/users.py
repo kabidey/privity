@@ -22,16 +22,50 @@ class UserCreate(BaseModel):
     password: str
     name: str
     role: int = 5  # Default to Employee
+    hierarchy_level: int = 1  # Default to Employee level
+    reports_to: Optional[str] = None  # Manager's user ID
 
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     role: Optional[int] = None
     is_active: Optional[bool] = None
+    hierarchy_level: Optional[int] = None
+    reports_to: Optional[str] = None
+
+
+class HierarchyUpdate(BaseModel):
+    hierarchy_level: int
+    reports_to: Optional[str] = None
+
+
+# Hierarchy level names
+HIERARCHY_LEVELS = {
+    1: "Employee",
+    2: "Manager",
+    3: "Zonal Head",
+    4: "Regional Manager",
+    5: "Business Head"
+}
 
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+async def enrich_user_with_hierarchy(user: dict) -> dict:
+    """Add hierarchy level name and manager name to user dict"""
+    hierarchy_level = user.get("hierarchy_level", 1)
+    user["hierarchy_level_name"] = HIERARCHY_LEVELS.get(hierarchy_level, "Employee")
+    
+    reports_to = user.get("reports_to")
+    if reports_to:
+        manager = await db.users.find_one({"id": reports_to}, {"name": 1})
+        user["reports_to_name"] = manager.get("name") if manager else None
+    else:
+        user["reports_to_name"] = None
+    
+    return user
 
 
 # ============== Employee Endpoints (for Partners Desk) ==============
