@@ -859,6 +859,7 @@ async def clone_client_vendor(
     
     new_id = str(uuid.uuid4())
     otc_ucc = await generate_otc_ucc()
+    source_type = "vendor" if is_currently_vendor else "client"
     
     cloned_doc = {
         "id": new_id,
@@ -886,14 +887,18 @@ async def clone_client_vendor(
         "user_id": current_user["id"],
         "created_by": current_user["id"],
         "created_by_role": current_user.get("role", 1),
-        "mapped_employee_id": None,
-        "mapped_employee_name": None,
+        # Auto-map to creator for cloned entities
+        "mapped_employee_id": current_user["id"],
+        "mapped_employee_name": current_user["name"],
+        "mapped_employee_email": current_user.get("email"),
+        # Clone tracking
+        "is_cloned": True,
+        "cloned_from_id": client_id,
+        "cloned_from_type": source_type,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.clients.insert_one(cloned_doc)
-    
-    source_type = "vendor" if is_currently_vendor else "client"
     await create_audit_log(
         action="CLIENT_CREATE",
         entity_type=target_type,
