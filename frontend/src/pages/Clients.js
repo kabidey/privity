@@ -160,10 +160,10 @@ const Clients = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await api.get('/employees');
+      const response = await api.get('/users/employees');
       setEmployees(response.data);
     } catch (error) {
-      console.error('Failed to load employees');
+      console.error('Failed to load employees:', error);
     }
   };
 
