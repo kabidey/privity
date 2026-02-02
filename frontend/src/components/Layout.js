@@ -173,22 +173,28 @@ const Layout = ({ children }) => {
   };
 
   // Build menu items based on user role
+  // New Role mapping: 1=PE Desk, 2=PE Manager, 3=Finance, 4=Viewer, 5=Partners Desk, 6=Business Partner, 7=Employee
   const menuItems = [];
-  const isViewer = user.role === 6;
+  const isPELevel = user.role === 1 || user.role === 2;
+  const isViewer = user.role === 4;
+  const isFinance = user.role === 3;
+  const isPartnersDesk = user.role === 5;
+  const isBusinessPartner = user.role === 6;
+  const isEmployee = user.role === 7;
   
   // Role-specific dashboards as first item
-  if (user.role === 1 || user.role === 2) {
+  if (isPELevel) {
     menuItems.push({ icon: Shield, label: 'PE Dashboard', path: '/pe-dashboard' });
-  } else if (user.role === 7) {
+  } else if (isFinance) {
     menuItems.push({ icon: Banknote, label: 'Finance Dashboard', path: '/finance-dashboard' });
-  } else if (user.role === 6) {
+  } else if (isViewer) {
     menuItems.push({ icon: LayoutDashboard, label: 'Overview Dashboard', path: '/pe-dashboard' });
-  } else if (user.role === 3 || user.role === 4 || user.role === 5 || user.role === 10 || user.role === 11) {
+  } else if (isEmployee || isPartnersDesk) {
     menuItems.push({ icon: User, label: 'My Dashboard', path: '/my-dashboard' });
   }
   
-  // Research - at the top for all employees (not BP)
-  if (user.role !== 8) {
+  // Research - at the top for all (not BP)
+  if (!isBusinessPartner) {
     menuItems.push({ icon: BookOpen, label: 'Research', path: '/research' });
   }
   
@@ -197,14 +203,14 @@ const Layout = ({ children }) => {
   menuItems.push({ icon: Users, label: 'Clients', path: '/clients' });
 
   // Vendors - PE Level and Viewer (view-only for Viewer)
-  if (user.role === 1 || user.role === 2 || isViewer) {
+  if (isPELevel || isViewer) {
     menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
   }
   
   menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
   
   // Purchases - PE Desk, PE Manager, and Viewer (view-only)
-  if (user.role === 1 || user.role === 2 || isViewer) {
+  if (isPELevel || isViewer) {
     menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
     menuItems.push({ icon: ArrowDownToLine, label: 'DP Receivables', path: '/dp-receivables' });
     menuItems.push({ icon: Send, label: 'DP Transfer', path: '/dp-transfer-client' });
@@ -217,22 +223,22 @@ const Layout = ({ children }) => {
   );
 
   // Add finance for Finance role, PE level, or Viewer
-  if (user.role === 7 || user.role === 1 || user.role === 2 || isViewer) {
+  if (isFinance || isPELevel || isViewer) {
     menuItems.push({ icon: Banknote, label: 'Finance', path: '/finance' });
   }
 
   // Add user management for PE level or Viewer
-  if (user.role === 1 || user.role === 2 || isViewer) {
+  if (isPELevel || isViewer) {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
   }
 
-  // Add Referral Partners for PE level, Manager, Employees, or Viewer
-  if (user.role === 1 || user.role === 2 || user.role === 4 || user.role === 5 || isViewer) {
+  // Add Referral Partners for PE level, Employee, Partners Desk, or Viewer
+  if (isPELevel || isEmployee || isPartnersDesk || isViewer) {
     menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
   }
 
   // Add Analytics and Email Templates for PE Level and Viewer (view-only for viewer)
-  if (user.role === 1 || user.role === 2 || isViewer) {
+  if (isPELevel || isViewer) {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
     menuItems.push({ icon: FileText, label: 'Contract Notes', path: '/contract-notes' });
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
@@ -241,7 +247,7 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
   }
 
-  // Company Master & Bulk Upload & Database Backup & Security Dashboard & File Migration - PE Desk only (role 1)
+  // Company Master & Bulk Upload & Database Backup & Security Dashboard & File Migration - PE Desk only
   if (user.role === 1) {
     menuItems.push({ icon: Building2, label: 'Company Master', path: '/company-master' });
     menuItems.push({ icon: Database, label: 'Database Backup', path: '/database-backup' });
@@ -250,29 +256,28 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: HardDrive, label: 'File Migration', path: '/file-migration' });
   }
 
-  // PE Desk HIT Report - PE Level only (role 1 or 2)
-  if (user.role === 1 || user.role === 2) {
+  // PE Desk HIT Report - PE Level only
+  if (isPELevel) {
     menuItems.push({ icon: DollarSign, label: 'PE HIT Report', path: '/pe-desk-hit' });
   }
 
   // Business Partners - PE Level, Partners Desk, and Viewer
-  if (user.role === 1 || user.role === 2 || user.role === 9 || isViewer) {
+  if (isPELevel || isPartnersDesk || isViewer) {
     menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
   }
 
-  // Revenue Dashboards - visible based on hierarchy (Viewer sees all)
-  // RP Revenue: Employee, Manager, Zonal Manager, PE Level, Regional Manager, Business Head, and Viewer
-  if ((user.role >= 1 && user.role <= 5) || user.role === 10 || user.role === 11 || isViewer) {
+  // Revenue Dashboards - visible to PE Level, Employee, Partners Desk, and Viewer
+  if (isPELevel || isEmployee || isPartnersDesk || isViewer) {
     menuItems.push({ icon: TrendingUp, label: 'RP Revenue', path: '/rp-revenue' });
   }
   
-  // Employee Revenue: Manager, Zonal Manager, PE Level, Regional Manager, Business Head, and Viewer
-  if ((user.role >= 1 && user.role <= 4) || user.role === 10 || user.role === 11 || isViewer) {
+  // Team Revenue - PE Level and Viewer
+  if (isPELevel || isViewer) {
     menuItems.push({ icon: Users, label: 'Team Revenue', path: '/employee-revenue' });
   }
 
-  // BP Dashboard - for Business Partners only (role 8)
-  if (user.role === 8) {
+  // BP Dashboard - for Business Partners only
+  if (isBusinessPartner) {
     // BP has their own limited menu
     menuItems.length = 0; // Clear existing menu
     menuItems.push({ icon: LayoutDashboard, label: 'My Dashboard', path: '/bp-dashboard' });
