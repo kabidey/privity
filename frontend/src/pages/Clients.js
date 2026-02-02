@@ -97,9 +97,10 @@ const Clients = () => {
 
   useEffect(() => {
     fetchClients();
-    if (!isEmployee) {
+    // Fetch employees for mapping if user can map clients
+    if (canMapClients) {
       fetchEmployees();
-      if (isManager) fetchPendingClients();
+      fetchPendingClients();
     }
   }, []);
 
