@@ -460,7 +460,7 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
 
 async def create_and_save_contract_note(booking_id: str, user_id: str, user_name: str) -> dict:
     """
-    Create contract note for a booking and save to database
+    Create contract note for a booking and save to database with GridFS storage
     
     Args:
         booking_id: The booking ID
@@ -470,6 +470,8 @@ async def create_and_save_contract_note(booking_id: str, user_id: str, user_name
     Returns:
         Contract note document
     """
+    from services.file_storage import upload_file_to_gridfs, get_file_url
+    
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
         raise ValueError("Booking not found")
@@ -479,19 +481,38 @@ async def create_and_save_contract_note(booking_id: str, user_id: str, user_name
     
     # Generate PDF
     pdf_buffer = await generate_contract_note_pdf(booking)
+    pdf_content = pdf_buffer.getvalue()
     
-    # Save PDF to disk
+    # Generate filename
+    filename = f"CN_{cn_number.replace('/', '_')}_{booking_id[:8]}.pdf"
+    
+    # Upload to GridFS for persistent storage
+    file_id = await upload_file_to_gridfs(
+        pdf_content,
+        filename,
+        "application/pdf",
+        {
+            "category": "contract_notes",
+            "entity_id": booking_id,
+            "contract_note_number": cn_number,
+            "client_id": booking.get("client_id"),
+            "created_by": user_id
+        }
+    )
+    
+    # Also save locally for backward compatibility
     import os
     cn_dir = "/app/uploads/contract_notes"
     os.makedirs(cn_dir, exist_ok=True)
-    
-    filename = f"CN_{cn_number.replace('/', '_')}_{booking_id[:8]}.pdf"
     filepath = os.path.join(cn_dir, filename)
     
-    with open(filepath, "wb") as f:
-        f.write(pdf_buffer.getvalue())
+    try:
+        with open(filepath, "wb") as f:
+            f.write(pdf_content)
+    except Exception as e:
+        print(f"Warning: Local file save failed: {e}")
     
-    # Create contract note record
+    # Create contract note record with GridFS info
     cn_doc = {
         "id": str(uuid.uuid4()),
         "contract_note_number": cn_number,
@@ -503,7 +524,8 @@ async def create_and_save_contract_note(booking_id: str, user_id: str, user_name
         "rate": booking.get("selling_price"),
         "gross_amount": booking.get("quantity", 0) * booking.get("selling_price", 0),
         "net_amount": booking.get("quantity", 0) * booking.get("selling_price", 0),
-        "pdf_url": f"/uploads/contract_notes/{filename}",
+        "file_id": file_id,  # GridFS file ID
+        "pdf_url": get_file_url(file_id),  # GridFS URL
         "status": "generated",
         "email_sent": False,
         "created_by": user_id,
