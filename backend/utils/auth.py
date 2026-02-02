@@ -35,6 +35,29 @@ def create_token(user_id: str, email: str) -> str:
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
+def create_proxy_token(
+    target_user_id: str, 
+    target_user_email: str,
+    proxy_user_id: str,
+    proxy_user_email: str,
+    proxy_user_name: str
+) -> str:
+    """Create JWT token for proxy login session"""
+    expiration = datetime.now(timezone.utc) + timedelta(hours=8)  # Shorter expiration for proxy
+    payload = {
+        'user_id': target_user_id,
+        'email': target_user_email,
+        'is_proxy': True,
+        'proxy_info': {
+            'proxy_user_id': proxy_user_id,
+            'proxy_user_email': proxy_user_email,
+            'proxy_user_name': proxy_user_name
+        },
+        'exp': expiration
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
 def decode_token(token: str) -> dict:
     """Decode and verify JWT token, return payload"""
     try:
@@ -47,7 +70,7 @@ def decode_token(token: str) -> dict:
 
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Get current user from JWT token"""
+    """Get current user from JWT token (includes proxy session support)"""
     try:
         token = credentials.credentials
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -59,6 +82,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         user = await db.users.find_one({"id": user_id}, {"_id": 0})
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
+        
+        # Check if this is a proxy session
+        if payload.get('is_proxy'):
+            user['proxy_info'] = payload.get('proxy_info')
+            user['is_proxy_session'] = True
         
         return user
     except jwt.ExpiredSignatureError:
