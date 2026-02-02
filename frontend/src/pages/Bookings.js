@@ -532,28 +532,34 @@ const Bookings = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          {/* Export Buttons */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex-1 sm:flex-none"
-            onClick={() => handleExportBookings('xlsx')}
-            data-testid="export-excel-button"
-          >
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Export </span>Excel
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex-1 sm:flex-none"
-            onClick={() => handleExportBookings('csv')}
-            data-testid="export-csv-button"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Export </span>CSV
-          </Button>
+          {/* Export Buttons - Hidden for Viewers */}
+          {!isViewer && (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex-1 sm:flex-none"
+                onClick={() => handleExportBookings('xlsx')}
+                data-testid="export-excel-button"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Export </span>Excel
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex-1 sm:flex-none"
+                onClick={() => handleExportBookings('csv')}
+                data-testid="export-csv-button"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Export </span>CSV
+              </Button>
+            </>
+          )}
           
+          {/* Add Booking Button - Hidden for Viewers */}
+          {!isViewer && (
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
               <Button className="rounded-sm flex-1 sm:flex-none" data-testid="add-booking-button">
