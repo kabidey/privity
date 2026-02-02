@@ -63,6 +63,19 @@ Build a Share Booking System for managing client share bookings, inventory track
   - `dp_ready_at: Optional[str]`
 **Testing**: Verified via screenshot - "Client Accepted" and "DP Ready" badges display correctly.
 
+#### ✅ Payment Delete Feature for PE Desk/Manager - COMPLETED (Feb 02, 2026)
+**Feature**: Allow PE Desk and PE Manager to delete payment entries from bookings
+**Implementation**:
+- Backend: Updated `DELETE /api/bookings/{booking_id}/payments/{tranche_number}` endpoint in `backend/routers/bookings.py`
+  - Changed from `is_pe_desk_only` to `is_pe_level` to allow both PE Desk (role 1) and PE Manager (role 2)
+  - Added logic to reset `client_confirmation_status` to "pending" when all payments are deleted
+  - Added logic to reset `dp_transfer_ready` and `dp_status` when payment is no longer complete
+- Frontend: Updated payment dialog in `frontend/src/pages/Bookings.js`
+  - Added `handleDeletePayment` function with confirmation dialog
+  - Added red trash icon button next to each payment in Payment History (visible only to PE Level users)
+  - Refreshes booking data after successful deletion
+**Testing**: Verified via curl and screenshot - Delete buttons visible, deletion works correctly.
+
 #### ✅ Email Confirmation Flow - VERIFIED WORKING (Feb 02, 2026)
 **Reported Issue**: Emails not properly formatted and client confirmation link broken.
 **Verification**:
