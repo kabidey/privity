@@ -48,9 +48,9 @@ async def _recalculate_inventory_internal(stock_id: str) -> Dict[str, Any]:
     # Get all bookings for this stock
     bookings = await db.bookings.find({"stock_id": stock_id}, {"_id": 0}).to_list(10000)
     
-    # Calculate total purchased
-    total_purchased_qty = sum(p["quantity"] for p in purchases)
-    total_purchased_value = sum(p["quantity"] * p["price_per_unit"] for p in purchases)
+    # Calculate total purchased (handle missing price_per_unit field gracefully)
+    total_purchased_qty = sum(p.get("quantity", 0) for p in purchases)
+    total_purchased_value = sum(p.get("quantity", 0) * p.get("price_per_unit", 0) for p in purchases)
     
     # Calculate blocked quantity (approved bookings not yet transferred)
     blocked_qty = sum(
