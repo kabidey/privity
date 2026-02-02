@@ -1279,7 +1279,11 @@ async def get_booking(booking_id: str, current_user: dict = Depends(get_current_
 @router.put("/bookings/{booking_id}", response_model=Booking)
 async def update_booking(booking_id: str, booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
     """Update a booking."""
-    user_role = current_user.get("role", 5)
+    user_role = current_user.get("role", 7)
+    
+    # Viewer restriction
+    check_viewer_restriction(user_role, "edit bookings")
+    
     check_permission(current_user, "manage_bookings")
     
     old_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
