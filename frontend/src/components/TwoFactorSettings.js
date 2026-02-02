@@ -194,7 +194,22 @@ const TwoFactorSettings = () => {
               </Button>
             </>
           ) : (
-            <TwoFactorSetup onSetupComplete={fetchStatus} />
+            <>
+              <Button 
+                variant="outline" 
+                className="gap-2" 
+                onClick={() => setSetupDialogOpen(true)}
+                data-testid="enable-2fa-btn"
+              >
+                <Shield className="h-4 w-4" />
+                Enable Two-Factor Authentication
+              </Button>
+              <TwoFactorSetup 
+                open={setupDialogOpen} 
+                onOpenChange={setSetupDialogOpen}
+                onSetupComplete={fetchStatus} 
+              />
+            </>
           )}
         </div>
 
