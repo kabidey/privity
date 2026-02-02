@@ -87,9 +87,13 @@ const Clients = () => {
   const isPEDesk = currentUser.role === 1;
   const isPEManager = currentUser.role === 2;
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isAdmin = currentUser.role <= 2;
-  const isManager = currentUser.role <= 3;
-  const isEmployee = currentUser.role === 5;
+  const isFinance = currentUser.role === 3;
+  const isViewer = currentUser.role === 4;
+  const isPartnersDesk = currentUser.role === 5;
+  const isBusinessPartner = currentUser.role === 6;
+  const isEmployee = currentUser.role === 7;
+  // Can map clients = PE Level only
+  const canMapClients = isPELevel;
 
   useEffect(() => {
     fetchClients();
