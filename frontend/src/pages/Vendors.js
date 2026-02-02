@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Plus, Pencil, Trash2, Building2, Copy, Upload, FileText, CreditCard, FileCheck, Loader2, Sparkles, FolderOpen, Download, Eye, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const Vendors = () => {
@@ -54,11 +55,8 @@ const Vendors = () => {
     bank_declaration: null,  // Required if proprietor with name mismatch
   });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
-  const isPEManager = currentUser.role === 2;
-  const isPELevel = isPEDesk || isPEManager;
-  const canAccessVendors = isPEDesk || isPEManager;
+  const { isPEDesk, isPEManager, isPELevel } = useCurrentUser();
+  const canAccessVendors = isPELevel;
 
   useEffect(() => {
     // PE Desk and PE Manager can access vendors

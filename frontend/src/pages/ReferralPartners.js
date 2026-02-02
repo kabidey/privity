@@ -30,6 +30,7 @@ import {
 import { toast } from 'sonner';
 import { Users, Plus, Search, Edit, Upload, Eye, FileText, CreditCard, Wallet, CheckCircle, XCircle, Clock } from 'lucide-react';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 
 const ReferralPartners = () => {
   const [rps, setRps] = useState([]);
@@ -57,8 +58,7 @@ const ReferralPartners = () => {
     bank_branch: ''
   });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const { isPELevel } = useCurrentUser();
 
   useEffect(() => {
     fetchRps();

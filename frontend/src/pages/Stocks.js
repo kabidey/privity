@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Plus, Pencil, Trash2, Package, Split, Gift, Play, AlertCircle, Lock, Bell, DollarSign, Send } from 'lucide-react';
 
 const SECTORS = [
@@ -76,10 +77,7 @@ const Stocks = () => {
     notes: '',
   });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
-  const isPEManager = currentUser.role === 2;
-  const isPELevel = isPEDesk || isPEManager;
+  const { isPEDesk, isPEManager, isPELevel } = useCurrentUser();
 
   useEffect(() => {
     fetchStocks();
