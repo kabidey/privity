@@ -185,6 +185,20 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = 
         update_data["role"] = user_data.role
     if user_data.is_active is not None:
         update_data["is_active"] = user_data.is_active
+    if user_data.hierarchy_level is not None:
+        if user_data.hierarchy_level not in HIERARCHY_LEVELS:
+            raise HTTPException(status_code=400, detail="Invalid hierarchy level")
+        update_data["hierarchy_level"] = user_data.hierarchy_level
+    if user_data.reports_to is not None:
+        # Validate manager exists (empty string means no manager)
+        if user_data.reports_to != "":
+            manager = await db.users.find_one({"id": user_data.reports_to})
+            if not manager:
+                raise HTTPException(status_code=400, detail="Manager not found")
+            # Prevent circular reference
+            if user_data.reports_to == user_id:
+                raise HTTPException(status_code=400, detail="User cannot report to themselves")
+        update_data["reports_to"] = user_data.reports_to if user_data.reports_to != "" else None
     
     if update_data:
         update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
