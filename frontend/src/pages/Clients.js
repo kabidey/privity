@@ -1673,7 +1673,7 @@ const Clients = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {activeTab === 'pending' && isManager && (
+                        {activeTab === 'pending' && canMapClients && (
                           <>
                             <Button variant="ghost" size="sm" onClick={() => handleApprove(client.id, true)} className="text-green-600">
                               <CheckCircle className="h-4 w-4" />
