@@ -870,6 +870,41 @@ async def send_payment_request_email(
     else:
         logging.warning("No company master documents found to attach to payment request email")
     
+    # Get base URL for document links
+    frontend_url = os.environ.get('FRONTEND_URL', 'https://authflow-improve.preview.emergentagent.com')
+    
+    # Build document links section
+    doc_links = []
+    if nsdl_cml_url:
+        full_url = f"{frontend_url}{nsdl_cml_url}" if nsdl_cml_url.startswith('/') else nsdl_cml_url
+        doc_links.append(f'<a href="{full_url}" style="color: #2563eb; text-decoration: none; margin-right: 15px;">📄 NSDL CML</a>')
+    if cdsl_cml_url:
+        full_url = f"{frontend_url}{cdsl_cml_url}" if cdsl_cml_url.startswith('/') else cdsl_cml_url
+        doc_links.append(f'<a href="{full_url}" style="color: #2563eb; text-decoration: none; margin-right: 15px;">📄 CDSL CML</a>')
+    if pan_card_url:
+        full_url = f"{frontend_url}{pan_card_url}" if pan_card_url.startswith('/') else pan_card_url
+        doc_links.append(f'<a href="{full_url}" style="color: #2563eb; text-decoration: none; margin-right: 15px;">📄 PAN Card</a>')
+    if cancelled_cheque_url:
+        full_url = f"{frontend_url}{cancelled_cheque_url}" if cancelled_cheque_url.startswith('/') else cancelled_cheque_url
+        doc_links.append(f'<a href="{full_url}" style="color: #2563eb; text-decoration: none; margin-right: 15px;">📄 Cancelled Cheque</a>')
+    
+    documents_html = ""
+    if doc_links:
+        documents_html = f"""
+            <!-- Company Documents -->
+            <div style="background: #f0f9ff; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #bae6fd;">
+                <h3 style="color: #0369a1; margin: 0 0 15px 0; font-size: 16px; border-bottom: 2px solid #0ea5e9; padding-bottom: 10px;">
+                    📎 Company Documents (Click to Download)
+                </h3>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    {''.join(doc_links)}
+                </div>
+                <p style="color: #6b7280; font-size: 12px; margin-top: 15px; margin-bottom: 0;">
+                    <em>Documents are also attached to this email for your convenience.</em>
+                </p>
+            </div>
+        """
+    
     # Build email subject
     subject = f"Payment Request - Booking {booking_number} | {stock.get('symbol', 'N/A')}"
     
