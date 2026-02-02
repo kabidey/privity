@@ -5,6 +5,7 @@ Handles inventory management endpoints
 from typing import List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel
 
 from database import db
 from config import is_pe_level
@@ -12,6 +13,10 @@ from models import Inventory as InventoryModel
 from utils.auth import get_current_user
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
+
+
+class UpdateLandingPriceRequest(BaseModel):
+    landing_price: float
 
 
 async def calculate_weighted_avg_for_stock(stock_id: str) -> dict:
