@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Database, Download, Upload, Trash2, Plus, RefreshCw, AlertTriangle, HardDrive, Clock, FileArchive, XCircle } from 'lucide-react';
 
 const DatabaseBackup = () => {
@@ -33,8 +34,7 @@ const DatabaseBackup = () => {
   const fileInputRef = useRef(null);
 
   // Get current user for role check - only PE Desk (role 1) can clear DB
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
+  const { isPEDesk } = useCurrentUser();
 
   useEffect(() => {
     fetchData();

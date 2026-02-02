@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Mail, Server, Shield, Send, CheckCircle, XCircle, AlertCircle, Eye, EyeOff, RefreshCw } from 'lucide-react';
 
 const EmailServerConfig = () => {
@@ -39,8 +40,7 @@ const EmailServerConfig = () => {
     last_test_result: null
   });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const { isPELevel } = useCurrentUser();
 
   useEffect(() => {
     if (!isPELevel) {

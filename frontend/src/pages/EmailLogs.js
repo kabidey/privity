@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Mail, Search, Filter, Eye, RefreshCw, Trash2, CheckCircle, XCircle, AlertCircle, BarChart3, Send } from 'lucide-react';
 
 const EmailLogs = () => {
@@ -34,9 +35,7 @@ const EmailLogs = () => {
   });
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isPEDesk = currentUser.role === 1;
+  const { isPELevel, isPEDesk } = useCurrentUser();
 
   useEffect(() => {
     if (!isPELevel) {

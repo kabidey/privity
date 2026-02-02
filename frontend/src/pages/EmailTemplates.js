@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Mail, Edit, Eye, RotateCcw, Save, Code, FileText } from 'lucide-react';
 
 const EmailTemplates = () => {
@@ -27,8 +28,7 @@ const EmailTemplates = () => {
   });
   const [previewVariables, setPreviewVariables] = useState({});
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
+  const { isPELevel } = useCurrentUser();
 
   useEffect(() => {
     if (!isPELevel) {
