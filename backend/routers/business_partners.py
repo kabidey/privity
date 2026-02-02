@@ -351,7 +351,7 @@ async def upload_bp_document(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload a document for Business Partner (PE Level, Partners Desk, or self)"""
+    """Upload a document for Business Partner (PE Level, Partners Desk, or self). Stored in GridFS."""
     # Check authorization - PE Level/Partners Desk can upload for any BP, BP can upload for self
     user_role = current_user.get("role", 5)
     is_self = user_role == 8 and current_user.get("id") == bp_id
@@ -380,30 +380,42 @@ async def upload_bp_document(
     # Create unique filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     new_filename = f"{bp_id}_{doc_type}_{timestamp}{file_ext}"
+    
+    # Upload to GridFS for persistent storage
+    file_id = await upload_file_to_gridfs(
+        content,
+        new_filename,
+        file.content_type or "application/octet-stream",
+        {
+            "category": "bp_documents",
+            "entity_id": bp_id,
+            "doc_type": doc_type,
+            "bp_name": bp.get("name"),
+            "uploaded_by": current_user.get("id"),
+            "uploaded_by_name": current_user.get("name")
+        }
+    )
+    
+    # Also save locally for backward compatibility
     file_path = os.path.join(BP_UPLOAD_DIR, new_filename)
+    try:
+        with open(file_path, "wb") as f:
+            f.write(content)
+    except Exception as e:
+        print(f"Warning: Local file save failed: {e}")
     
-    # Delete old file if exists
-    existing_docs = bp.get("documents", [])
-    for doc in existing_docs:
-        if doc.get("doc_type") == doc_type:
-            old_path = f"/app{doc.get('file_url', '')}"
-            if os.path.exists(old_path):
-                os.remove(old_path)
-    
-    # Save new file
-    with open(file_path, "wb") as f:
-        f.write(content)
-    
-    # Update documents array
-    file_url = f"/uploads/bp_documents/{new_filename}"
+    # Update documents array with GridFS info
+    file_url = get_file_url(file_id)
     new_doc = {
         "doc_type": doc_type,
         "file_name": file.filename,
+        "file_id": file_id,
         "file_url": file_url,
         "uploaded_at": datetime.now(timezone.utc).isoformat()
     }
     
     # Remove old entry for this doc_type and add new one
+    existing_docs = bp.get("documents", [])
     updated_docs = [d for d in existing_docs if d.get("doc_type") != doc_type]
     updated_docs.append(new_doc)
     
