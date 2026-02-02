@@ -498,7 +498,9 @@ async def assign_manager(user_id: str, manager_id: Optional[str] = None, current
 
 @router.get("/{user_id}/subordinates")
 async def get_subordinates(user_id: str, current_user: dict = Depends(get_current_user)):
-    """Get all subordinates for a user (direct and indirect)"""
+    """Get all subordinates for a user (direct and indirect) using hierarchy service"""
+    from services.hierarchy_service import get_all_subordinates
+    
     user_role = current_user.get("role", 6)
     
     # Only allow viewing own subordinates or PE Level can view anyone's
@@ -509,49 +511,25 @@ async def get_subordinates(user_id: str, current_user: dict = Depends(get_curren
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    target_role = user.get("role", 6)
+    # Use hierarchy service to get all subordinates
+    subordinate_ids = await get_all_subordinates(user_id)
     
-    subordinates = []
+    if not subordinate_ids:
+        return []
     
-    # Manager (4) - get direct employees
-    if target_role == 4:
-        direct_reports = await db.users.find(
-            {"manager_id": user_id},
-            {"_id": 0, "password": 0}
-        ).to_list(100)
-        subordinates = direct_reports
+    subordinates = await db.users.find(
+        {"id": {"$in": subordinate_ids}},
+        {"_id": 0, "password": 0}
+    ).to_list(1000)
     
-    # Zonal Manager (3) - get managers and their employees
-    elif target_role == 3:
-        # Get direct reports (managers)
-        managers = await db.users.find(
-            {"manager_id": user_id},
-            {"_id": 0, "password": 0}
-        ).to_list(100)
-        
-        manager_ids = [m["id"] for m in managers]
-        
-        # Get employees under those managers
-        employees = await db.users.find(
-            {"manager_id": {"$in": manager_ids}},
-            {"_id": 0, "password": 0}
-        ).to_list(1000)
-        
-        subordinates = managers + employees
-    
-    # PE Level - can see entire hierarchy
-    elif target_role in [1, 2]:
-        all_users = await db.users.find(
-            {"role": {"$gte": 3}},  # Everyone except PE Desk and PE Manager
-            {"_id": 0, "password": 0}
-        ).to_list(1000)
-        subordinates = all_users
-    
-    # Add role names
+    # Enrich with hierarchy info
+    result = []
     for sub in subordinates:
-        sub["role_name"] = ROLES.get(sub.get("role", 6), "Viewer")
+        enriched = await enrich_user_with_hierarchy(sub)
+        enriched["role_name"] = ROLES.get(sub.get("role", 6), "Viewer")
+        result.append(enriched)
     
-    return subordinates
+    return result
 
 
 @router.get("/managers-list")
