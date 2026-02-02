@@ -1,33 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// Role constants
+// Role constants - Roles are independent of hierarchy
 export const ROLES = {
   PE_DESK: 1,
   PE_MANAGER: 2,
-  ZONAL_MANAGER: 3,
-  MANAGER: 4,
-  EMPLOYEE: 5,
-  VIEWER: 6,
-  FINANCE: 7,
-  BUSINESS_PARTNER: 8,
-  PARTNERS_DESK: 9,
-  REGIONAL_MANAGER: 10,
-  BUSINESS_HEAD: 11,
+  FINANCE: 3,
+  VIEWER: 4,
+  PARTNERS_DESK: 5,
+  BUSINESS_PARTNER: 6,
 };
 
 // Role names for display
 export const ROLE_NAMES = {
   1: 'PE Desk',
   2: 'PE Manager',
-  3: 'Zonal Manager',
-  4: 'Manager',
-  5: 'Employee',
-  6: 'Viewer',
-  7: 'Finance',
-  8: 'Business Partner',
-  9: 'Partners Desk',
-  10: 'Regional Manager',
-  11: 'Business Head',
+  3: 'Finance',
+  4: 'Viewer',
+  5: 'Partners Desk',
+  6: 'Business Partner',
 };
 
 // Hook to get current user info
@@ -45,13 +35,12 @@ export function useCurrentUser() {
     }
   }, []);
   
-  const isPELevel = user?.role <= 3;
+  const isPELevel = user?.role === ROLES.PE_DESK || user?.role === ROLES.PE_MANAGER;
   const isPEDesk = user?.role === ROLES.PE_DESK;
   const isPEManager = user?.role === ROLES.PE_MANAGER;
-  const isPEHead = user?.role === ROLES.PE_HEAD;
-  const isManager = user?.role === ROLES.MANAGER;
-  const isEmployee = user?.role === ROLES.EMPLOYEE;
   const isFinance = user?.role === ROLES.FINANCE;
+  const isViewer = user?.role === ROLES.VIEWER;
+  const isPartnersDesk = user?.role === ROLES.PARTNERS_DESK;
   const isBusinessPartner = user?.role === ROLES.BUSINESS_PARTNER;
   const canManageVendors = isPEDesk || isPEManager;
   const canDeleteVendors = isPEDesk;
