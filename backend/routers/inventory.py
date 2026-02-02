@@ -6,11 +6,14 @@ from typing import List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
+import logging
 
 from database import db
 from config import is_pe_level
 from models import Inventory as InventoryModel
 from utils.auth import get_current_user
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
