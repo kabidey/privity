@@ -36,7 +36,7 @@ OTP_EXPIRY_MINUTES = 10
 OTP_MAX_ATTEMPTS = 3
 
 # Frontend URL for email links
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://booking-share-app.preview.emergentagent.com')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://share-booking-1.preview.emergentagent.com')
 
 # User Roles - Roles are independent of hierarchy
 ROLES = {
