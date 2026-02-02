@@ -61,7 +61,15 @@ async def calculate_weighted_avg_for_stock(stock_id: str) -> dict:
 
 @router.get("", response_model=List[InventoryModel])
 async def get_inventory(current_user: dict = Depends(get_current_user)):
-    """Get all inventory items with dynamically calculated weighted average pricing"""
+    """
+    Get all inventory items with dynamically calculated weighted average pricing.
+    
+    - PE Desk/Manager: See both WAP (Weighted Avg Price) and LP (Landing Price)
+    - Other users: Only see LP (Landing Price) - WAP is hidden
+    """
+    user_role = current_user.get("role", 6)
+    is_pe = is_pe_level(user_role)
+    
     inventory = await db.inventory.find({}, {"_id": 0}).to_list(10000)
     
     # Enrich with stock details
@@ -83,8 +91,26 @@ async def get_inventory(current_user: dict = Depends(get_current_user)):
         
         # ALWAYS calculate weighted average dynamically from purchases
         calc = await calculate_weighted_avg_for_stock(stock_id)
-        item["weighted_avg_price"] = calc["weighted_avg_price"]
-        item["total_value"] = calc["total_value"]
+        
+        # Get landing price (or default to WAP if not set)
+        landing_price = item.get("landing_price")
+        if landing_price is None or landing_price <= 0:
+            landing_price = calc["weighted_avg_price"]
+        
+        item["landing_price"] = round(landing_price, 2)
+        
+        # Calculate total value based on landing price for non-PE users
+        if is_pe:
+            # PE Desk/Manager see both WAP and LP
+            item["weighted_avg_price"] = calc["weighted_avg_price"]
+            item["total_value"] = calc["total_value"]  # WAP-based value
+            item["lp_total_value"] = round(item["available_quantity"] * landing_price, 2)  # LP-based value
+        else:
+            # Other users only see LP (WAP is hidden)
+            item["weighted_avg_price"] = landing_price  # Show LP as the "price"
+            item["total_value"] = round(item["available_quantity"] * landing_price, 2)
+            # Remove actual WAP from response
+            item.pop("weighted_avg_price_actual", None)
         
         result.append(item)
     
