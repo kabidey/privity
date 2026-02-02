@@ -364,15 +364,21 @@ const UserManagement = () => {
                               </Badge>
                             )}
                           </TableCell>
-                              </Badge>
-                            ) : (
-                              <Badge className="bg-amber-100 text-amber-800">
-                                Pending
-                              </Badge>
-                            )}
-                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
+                              {/* Hierarchy Management Button - for Employee/Manager/etc roles */}
+                              {![1, 2, 6, 7, 8, 9].includes(user.role) && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openHierarchyDialog(user)}
+                                  title="Manage Hierarchy"
+                                  data-testid={`hierarchy-${user.id}`}
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Users className="h-4 w-4" />
+                                </Button>
+                              )}
                               {canAssignManager(user) && (
                                 <Button
                                   variant="ghost"
@@ -408,7 +414,7 @@ const UserManagement = () => {
                               >
                                 <Key className="h-4 w-4" />
                               </Button>
-                              {user.email !== 'pedesk@smifs.com' && isPEDesk && (
+                              {user.email !== 'pe@smifs.com' && isPEDesk && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -419,7 +425,7 @@ const UserManagement = () => {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               )}
-                              {user.email === 'pedesk@smifs.com' && (
+                              {user.email === 'pe@smifs.com' && (
                                 <Badge variant="outline" className="ml-2">
                                   <Shield className="h-3 w-3 mr-1" />Super Admin
                                 </Badge>
