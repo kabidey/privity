@@ -131,7 +131,9 @@ const Clients = () => {
         try {
           const { data, expiry } = JSON.parse(cached);
           if (Date.now() < expiry) setClients(data);
-        } catch (e) {}
+        } catch (e) {
+          // Ignore cache parse errors
+        }
       }
       
       const response = await api.get('/clients?is_vendor=false');
