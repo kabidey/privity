@@ -223,8 +223,8 @@ const UserManagement = () => {
       toast.success(`Now viewing as ${selectedUser.name}`);
       setProxyDialogOpen(false);
       
-      // Reload the page to refresh all components with new user context
-      window.location.href = '/';
+      // Force full page reload to clear all cached state and reinitialize
+      window.location.replace('/');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to proxy login');
     } finally {
