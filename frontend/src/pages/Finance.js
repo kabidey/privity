@@ -71,9 +71,8 @@ const Finance = () => {
       : `${currentYear - 1}-${currentYear}`;
   });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  // PE Level (1, 2) or Finance role (7) can access Finance page
-  const hasFinanceAccess = currentUser.role === 1 || currentUser.role === 2 || currentUser.role === 7;
+  // Use centralized role utility
+  const { hasFinanceAccess } = useCurrentUser();
 
   useEffect(() => {
     if (hasFinanceAccess) {
