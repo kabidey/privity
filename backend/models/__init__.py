@@ -171,6 +171,8 @@ class Client(BaseModel):
     is_cloned: bool = False  # True if this was cloned from another client/vendor
     cloned_from_id: Optional[str] = None  # Original client/vendor ID
     cloned_from_type: Optional[str] = None  # "client" or "vendor"
+    # Booking permission (computed field)
+    can_book: bool = True  # Whether current user can create bookings for this client
 
 
 # ============== Stock Models ==============
