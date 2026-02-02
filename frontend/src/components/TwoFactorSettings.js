@@ -30,6 +30,7 @@ const TwoFactorSettings = () => {
   const [loading, setLoading] = useState(true);
   const [disableDialogOpen, setDisableDialogOpen] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
+  const [setupDialogOpen, setSetupDialogOpen] = useState(false);
   const [password, setPassword] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
