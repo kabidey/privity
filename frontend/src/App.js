@@ -55,6 +55,47 @@ const PrivateRoute = ({ children }) => {
   return token ? children : <Navigate to="/login" />;
 };
 
+// Proxy session wrapper - checks and displays proxy banner
+const ProxyWrapper = ({ children }) => {
+  const [proxySession, setProxySession] = useState(null);
+
+  useEffect(() => {
+    // Check proxy status on mount
+    const checkProxyStatus = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await api.get('/auth/proxy-status');
+        if (response.data.is_proxy) {
+          setProxySession(response.data);
+          // Store in localStorage for other components
+          localStorage.setItem('proxy_session', JSON.stringify(response.data));
+        } else {
+          localStorage.removeItem('proxy_session');
+        }
+      } catch (error) {
+        console.error('Error checking proxy status:', error);
+      }
+    };
+
+    checkProxyStatus();
+  }, []);
+
+  const handleEndProxy = (data) => {
+    setProxySession(null);
+  };
+
+  return (
+    <>
+      <ProxyBanner proxySession={proxySession} onEndProxy={handleEndProxy} />
+      <div style={{ marginTop: proxySession?.is_proxy ? '40px' : '0' }}>
+        {children}
+      </div>
+    </>
+  );
+};
+
 // Component to check and show user agreement
 const AgreementChecker = ({ children }) => {
   const [showAgreement, setShowAgreement] = useState(false);
