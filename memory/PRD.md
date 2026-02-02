@@ -35,7 +35,45 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## What's Been Implemented
 
-### Latest Updates (Jan 29, 2026)
+### Latest Updates (Feb 02, 2026)
+
+#### ✅ Two-Factor Authentication (TOTP) - COMPLETED (Feb 02, 2026)
+**Version**: v4.1.0
+**Implementation Details:**
+- **Backend TOTP Service** (`/app/backend/services/totp_service.py`):
+  - `TOTPService`: Generates TOTP secrets, QR codes, and verifies tokens
+  - `BackupCodeService`: Generates and verifies one-time backup codes (bcrypt hashed)
+  - `TwoFactorManager`: Main manager for 2FA operations
+  - Uses RFC 6238 compliant TOTP with 30-second intervals
+- **Backend 2FA Router** (`/app/backend/routers/two_factor.py`):
+  - `GET /auth/2fa/status` - Returns 2FA enabled status, backup codes remaining
+  - `POST /auth/2fa/enable` - Generates QR code, secret key, and 10 backup codes
+  - `POST /auth/2fa/verify-setup` - Verifies TOTP code to complete 2FA activation
+  - `POST /auth/2fa/verify` - Verifies TOTP during login/sensitive operations
+  - `POST /auth/2fa/use-backup-code` - Uses one-time backup code for authentication
+  - `POST /auth/2fa/regenerate-backup-codes` - Generates new backup codes (invalidates old)
+  - `POST /auth/2fa/disable` - Disables 2FA with password confirmation
+  - `GET /auth/2fa/check-required` - Checks if 2FA is required for current user
+- **Frontend Account Security Page** (`/app/frontend/src/pages/AccountSecurity.js`):
+  - Dedicated page for security settings
+  - 2FA Settings card with enable/disable functionality
+  - Password management section
+  - Account information display
+  - Security tips section
+- **Frontend 2FA Components**:
+  - `TwoFactorSettings.js` - Main settings component showing 2FA status
+  - `TwoFactorSetup.js` - Multi-step setup wizard (password → QR code → verify → backup codes)
+  - `TwoFactorVerify.js` - Login verification dialog with TOTP/backup code tabs
+- **Database Schema** (users collection):
+  - `two_factor.enabled`: Boolean
+  - `two_factor.secret`: Encrypted TOTP secret
+  - `two_factor.backup_codes_hashed`: Array of bcrypt-hashed backup codes
+  - `two_factor.enabled_at`: Timestamp
+- **Audit Logging**: All 2FA events (enable, disable, verify, backup code usage) logged
+- **Testing**: 100% pass rate on all 8 backend endpoints and frontend UI components
+- **Dependencies Added**: pyotp==2.9.0, qrcode==8.2 (Pillow already installed)
+
+### Previous Updates (Jan 29, 2026)
 
 #### ✅ WebSocket Real-time PE Status Updates - COMPLETED (Jan 29, 2026)
 **Implementation Details:**
