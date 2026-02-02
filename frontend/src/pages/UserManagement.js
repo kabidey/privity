@@ -159,6 +159,37 @@ const UserManagement = () => {
     setResetPasswordDialogOpen(true);
   };
 
+  // Proxy Login Handler
+  const handleProxyLogin = async () => {
+    if (!selectedUser) return;
+    
+    setProxyLoading(true);
+    try {
+      const response = await api.post('/auth/proxy-login', {
+        target_user_id: selectedUser.id
+      });
+      
+      // Store original user info for return
+      const originalUser = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem('original_user', JSON.stringify(originalUser));
+      
+      // Update token and user info
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('proxy_session', JSON.stringify(response.data.proxy_session));
+      
+      toast.success(`Now viewing as ${selectedUser.name}`);
+      setProxyDialogOpen(false);
+      
+      // Reload the page to refresh all components with new user context
+      window.location.href = '/';
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to proxy login');
+    } finally {
+      setProxyLoading(false);
+    }
+  };
+
   // Group users by hierarchy for the hierarchy view
   const buildHierarchy = () => {
     const businessHeads = users.filter(u => u.role === 11);
