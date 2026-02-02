@@ -1152,7 +1152,7 @@ const Bookings = () => {
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             {/* Loss booking approval buttons */}
-                            {isPEDesk && booking.is_loss_booking && booking.loss_approval_status === 'pending' && (
+                            {isPELevel && booking.is_loss_booking && booking.loss_approval_status === 'pending' && (
                               <>
                                 <Button variant="ghost" size="sm" onClick={() => handleLossApprove(booking.id, true)} className="text-yellow-600" title="Approve Loss">
                                   <TrendingDown className="h-4 w-4" />
