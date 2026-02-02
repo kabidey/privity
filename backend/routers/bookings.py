@@ -869,6 +869,174 @@ async def get_dp_transferred_bookings(current_user: dict = Depends(get_current_u
     return bookings_list
 
 
+@router.get("/bookings-export")
+async def export_bookings(
+    format: str = "xlsx",  # "xlsx" or "csv"
+    status: Optional[str] = None,
+    approval_status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Export bookings to Excel or CSV"""
+    user_role = current_user.get("role", 7)
+    
+    # Viewer (role 4) cannot download/export
+    if user_role == 4:
+        raise HTTPException(status_code=403, detail="Viewers are not allowed to download or export data")
+    
+    # Build query
+    query = {"is_voided": {"$ne": True}}
+    if status:
+        query["status"] = status
+    if approval_status:
+        query["approval_status"] = approval_status
+    
+    # Get bookings
+    bookings_data = await db.bookings.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    
+    # Get all clients, stocks for lookup
+    clients = {c["id"]: c for c in await db.clients.find({}, {"_id": 0, "id": 1, "name": 1, "pan_number": 1}).to_list(10000)}
+    stocks = {s["id"]: s for s in await db.stocks.find({}, {"_id": 0, "id": 1, "name": 1, "symbol": 1}).to_list(10000)}
+    users = {u["id"]: u for u in await db.users.find({}, {"_id": 0, "id": 1, "name": 1, "email": 1}).to_list(10000)}
+    
+    if format == "csv":
+        # CSV Export
+        import csv
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Headers
+        headers = [
+            "Booking Number", "Booking Date", "Client Name", "Client PAN",
+            "Stock Symbol", "Stock Name", "Quantity", "Selling Price",
+            "Total Amount", "Landing Price", "Profit/Loss", "Status",
+            "Approval Status", "Created By", "Created At", "Notes"
+        ]
+        writer.writerow(headers)
+        
+        # Data rows
+        for booking in bookings_data:
+            client = clients.get(booking.get("client_id"), {})
+            stock = stocks.get(booking.get("stock_id"), {})
+            created_by_user = users.get(booking.get("created_by"), {})
+            
+            quantity = booking.get("quantity", 0)
+            selling_price = booking.get("selling_price", 0)
+            landing_price = booking.get("landing_price", 0)
+            total_amount = quantity * selling_price
+            profit_loss = (selling_price - landing_price) * quantity if landing_price else 0
+            
+            row = [
+                booking.get("booking_number", ""),
+                booking.get("booking_date", ""),
+                client.get("name", ""),
+                client.get("pan_number", ""),
+                stock.get("symbol", ""),
+                stock.get("name", ""),
+                quantity,
+                selling_price,
+                total_amount,
+                landing_price or "",
+                profit_loss if landing_price else "",
+                booking.get("status", ""),
+                booking.get("approval_status", ""),
+                created_by_user.get("name", ""),
+                booking.get("created_at", "")[:19] if booking.get("created_at") else "",
+                booking.get("notes", "")
+            ]
+            writer.writerow(row)
+        
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=bookings_export_{datetime.now().strftime('%Y%m%d')}.csv"}
+        )
+    
+    else:
+        # Excel Export
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Bookings"
+        
+        # Styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="064E3B", end_color="064E3B", fill_type="solid")
+        header_alignment = Alignment(horizontal="center", vertical="center")
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Headers
+        headers = [
+            "Booking Number", "Booking Date", "Client Name", "Client PAN",
+            "Stock Symbol", "Stock Name", "Quantity", "Selling Price",
+            "Total Amount", "Landing Price", "Profit/Loss", "Status",
+            "Approval Status", "Created By", "Created At", "Notes"
+        ]
+        
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+            cell.border = thin_border
+        
+        # Data rows
+        for row_num, booking in enumerate(bookings_data, 2):
+            client = clients.get(booking.get("client_id"), {})
+            stock = stocks.get(booking.get("stock_id"), {})
+            created_by_user = users.get(booking.get("created_by"), {})
+            
+            quantity = booking.get("quantity", 0)
+            selling_price = booking.get("selling_price", 0)
+            landing_price = booking.get("landing_price", 0)
+            total_amount = quantity * selling_price
+            profit_loss = (selling_price - landing_price) * quantity if landing_price else 0
+            
+            row_data = [
+                booking.get("booking_number", ""),
+                booking.get("booking_date", ""),
+                client.get("name", ""),
+                client.get("pan_number", ""),
+                stock.get("symbol", ""),
+                stock.get("name", ""),
+                quantity,
+                selling_price,
+                total_amount,
+                landing_price or "",
+                profit_loss if landing_price else "",
+                booking.get("status", ""),
+                booking.get("approval_status", ""),
+                created_by_user.get("name", ""),
+                booking.get("created_at", "")[:19] if booking.get("created_at") else "",
+                booking.get("notes", "")
+            ]
+            
+            for col, value in enumerate(row_data, 1):
+                cell = ws.cell(row=row_num, column=col, value=value)
+                cell.border = thin_border
+                if col in [7, 8, 9, 10, 11]:  # Number columns
+                    cell.alignment = Alignment(horizontal="right")
+        
+        # Auto-adjust column widths
+        for col in range(1, len(headers) + 1):
+            ws.column_dimensions[chr(64 + col) if col <= 26 else 'A' + chr(64 + col - 26)].width = 15
+        
+        # Save to bytes
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=bookings_export_{datetime.now().strftime('%Y%m%d')}.xlsx"}
+        )
+
+
 @router.get("/bookings/dp-export")
 async def export_dp_transfer_excel(
     status: str = "all",  # "ready", "transferred", or "all"
