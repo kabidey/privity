@@ -604,14 +604,14 @@ const Bookings = () => {
                     <SelectValue placeholder="Select approved client" />
                   </SelectTrigger>
                   <SelectContent>
-                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved').map((client) => (
+                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved' && c.can_book !== false).map((client) => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name} ({client.otc_ucc || 'N/A'})
                       </SelectItem>
                     ))}
-                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved').length === 0 && (
+                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved' && c.can_book !== false).length === 0 && (
                       <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        No approved clients available
+                        No clients available for booking. Only clients mapped to you can be booked.
                       </div>
                     )}
                   </SelectContent>
