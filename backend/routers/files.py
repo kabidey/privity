@@ -3,8 +3,10 @@ File Router - Serves files from GridFS and handles uploads
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Query
 from fastapi.responses import StreamingResponse, Response
-from typing import Optional
+from typing import Optional, List
 import io
+from database import db
+from config import is_pe_level
 from utils.auth import get_current_user
 from services.file_storage import (
     upload_file_to_gridfs,
