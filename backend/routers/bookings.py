@@ -1470,9 +1470,9 @@ async def delete_payment_tranche(
     tranche_number: int,
     current_user: dict = Depends(get_current_user)
 ):
-    """Delete a payment tranche (PE Desk only)."""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete payments")
+    """Delete a payment tranche (PE Desk and PE Manager only)."""
+    if not is_pe_level(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk/Manager can delete payments")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
