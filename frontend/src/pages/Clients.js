@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '../utils/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Loader2, Sparkles, Check, Clock, CheckCircle, XCircle, Download, Eye, FolderOpen, Copy, AlertCircle, Ban, ShieldOff, AlertTriangle } from 'lucide-react';
 
 const Clients = () => {
