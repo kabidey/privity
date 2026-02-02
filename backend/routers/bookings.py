@@ -273,7 +273,9 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
         "client_id": booking_data.client_id,
         "stock_id": booking_data.stock_id,
         "quantity": booking_data.quantity,
-        "buying_price": buying_price,
+        "buying_price": buying_price,  # This is now Landing Price (LP)
+        "weighted_avg_price": weighted_avg,  # Store actual WAP for PE Desk HIT report
+        "landing_price": landing_price,  # Store LP explicitly
         "selling_price": booking_data.selling_price,
         "booking_date": booking_data.booking_date,
         "status": booking_data.status,
