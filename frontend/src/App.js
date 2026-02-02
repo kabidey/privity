@@ -5,6 +5,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import FloatingNotifications from './components/FloatingNotifications';
 import NotificationDialog from './components/NotificationDialog';
 import NotificationPermissionBanner from './components/NotificationPermissionBanner';
+import ProxyBanner from './components/ProxyBanner';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import BookingConfirm from './pages/BookingConfirm';
@@ -46,6 +47,7 @@ import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
 import UserAgreementModal from './components/UserAgreementModal';
 import { useState, useEffect } from 'react';
+import api from './utils/api';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
