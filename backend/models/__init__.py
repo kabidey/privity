@@ -153,11 +153,16 @@ class Client(BaseModel):
     created_by_role: int = 5
     mapped_employee_id: Optional[str] = None
     mapped_employee_name: Optional[str] = None
+    mapped_employee_email: Optional[str] = None  # Email for CC in client communications
     is_proprietor: bool = False  # Flag for proprietorship entities
     has_name_mismatch: bool = False  # Flag if name mismatch was detected during creation
     bank_proof_url: Optional[str] = None  # Bank proof document for proprietors with name mismatch
     bank_proof_uploaded_by: Optional[str] = None  # Who uploaded the bank proof
     bank_proof_uploaded_at: Optional[str] = None  # When the bank proof was uploaded
+    # Clone tracking
+    is_cloned: bool = False  # True if this was cloned from another client/vendor
+    cloned_from_id: Optional[str] = None  # Original client/vendor ID
+    cloned_from_type: Optional[str] = None  # "client" or "vendor"
 
 
 # ============== Stock Models ==============
