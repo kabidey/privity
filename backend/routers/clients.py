@@ -225,7 +225,7 @@ async def get_clients(
     include_unmapped: Optional[bool] = False,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all clients with optional filters based on role and mapping."""
+    """Get all clients with optional filters based on role."""
     query = {}
     user_role = current_user.get("role", 7)
     user_id = current_user.get("id")
@@ -234,29 +234,21 @@ async def get_clients(
     # 1 (PE Desk), 2 (PE Manager) - See all clients/vendors
     # 3 (Finance) - See all clients (no vendors)
     # 4 (Viewer) - See all clients/vendors (read-only)
-    # 5 (Partners Desk) - See only clients mapped to them
-    # 6 (Business Partner) - See only clients mapped to them
-    # 7 (Employee) - See only clients mapped to them
+    # 5 (Partners Desk), 6 (Business Partner), 7 (Employee) - See all clients (no vendors)
     
     if is_pe_level(user_role):
         # PE Level sees everything
         if is_vendor is not None:
             query["is_vendor"] = is_vendor
-    elif user_role == 3:
-        # Finance sees all clients (no vendors)
-        query["is_vendor"] = False
     elif user_role == 4:
         # Viewer sees all (read-only)
         if is_vendor is not None:
             query["is_vendor"] = is_vendor
     else:
-        # All other roles (Partners Desk, Business Partner, Employee) - see only mapped clients
+        # All other roles see all clients but no vendors
         if is_vendor == True:
             raise HTTPException(status_code=403, detail="You do not have access to vendors")
         query["is_vendor"] = False
-        
-        # Only show clients mapped to this user
-        query["mapped_employee_id"] = user_id
     
     # Pending approval filter (for PE Level only)
     if pending_approval and is_pe_level(user_role):
