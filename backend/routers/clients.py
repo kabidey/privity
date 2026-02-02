@@ -80,6 +80,29 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
                 detail=f"Cannot create {'Vendor' if client_data.is_vendor else 'Client'}: This email ({client_data.email}) belongs to an existing Referral Partner ({existing_rp_email.get('name', 'Unknown')} - {existing_rp_email.get('rp_code', '')}). An RP cannot be a Client."
             )
     
+    # STRICT RULE: System users (those with accounts) cannot be created as clients - Check by PAN
+    existing_user_pan = await db.users.find_one(
+        {"pan_number": client_data.pan_number.upper()},
+        {"_id": 0, "name": 1, "email": 1, "pan_number": 1}
+    )
+    if existing_user_pan:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot create {'Vendor' if client_data.is_vendor else 'Client'}: This PAN ({client_data.pan_number.upper()}) belongs to an existing system user ({existing_user_pan.get('name', 'Unknown')} - {existing_user_pan.get('email', '')}). System users cannot be mapped as Clients."
+        )
+    
+    # STRICT RULE: System users cannot be created as clients - Check by Email
+    if client_data.email:
+        existing_user_email = await db.users.find_one(
+            {"email": client_data.email.lower()},
+            {"_id": 0, "name": 1, "email": 1}
+        )
+        if existing_user_email:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot create {'Vendor' if client_data.is_vendor else 'Client'}: This email ({client_data.email}) belongs to an existing system user ({existing_user_email.get('name', 'Unknown')}). System users cannot be mapped as Clients."
+            )
+    
     client_id = str(uuid.uuid4())
     
     # PE Desk/Manager created clients are auto-approved
@@ -88,6 +111,7 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
     # Generate OTC UCC
     otc_ucc = await generate_otc_ucc()
     
+    # Auto-map client to creator (all roles)
     client_doc = {
         "id": client_id,
         "otc_ucc": otc_ucc,
@@ -116,8 +140,13 @@ async def create_client(client_data: ClientCreate, current_user: dict = Depends(
         "suspension_reason": None,
         "suspended_at": None,
         "suspended_by": None,
-        "mapped_employee_id": current_user["id"] if user_role in [4, 5, 7] else None,
-        "mapped_employee_name": current_user["name"] if user_role in [4, 5, 7] else None,
+        # Auto-map client to creator for ALL roles
+        "mapped_employee_id": current_user["id"],
+        "mapped_employee_name": current_user["name"],
+        "mapped_employee_email": current_user.get("email"),
+        "is_cloned": False,
+        "cloned_from_id": None,
+        "cloned_from_type": None,
         "created_by": current_user["id"],
         "created_by_role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
