@@ -200,6 +200,7 @@ function App() {
                           <Route path="/client-dashboard" element={<ClientDashboard />} />
                           <Route path="/research" element={<Research />} />
                           <Route path="/security" element={<SecurityDashboard />} />
+                          <Route path="/pe-desk-hit" element={<PEDeskHitReport />} />
                         </Routes>
                       </Layout>
                       {/* Notification Permission Banner */}
