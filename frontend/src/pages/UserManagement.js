@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, ChevronRight, Building } from 'lucide-react';
+import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, ChevronRight, Building, LogIn, Eye } from 'lucide-react';
 
 const ROLES = {
   1: { name: 'PE Desk', color: 'bg-purple-100 text-purple-800' },
@@ -33,6 +33,8 @@ const UserManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [proxyDialogOpen, setProxyDialogOpen] = useState(false);
+  const [proxyLoading, setProxyLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedManagerId, setSelectedManagerId] = useState('');
   const [availableManagers, setAvailableManagers] = useState([]);
