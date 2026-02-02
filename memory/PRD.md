@@ -1136,3 +1136,78 @@ rp_payments: {
 - **AI Integration**: Uses `emergentintegrations` LlmChat with Emergent LLM Key
 - **Code Cleanup**: Deleted unused `/app/frontend/src/pages/DPTransferReport.js` and removed import from App.js
 - **Testing**: 15/17 backend tests passed (88%), 100% frontend verification
+
+
+---
+
+## Latest Updates (Feb 2, 2026)
+
+#### ✅ Landing Price (LP) & Weighted Average Price (WAP) Logic - COMPLETED (Feb 2, 2026)
+**Implementation Details:**
+- **Inventory Model Update** (`/app/backend/models/__init__.py`):
+  - Added `landing_price` (Optional float) - LP set by PE Desk
+  - Added `lp_total_value` (Optional float) - Total value based on LP
+- **Backend Logic** (`/app/backend/routers/inventory.py`):
+  - PE Level (role 1, 2): See both WAP (actual cost) and LP (shown to users)
+  - Non-PE users: See LP as "Price" (WAP is hidden)
+  - LP defaults to WAP if not explicitly set
+  - `PUT /api/inventory/{stock_id}/landing-price` - PE Desk only endpoint to update LP
+  - `GET /api/inventory/{stock_id}/landing-price` - Get LP for booking calculations
+- **Frontend Inventory Page** (`/app/frontend/src/pages/Inventory.js`):
+  - PE Level sees: WAP column (blue), LP column (green), WAP Value, LP Value
+  - PE Desk sees edit button (pencil icon) next to LP
+  - Inline editing with confirmation dialog showing New HIT/Share calculation
+  - Legend explaining WAP, LP, and HIT formula
+  - Non-PE users see single "Price" column (actually LP)
+- **Bug Fixed**: Removed duplicate inventory routes from `stocks.py` that conflicted with `inventory_router`
+- **Testing**: 100% backend + frontend pass rate (iteration_45)
+
+#### ✅ PE Desk HIT Report - COMPLETED (Feb 2, 2026)
+**Implementation Details:**
+- **Backend Endpoint** (`/app/backend/routers/reports.py` line 380):
+  - `GET /api/reports/pe-desk-hit` - Returns HIT report for completed DP transfers
+  - `GET /api/reports/pe-desk-hit/export?format=xlsx|pdf` - Export report
+  - HIT Formula: (LP - WAP) × Quantity
+  - Returns: summary (total_bookings, total_quantity, total_hit, avg_hit_per_share), by_stock breakdown, details
+  - PE Level only access (role 1 or 2)
+- **Frontend Page** (`/app/frontend/src/pages/PEDeskHitReport.js`):
+  - Route: `/pe-desk-hit`
+  - Filters: Start Date, End Date, Stock dropdown
+  - Summary cards: Total Bookings, Total Quantity, Total HIT (amber highlight), Avg HIT/Share
+  - HIT by Stock section with card grid showing breakdown
+  - Detailed Report table: Booking #, Transfer Date, Stock, Client, Qty, WAP, LP, LP-WAP, HIT
+  - Export Excel and Export PDF buttons
+  - "PE Desk Confidential Report" footer
+- **Navigation**: Menu item "PE HIT Report" visible for PE Level (role 1, 2)
+
+#### ✅ File Storage Migration Page - COMPLETED (Feb 2, 2026)
+**Implementation Details:**
+- **Purpose**: Address user's concern about uploaded documents being lost on redeployment
+- **Backend Already Complete** (`/app/backend/routers/files.py`):
+  - `GET /api/files/storage-stats` - GridFS statistics
+  - `GET /api/files/scan-missing` - Scan for files referenced in DB but not in GridFS
+  - `POST /api/files/re-upload` - Re-upload missing files to GridFS
+- **Frontend Page** (`/app/frontend/src/pages/FileMigration.js`):
+  - Route: `/file-migration`
+  - Storage Stats cards: Files in GridFS, Total Size, Missing Files count
+  - "Scan Files" button to refresh missing files list
+  - Files by Category section
+  - Missing Files table with Entity Type, Entity Name, Document Type, Original File, Upload Action
+  - Upload functionality with file input for each missing file
+  - Help section explaining GridFS benefits
+- **Navigation**: Menu item "File Migration" visible for PE Desk only (role 1)
+- **Testing**: 100% backend + frontend pass rate (iteration_45)
+
+**Files Modified:**
+- `/app/backend/routers/inventory.py` - LP/WAP logic
+- `/app/backend/routers/stocks.py` - Commented out duplicate inventory routes
+- `/app/backend/models/__init__.py` - Added landing_price, lp_total_value to Inventory model
+- `/app/frontend/src/pages/Inventory.js` - LP/WAP display and editing
+- `/app/frontend/src/pages/PEDeskHitReport.js` - New page
+- `/app/frontend/src/pages/FileMigration.js` - New page
+- `/app/frontend/src/App.js` - Added routes
+- `/app/frontend/src/components/Layout.js` - Added navigation
+
+**Test Reports:**
+- `/app/test_reports/iteration_45.json` - Full testing of LP/WAP, HIT Report, File Migration
+
