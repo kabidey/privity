@@ -37,6 +37,20 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 02, 2026)
 
+#### ✅ Payment Request Email - Company Documents Attachment - COMPLETED (Feb 02, 2026)
+**Feature**: Attach company master documents to payment request emails sent to clients
+**Implementation**:
+- Updated `send_payment_request_email` function in `backend/services/email_service.py`
+- Added `cancelled_cheque_url` to the list of documents to attach
+- Improved content type detection for various file formats (PDF, PNG, JPG)
+- Added logging for attachment details
+**Documents Attached** (when available):
+- NSDL CML (`cml_nsdl_url`)
+- CDSL CML (`cml_cdsl_url`)
+- Company PAN Card (`pan_card_url`)
+- Cancelled Cheque (`cancelled_cheque_url`)
+**Note**: Documents must be uploaded in Company Master settings for them to be attached.
+
 #### ✅ Payment Recording Bug Fix - COMPLETED (Feb 02, 2026)
 **Bug**: Clicking the "Pay" button in the Bookings page caused the page to go blank.
 **Root Cause**: Backend endpoint `POST /api/bookings/{booking_id}/payments` expected Query parameters (amount, payment_mode, etc.) but the frontend was sending a JSON body.
