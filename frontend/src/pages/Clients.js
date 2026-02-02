@@ -84,15 +84,21 @@ const Clients = () => {
     bank_declaration: null,  // Required if proprietor with name mismatch
   });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isPEDesk = currentUser.role === 1;
-  const isPEManager = currentUser.role === 2;
-  const isPELevel = currentUser.role === 1 || currentUser.role === 2;
-  const isFinance = currentUser.role === 3;
-  const isViewer = currentUser.role === 4;
-  const isPartnersDesk = currentUser.role === 5;
-  const isBusinessPartner = currentUser.role === 6;
-  const isEmployee = currentUser.role === 7;
+  // Use centralized role utility
+  const {
+    user: currentUser,
+    isPEDesk,
+    isPEManager,
+    isPELevel,
+    isFinance,
+    isViewer,
+    isPartnersDesk,
+    isBusinessPartner,
+    isEmployee,
+    canDelete,
+    canModify,
+  } = useCurrentUser();
+  
   // Can map clients = PE Level only
   const canMapClients = isPELevel;
 
