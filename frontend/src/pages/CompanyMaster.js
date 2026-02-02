@@ -261,6 +261,10 @@ const CompanyMaster = () => {
     if (!url) return null;
     // If URL already starts with http, return as is
     if (url.startsWith('http')) return url;
+    // If URL already starts with /api, don't add it again
+    if (url.startsWith('/api')) {
+      return `${process.env.REACT_APP_BACKEND_URL}${url}`;
+    }
     // Otherwise, construct full URL with API prefix
     return `${process.env.REACT_APP_BACKEND_URL}/api${url}`;
   };
