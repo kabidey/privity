@@ -37,6 +37,25 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 02, 2026)
 
+#### ✅ Payment Recording Bug Fix - COMPLETED (Feb 02, 2026)
+**Bug**: Clicking the "Pay" button in the Bookings page caused the page to go blank.
+**Root Cause**: Backend endpoint `POST /api/bookings/{booking_id}/payments` expected Query parameters (amount, payment_mode, etc.) but the frontend was sending a JSON body.
+**Fix**:
+- Created `PaymentRecordRequest` Pydantic model in `backend/routers/bookings.py` (line ~1357)
+- Modified `add_payment_tranche` endpoint to accept `payment_data: PaymentRecordRequest` as JSON body
+- Added support for `payment_date`, `proof_url` fields
+- Enhanced response to include `dp_transfer_ready` status
+**Testing**: 100% pass rate - Payment dialog opens correctly, form submission works, toast confirmation shows success.
+
+#### ✅ Email Confirmation Flow - VERIFIED WORKING (Feb 02, 2026)
+**Reported Issue**: Emails not properly formatted and client confirmation link broken.
+**Verification**:
+- `FRONTEND_URL` environment variable correctly set in `backend/.env`
+- `send_booking_approval_email` function correctly builds URLs: `{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/{action}`
+- Email templates in `email_templates.py` properly use `{{accept_url}}` and `{{deny_url}}` placeholders
+- Frontend route `/booking-confirm/:bookingId/:token/:action` correctly handles confirmation page
+**Status**: Working correctly - URLs are properly formatted with production frontend URL.
+
 #### ✅ Two-Factor Authentication (TOTP) - COMPLETED (Feb 02, 2026)
 **Version**: v4.1.0
 **Implementation Details:**
