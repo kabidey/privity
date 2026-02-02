@@ -1310,9 +1310,26 @@ const Bookings = () => {
                   <Label>Payment History</Label>
                   <div className="space-y-1 max-h-32 overflow-y-auto">
                     {selectedBooking.payments.map((p, idx) => (
-                      <div key={idx} className="flex justify-between text-sm p-2 bg-muted/50 rounded">
-                        <span>Tranche {p.tranche_number}: {formatCurrency(p.amount)}</span>
-                        <span className="text-muted-foreground">{new Date(p.payment_date).toLocaleDateString('en-IN')}</span>
+                      <div key={idx} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
+                        <div className="flex-1">
+                          <span>Tranche {p.tranche_number}: {formatCurrency(p.amount)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">{new Date(p.payment_date).toLocaleDateString('en-IN')}</span>
+                          {isPELevel && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-100"
+                              onClick={() => handleDeletePayment(selectedBooking.id, p.tranche_number)}
+                              data-testid={`delete-payment-${p.tranche_number}`}
+                              title="Delete payment"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
