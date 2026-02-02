@@ -56,7 +56,8 @@ import {
   BookOpen,
   Phone,
   DollarSign,
-  HardDrive
+  HardDrive,
+  HelpCircle
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
