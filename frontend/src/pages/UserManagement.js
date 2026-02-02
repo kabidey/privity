@@ -303,6 +303,22 @@ const UserManagement = () => {
                                   <Link2 className="h-4 w-4" />
                                 </Button>
                               )}
+                              {/* Proxy Login - PE Desk only, not for self or other PE Desk */}
+                              {isPEDesk && user.id !== currentUser.id && user.role !== 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setProxyDialogOpen(true);
+                                  }}
+                                  className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                  title={`Login as ${user.name}`}
+                                  data-testid={`proxy-login-${user.id}`}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
