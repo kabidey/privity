@@ -1492,17 +1492,33 @@ async def delete_payment_tranche(
     new_payments = [p for p in payments if p.get("tranche_number") != tranche_number]
     new_total_paid = sum(p.get("amount", 0) for p in new_payments)
     total_amount = (booking.get("selling_price") or 0) * booking.get("quantity", 0)
+    is_complete = abs(new_total_paid - total_amount) < 0.01
     
-    await db.bookings.update_one(
-        {"id": booking_id},
-        {"$set": {
-            "payments": new_payments,
-            "total_paid": new_total_paid,
-            "payment_complete": abs(new_total_paid - total_amount) < 0.01
-        }}
-    )
+    update_data = {
+        "payments": new_payments,
+        "total_paid": new_total_paid,
+        "payment_complete": is_complete
+    }
     
-    return {"message": f"Payment tranche {tranche_number} deleted successfully"}
+    # If no payments left, reset client confirmation status
+    if len(new_payments) == 0:
+        update_data["client_confirmation_status"] = "pending"
+        update_data["client_confirmed_at"] = None
+    
+    # If payment is no longer complete, reset DP ready status
+    if not is_complete:
+        update_data["dp_status"] = None
+        update_data["dp_transfer_ready"] = False
+        update_data["dp_ready_at"] = None
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    return {
+        "message": f"Payment tranche {tranche_number} deleted successfully",
+        "total_paid": new_total_paid,
+        "remaining": total_amount - new_total_paid,
+        "payment_complete": is_complete
+    }
 
 
 # ============== CLIENT BOOKING CONFIRMATION (Public Endpoint) ==============
