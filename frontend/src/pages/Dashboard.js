@@ -22,7 +22,7 @@ const Dashboard = () => {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isPELevel = currentUser.role === 1 || currentUser.role === 2;
   const isPEDesk = currentUser.role === 1;
-  const isNotBP = currentUser.role !== 8;
+  const isNotBP = currentUser.role !== 6; // Business Partner is role 6
 
   useEffect(() => {
     fetchData();
