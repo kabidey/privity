@@ -98,8 +98,8 @@ async def register(user_data: UserCreate, request: Request = None):
     user_id = str(uuid.uuid4())
     hashed_pw = hash_password(random_password)
     
-    # Set role: Superadmin (1) for pe@smifs.com, Employee (5) for others
-    user_role = 1 if is_superadmin else 5
+    # Set role: Superadmin (1) for pe@smifs.com, Employee (7) for others
+    user_role = 1 if is_superadmin else 7
     
     user_doc = {
         "id": user_id,
