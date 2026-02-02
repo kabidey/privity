@@ -63,6 +63,7 @@ const UserManagement = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchPotentialManagers();
   }, []);
 
   const fetchUsers = async () => {
@@ -73,6 +74,15 @@ const UserManagement = () => {
       toast.error('Failed to fetch users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPotentialManagers = async () => {
+    try {
+      const response = await api.get('/users/hierarchy/potential-managers');
+      setPotentialManagers(response.data);
+    } catch (error) {
+      console.error('Failed to fetch potential managers');
     }
   };
 
@@ -95,6 +105,21 @@ const UserManagement = () => {
       fetchUsers();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create user');
+    }
+  };
+
+  const handleUpdateHierarchy = async () => {
+    if (!selectedUser) return;
+    try {
+      await api.put(`/users/${selectedUser.id}/hierarchy`, {
+        hierarchy_level: selectedHierarchyLevel,
+        reports_to: selectedManagerId || null
+      });
+      toast.success('Hierarchy updated successfully');
+      setHierarchyDialogOpen(false);
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update hierarchy');
     }
   };
 
