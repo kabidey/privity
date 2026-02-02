@@ -16,7 +16,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from database import db
-from config import is_pe_level, is_pe_desk_only, ROLES
+from config import is_pe_level, is_pe_desk_only, is_viewer, check_viewer_restriction, ROLES
 from models import BookingCreate, Booking, BookingWithDetails
 from utils.auth import get_current_user, check_permission
 from services.notification_service import notify_roles, create_notification
