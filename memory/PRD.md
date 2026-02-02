@@ -1229,3 +1229,63 @@ rp_payments: {
 **Test Reports:**
 - `/app/test_reports/iteration_45.json` - Full testing of LP/WAP, HIT Report, File Migration
 
+
+
+#### ✅ Multi-Level User Hierarchy System - COMPLETED (Feb 2, 2026)
+**Implementation Details:**
+- **Purpose**: Implement organizational hierarchy (Employee → Manager → Zonal Head → Regional Manager → Business Head) to control data visibility. Higher levels can view data of all subordinates but can only edit their own.
+- **Backend Service** (`/app/backend/services/hierarchy_service.py`):
+  - `get_all_subordinates(manager_id)` - Recursively get all direct/indirect reports
+  - `get_team_user_ids(user_id)` - Get user + all subordinates for filtering
+  - `can_view_user_data(viewer_id, target_id)` - Check view permission
+  - `can_edit_user_data(editor_id, target_id)` - Check edit permission (self or PE only)
+  - `get_team_clients_query(user_id)` - MongoDB query for hierarchy-filtered clients
+  - `get_team_bookings_query(user_id)` - MongoDB query for hierarchy-filtered bookings
+  - `get_manager_chain(user_id)` - Get all managers up the chain (for circular reference prevention)
+- **Backend Endpoints** (`/app/backend/routers/users.py`):
+  - `GET /api/users/hierarchy` - Returns all users with hierarchy info
+  - `PUT /api/users/{user_id}/hierarchy` - Update hierarchy_level and reports_to
+  - `GET /api/users/hierarchy/levels` - Returns 5 hierarchy levels
+  - `GET /api/users/hierarchy/potential-managers` - Users who can be managers
+  - `GET /api/users/team/subordinates` - Current user's subordinates
+  - `GET /api/users/team/direct-reports` - Users directly reporting to current user
+- **Data Filtering**:
+  - `/api/clients` now filters based on hierarchy (line 200-232)
+  - `/api/bookings` now filters based on hierarchy (line 393+)
+  - Employee: Sees only their own clients/bookings
+  - Manager+: Sees self + all subordinates' data
+  - PE Level: Sees all data
+- **Frontend UI** (`/app/frontend/src/pages/UserManagement.js`):
+  - "All Users" tab: Shows Hierarchy Level and Reports To columns
+  - "Team Hierarchy" tab: Visual organization structure
+  - Hierarchy Management dialog: Set hierarchy_level and reports_to
+  - Blue Users icon button to manage hierarchy
+- **Bug Fixed**: Added circular reference prevention in `PUT /api/users/{user_id}/hierarchy`
+  - Uses `get_manager_chain()` to detect if assignment would create a loop
+  - Returns error: "Cannot assign this manager - it would create a circular reporting structure"
+- **Testing**: 100% backend + frontend pass rate (iteration_47)
+
+**Hierarchy Levels:**
+| Level | Name             |
+|-------|------------------|
+| 1     | Employee         |
+| 2     | Manager          |
+| 3     | Zonal Head       |
+| 4     | Regional Manager |
+| 5     | Business Head    |
+
+**User Model Fields:**
+- `hierarchy_level` (int): 1-5, defaults to 1 (Employee)
+- `reports_to` (string): User ID of the manager
+
+**Files Modified:**
+- `/app/backend/services/hierarchy_service.py` - Core hierarchy logic
+- `/app/backend/routers/users.py` - Hierarchy endpoints + circular reference fix
+- `/app/backend/routers/clients.py` - Hierarchy-based filtering
+- `/app/backend/routers/bookings.py` - Hierarchy-based filtering
+- `/app/backend/models/__init__.py` - User model with hierarchy fields
+- `/app/frontend/src/pages/UserManagement.js` - Hierarchy UI
+
+**Test Reports:**
+- `/app/test_reports/iteration_47.json` - Full hierarchy testing
+
