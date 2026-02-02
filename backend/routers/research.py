@@ -13,10 +13,11 @@ import aiofiles
 from database import db
 from routers.auth import get_current_user
 from config import is_pe_level
+from services.file_storage import upload_file_to_gridfs, get_file_url
 
 router = APIRouter(prefix="/research", tags=["Research"])
 
-# Upload directory
+# Upload directory (for backward compatibility)
 RESEARCH_UPLOADS_DIR = "/app/uploads/research"
 os.makedirs(RESEARCH_UPLOADS_DIR, exist_ok=True)
 
