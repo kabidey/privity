@@ -301,6 +301,7 @@ async def upload_company_document(
     return {
         "message": f"{document_type.replace('_', ' ').title()} uploaded successfully",
         "url": file_url,
+        "file_id": file_id,
         "filename": filename
     }
 
@@ -311,7 +312,7 @@ async def upload_company_logo(
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Upload company logo (PE Desk only)
+    Upload company logo (PE Desk only) - Stored in GridFS for persistence
     Supports PNG, JPG, JPEG, SVG, WEBP formats
     """
     check_pe_desk(current_user)
@@ -330,36 +331,39 @@ async def upload_company_logo(
     if len(file_content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Logo file size must be less than 5MB")
     
-    # Get current logo to delete old file
-    master = await db.company_master.find_one({"_id": "company_settings"})
-    if master and master.get("logo_url"):
-        old_logo_path = f"/app{master.get('logo_url')}"
-        if os.path.exists(old_logo_path):
-            try:
-                os.remove(old_logo_path)
-            except Exception:
-                pass
-    
     # Generate unique filename
     filename = f"company_logo_{uuid.uuid4().hex[:8]}{file_ext}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
     
-    # Save file
+    # Upload to GridFS for persistent storage
+    file_id = await upload_file_to_gridfs(
+        file_content,
+        filename,
+        file.content_type or "image/png",
+        {
+            "category": "company_logo",
+            "uploaded_by": current_user.get("id"),
+            "uploaded_by_name": current_user.get("name")
+        }
+    )
+    
+    # Generate URL using GridFS
+    file_url = get_file_url(file_id)
+    
+    # Also save locally for backward compatibility
+    file_path = os.path.join(UPLOAD_DIR, filename)
     try:
         with open(file_path, "wb") as buffer:
             buffer.write(file_content)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save logo: {str(e)}")
+        print(f"Warning: Local file save failed: {e}")
     
-    # Generate URL
-    file_url = f"/uploads/company/{filename}"
-    
-    # Update database
+    # Update database with GridFS file_id and URL
     await db.company_master.update_one(
         {"_id": "company_settings"},
         {
             "$set": {
                 "logo_url": file_url,
+                "logo_file_id": file_id,
                 "updated_at": datetime.now(timezone.utc).isoformat(),
                 "updated_by": current_user["name"]
             }
