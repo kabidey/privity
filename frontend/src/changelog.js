@@ -15,6 +15,42 @@ export const getCurrentBuildInfo = () => {
 
 const CHANGELOG = [
   {
+    version: 'v4.0.0',
+    date: '2026-02-02',
+    title: 'User Hierarchy & Client Mapping Overhaul',
+    changes: [
+      { type: 'feature', description: 'Multi-Level User Hierarchy - Employee → Manager → Zonal Head → Regional Manager → Business Head' },
+      { type: 'feature', description: 'Hierarchical Data Visibility - Managers can view all subordinates\' clients and bookings' },
+      { type: 'feature', description: 'Edit Restrictions - Users can only edit their own data, managers have view-only access to subordinate data' },
+      { type: 'feature', description: 'Auto-Map Clients to Creator - New clients are automatically mapped to the user who creates them' },
+      { type: 'feature', description: 'Cloned Client/Vendor Tag - Visual indicator showing when a client or vendor was cloned' },
+      { type: 'feature', description: 'System User Protection - Prevents creating clients with PAN/email matching existing system users' },
+      { type: 'feature', description: 'Mapped Employee Email for CC - Mapped employee receives CC on all client communications' },
+      { type: 'feature', description: 'PAN Column in User Management - Users table now displays PAN numbers' },
+      { type: 'feature', description: 'Team Hierarchy Tab - Visual organization structure in User Management' },
+      { type: 'feature', description: 'Circular Reference Prevention - Prevents creating loops in reporting structure' },
+      { type: 'improvement', description: 'Removed Own Account Booking option from booking form' },
+      { type: 'security', description: 'PE Desk only can assign clients to employees' },
+    ]
+  },
+  {
+    version: 'v3.0.0',
+    date: '2026-02-01',
+    title: 'Inventory Overhaul & Documentation',
+    changes: [
+      { type: 'feature', description: 'Landing Price (LP) - New price field visible to all users for booking calculations' },
+      { type: 'feature', description: 'Weighted Average Price (WAP) - Hidden from users, visible only to PE Desk' },
+      { type: 'feature', description: 'PE Desk HIT Report - Track margin between LP and WAP across all transactions' },
+      { type: 'feature', description: 'Persistent File Storage - Documents migrated to MongoDB GridFS (survives redeployment)' },
+      { type: 'feature', description: 'File Migration Admin Page - Re-upload missing files from legacy storage' },
+      { type: 'feature', description: 'In-App Help & Tutorial - Comprehensive documentation accessible from main menu' },
+      { type: 'feature', description: 'Unified Menu View - Desktop menu matches mobile grid layout' },
+      { type: 'feature', description: 'Launch Documentation Package - Employee tutorial and quick reference guides' },
+      { type: 'fix', description: 'Conflicting Inventory API Route - Resolved endpoint override issue' },
+      { type: 'fix', description: 'Booking Creation DuplicateKeyError - Fixed database counter issue' },
+    ]
+  },
+  {
     version: 'v2.0.1',
     date: '2026-02-01',
     title: 'Notification System Overhaul & Finance Enhancements',
