@@ -120,10 +120,13 @@ const Bookings = () => {
     }
   };
 
-  // Get weighted avg price for selected stock
-  const getWeightedAvgPrice = (stockId) => {
+  // Get Landing Price (LP) for selected stock - this is what's used for booking
+  // For non-PE users, the backend already returns LP as weighted_avg_price
+  // For PE users, we use landing_price if available, otherwise weighted_avg_price
+  const getLandingPrice = (stockId) => {
     const inv = inventory.find(i => i.stock_id === stockId);
-    return inv?.weighted_avg_price || 0;
+    // Use landing_price if available (PE users see this), otherwise use weighted_avg_price
+    return inv?.landing_price || inv?.weighted_avg_price || 0;
   };
 
   // Get inventory info for selected stock
@@ -132,6 +135,7 @@ const Bookings = () => {
     return {
       availableQty: inv?.available_quantity || 0,
       blockedQty: inv?.blocked_quantity || 0,
+      landingPrice: inv?.landing_price || inv?.weighted_avg_price || 0,
       weightedAvgPrice: inv?.weighted_avg_price || 0,
       stockSymbol: inv?.stock_symbol || ''
     };
