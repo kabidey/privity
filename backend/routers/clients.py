@@ -763,14 +763,57 @@ async def download_client_document(
     filename: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Download a client document."""
-    from fastapi.responses import FileResponse
+    """Download a client document from GridFS or local storage."""
+    from fastapi.responses import FileResponse, Response
+    from services.file_storage import download_file_from_gridfs
     
-    file_path = UPLOAD_DIR / client_id / filename
-    if not file_path.exists():
+    # Get client to find document
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Find the document by filename or original_filename
+    document = None
+    for doc in client.get("documents", []):
+        if doc.get("filename") == filename or doc.get("original_filename") == filename:
+            document = doc
+            break
+    
+    if not document:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    return FileResponse(file_path, filename=filename)
+    # Try GridFS first (if gridfs_id exists)
+    gridfs_id = document.get("gridfs_id")
+    if gridfs_id:
+        try:
+            content, metadata = await download_file_from_gridfs(gridfs_id)
+            content_type = metadata.get("content_type", "application/octet-stream")
+            original_filename = document.get("original_filename") or document.get("filename", filename)
+            
+            return Response(
+                content=content,
+                media_type=content_type,
+                headers={
+                    "Content-Disposition": f'attachment; filename="{original_filename}"',
+                }
+            )
+        except Exception as e:
+            # GridFS failed, try local file
+            pass
+    
+    # Fallback to local file storage
+    file_path = UPLOAD_DIR / client_id / filename
+    if file_path.exists():
+        return FileResponse(file_path, filename=filename)
+    
+    # Also try with original_filename
+    original_filename = document.get("original_filename")
+    if original_filename:
+        file_path = UPLOAD_DIR / client_id / original_filename
+        if file_path.exists():
+            return FileResponse(file_path, filename=original_filename)
+    
+    raise HTTPException(status_code=404, detail="Document file not found in storage")
 
 
 @router.get("/clients/{client_id}/documents/{filename}/ocr")
