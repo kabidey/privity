@@ -368,8 +368,8 @@ const UserManagement = () => {
                             </Select>
                           </TableCell>
                           <TableCell>
-                            {/* Show hierarchy level with color badge */}
-                            {user.role && ![1, 2, 6, 7, 8, 9].includes(user.role) ? (
+                            {/* Show hierarchy level with color badge - for all users except Business Partners */}
+                            {user.role !== 6 ? (
                               <Badge className={HIERARCHY_LEVELS[user.hierarchy_level || 1]?.color || 'bg-gray-100'}>
                                 {HIERARCHY_LEVELS[user.hierarchy_level || 1]?.name || 'Employee'}
                               </Badge>
