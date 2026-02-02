@@ -1039,6 +1039,7 @@ const Bookings = () => {
             </form>
           </DialogContent>
         </Dialog>
+          )}
         </div>
       </div>
 
