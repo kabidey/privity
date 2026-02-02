@@ -610,21 +610,34 @@ const Clients = () => {
     setDocumentsDialogOpen(true);
   };
 
-  const handleDownloadDocument = async (clientId, filename) => {
+  const handleDownloadDocument = async (clientId, filename, gridfsId = null) => {
     try {
-      const response = await api.get(`/clients/${clientId}/documents/${filename}`, {
-        responseType: 'blob'
-      });
+      let response;
+      let downloadFilename = filename;
+      
+      // If we have a GridFS ID, use the files endpoint directly
+      if (gridfsId) {
+        response = await api.get(`/files/${gridfsId}`, {
+          responseType: 'blob'
+        });
+      } else {
+        // Fall back to client document endpoint
+        response = await api.get(`/clients/${clientId}/documents/${encodeURIComponent(filename)}`, {
+          responseType: 'blob'
+        });
+      }
+      
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', filename);
+      link.setAttribute('download', downloadFilename);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
       toast.success('Document downloaded');
     } catch (error) {
+      console.error('Download error:', error);
       toast.error('Failed to download document');
     }
   };
