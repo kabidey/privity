@@ -1577,6 +1577,16 @@ const Clients = () => {
                       <TableCell className="font-medium text-sm">
                         <div className="flex items-center gap-2 flex-wrap">
                           {client.name}
+                          {/* Cloned badge - visible to all */}
+                          {client.is_cloned && (
+                            <span 
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
+                              title={`Cloned from ${client.cloned_from_type || 'vendor/client'}`}
+                            >
+                              <Copy className="h-3 w-3" />
+                              Cloned
+                            </span>
+                          )}
                           {/* Red flag for proprietor - visible to PE Desk/Manager */}
                           {isPELevel && client.is_proprietor && (
                             <div className="flex items-center gap-1">
