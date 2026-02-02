@@ -799,38 +799,6 @@ const Bookings = () => {
                   )}
                 </div>
               )}
-              
-              {/* Own Account Booking Checkbox */}
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="booking-own-account"
-                    data-testid="booking-own-checkbox"
-                    checked={formData.booking_type === 'own'}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        handleBookingTypeChange('own');
-                      } else {
-                        setFormData({ ...formData, booking_type: 'client', insider_form_acknowledged: false });
-                      }
-                    }}
-                    className="h-4 w-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500"
-                  />
-                  <Label htmlFor="booking-own-account" className="flex items-center gap-2 cursor-pointer font-medium text-orange-700 dark:text-orange-400">
-                    <UserCircle className="h-4 w-4" />
-                    Booking for Own Account
-                  </Label>
-                </div>
-                
-                {/* Own booking acknowledgment indicator */}
-                {formData.booking_type === 'own' && formData.insider_form_acknowledged && (
-                  <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-xs text-green-700 dark:text-green-300">Insider Trading Policy acknowledged - upload form after booking</span>
-                  </div>
-                )}
-              </div>
 
               <div className="space-y-2">
                 <Label>Status</Label>
