@@ -736,15 +736,10 @@ async def upload_client_document(
 async def upload_bank_proof(
     client_id: str,
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.upload_docs", "upload bank proof"))
 ):
     """Upload bank proof document for proprietor clients with name mismatch (PE Level only). Stored in GridFS."""
-    user_role = current_user.get("role", 6)
-    
-    # Only PE Desk and PE Manager can upload bank proof
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can upload bank proof")
-    
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
@@ -834,7 +829,8 @@ async def upload_bank_proof(
 async def download_client_document(
     client_id: str,
     filename: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view_docs", "download client documents"))
 ):
     """Download a client document from GridFS or local storage."""
     from fastapi.responses import FileResponse, Response
