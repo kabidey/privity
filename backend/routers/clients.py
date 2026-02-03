@@ -321,11 +321,11 @@ async def get_clients(
 
 
 @router.get("/clients/pending-approval", response_model=List[Client])
-async def get_pending_clients(current_user: dict = Depends(get_current_user)):
-    """Get clients pending approval (PE Level only)."""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view pending approvals")
-    
+async def get_pending_clients(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("client_approval.view", "view pending clients"))
+):
+    """Get clients pending approval (requires client_approval.view permission)."""
     clients = await db.clients.find({"approval_status": "pending"}, {"_id": 0}).to_list(1000)
     return [Client(**c) for c in clients]
 
