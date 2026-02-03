@@ -48,6 +48,14 @@ AVAILABLE_PERMISSIONS = {
             {"key": "bookings.export", "name": "Export Bookings", "description": "Export bookings to Excel"},
         ]
     },
+    "client_approval": {
+        "name": "Client Approval",
+        "permissions": [
+            {"key": "client_approval.view", "name": "View Pending Approvals", "description": "View clients pending approval"},
+            {"key": "client_approval.approve", "name": "Approve Clients", "description": "Approve client applications"},
+            {"key": "client_approval.reject", "name": "Reject Clients", "description": "Reject client applications"},
+        ]
+    },
     "clients": {
         "name": "Clients",
         "permissions": [
@@ -57,6 +65,8 @@ AVAILABLE_PERMISSIONS = {
             {"key": "clients.delete", "name": "Delete Clients", "description": "Delete clients"},
             {"key": "clients.map", "name": "Map Clients", "description": "Map clients to employees"},
             {"key": "clients.upload_docs", "name": "Upload Documents", "description": "Upload client documents"},
+            {"key": "clients.view_docs", "name": "View Documents", "description": "View client documents"},
+            {"key": "clients.suspend", "name": "Suspend Clients", "description": "Suspend/unsuspend clients"},
         ]
     },
     "stocks": {
@@ -75,6 +85,7 @@ AVAILABLE_PERMISSIONS = {
             {"key": "inventory.view", "name": "View Inventory", "description": "View inventory levels"},
             {"key": "inventory.edit_landing_price", "name": "Edit Landing Price", "description": "Modify landing prices"},
             {"key": "inventory.recalculate", "name": "Recalculate Inventory", "description": "Trigger inventory recalculation for all stocks"},
+            {"key": "inventory.delete", "name": "Delete Inventory", "description": "Delete inventory records"},
         ]
     },
     "purchases": {
@@ -82,6 +93,7 @@ AVAILABLE_PERMISSIONS = {
         "permissions": [
             {"key": "purchases.view", "name": "View Purchases", "description": "View purchase list"},
             {"key": "purchases.create", "name": "Create Purchases", "description": "Record new purchases"},
+            {"key": "purchases.edit", "name": "Edit Purchases", "description": "Edit purchase details"},
             {"key": "purchases.delete", "name": "Delete Purchases", "description": "Delete purchases"},
             {"key": "purchases.record_payment", "name": "Record Vendor Payments", "description": "Record payments to vendors"},
         ]
@@ -95,12 +107,31 @@ AVAILABLE_PERMISSIONS = {
             {"key": "vendors.delete", "name": "Delete Vendors", "description": "Delete vendors"},
         ]
     },
+    "contract_notes": {
+        "name": "Contract Notes",
+        "permissions": [
+            {"key": "contract_notes.view", "name": "View Contract Notes", "description": "View contract notes list"},
+            {"key": "contract_notes.generate", "name": "Generate Contract Notes", "description": "Generate new contract notes"},
+            {"key": "contract_notes.send", "name": "Send Contract Notes", "description": "Email contract notes to clients"},
+            {"key": "contract_notes.download", "name": "Download Contract Notes", "description": "Download contract note PDFs"},
+        ]
+    },
     "finance": {
         "name": "Finance",
         "permissions": [
             {"key": "finance.view", "name": "View Finance", "description": "Access finance section"},
             {"key": "finance.manage_refunds", "name": "Manage Refunds", "description": "Process refund requests"},
             {"key": "finance.view_reports", "name": "View Reports", "description": "Access financial reports"},
+            {"key": "finance.export", "name": "Export Finance Data", "description": "Export finance data to Excel"},
+        ]
+    },
+    "analytics": {
+        "name": "Analytics",
+        "permissions": [
+            {"key": "analytics.view", "name": "View Analytics", "description": "Access analytics dashboard"},
+            {"key": "analytics.revenue", "name": "View Revenue Analytics", "description": "View revenue breakdown"},
+            {"key": "analytics.performance", "name": "View Performance", "description": "View performance metrics"},
+            {"key": "analytics.export", "name": "Export Analytics", "description": "Export analytics data"},
         ]
     },
     "users": {
@@ -131,6 +162,7 @@ AVAILABLE_PERMISSIONS = {
             {"key": "business_partners.create", "name": "Create Partners", "description": "Add new partners"},
             {"key": "business_partners.edit", "name": "Edit Partners", "description": "Edit partner details"},
             {"key": "business_partners.delete", "name": "Delete Partners", "description": "Delete partners"},
+            {"key": "business_partners.approve", "name": "Approve Partners", "description": "Approve partner applications"},
         ]
     },
     "referral_partners": {
@@ -140,33 +172,77 @@ AVAILABLE_PERMISSIONS = {
             {"key": "referral_partners.create", "name": "Create RPs", "description": "Add referral partners"},
             {"key": "referral_partners.edit", "name": "Edit RPs", "description": "Edit referral partner details"},
             {"key": "referral_partners.approve", "name": "Approve RPs", "description": "Approve/reject referral partners"},
+            {"key": "referral_partners.view_payouts", "name": "View Payouts", "description": "View RP payout details"},
         ]
     },
     "reports": {
-        "name": "Reports & Analytics",
+        "name": "Reports",
         "permissions": [
             {"key": "reports.view", "name": "View Reports", "description": "Access reports section"},
-            {"key": "reports.analytics", "name": "View Analytics", "description": "Access analytics dashboard"},
+            {"key": "reports.pnl", "name": "View P&L Reports", "description": "View profit and loss reports"},
             {"key": "reports.export", "name": "Export Reports", "description": "Export report data"},
-        ]
-    },
-    "settings": {
-        "name": "Settings",
-        "permissions": [
-            {"key": "settings.company_master", "name": "Company Master", "description": "Manage company settings"},
-            {"key": "settings.email_config", "name": "Email Configuration", "description": "Configure email server"},
-            {"key": "settings.email_templates", "name": "Email Templates", "description": "Edit email templates"},
-            {"key": "settings.database_backup", "name": "Database Backup", "description": "Manage backups"},
-            {"key": "settings.audit_trail", "name": "Audit Trail", "description": "View audit logs"},
-            {"key": "settings.security", "name": "Security Dashboard", "description": "View security events"},
         ]
     },
     "dp_operations": {
         "name": "DP Operations",
         "permissions": [
             {"key": "dp.view_receivables", "name": "View DP Receivables", "description": "View DP receivables"},
-            {"key": "dp.confirm_receipt", "name": "Confirm Receipt", "description": "Confirm stock receipt"},
+            {"key": "dp.confirm_receipt", "name": "Confirm Receipt", "description": "Confirm stock receipt from vendor"},
             {"key": "dp.transfer", "name": "Transfer Stocks", "description": "Transfer stocks to clients"},
+            {"key": "dp.view_transfers", "name": "View Transfers", "description": "View transfer history"},
+        ]
+    },
+    "email_management": {
+        "name": "Email Management",
+        "permissions": [
+            {"key": "email.view_templates", "name": "View Templates", "description": "View email templates"},
+            {"key": "email.edit_templates", "name": "Edit Templates", "description": "Edit email templates"},
+            {"key": "email.view_logs", "name": "View Email Logs", "description": "View sent email logs"},
+            {"key": "email.server_config", "name": "Server Configuration", "description": "Configure email server settings"},
+        ]
+    },
+    "company_master": {
+        "name": "Company Master",
+        "permissions": [
+            {"key": "company.view", "name": "View Company Info", "description": "View company master data"},
+            {"key": "company.edit", "name": "Edit Company Info", "description": "Edit company details"},
+            {"key": "company.upload_docs", "name": "Upload Documents", "description": "Upload company documents"},
+            {"key": "company.manage_bank", "name": "Manage Bank Details", "description": "Manage company bank accounts"},
+        ]
+    },
+    "security": {
+        "name": "Security",
+        "permissions": [
+            {"key": "security.view_dashboard", "name": "View Security Dashboard", "description": "View security events and alerts"},
+            {"key": "security.view_audit", "name": "View Audit Trail", "description": "View audit logs"},
+            {"key": "security.manage_2fa", "name": "Manage 2FA", "description": "Manage two-factor authentication"},
+            {"key": "security.kill_switch", "name": "Kill Switch", "description": "Emergency system freeze"},
+        ]
+    },
+    "database": {
+        "name": "Database Management",
+        "permissions": [
+            {"key": "database.view_backups", "name": "View Backups", "description": "View backup list"},
+            {"key": "database.create_backup", "name": "Create Backup", "description": "Create new backup"},
+            {"key": "database.restore", "name": "Restore Backup", "description": "Restore from backup"},
+            {"key": "database.download", "name": "Download Backup", "description": "Download backup files"},
+        ]
+    },
+    "bulk_upload": {
+        "name": "Bulk Upload",
+        "permissions": [
+            {"key": "bulk_upload.clients", "name": "Upload Clients", "description": "Bulk upload clients"},
+            {"key": "bulk_upload.stocks", "name": "Upload Stocks", "description": "Bulk upload stocks"},
+            {"key": "bulk_upload.purchases", "name": "Upload Purchases", "description": "Bulk upload purchases"},
+            {"key": "bulk_upload.bookings", "name": "Upload Bookings", "description": "Bulk upload bookings"},
+        ]
+    },
+    "research": {
+        "name": "Research",
+        "permissions": [
+            {"key": "research.view", "name": "View Research", "description": "View research reports"},
+            {"key": "research.upload", "name": "Upload Research", "description": "Upload research reports"},
+            {"key": "research.ai_analysis", "name": "AI Analysis", "description": "Use AI stock analysis"},
         ]
     },
 }
