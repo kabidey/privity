@@ -91,6 +91,9 @@ const Layout = ({ children }) => {
     isEmployee 
   } = useCurrentUser();
   
+  // Use permissions hook for dynamic menu access
+  const { hasPermission, canAccess } = usePermissions();
+  
   const { theme, toggleTheme } = useTheme();
   
   // Changelog modal hook
