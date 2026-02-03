@@ -377,6 +377,7 @@ from routers.files import router as files_router
 
 # Two-Factor Authentication
 from routers.two_factor import router as two_factor_router
+from routers.roles import router as roles_router
 
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
