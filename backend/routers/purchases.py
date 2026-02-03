@@ -23,7 +23,8 @@ from services.email_service import send_stock_transfer_request_email, send_email
 from services.contract_note_service import create_and_save_vendor_contract_note
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/purchases", tags=["Purchases"])
