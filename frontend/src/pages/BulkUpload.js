@@ -32,7 +32,7 @@ const BulkUpload = () => {
   const [activeTab, setActiveTab] = useState('clients');
   const fileInputRef = useRef(null);
 
-  const { isPEDesk } = useCurrentUser();
+  const { user, isPEDesk } = useCurrentUser();
 
   const entityConfig = {
     clients: {
