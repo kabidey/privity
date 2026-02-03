@@ -1719,15 +1719,15 @@ const Bookings = () => {
               <div className="space-y-2">
                 <Label>Referral Partner</Label>
                 <Select
-                  value={rpMappingData.referral_partner_id}
-                  onValueChange={(value) => setRpMappingData({ ...rpMappingData, referral_partner_id: value })}
+                  value={rpMappingData.referral_partner_id || "none"}
+                  onValueChange={(value) => setRpMappingData({ ...rpMappingData, referral_partner_id: value === "none" ? "" : value })}
                   data-testid="rp-mapping-select"
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select Referral Partner (or leave empty to remove)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">-- Remove RP Assignment --</SelectItem>
+                    <SelectItem value="none">-- Remove RP Assignment --</SelectItem>
                     {referralPartners.map((rp) => (
                       <SelectItem key={rp.id} value={rp.id}>
                         {rp.rp_code} - {rp.name}
