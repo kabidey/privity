@@ -428,20 +428,13 @@ async def upload_rp_documents(
 async def toggle_rp_active(
     rp_id: str,
     is_active: bool,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.edit", "toggle referral partner status"))
 ):
     """
     Activate or deactivate a referral partner.
     Only PE Desk and PE Manager can change status.
     """
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(
-            status_code=403,
-            detail="Only PE Desk or PE Manager can change RP status"
-        )
-    
     rp = await db.referral_partners.find_one({"id": rp_id}, {"_id": 0})
     if not rp:
         raise HTTPException(status_code=404, detail="Referral Partner not found")
@@ -461,7 +454,8 @@ async def toggle_rp_active(
 @router.get("/referral-partners/{rp_id}/bookings")
 async def get_rp_bookings(
     rp_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.view_payouts", "view referral partner bookings"))
 ):
     """Get all bookings associated with a referral partner."""
     rp = await db.referral_partners.find_one({"id": rp_id}, {"_id": 0})
@@ -502,20 +496,13 @@ async def get_rp_bookings(
 
 @router.get("/referral-partners-pending", response_model=List[ReferralPartner])
 async def get_pending_referral_partners(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.approve", "view pending referral partners"))
 ):
     """
     Get all pending referral partners awaiting approval.
     Only PE Desk and PE Manager can view pending RPs.
     """
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(
-            status_code=403,
-            detail="Only PE Desk or PE Manager can view pending Referral Partners"
-        )
-    
     rps = await db.referral_partners.find(
         {"approval_status": "pending"},
         {"_id": 0}
