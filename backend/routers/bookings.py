@@ -1365,7 +1365,11 @@ async def refresh_booking_status(
 
 
 @router.get("/bookings/{booking_id}", response_model=BookingWithDetails)
-async def get_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
+async def get_booking(
+    booking_id: str, 
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.view", "view booking details"))
+):
     """Get a specific booking by ID."""
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
@@ -1401,12 +1405,14 @@ async def get_booking(booking_id: str, current_user: dict = Depends(get_current_
 
 
 @router.put("/bookings/{booking_id}", response_model=Booking)
-async def update_booking(booking_id: str, booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
+async def update_booking(
+    booking_id: str, 
+    booking_data: BookingCreate, 
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.edit", "edit bookings"))
+):
     """Update a booking."""
     user_role = current_user.get("role", 7)
-    
-    # Viewer restriction
-    check_viewer_restriction(user_role, "edit bookings")
     
     check_permission(current_user, "manage_bookings")
     
