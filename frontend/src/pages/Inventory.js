@@ -13,6 +13,7 @@ import { Package, TrendingUp, AlertTriangle, Trash2, Edit2, Check, X, DollarSign
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recalculating, setRecalculating] = useState(false);
   const [editingLP, setEditingLP] = useState(null); // stock_id being edited
   const [newLP, setNewLP] = useState('');
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
