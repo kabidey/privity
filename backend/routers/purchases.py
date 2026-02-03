@@ -618,18 +618,16 @@ async def get_dp_received(
 async def mark_dp_received(
     purchase_id: str,
     dp_type: str,  # "NSDL" or "CDSL"
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dp.transfer", "mark DP as received"))
 ):
-    """Mark a purchase as DP received (PE Level only)
+    """Mark a purchase as DP received (requires dp.transfer permission)
     
     Args:
         purchase_id: Purchase ID
         dp_type: Either "NSDL" or "CDSL"
     """
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can mark DP as received")
     
     if dp_type not in ["NSDL", "CDSL"]:
         raise HTTPException(status_code=400, detail="dp_type must be 'NSDL' or 'CDSL'")
