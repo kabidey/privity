@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import { Package, TrendingUp, AlertTriangle, Trash2, Edit2, Check, X, DollarSign } from 'lucide-react';
+import { Package, TrendingUp, AlertTriangle, Trash2, Edit2, Check, X, DollarSign, RefreshCw } from 'lucide-react';
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
