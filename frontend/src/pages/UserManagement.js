@@ -284,7 +284,7 @@ const UserManagement = () => {
   const renderUserNode = (user, level = 0) => {
     const directReports = getDirectReports(user.id);
     const hierarchyLevelName = HIERARCHY_LEVELS[user.hierarchy_level] || { name: 'Employee' };
-    const roleName = ROLES[user.role]?.name || 'Unknown';
+    const roleName = roles[user.role]?.name || 'Unknown';
     
     return (
       <div key={user.id} className={`${level > 0 ? 'ml-6 border-l-2 border-gray-200 pl-4' : ''}`}>
