@@ -834,6 +834,7 @@ rp_payments: {
 - `/app/test_reports/iteration_36.json` - iOS-Style UI/UX Redesign (98% frontend pass)
 - `/app/test_reports/iteration_37.json` - Business Partner Feature Enhancements (100% pass, 15/15 backend + all frontend)
 - `/app/test_reports/iteration_50.json` - Recalculate Inventory Feature + Layout Refactoring (100% pass, 7/7 backend + all frontend)
+- `/app/test_reports/iteration_51.json` - Dynamic Permission Integration Regression Testing (100% pass, 16/18 backend + all frontend)
 
 ## Prioritized Backlog
 
