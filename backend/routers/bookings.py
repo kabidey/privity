@@ -761,7 +761,8 @@ async def get_bookings(
     approval_status: Optional[str] = None,
     client_id: Optional[str] = None,
     stock_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.view", "view bookings"))
 ):
     """Get all bookings with optional filters based on hierarchy."""
     from services.hierarchy_service import get_team_user_ids
