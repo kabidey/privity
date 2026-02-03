@@ -79,12 +79,10 @@ async def get_email_template(
 async def update_email_template(
     template_key: str,
     update_data: EmailTemplateUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.templates", "update email templates"))
 ):
     """Update an email template (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can update email templates")
-    
     if template_key not in EMAIL_TEMPLATES:
         raise HTTPException(status_code=404, detail="Template not found")
     
@@ -118,11 +116,12 @@ async def update_email_template(
 
 
 @router.post("/{template_key}/reset")
-async def reset_email_template(template_key: str, current_user: dict = Depends(get_current_user)):
+async def reset_email_template(
+    template_key: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.templates", "reset email templates"))
+):
     """Reset an email template to default (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can reset email templates")
-    
     if template_key not in EMAIL_TEMPLATES:
         raise HTTPException(status_code=404, detail="Template not found")
     
