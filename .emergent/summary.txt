@@ -2,57 +2,44 @@
 The user initiated the session with a variety of requests and bug reports. The primary issues included:
 1.  **Email & Confirmation Flow**: User reported that all outgoing emails were poorly formatted and the client confirmation email link was broken.
 2.  **Payment Recording Blank Screen**: When trying to record a payment in a booking, the page would go blank.
-3.  **Incorrect Payment Statuses**: After making payments, the booking status was not updating correctly to Client Approved after the first payment, or DP Ready after full payment.
-4.  **Payment Deletion**: The user requested the ability for PE Desk/Managers to delete incorrectly entered payments.
-5.  **Payment Deletion Status Reset**: After implementing payment deletion, the user noted that the DP Ready status was not being reset correctly.
-6.  **Centralized Role Utility**: The user requested a centralized utility in the frontend to handle role-based logic to avoid inconsistencies.
-7.  **Broken User Management Page**: The user reported that the User Management page was blank after the role management refactoring.
-8.  **Email Attachments**: The user requested that company master documents be attached to the payment request email sent to clients, and that download links also be embedded in the email body.
-9.  **Dynamic Role Management**: The user requested the ability to create new roles and assign permissions dynamically through the UI, as roles were previously hardcoded.
-10. **Inventory Double-Blocking**: A bug was reported where deleting and re-entering a payment caused the inventory calculation to create a double block.
-11. **Inventory Recalculation**: The user requested a button on the inventory page for PE Desk users to manually trigger an inventory recalculation.
-12. **Deployment & UI Questions**: The user asked for instructions on deploying to AWS EC2 and for the location of the role management menu.
+3.  **Incorrect Payment Statuses**: After making payments, the booking status was not updating correctly.
+4.  **Payment Deletion & Status Reset**: The user requested the ability to delete payments and have statuses reset correctly.
+5.  **Centralized Role Utility**: The user requested a centralized utility in the frontend to handle role-based logic.
+6.  **Broken User Management Page**: The user reported that the User Management page was blank.
+7.  **Email Attachments & Links**: The user requested that company documents be attached to payment request emails and that download links be embedded in the body.
+8.  **Dynamic Role Management**: The user requested the ability to create new roles and assign permissions dynamically through the UI.
+9.  **Inventory Double-Blocking**: A bug was reported where deleting and re-entering a payment caused inventory to be double-counted.
+10. **Inventory Recalculation**: The user requested a button on the inventory page to manually trigger an inventory recalculation.
+11. **Missing Permissions & UI Bugs**: The user reported that many permissions were missing from the Role Management UI, system roles couldn't be edited, and a dropdown on the Stocks page was appearing behind a dialog.
+12. **Document Upload Failures**: The user reported that client documents were not being uploaded to the database correctly.
+13. **Access Control Issues**: The user noted that new custom roles were not appearing for assignment on the User Management page, and that the PE Desk admin role could not access all menu items despite having full permissions.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB system for managing bookings and related financial operations. In this session, the agent successfully resolved a cascade of bugs related to the payment and booking lifecycle. This included fixing a critical bug that caused a blank screen during payment recording, correcting the logic for status updates (Client Approved, DP Ready), and implementing a feature to delete payments with proper status rollbacks.
+The application is a full-stack React/FastAPI/MongoDB system for managing bookings and financial operations. In this session, the agent implemented a manual inventory recalculation feature and then undertook a massive refactoring to integrate a dynamic Role-Based Access Control (RBAC) system.
 
-A significant frontend refactoring was completed by creating a centralized role utility ( hook) and applying it to over 20 pages to ensure consistent role-based UI rendering.
+This involved replacing over 150 hardcoded role checks in the backend with a new, flexible permission service. The agent also fixed numerous bugs and made significant UI/UX enhancements to the Role Management system, adding dozens of new granular permissions and creating visual tools (a permission grid and matrix) to manage them.
 
-Following a user request, a complete dynamic Role & Permission Management system was built from scratch, including backend CRUD APIs and a comprehensive frontend interface for creating roles and assigning granular permissions.
-
-A critical inventory calculation bug that caused double-blocking was fixed by refactoring the entire inventory service to rely on idempotent recalculations instead of faulty atomic increments. The agent also enhanced the client payment request email to attach all company documents and include direct download links.
+Key bugs fixed include: a z-index issue with a dropdown menu, a flaw preventing system role permissions from being edited, and an issue where client documents were not being saved to GridFS (a migration script was also created and run to fix historical data). The agent also refactored the User Management page to dynamically load all roles (including custom ones) and fixed an access control bug preventing the PE Desk admin from seeing all their entitled menu items.
 
 **Last working item**:
--   Last item agent was working: Implementing a new feature to add a Recalculate Inventory button on the inventory page, exclusively for 'PE Desk' users. The agent had just started creating the backend endpoint.
--   Status: IN PROGRESS
--   Agent Testing Done: N
--   Which testing method agent to use? backend testing agent
+-   Last item agent was working: Fixing a critical bug where the PE Desk user, despite having full wildcard () permissions, could not see all the menu items in the sidebar. The agent identified an asynchronous loading issue in the  hook and patched it to correctly handle the admin role.
+-   Status: USER VERIFICATION PENDING
+-   Agent Testing Done: Y
+-   Which testing method agent to use? manual testing by screenshot tool
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Add Recalculate Inventory Button (P1)
-    -   **Attempted fixes**: The agent created a new file  and started adding a new POST endpoint.
-    -   **Next debug checklist**:
-        1.  Complete the  endpoint in . This endpoint should call the  service function.
-        2.  Protect the endpoint so it is only accessible by 'PE Desk' users (role 1).
-        3.  Add a Recalculate Inventory button to the  page.
-        4.  Ensure the button is only visible to users with the 'PE Desk' role using the  hook.
-        5.  Implement the  handler for the button to call the new backend endpoint.
-    -   **Why fix this issue and what will be achieved with the fix?**: This provides a manual fail-safe for admins to ensure inventory data is always accurate, correcting any potential data drift without needing developer intervention.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue**: None
+-   None.
 
 **In progress Task List**:
--   None
+-   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   (P0) **Integrate Dynamic Permissions into Backend**: The new dynamic role system is built, but the backend's authorization logic still uses old, hardcoded role checks (e.g., , ). A full refactor is needed to replace these checks with calls to the new permissions system to make the created roles effective.
-    -   (P1) **Enforce 2FA for Admin Roles**: Propose enforcing 2FA for admin roles (PE Desk/Manager) as a security enhancement.
+    -   (P0) **Enforce Granular Permissions on Backend APIs**: The backend has been refactored to *support* dynamic permissions, but not all 96+ individual permissions are enforced on their corresponding API endpoints. The next crucial step is to systematically apply  checks to every relevant endpoint to make the RBAC system fully functional. The user has explicitly asked for this verification.
+    -   (P1) **Enforce 2FA for Admin Roles**: Propose and implement enforcing 2FA for admin roles as a security enhancement.
 -   **Future Tasks**:
     -   (P2) Refactor Security State Management to a persistent store like Redis.
     -   (P2) Implement a feature to close multiple bookings at once.
@@ -61,14 +48,21 @@ A critical inventory calculation bug that caused double-blocking was fixed by re
     -   (P3) Automatically generate backend API documentation (Swagger/OpenAPI).
 
 **Completed work in this session**
--   **Bug Fix: Payment Recording Blank Screen**: Fixed the bug by changing the backend payment endpoint () to accept a JSON body instead of query parameters.
--   **Bug Fix: Incorrect Payment Statuses**: Corrected the backend logic to set  to 'accepted' on first payment and  to  on full payment.
--   **Feature: Delete Payments**: Implemented a  endpoint and added UI for PE Desk/Managers to delete payments. The logic correctly resets  and other statuses.
--   **Refactor: Centralized Role Utility**: Created a  hook and  in the frontend and refactored over 20 pages to use this central utility for consistent role checking.
--   **Bug Fix: Broken User Management Page**: Resolved a crash on the  page caused by incorrect variable usage after the role utility refactor.
--   **Feature: Dynamic Role & Permission Management**: Built a full-stack feature allowing PE Desk admins to create/edit roles and assign granular permissions via a new UI at .
--   **Bug Fix: Inventory Double-Blocking**: Overhauled the  to use an idempotent recalculation method, fixing a critical bug where inventory was double-counted.
--   **Feature: Enhanced Payment Request Email**: Modified  to attach all available company master documents (including the previously missing cancelled cheque) to the payment request email and embed download links in the email body.
+-   **Feature: Recalculate Inventory Button**: Implemented  and added a frontend button for PE Desk users.
+-   **Refactor: Dynamic Permission Backend Integration**: Replaced ~150 hardcoded role checks across all backend routers with a new dynamic .
+-   **Feature: Enhanced Role Management UI/UX**:
+    -   Added over 10 new permission categories and 50+ granular permissions.
+    -   Created a Visual Permissions grid and a Permission Matrix tab in  for easier management.
+    -   Added presets (View Only, Manager) and Select All / Clear All buttons to the role editing dialog.
+-   **Bug Fix: Cannot Edit System Roles**: Fixed a frontend bug in  that prevented PE Desk from modifying permissions for system roles.
+-   **Bug Fix: Document Uploads Not Saving**:
+    -   Identified and fixed an issue where client documents were not being stored in GridFS.
+    -   Created and ran a migration script () to fix historical data.
+    -   Added backend validation in  to require documents before client approval.
+-   **Bug Fix: Custom Roles Not Appearing**: Refactored  to fetch roles dynamically, allowing custom-created roles to appear in assignment dropdowns.
+-   **Bug Fix: PE Desk Menu Access**: Resolved an async loading issue in the  hook that prevented the admin from seeing all menu items.
+-   **Feature: Permission-Driven Sidebar**: Refactored  to use the new  hook, making the sidebar menu render dynamically based on user permissions.
+-   **Bug Fix: Stock Page z-index Issue**: Corrected a CSS z-index value in  to ensure a dropdown appeared in front of a dialog.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -80,66 +74,67 @@ A critical inventory calculation bug that caused double-blocking was fixed by re
 
 
 **Key Technical Concepts**
--   **Dynamic Role-Based Access Control (RBAC)**: A full-stack system was created to manage roles and permissions from a database and UI, moving away from hardcoded values.
--   **Idempotent Service Design**: The inventory service was refactored to be idempotent. Instead of relying on risky incremental updates, it recalculates state from a source of truth (approved bookings), making it resilient to duplicate calls or out-of-order operations.
--   **Frontend State & Hook Refactoring**: Consolidated scattered role-checking logic across 20+ files into a single, reusable React hook (), dramatically improving maintainability and consistency.
--   **API Endpoint Debugging**: Traced and fixed a bug caused by a mismatch between the frontend sending a JSON  and the backend expecting  parameters.
+-   **Dynamic RBAC Refactoring (Backend)**: Replaced hardcoded integer role checks with a flexible, database-driven permission checking service () using a FastAPI dependency factory.
+-   **Dynamic RBAC (Frontend)**: Created a  hook to fetch user permissions and provide helper functions () for conditional rendering. The main layout's sidebar is now fully permission-driven.
+-   **Data Migration**: Wrote and executed a Python script to iterate through MongoDB documents, identify missing file references, and repair data integrity by moving files to GridFS.
+-   **Complex UI for RBAC**: Designed and implemented multiple views (list, visual grid, matrix) for the Role & Permission system to make it understandable and manageable for administrators.
+-   **CSS Stacking Context (z-index)**: Debugged and resolved a  conflict between a portal-based  component and a  component in Shadcn UI.
 
 **key DB schema**
--   **roles**: (New Collection)
-    -   
--   **bookings**:
-    -   : Boolean (Indicates if booking is fully paid and ready for stock transfer).
-    -   : Boolean (Indicates if booking is fully paid).
+-   **roles**: The  array within this collection has been populated with a much more extensive and granular list of permission strings (e.g., , ).
+-   **clients**: The  array now reliably contains a  referencing a file in GridFS for all new uploads.
 
 **changes in tech stack**
--   None
+-   None.
 
 **All files of reference**
--    (New file for inventory actions)
--    (Heavily refactored)
--    (New file for role management)
--    (New page for role management UI)
--    (Central role logic hook)
--    (Central role constants)
--    (Payment and status logic)
--    (Payment UI)
--    (Bug fix and refactor)
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
 
 **Areas that need refactoring**:
--   The backend authorization system needs a complete overhaul to use the new dynamic permissions stored in the  collection. Currently, all authorization is still based on old, hardcoded role IDs.
--   The  component was missed during the role utility refactor and still contains its own local role-checking logic. It should be updated to use the  hook.
+-   While the backend now has a , a full audit is required to ensure every one of the 96+ individual permission strings is being checked at the correct API endpoint.
 
 **key api endpoints**
--   **New Endpoints**:
-    -   : Manage roles collection.
-    -   : Manage a specific role.
-    -   : Get a list of all available permissions in the system.
--   **Modified Endpoints**:
-    -   : Changed from accepting  params to a JSON .
-    -   : Permissions updated to allow PE Managers; logic added to correctly reset booking statuses.
+-   **New**:
+    -   : Triggers a full inventory recalculation.
+    -   : Checks if a client has all mandatory documents.
+-   **Modified**:
+    -   All protected API endpoints were refactored to use the new .
+    -   : Fixed to allow editing system role permissions without trying to rename them.
+    -   : Now includes validation to block approval if mandatory documents are missing.
 
 **Critical Info for New Agent**
-1.  **Finish Inventory Recalculation Button**: Your first task is to complete the Recalculate Inventory button feature. This involves finishing the backend endpoint in  and adding the button to the  frontend page, ensuring it's only visible to 'PE Desk' users.
-2.  **CRITICAL - Integrate Dynamic Permissions**: The most important upcoming task is to make the new Role Management system functional. You must refactor the backend's authorization checks. Replace all hardcoded checks like  or  with a new dependency that checks if the user's role has the required permission string (e.g., ). Without this, any new roles created in the UI are useless.
-3.  **Inventory Service Logic**: The inventory service was intentionally refactored to be idempotent. All blocking/unblocking of inventory is now handled by recalculating from the state of the  collection. Do not re-introduce separate atomic increment/decrement operations, as this led to the double-counting bug.
+1.  **Primary Goal: Enforce Granular Permissions**: The RBAC system is visually complete but requires functional enforcement. Your most critical task is to ensure every one of the 96+ permissions (like , ) is **actually enforced** on the corresponding backend API endpoint(s). This involves a systematic review and addition of  to each route.
+2.  **PE Desk Admin Role**: This role has a wildcard  permission in the database. The frontend  hook has special logic to handle this. Be mindful of this when debugging admin-specific access issues.
+3.  **Frontend is Permission-Driven**: The main sidebar and several pages now use the  hook for rendering. If a user reports not seeing something, verify their role has the correct permission string assigned in the Role Management UI first.
 
 **documents and test reports created in this job**
 -   
 -   
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  : **COMPLETED**. Agent added download links to the payment request email.
-2.  : **COMPLETED**. Agent investigated and fixed the crash on the  page.
-3.  : **COMPLETED**. Agent provided detailed instructions for both Emergent-managed deployment and manual export to EC2.
-4.  : **COMPLETED**. Agent provided a screenshot and explanation showing the Users menu item.
-5.  : **COMPLETED**. Agent explained the limitation and then built a full dynamic role management system upon user approval.
-6.  : **COMPLETED**. User confirmation to build the dynamic role system.
-7.  : **COMPLETED**. Agent found the root cause in the inventory service and refactored it to fix the bug.
-8.  : **IN PROGRESS**. This is the last working item.
+1.  : **COMPLETED**. Agent fixed the z-index issue.
+2.  : **COMPLETED**. Agent explained the wildcard permission, fixed the User Management page to load roles dynamically, and improved the visual permission display.
+3.  : **COMPLETED**. Agent fixed an async loading bug in the  hook.
+4.  : **COMPLETED**. Agent added all missing permission categories to the backend and verified they appear in the UI.
+5.  : **COMPLETED**. Agent verified this restriction was already in place on both frontend and backend.
+6.  : **COMPLETED**. Agent verified the frontend validation was in place.
+7.  : **COMPLETED**. Agent discovered they were not, created a migration script to fix old data, and added backend validation.
+8.   (migration script and backend validation): **COMPLETED**.
+9.  : **COMPLETED**. Agent fixed the bug preventing system role edits and enhanced the Role Management UI.
+10. : **COMPLETED**. Agent explained they exist under broader categories and improved the UI to make this clear.
 
 **Project Health Check:**
--   **Broken**: Backend authorization is inconsistent and does not respect the newly created dynamic roles. All API endpoint protection is still using hardcoded role IDs.
+-   **Broken**: While the framework is in place, the backend's API endpoints are not yet granularly protected by the new dynamic permission system. A user with the  permission might still be able to access  if the endpoint isn't specifically checking for the correct permission.
 -   **Mocked**: None
 
 **3rd Party Integrations**
@@ -150,7 +145,7 @@ A critical inventory calculation bug that caused double-blocking was fixed by re
 -    &  (for TOTP/2FA feature)
 
 **Testing status**
--   Testing agent used after significant changes: YES (for payment dialog fix)
+-   Testing agent used after significant changes: YES
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
 -   Known regressions: None
@@ -158,7 +153,7 @@ A critical inventory calculation bug that caused double-blocking was fixed by re
 **Credentials to test flow:**
 -   **PE Desk Super Admin**:  / 
 -   **Employee**:  / 
+-   **Finance User**:  / 
 
 **What agent forgot to execute**
--   The agent did not refactor  to use the new centralized  hook; it still contains its own hardcoded role logic.
--   The backend integration of the new dynamic role & permission system was not started. This is the most critical pending task to make the new feature functional end-to-end.</analysis>
+-   The most significant pending action is the granular application of all 96+ permission checks to their corresponding backend API endpoints. The framework was built, but the detailed, endpoint-by-endpoint enforcement is the logical next step and has been requested by the user.</analysis>
