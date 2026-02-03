@@ -156,17 +156,52 @@ const DatabaseBackup = () => {
     try {
       const params = new URLSearchParams();
       selectedCollections.forEach(c => params.append('collections', c));
+      excludedRecords.forEach(e => params.append('exclude_ids', e));
       
       const response = await api.delete(`/database/clear?${params.toString()}`);
-      toast.success(`Cleared ${response.data.collections_cleared} collections! ${response.data.total_deleted} records deleted.`);
+      const preserved = response.data.total_preserved || 0;
+      toast.success(`Cleared ${response.data.collections_cleared} collections! ${response.data.total_deleted} records deleted${preserved > 0 ? `, ${preserved} preserved` : ''}.`);
       setClearDialogOpen(false);
       setClearConfirmText('');
       setSelectedCollections([]);
+      setExcludedRecords([]);
+      setPreviewData(null);
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to clear database');
     } finally {
       setClearing(false);
+    }
+  };
+
+  const handleClearFiles = async () => {
+    if (clearConfirmText !== 'CLEAR DATABASE') {
+      toast.error('Please type "CLEAR DATABASE" to confirm');
+      return;
+    }
+    
+    if (selectedFileTypes.length === 0) {
+      toast.error('Please select at least one file type to clear');
+      return;
+    }
+    
+    setClearingFiles(true);
+    try {
+      const params = new URLSearchParams();
+      selectedFileTypes.forEach(f => params.append('file_types', f));
+      
+      const response = await api.delete(`/database/clear/files?${params.toString()}`);
+      toast.success(`Cleared ${response.data.total_cleared} files successfully!`);
+      setClearDialogOpen(false);
+      setClearConfirmText('');
+      setSelectedFileTypes([]);
+      // Refresh file stats
+      const filesRes = await api.get('/database/files/stats');
+      setFileStats(filesRes.data.file_stats);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to clear files');
+    } finally {
+      setClearingFiles(false);
     }
   };
 
