@@ -1657,7 +1657,8 @@ async def add_payment_tranche(
 @router.get("/bookings/{booking_id}/payments")
 async def get_booking_payments(
     booking_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.view", "view booking payments"))
 ):
     """Get all payment tranches for a booking."""
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
