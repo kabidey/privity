@@ -249,18 +249,18 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access pending clients: {response.text}"
         print(f"✓ PE Desk can access pending clients (status: {response.status_code})")
     
-    def test_employee_denied_pending_clients(self):
-        """Employee should be denied access to /api/clients/pending-approval (requires client_approval.view)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_pending_clients(self):
+        """Viewer should be denied access to /api/clients/pending-approval (requires client_approval.view)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/clients/pending-approval",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied pending clients: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied pending clients (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied pending clients: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied pending clients (status: {response.status_code})")
     
     # ============== CONTRACT NOTES PERMISSION TESTS ==============
     
