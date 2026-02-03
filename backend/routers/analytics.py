@@ -13,7 +13,8 @@ from config import ROLES
 from utils.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
@@ -29,7 +30,8 @@ def is_pe_level(role: int) -> bool:
 async def get_analytics_summary(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.view", "view analytics"))
 ):
     """Get analytics summary"""
     query = {"status": {"$ne": "cancelled"}}
@@ -65,7 +67,10 @@ async def get_analytics_summary(
 
 
 @router.get("/stock-performance")
-async def get_stock_performance(current_user: dict = Depends(get_current_user)):
+async def get_stock_performance(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.performance", "view stock performance"))
+):
     """Get stock performance analytics"""
     stocks = await db.stocks.find({"is_active": True}, {"_id": 0}).to_list(1000)
     stock_map = {s["id"]: s for s in stocks}
@@ -108,13 +113,11 @@ async def get_stock_performance(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/employee-performance")
-async def get_employee_performance(current_user: dict = Depends(get_current_user)):
+async def get_employee_performance(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.performance", "view employee performance"))
+):
     """Get employee performance analytics"""
-    user_role = current_user.get("role", 6)
-    
-    # Only PE level can see all employee performance
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     employees = await db.users.find(
         {"role": {"$in": [3, 4]}},  # PE Managers and Employees
@@ -158,7 +161,10 @@ async def get_employee_performance(current_user: dict = Depends(get_current_user
 
 
 @router.get("/sector-distribution")
-async def get_sector_distribution(current_user: dict = Depends(get_current_user)):
+async def get_sector_distribution(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.view", "view sector distribution"))
+):
     """Get sector-wise distribution of bookings"""
     stocks = await db.stocks.find({}, {"_id": 0, "id": 1, "sector": 1}).to_list(1000)
     stock_sectors = {s["id"]: s.get("sector", "Other") for s in stocks}
@@ -186,7 +192,8 @@ async def get_sector_distribution(current_user: dict = Depends(get_current_user)
 @router.get("/daily-trend")
 async def get_daily_trend(
     days: int = Query(30, ge=1, le=365),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.view", "view daily trend"))
 ):
     """Get daily booking trend for the last N days"""
     start_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
