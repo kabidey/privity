@@ -107,14 +107,10 @@ async def get_email_logs(
 @router.get("/stats", response_model=EmailLogStats)
 async def get_email_log_stats(
     days: int = Query(7, ge=1, le=90),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.view_logs", "view email statistics"))
 ):
     """Get email log statistics for the last N days (PE Level only)"""
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view email statistics")
-    
     start_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     
     # Get counts by status
@@ -164,14 +160,10 @@ async def get_email_log_stats(
 @router.get("/{log_id}", response_model=EmailLog)
 async def get_email_log_detail(
     log_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.view_logs", "view email log detail"))
 ):
     """Get detailed email log entry (PE Level only)"""
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view email logs")
-    
     log = await db.email_logs.find_one({"id": log_id}, {"_id": 0})
     if not log:
         raise HTTPException(status_code=404, detail="Email log not found")
@@ -183,14 +175,10 @@ async def get_email_log_detail(
 async def get_emails_by_entity(
     entity_type: str,
     entity_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.view_logs", "view entity emails"))
 ):
     """Get all emails related to a specific entity (PE Level only)"""
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view email logs")
-    
     logs = await db.email_logs.find(
         {"related_entity_type": entity_type, "related_entity_id": entity_id},
         {"_id": 0}
