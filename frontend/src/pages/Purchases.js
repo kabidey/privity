@@ -91,6 +91,9 @@ const Purchases = () => {
   };
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     // Only PE Desk and PE Manager can access Purchases
     if (!isPELevel) {
       toast.error('Access denied. Only PE Desk and PE Manager can access Purchases.');
@@ -98,7 +101,7 @@ const Purchases = () => {
       return;
     }
     fetchData();
-  }, []);
+  }, [user, isPELevel]);
 
   const fetchData = async () => {
     try {
