@@ -1,6 +1,6 @@
 """
-Contract Notes Router
-Handles contract note generation and management
+Confirmation Notes Router
+Handles confirmation note generation and management
 Generated after DP transfer and sent to clients
 """
 import os
