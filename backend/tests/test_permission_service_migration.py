@@ -33,8 +33,8 @@ class TestAuthSetup:
         response = requests.post(f"{BASE_URL}/api/auth/login", json=PE_DESK_CREDS)
         assert response.status_code == 200, f"PE Desk login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data, "No access_token in response"
-        return data["access_token"]
+        assert "token" in data, "No token in response"
+        return data["token"]
     
     @pytest.fixture(scope="class")
     def viewer_token(self):
@@ -42,8 +42,8 @@ class TestAuthSetup:
         response = requests.post(f"{BASE_URL}/api/auth/login", json=VIEWER_CREDS)
         assert response.status_code == 200, f"Viewer login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data, "No access_token in response"
-        return data["access_token"]
+        assert "token" in data, "No token in response"
+        return data["token"]
     
     def test_pe_desk_login(self, pe_desk_token):
         """Verify PE Desk can login"""
@@ -64,12 +64,12 @@ class TestDashboardEndpoints:
     @pytest.fixture(scope="class")
     def pe_desk_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=PE_DESK_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     @pytest.fixture(scope="class")
     def viewer_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=VIEWER_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     def test_dashboard_stats_pe_desk(self, pe_desk_token):
         """PE Desk should access dashboard stats"""
@@ -113,12 +113,12 @@ class TestBookingsEndpoints:
     @pytest.fixture(scope="class")
     def pe_desk_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=PE_DESK_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     @pytest.fixture(scope="class")
     def viewer_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=VIEWER_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     def test_bookings_list_pe_desk(self, pe_desk_token):
         """PE Desk should access bookings list"""
@@ -155,12 +155,12 @@ class TestClientsEndpoints:
     @pytest.fixture(scope="class")
     def pe_desk_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=PE_DESK_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     @pytest.fixture(scope="class")
     def viewer_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=VIEWER_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     def test_clients_list_pe_desk(self, pe_desk_token):
         """PE Desk should access clients list"""
@@ -189,12 +189,12 @@ class TestInventoryEndpoints:
     @pytest.fixture(scope="class")
     def pe_desk_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=PE_DESK_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     @pytest.fixture(scope="class")
     def viewer_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=VIEWER_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     def test_inventory_list_pe_desk(self, pe_desk_token):
         """PE Desk should access inventory list with WAP and LP"""
@@ -253,12 +253,12 @@ class TestPermissionServiceIntegration:
     @pytest.fixture(scope="class")
     def pe_desk_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=PE_DESK_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     @pytest.fixture(scope="class")
     def viewer_token(self):
         response = requests.post(f"{BASE_URL}/api/auth/login", json=VIEWER_CREDS)
-        return response.json().get("access_token")
+        return response.json().get("token")
     
     def test_pe_desk_user_info(self, pe_desk_token):
         """Verify PE Desk user has correct role"""
