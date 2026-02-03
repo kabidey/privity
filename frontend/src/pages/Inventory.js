@@ -218,11 +218,26 @@ const Inventory = () => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Stock Inventory</span>
-            {isPELevel && (
-              <span className="text-xs font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                PE View: Shows both WAP & LP
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {isPEDesk && (
+                <Button
+                  onClick={handleRecalculateInventory}
+                  disabled={recalculating}
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  data-testid="recalculate-inventory-btn"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${recalculating ? 'animate-spin' : ''}`} />
+                  {recalculating ? 'Recalculating...' : 'Recalculate Inventory'}
+                </Button>
+              )}
+              {isPELevel && (
+                <span className="text-xs font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                  PE View: Shows both WAP & LP
+                </span>
+              )}
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
