@@ -512,10 +512,66 @@ async def get_database_stats(
     }
 
 
+# ============== Collection Categories ==============
+COLLECTION_CATEGORIES = {
+    "finance": {
+        "name": "Finance Data",
+        "description": "Payments, refunds, commissions, and financial records",
+        "collections": ["refund_requests", "rp_payments", "bp_payments", "employee_commissions", "finance_settings"]
+    },
+    "logs": {
+        "name": "System Logs",
+        "description": "Audit logs, email logs, security logs",
+        "collections": ["audit_logs", "email_logs", "security_logs", "login_locations"]
+    },
+    "clients": {
+        "name": "Client Data",
+        "description": "Clients, vendors, and their documents",
+        "collections": ["clients"]
+    },
+    "bookings": {
+        "name": "Booking Data",
+        "description": "Bookings, contract notes, and related records",
+        "collections": ["bookings", "contract_notes"]
+    },
+    "inventory": {
+        "name": "Inventory & Purchases",
+        "description": "Stock inventory, purchases, and supplier data",
+        "collections": ["inventory", "purchases"]
+    },
+    "partners": {
+        "name": "Partner Data",
+        "description": "Business partners, referral partners, and OTPs",
+        "collections": ["business_partners", "referral_partners", "bp_otps", "rp_otps"]
+    },
+    "stocks": {
+        "name": "Stock Master Data",
+        "description": "Stocks, corporate actions, and market data",
+        "collections": ["stocks", "corporate_actions"]
+    },
+    "settings": {
+        "name": "System Settings",
+        "description": "Company settings, email templates, SMTP config",
+        "collections": ["company_master", "email_templates", "smtp_settings", "roles"]
+    },
+    "notifications": {
+        "name": "Notifications & Messages",
+        "description": "Notifications, group chat messages",
+        "collections": ["notifications", "group_chat_messages"]
+    },
+    "research": {
+        "name": "Research & Reports",
+        "description": "Research reports and analysis data",
+        "collections": ["research_reports"]
+    }
+}
+
+
 # ============== Clear Database Endpoint ==============
 @router.delete("/clear")
 async def clear_database(
     collections: Optional[List[str]] = Query(None, description="Specific collections to clear. If empty, clears all except protected."),
+    exclude_ids: Optional[List[str]] = Query(None, description="Record IDs to exclude from deletion (format: collection:id)"),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("database_backup.clear", "clear database"))
 ):
@@ -523,11 +579,23 @@ async def clear_database(
     
     If no collections specified, clears all except protected ones (users, database_backups).
     Pass specific collection names to selectively clear only those collections.
+    Use exclude_ids to preserve specific records (format: "collection_name:record_id").
     
     WARNING: This permanently deletes data!
     """
     cleared_counts = {}
+    preserved_counts = {}
     errors = []
+    
+    # Parse exclude_ids into a dict: {collection: [ids]}
+    exclusions = {}
+    if exclude_ids:
+        for item in exclude_ids:
+            if ":" in item:
+                coll, record_id = item.split(":", 1)
+                if coll not in exclusions:
+                    exclusions[coll] = []
+                exclusions[coll].append(record_id)
     
     # Get all collections dynamically from the database
     all_collections = await db.list_collection_names()
@@ -546,9 +614,16 @@ async def clear_database(
     for collection_name in collections_to_clear:
         try:
             collection = db[collection_name]
-            count_before = await collection.count_documents({})
+            
+            # Build delete query - exclude specific IDs if provided
+            delete_query = {}
+            if collection_name in exclusions and exclusions[collection_name]:
+                delete_query = {"id": {"$nin": exclusions[collection_name]}}
+                preserved_counts[collection_name] = len(exclusions[collection_name])
+            
+            count_before = await collection.count_documents(delete_query)
             if count_before > 0:
-                await collection.delete_many({})
+                await collection.delete_many(delete_query)
                 cleared_counts[collection_name] = count_before
         except Exception as e:
             errors.append(f"Error clearing {collection_name}: {str(e)}")
@@ -565,9 +640,11 @@ async def clear_database(
         "details": {
             "collections_cleared": list(cleared_counts.keys()),
             "record_counts_deleted": cleared_counts,
+            "records_preserved": preserved_counts,
             "protected_collections": protected_collections,
             "selective_clear": bool(collections),
             "requested_collections": collections,
+            "exclusions": exclusions,
             "errors": errors
         },
         "timestamp": datetime.now(timezone.utc).isoformat()
@@ -576,7 +653,9 @@ async def clear_database(
     return {
         "message": "Selected collections cleared successfully" if not errors else "Collections cleared with some errors",
         "cleared_counts": cleared_counts,
+        "preserved_counts": preserved_counts,
         "total_deleted": sum(cleared_counts.values()),
+        "total_preserved": sum(preserved_counts.values()),
         "collections_cleared": len(cleared_counts),
         "protected_collections": protected_collections,
         "selective_clear": bool(collections),
@@ -589,9 +668,15 @@ async def get_clearable_collections(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("database_backup.clear", "view clearable collections"))
 ):
-    """Get list of collections that can be cleared with their record counts"""
+    """Get list of collections that can be cleared with their record counts and categories"""
     all_collections = await db.list_collection_names()
     protected_collections = ["users", "database_backups"]
+    
+    # Build reverse mapping: collection -> category
+    collection_to_category = {}
+    for cat_key, cat_data in COLLECTION_CATEGORIES.items():
+        for coll in cat_data["collections"]:
+            collection_to_category[coll] = cat_key
     
     clearable = []
     for collection_name in sorted(all_collections):
@@ -600,13 +685,296 @@ async def get_clearable_collections(
             clearable.append({
                 "name": collection_name,
                 "count": count,
-                "display_name": collection_name.replace("_", " ").title()
+                "display_name": collection_name.replace("_", " ").title(),
+                "category": collection_to_category.get(collection_name, "other")
             })
+    
+    # Build categories with counts
+    categories = []
+    for cat_key, cat_data in COLLECTION_CATEGORIES.items():
+        cat_collections = [c for c in clearable if c["category"] == cat_key]
+        if cat_collections:
+            categories.append({
+                "key": cat_key,
+                "name": cat_data["name"],
+                "description": cat_data["description"],
+                "collections": [c["name"] for c in cat_collections],
+                "total_records": sum(c["count"] for c in cat_collections)
+            })
+    
+    # Add "other" category for uncategorized collections
+    other_collections = [c for c in clearable if c["category"] == "other"]
+    if other_collections:
+        categories.append({
+            "key": "other",
+            "name": "Other Data",
+            "description": "Miscellaneous collections",
+            "collections": [c["name"] for c in other_collections],
+            "total_records": sum(c["count"] for c in other_collections)
+        })
     
     return {
         "collections": clearable,
+        "categories": categories,
         "protected_collections": protected_collections,
         "total_clearable": len(clearable)
+    }
+
+
+@router.post("/clear/preview")
+async def preview_clear(
+    collections: Optional[List[str]] = Query(None, description="Collections to preview clearing"),
+    exclude_ids: Optional[List[str]] = Query(None, description="Record IDs to exclude (format: collection:id)"),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.clear", "preview clear"))
+):
+    """Preview what would be deleted without actually deleting anything"""
+    preview_data = {}
+    sample_records = {}
+    
+    # Parse exclude_ids
+    exclusions = {}
+    if exclude_ids:
+        for item in exclude_ids:
+            if ":" in item:
+                coll, record_id = item.split(":", 1)
+                if coll not in exclusions:
+                    exclusions[coll] = []
+                exclusions[coll].append(record_id)
+    
+    all_collections = await db.list_collection_names()
+    protected_collections = ["users", "database_backups"]
+    
+    if collections and len(collections) > 0:
+        collections_to_preview = [c for c in collections if c in all_collections and c not in protected_collections]
+    else:
+        collections_to_preview = [c for c in all_collections if c not in protected_collections]
+    
+    total_to_delete = 0
+    total_to_preserve = 0
+    
+    for collection_name in collections_to_preview:
+        collection = db[collection_name]
+        
+        # Build query based on exclusions
+        delete_query = {}
+        if collection_name in exclusions and exclusions[collection_name]:
+            delete_query = {"id": {"$nin": exclusions[collection_name]}}
+        
+        count_to_delete = await collection.count_documents(delete_query)
+        total_count = await collection.count_documents({})
+        count_to_preserve = total_count - count_to_delete
+        
+        # Get sample records that would be deleted (first 5)
+        samples = await collection.find(
+            delete_query, 
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "booking_number": 1, "client_name": 1, "symbol": 1, "created_at": 1}
+        ).limit(5).to_list(5)
+        
+        preview_data[collection_name] = {
+            "to_delete": count_to_delete,
+            "to_preserve": count_to_preserve,
+            "total": total_count
+        }
+        
+        if samples:
+            sample_records[collection_name] = samples
+        
+        total_to_delete += count_to_delete
+        total_to_preserve += count_to_preserve
+    
+    return {
+        "preview": preview_data,
+        "sample_records": sample_records,
+        "summary": {
+            "total_to_delete": total_to_delete,
+            "total_to_preserve": total_to_preserve,
+            "collections_affected": len([c for c in preview_data.values() if c["to_delete"] > 0])
+        },
+        "exclusions_applied": exclusions
+    }
+
+
+@router.delete("/clear/files")
+async def clear_uploaded_files(
+    file_types: Optional[List[str]] = Query(None, description="File types to clear: client_docs, bp_docs, rp_docs, company_docs, logos"),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.clear", "clear uploaded files"))
+):
+    """Clear uploaded files from GridFS and file system without touching database records
+    
+    File types:
+    - client_docs: Client documents (PAN, Aadhar, CML, etc.)
+    - bp_docs: Business Partner documents
+    - rp_docs: Referral Partner documents
+    - company_docs: Company master documents
+    - logos: Company and partner logos
+    - all: Clear all uploaded files
+    """
+    from motor.motor_asyncio import AsyncIOMotorGridFSBucket
+    
+    cleared_files = {}
+    errors = []
+    
+    # Define file type mappings to GridFS prefixes and directories
+    FILE_TYPE_MAPPINGS = {
+        "client_docs": {
+            "gridfs_prefix": "client_",
+            "directories": ["/app/uploads/clients"]
+        },
+        "bp_docs": {
+            "gridfs_prefix": "bp_",
+            "directories": ["/app/uploads/business_partners"]
+        },
+        "rp_docs": {
+            "gridfs_prefix": "rp_",
+            "directories": ["/app/uploads/referral_partners"]
+        },
+        "company_docs": {
+            "gridfs_prefix": "company_",
+            "directories": ["/app/uploads/company"]
+        },
+        "logos": {
+            "gridfs_prefix": "logo_",
+            "directories": ["/app/uploads/logos"]
+        }
+    }
+    
+    # If no specific types, don't clear anything (safety measure)
+    if not file_types:
+        return {
+            "message": "No file types specified. Please specify which file types to clear.",
+            "available_types": list(FILE_TYPE_MAPPINGS.keys()) + ["all"],
+            "cleared_files": {},
+            "total_cleared": 0
+        }
+    
+    # Handle "all" option
+    if "all" in file_types:
+        file_types = list(FILE_TYPE_MAPPINGS.keys())
+    
+    # Initialize GridFS bucket
+    fs_bucket = AsyncIOMotorGridFSBucket(db)
+    
+    for file_type in file_types:
+        if file_type not in FILE_TYPE_MAPPINGS:
+            errors.append(f"Unknown file type: {file_type}")
+            continue
+        
+        mapping = FILE_TYPE_MAPPINGS[file_type]
+        cleared_files[file_type] = {"gridfs": 0, "filesystem": 0}
+        
+        # Clear from GridFS
+        try:
+            # Find files with matching prefix
+            async for grid_file in fs_bucket.find({"filename": {"$regex": f"^{mapping['gridfs_prefix']}"}}):
+                await fs_bucket.delete(grid_file._id)
+                cleared_files[file_type]["gridfs"] += 1
+        except Exception as e:
+            errors.append(f"Error clearing GridFS {file_type}: {str(e)}")
+        
+        # Clear from filesystem
+        for directory in mapping["directories"]:
+            if os.path.exists(directory):
+                try:
+                    file_count = sum(len(files) for _, _, files in os.walk(directory))
+                    shutil.rmtree(directory)
+                    os.makedirs(directory, exist_ok=True)  # Recreate empty directory
+                    cleared_files[file_type]["filesystem"] += file_count
+                except Exception as e:
+                    errors.append(f"Error clearing directory {directory}: {str(e)}")
+    
+    # Calculate totals
+    total_gridfs = sum(f["gridfs"] for f in cleared_files.values())
+    total_filesystem = sum(f["filesystem"] for f in cleared_files.values())
+    
+    # Log the action
+    await db.audit_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "action": "FILES_CLEAR",
+        "entity_type": "files",
+        "entity_id": ",".join(file_types),
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "user_role": current_user.get("role", 5),
+        "details": {
+            "file_types_cleared": file_types,
+            "cleared_counts": cleared_files,
+            "total_gridfs": total_gridfs,
+            "total_filesystem": total_filesystem,
+            "errors": errors
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "message": "Files cleared successfully" if not errors else "Files cleared with some errors",
+        "cleared_files": cleared_files,
+        "total_cleared": total_gridfs + total_filesystem,
+        "total_gridfs": total_gridfs,
+        "total_filesystem": total_filesystem,
+        "errors": errors
+    }
+
+
+@router.get("/files/stats")
+async def get_file_stats(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.clear", "view file stats"))
+):
+    """Get statistics about uploaded files for clear preview"""
+    from motor.motor_asyncio import AsyncIOMotorGridFSBucket
+    
+    FILE_TYPE_MAPPINGS = {
+        "client_docs": {"gridfs_prefix": "client_", "directories": ["/app/uploads/clients"]},
+        "bp_docs": {"gridfs_prefix": "bp_", "directories": ["/app/uploads/business_partners"]},
+        "rp_docs": {"gridfs_prefix": "rp_", "directories": ["/app/uploads/referral_partners"]},
+        "company_docs": {"gridfs_prefix": "company_", "directories": ["/app/uploads/company"]},
+        "logos": {"gridfs_prefix": "logo_", "directories": ["/app/uploads/logos"]}
+    }
+    
+    fs_bucket = AsyncIOMotorGridFSBucket(db)
+    stats = {}
+    
+    for file_type, mapping in FILE_TYPE_MAPPINGS.items():
+        gridfs_count = 0
+        gridfs_size = 0
+        filesystem_count = 0
+        filesystem_size = 0
+        
+        # Count GridFS files
+        try:
+            async for grid_file in fs_bucket.find({"filename": {"$regex": f"^{mapping['gridfs_prefix']}"}}):
+                gridfs_count += 1
+                gridfs_size += grid_file.length
+        except:
+            pass
+        
+        # Count filesystem files
+        for directory in mapping["directories"]:
+            if os.path.exists(directory):
+                for root, dirs, files in os.walk(directory):
+                    for f in files:
+                        filesystem_count += 1
+                        try:
+                            filesystem_size += os.path.getsize(os.path.join(root, f))
+                        except:
+                            pass
+        
+        stats[file_type] = {
+            "name": file_type.replace("_", " ").title(),
+            "gridfs_count": gridfs_count,
+            "gridfs_size_mb": round(gridfs_size / (1024 * 1024), 2),
+            "filesystem_count": filesystem_count,
+            "filesystem_size_mb": round(filesystem_size / (1024 * 1024), 2),
+            "total_count": gridfs_count + filesystem_count,
+            "total_size_mb": round((gridfs_size + filesystem_size) / (1024 * 1024), 2)
+        }
+    
+    return {
+        "file_stats": stats,
+        "total_files": sum(s["total_count"] for s in stats.values()),
+        "total_size_mb": round(sum(s["total_size_mb"] for s in stats.values()), 2)
     }
 
 
