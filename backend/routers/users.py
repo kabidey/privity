@@ -92,11 +92,11 @@ async def enrich_user_with_hierarchy(user: dict) -> dict:
 
 # ============== Employee Endpoints (for Partners Desk) ==============
 @router.get("/employees")
-async def get_employees(current_user: dict = Depends(get_current_user)):
-    """Get list of all users for client mapping (PE Level only)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view employee list for mapping")
-    
+async def get_employees(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("users.view", "view employee list"))
+):
+    """Get list of all users for client mapping (requires users.view permission)"""
     # Return all users for client mapping
     users = await db.users.find(
         {},
@@ -108,10 +108,11 @@ async def get_employees(current_user: dict = Depends(get_current_user)):
 
 # ============== User Endpoints ==============
 @router.get("", response_model=List[User])
-async def get_users(current_user: dict = Depends(get_current_user)):
-    """Get all users (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view users")
+async def get_users(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("users.view", "view users"))
+):
+    """Get all users (requires users.view permission)"""
     users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
     
     result = []
@@ -127,11 +128,12 @@ async def get_users(current_user: dict = Depends(get_current_user)):
 
 
 @router.post("")
-async def create_user(user_data: UserCreate, current_user: dict = Depends(get_current_user)):
-    """Create a new user (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can create users")
-    
+async def create_user(
+    user_data: UserCreate,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("users.create", "create users"))
+):
+    """Create a new user (requires users.create permission)"""
     # PE Manager cannot create PE Desk or PE Manager users
     if current_user.get("role") == 2 and user_data.role in [1, 2]:
         raise HTTPException(status_code=403, detail="PE Manager cannot create PE Desk or PE Manager users")
