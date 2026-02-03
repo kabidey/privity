@@ -25,12 +25,6 @@ const DEFAULT_ROLES = {
   6: { name: ROLE_NAMES[6], color: 'bg-orange-100 text-orange-800' },
   7: { name: ROLE_NAMES[7], color: 'bg-blue-100 text-blue-800' },
 };
-  3: { name: ROLE_NAMES[3], color: 'bg-emerald-100 text-emerald-800' },
-  4: { name: ROLE_NAMES[4], color: 'bg-gray-100 text-gray-800' },
-  5: { name: ROLE_NAMES[5], color: 'bg-pink-100 text-pink-800' },
-  6: { name: ROLE_NAMES[6], color: 'bg-orange-100 text-orange-800' },
-  7: { name: ROLE_NAMES[7], color: 'bg-blue-100 text-blue-800' },
-};
 
 const HIERARCHY_LEVELS = {
   1: { name: 'Employee', color: 'bg-gray-100 text-gray-700' },
