@@ -81,8 +81,12 @@ async def _recalculate_inventory_internal(stock_id: str) -> Dict[str, Any]:
         "stock_id": stock_id,
         "stock_symbol": stock["symbol"] if stock else "Unknown",
         "stock_name": stock["name"] if stock else "Unknown",
-        "available_quantity": max(0, available_qty),
-        "blocked_quantity": blocked_qty,
+        "purchased_qty": total_purchased_qty,
+        "available_qty": max(0, available_qty),
+        "available_quantity": max(0, available_qty),  # Alias for compatibility
+        "blocked_qty": blocked_qty,
+        "blocked_quantity": blocked_qty,  # Alias for compatibility
+        "transferred_qty": transferred_qty,
         "weighted_avg_price": round(weighted_avg, 2),
         "total_value": round(max(0, available_qty) * weighted_avg, 2),
         "last_updated": datetime.now(timezone.utc).isoformat()
@@ -94,7 +98,7 @@ async def _recalculate_inventory_internal(stock_id: str) -> Dict[str, Any]:
         upsert=True
     )
     
-    logger.info(f"Inventory updated for stock {stock_id}: available={available_qty}, blocked={blocked_qty}")
+    logger.info(f"Inventory updated for stock {stock_id}: purchased={total_purchased_qty}, available={available_qty}, blocked={blocked_qty}, transferred={transferred_qty}")
     return inventory_data
 
 
