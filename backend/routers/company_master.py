@@ -14,6 +14,7 @@ from database import db
 from utils.auth import get_current_user
 from services.audit_service import create_audit_log
 from services.file_storage import upload_file_to_gridfs, get_file_url
+from services.permission_service import require_permission
 
 router = APIRouter(prefix="/company-master", tags=["Company Master"])
 
@@ -75,10 +76,11 @@ def check_pe_desk(current_user: dict):
 
 
 @router.get("", response_model=CompanyMasterResponse)
-async def get_company_master(current_user: dict = Depends(get_current_user)):
+async def get_company_master(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.view", "view company master"))
+):
     """Get company master settings (PE Desk only)"""
-    check_pe_desk(current_user)
-    
     # Get or create company master record
     master = await db.company_master.find_one({"_id": "company_settings"})
     
