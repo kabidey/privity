@@ -64,6 +64,7 @@ AVAILABLE_PERMISSIONS = {
         "permissions": [
             {"key": "inventory.view", "name": "View Inventory", "description": "View inventory levels"},
             {"key": "inventory.edit_landing_price", "name": "Edit Landing Price", "description": "Modify landing prices"},
+            {"key": "inventory.recalculate", "name": "Recalculate Inventory", "description": "Trigger inventory recalculation for all stocks"},
         ]
     },
     "purchases": {
