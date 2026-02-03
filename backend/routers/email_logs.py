@@ -195,7 +195,8 @@ async def get_emails_by_entity(
 @router.post("/{log_id}/resend")
 async def resend_email(
     log_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.resend", "resend emails"))
 ):
     """Resend a failed or skipped email (PE Level only)
     
@@ -203,11 +204,6 @@ async def resend_email(
     Only emails with status 'failed' or 'skipped' can be resent.
     """
     from services.email_service import send_templated_email, send_email, get_email_template, render_template
-    
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can resend emails")
     
     # Get the original email log
     log = await db.email_logs.find_one({"id": log_id}, {"_id": 0})
