@@ -98,15 +98,18 @@ const SecurityDashboard = () => {
   const [timeRange, setTimeRange] = useState('24h');
   const [activeTab, setActiveTab] = useState('overview');
 
-  const { isPEDesk } = useCurrentUser();
+  const { user, isPEDesk } = useCurrentUser();
 
   // Redirect non-PE users
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     if (!isPEDesk) {
       toast.error('Access denied. Only PE Desk can view Security Dashboard.');
       navigate('/');
     }
-  }, [isPEDesk, navigate]);
+  }, [user, isPEDesk, navigate]);
 
   // Process chart data
   const chartData = useMemo(() => {
