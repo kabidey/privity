@@ -226,7 +226,8 @@ async def create_referral_partner(
 async def get_referral_partners(
     search: Optional[str] = None,
     active_only: bool = True,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.view", "view referral partners"))
 ):
     """Get all referral partners."""
     query = {}
@@ -248,7 +249,11 @@ async def get_referral_partners(
 
 
 @router.get("/referral-partners/{rp_id}", response_model=ReferralPartner)
-async def get_referral_partner(rp_id: str, current_user: dict = Depends(get_current_user)):
+async def get_referral_partner(
+    rp_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.view", "view referral partner"))
+):
     """Get a specific referral partner by ID."""
     rp = await db.referral_partners.find_one({"id": rp_id}, {"_id": 0})
     if not rp:
@@ -260,20 +265,14 @@ async def get_referral_partner(rp_id: str, current_user: dict = Depends(get_curr
 async def update_referral_partner(
     rp_id: str,
     rp_data: ReferralPartnerCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.edit", "edit referral partners"))
 ):
     """
     Update a referral partner.
     Only PE Desk and PE Manager can edit RPs.
     """
     user_role = current_user.get("role", 6)
-    
-    # Only PE Level can edit
-    if not is_pe_level(user_role):
-        raise HTTPException(
-            status_code=403,
-            detail="Only PE Desk or PE Manager can edit Referral Partners"
-        )
     
     existing = await db.referral_partners.find_one({"id": rp_id}, {"_id": 0})
     if not existing:
