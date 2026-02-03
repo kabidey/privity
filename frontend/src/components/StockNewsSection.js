@@ -224,6 +224,11 @@ const StockNewsSection = () => {
                             <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${categoryColor}`}>
                               {item.category}
                             </Badge>
+                            {item.related_stock && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
+                                {item.related_stock}
+                              </Badge>
+                            )}
                             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                               <ExternalLink className="h-3 w-3" />
                               {item.source}
