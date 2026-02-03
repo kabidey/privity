@@ -350,13 +350,19 @@ class RoleUpdate(BaseModel):
 
 
 @router.get("/permissions")
-async def get_all_permissions(current_user: dict = Depends(get_current_user)):
+async def get_all_permissions(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("roles.view", "view permissions"))
+):
     """Get all available permissions grouped by category"""
     return AVAILABLE_PERMISSIONS
 
 
 @router.get("")
-async def get_roles(current_user: dict = Depends(get_current_user)):
+async def get_roles(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("roles.view", "view roles"))
+):
     """Get all roles (system + custom)"""
     # Get custom roles from database
     custom_roles = await db.roles.find({}, {"_id": 0}).to_list(1000)
@@ -385,7 +391,11 @@ async def get_roles(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/{role_id}")
-async def get_role(role_id: int, current_user: dict = Depends(get_current_user)):
+async def get_role(
+    role_id: int,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("roles.view", "view role details"))
+):
     """Get a specific role by ID"""
     # Check database first
     role = await db.roles.find_one({"id": role_id}, {"_id": 0})
@@ -402,11 +412,12 @@ async def get_role(role_id: int, current_user: dict = Depends(get_current_user))
 
 
 @router.post("")
-async def create_role(role_data: RoleCreate, current_user: dict = Depends(get_current_user)):
+async def create_role(
+    role_data: RoleCreate,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("roles.create", "create roles"))
+):
     """Create a new custom role (PE Desk only)"""
-    if not is_pe_desk_only(current_user.get("role", 7)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can create roles")
-    
     # Check if name already exists
     existing = await db.roles.find_one({"name": role_data.name})
     if existing:
