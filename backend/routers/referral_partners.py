@@ -16,14 +16,24 @@ import aiofiles
 from pathlib import Path
 
 from database import db
-from config import is_pe_level, UPLOAD_DIR
+from config import UPLOAD_DIR
 from models import ReferralPartnerCreate, ReferralPartner
 from utils.auth import get_current_user
 from services.audit_service import create_audit_log
 from services.email_service import send_templated_email
 from services.file_storage import upload_file_to_gridfs, get_file_url
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission
+)
 
 router = APIRouter(tags=["Referral Partners"])
+
+
+# Helper function for backward compatibility
+def is_pe_level(role: int) -> bool:
+    """Check if role is PE level (PE Desk or PE Manager)."""
+    return role in [1, 2]
 
 
 async def generate_rp_code() -> str:
