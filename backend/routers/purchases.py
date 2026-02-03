@@ -545,12 +545,12 @@ async def delete_purchase(
 # ============== DP Receivable Endpoints ==============
 
 @router.get("/dp-receivables")
-async def get_dp_receivables(current_user: dict = Depends(get_current_user)):
-    """Get all purchases with DP receivable status (PE Level only)"""
+async def get_dp_receivables(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dp.view_receivables", "view DP receivables"))
+):
+    """Get all purchases with DP receivable status (requires dp.view_receivables permission)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can view DP receivables")
     
     # Get purchases with dp_status = "receivable"
     purchases = await db.purchases.find(
