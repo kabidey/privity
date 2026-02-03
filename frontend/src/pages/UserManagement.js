@@ -382,13 +382,20 @@ const UserManagement = () => {
                               onValueChange={(value) => handleRoleChange(user.id, parseInt(value))}
                               disabled={user.email === 'pe@smifs.com'}
                             >
-                              <SelectTrigger className="w-36">
+                              <SelectTrigger className="w-40">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {Object.entries(ROLES).map(([key, { name }]) => (
-                                  <SelectItem key={key} value={key}>{name}</SelectItem>
-                                ))}
+                                {Object.entries(roles)
+                                  .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                                  .map(([key, role]) => (
+                                    <SelectItem key={key} value={key}>
+                                      <span className="flex items-center gap-2">
+                                        {role.name}
+                                        {!role.is_system && <Badge variant="outline" className="text-[10px] px-1">Custom</Badge>}
+                                      </span>
+                                    </SelectItem>
+                                  ))}
                               </SelectContent>
                             </Select>
                           </TableCell>
