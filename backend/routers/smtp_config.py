@@ -176,12 +176,10 @@ async def update_smtp_config(
 @router.post("/test")
 async def test_smtp_connection(
     test_data: SMTPTestRequest = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.config", "test SMTP connection"))
 ):
     """Test SMTP connection and send a test email (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can test SMTP connection")
-    
     config = await db.smtp_settings.find_one({}, {"_id": 0})
     
     if not config:
