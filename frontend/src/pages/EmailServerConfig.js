@@ -52,7 +52,7 @@ const EmailServerConfig = () => {
     }
     fetchConfig();
     fetchPresets();
-  }, []);
+  }, [user, isPELevel, navigate]);
 
   const fetchConfig = async () => {
     try {
