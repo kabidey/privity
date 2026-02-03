@@ -1216,10 +1216,11 @@ async def get_pending_bookings(
 
 
 @router.get("/bookings/pending-loss-approval", response_model=List[BookingWithDetails])
-async def get_pending_loss_bookings(current_user: dict = Depends(get_current_user)):
+async def get_pending_loss_bookings(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.approve", "view pending loss bookings"))
+):
     """Get loss bookings pending approval (PE Level only)."""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view pending loss bookings")
     
     bookings = await db.bookings.find(
         {"is_loss_booking": True, "loss_approval_status": "pending"},
