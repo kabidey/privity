@@ -104,14 +104,18 @@ async def check_and_reserve_inventory(
     booking_id: str
 ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
     """
-    Atomically check inventory availability and create a reservation.
+    Check inventory availability for a booking.
     
-    This uses in-memory locking with MongoDB atomic operations to prevent
-    race conditions when multiple bookings try to reserve the same stock.
+    This uses in-memory locking to prevent race conditions when multiple 
+    bookings try to reserve the same stock.
+    
+    Note: Inventory blocked/available quantities are calculated dynamically
+    based on approved bookings, not through atomic increments. This prevents
+    double-counting issues.
     
     Args:
-        stock_id: The stock to reserve
-        quantity: Amount to reserve
+        stock_id: The stock to check
+        quantity: Amount needed
         booking_id: The booking ID making the reservation
     
     Returns:
@@ -120,11 +124,9 @@ async def check_and_reserve_inventory(
     lock = get_inventory_lock(stock_id)
     
     async with lock:
-        # First recalculate to ensure consistency
-        await _recalculate_inventory_internal(stock_id)
-        
-        # Get current inventory
-        inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+        # Recalculate inventory to get accurate counts
+        # This counts blocked_qty from approved bookings in the database
+        inventory = await _recalculate_inventory_internal(stock_id)
         
         if not inventory:
             return False, "Inventory record not found for this stock", None
@@ -134,34 +136,10 @@ async def check_and_reserve_inventory(
         if available < quantity:
             return False, f"Insufficient inventory. Available: {available}, Requested: {quantity}", inventory
         
-        # Atomic update: decrement available and increment blocked
-        result = await db.inventory.find_one_and_update(
-            {
-                "stock_id": stock_id,
-                "available_quantity": {"$gte": quantity}  # Optimistic lock condition
-            },
-            {
-                "$inc": {
-                    "available_quantity": -quantity,
-                    "blocked_quantity": quantity
-                },
-                "$set": {
-                    "last_updated": datetime.now(timezone.utc).isoformat()
-                }
-            },
-            return_document=True
-        )
-        
-        if result is None:
-            # Race condition detected - another booking took the inventory
-            current = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
-            return False, f"Inventory changed during reservation. Current available: {current.get('available_quantity', 0) if current else 0}", current
-        
-        # Remove _id from result before returning
-        result.pop("_id", None)
-        
-        logger.info(f"Reserved {quantity} units of stock {stock_id} for booking {booking_id}")
-        return True, "Inventory reserved successfully", result
+        # No need to do atomic $inc - the booking approval will update the booking status
+        # and the next recalculation will reflect the blocked quantity correctly
+        logger.info(f"Inventory check passed for {quantity} units of stock {stock_id} for booking {booking_id}. Available: {available}")
+        return True, "Inventory available", inventory
 
 
 async def release_inventory_reservation(
