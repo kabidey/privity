@@ -344,11 +344,6 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: DollarSign, label: 'PE HIT Report', path: '/pe-desk-hit' });
   }
 
-  // Business Partners - PE Level, Partners Desk, and Viewer
-  if (isPELevel || isPartnersDesk || isViewer) {
-    menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
-  }
-
   // Revenue Dashboards - visible to PE Level, Employee, Partners Desk, and Viewer
   if (isPELevel || isEmployee || isPartnersDesk || isViewer) {
     menuItems.push({ icon: TrendingUp, label: 'RP Revenue', path: '/rp-revenue' });
