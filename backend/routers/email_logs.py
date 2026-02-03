@@ -11,7 +11,8 @@ from database import db
 from utils.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/email-logs", tags=["Email Logs"])
@@ -58,7 +59,8 @@ async def get_email_logs(
     end_date: Optional[str] = None,
     limit: int = Query(50, ge=1, le=500),
     skip: int = Query(0, ge=0),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.view_logs", "view email logs"))
 ):
     """
     Get email logs with filters (PE Level only)
@@ -71,12 +73,6 @@ async def get_email_logs(
     - related_entity_id: Filter by specific entity ID
     - start_date/end_date: Date range filter (YYYY-MM-DD format)
     """
-    user_role = current_user.get("role", 6)
-    
-    # Only PE level can view email logs
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view email logs")
-    
     query = {}
     
     if status:
