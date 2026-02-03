@@ -120,13 +120,11 @@ async def get_dashboard_analytics(
 
 # ============== PE DASHBOARD ==============
 @router.get("/pe")
-async def get_pe_dashboard(current_user: dict = Depends(get_current_user)):
+async def get_pe_dashboard(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dashboard.pe_view", "view PE dashboard"))
+):
     """Get PE Desk/Manager specific dashboard data"""
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        return {"error": "Access denied"}
-    
     # Pending approvals
     pending_bookings = await db.bookings.count_documents({"approval_status": "pending"})
     pending_loss_approval = await db.bookings.count_documents({"approval_status": "pending_loss_approval"})
@@ -191,13 +189,11 @@ async def get_pe_dashboard(current_user: dict = Depends(get_current_user)):
 
 # ============== FINANCE DASHBOARD ==============
 @router.get("/finance")
-async def get_finance_dashboard(current_user: dict = Depends(get_current_user)):
+async def get_finance_dashboard(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.view", "view finance dashboard"))
+):
     """Get Finance specific dashboard data"""
-    user_role = current_user.get("role", 6)
-    
-    # Finance role (7), PE Desk (1), PE Manager (2)
-    if user_role not in [1, 2, 7]:
-        return {"error": "Access denied"}
     
     # Payment stats from bookings
     bookings = await db.bookings.find(
