@@ -264,7 +264,7 @@ const Layout = ({ children }) => {
   }
 
   // Company Master & Bulk Upload & Database Backup & Security Dashboard & File Migration - PE Desk only
-  if (user.role === 1) {
+  if (isPEDesk) {
     menuItems.push({ icon: Building2, label: 'Company Master', path: '/company-master' });
     menuItems.push({ icon: Database, label: 'Database Backup', path: '/database-backup' });
     menuItems.push({ icon: Upload, label: 'Bulk Upload', path: '/bulk-upload' });
