@@ -9,9 +9,19 @@ import uuid
 
 from database import db
 from routers.auth import get_current_user
-from config import is_pe_desk_only
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission
+)
 
 router = APIRouter(prefix="/kill-switch", tags=["Kill Switch"])
+
+
+# Helper function for backward compatibility
+def is_pe_desk_only(role: int) -> bool:
+    """Check if role is PE Desk only."""
+    return role == 1
+
 
 # Cooldown period in seconds (3 minutes)
 COOLDOWN_SECONDS = 180
