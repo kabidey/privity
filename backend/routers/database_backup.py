@@ -342,11 +342,12 @@ async def create_full_backup(
 
 
 @router.get("/backups/{backup_id}")
-async def get_backup_details(backup_id: str, current_user: dict = Depends(get_current_user)):
-    """Get backup details (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access database backups")
-    
+async def get_backup_details(
+    backup_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.view", "view backup details"))
+):
+    """Get backup details (requires database_backup.view permission)"""
     backup = await db.database_backups.find_one(
         {"id": backup_id},
         {"_id": 0, "data": 0}
@@ -359,11 +360,12 @@ async def get_backup_details(backup_id: str, current_user: dict = Depends(get_cu
 
 
 @router.delete("/backups/{backup_id}")
-async def delete_backup(backup_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a backup (PE Desk only - deletion restricted)"""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete backups")
-    
+async def delete_backup(
+    backup_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.delete", "delete backups"))
+):
+    """Delete a backup (requires database_backup.delete permission)"""
     result = await db.database_backups.delete_one({"id": backup_id})
     
     if result.deleted_count == 0:
@@ -375,15 +377,13 @@ async def delete_backup(backup_id: str, current_user: dict = Depends(get_current
 @router.post("/restore")
 async def restore_database(
     restore_data: RestoreRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.restore", "restore database"))
 ):
-    """Restore database from a backup (PE Desk only - restore restricted)
+    """Restore database from a backup (requires database_backup.restore permission)
     
     WARNING: This will replace existing data in the selected collections!
     """
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can restore database")
-    
     # Get backup
     backup = await db.database_backups.find_one({"id": restore_data.backup_id}, {"_id": 0})
     
