@@ -232,7 +232,8 @@ async def check_stock_availability(stock_id: str, required_qty: int) -> Tuple[bo
     lock = get_inventory_lock(stock_id)
     
     async with lock:
-        inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+        # Recalculate to get accurate inventory counts
+        inventory = await _recalculate_inventory_internal(stock_id)
         if not inventory:
             return False, 0, 0
         
@@ -245,11 +246,12 @@ async def check_stock_availability(stock_id: str, required_qty: int) -> Tuple[bo
 async def get_inventory_with_lock(stock_id: str) -> Optional[Dict[str, Any]]:
     """
     Get inventory data with a lock to prevent concurrent reads during critical operations.
+    Recalculates inventory to ensure accuracy.
     """
     lock = get_inventory_lock(stock_id)
     
     async with lock:
-        inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+        inventory = await _recalculate_inventory_internal(stock_id)
         return inventory
 
 
