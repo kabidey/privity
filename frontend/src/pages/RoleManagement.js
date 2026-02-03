@@ -39,7 +39,7 @@ const RoleManagement = () => {
     color: 'bg-gray-100 text-gray-800'
   });
 
-  const { isPEDesk } = useCurrentUser();
+  const { isPEDesk, user: currentUser } = useCurrentUser();
 
   const colorOptions = [
     { value: 'bg-purple-100 text-purple-800', label: 'Purple' },
@@ -53,13 +53,16 @@ const RoleManagement = () => {
   ];
 
   useEffect(() => {
+    // Wait for user to be loaded before checking access
+    if (currentUser === null) return;
+    
     if (!isPEDesk) {
       toast.error('Access denied. Only PE Desk can manage roles.');
       navigate('/');
       return;
     }
     fetchData();
-  }, [isPEDesk, navigate]);
+  }, [isPEDesk, currentUser, navigate]);
 
   const fetchData = async () => {
     try {
