@@ -314,7 +314,7 @@ const DatabaseBackup = () => {
             </Button>
           )}
           {isPEDesk && (
-            <Button variant="destructive" onClick={() => setClearDialogOpen(true)} className="flex-1 sm:flex-none" data-testid="clear-database-btn">
+            <Button variant="destructive" onClick={openClearDialog} className="flex-1 sm:flex-none" data-testid="clear-database-btn">
               <XCircle className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Clear </span>DB
             </Button>
