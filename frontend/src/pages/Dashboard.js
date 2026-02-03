@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import api from '../utils/api';
 import { toast } from 'sonner';
 import SohiniAssistant from '../components/SohiniAssistant';
+import StockNewsSection from '../components/StockNewsSection';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 
 const Dashboard = () => {
