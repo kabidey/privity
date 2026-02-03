@@ -12,7 +12,8 @@ from models import DashboardStats
 from utils.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
@@ -25,7 +26,10 @@ def is_pe_level(role: int) -> bool:
 
 
 @router.get("/stats", response_model=DashboardStats)
-async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
+async def get_dashboard_stats(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dashboard.view", "view dashboard stats"))
+):
     """Get dashboard statistics"""
     user_role = current_user.get("role", 6)
     user_id = current_user.get("id")
@@ -75,7 +79,10 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/analytics")
-async def get_dashboard_analytics(current_user: dict = Depends(get_current_user)):
+async def get_dashboard_analytics(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dashboard.view", "view dashboard analytics"))
+):
     """Get detailed dashboard analytics"""
     user_role = current_user.get("role", 6)
     user_id = current_user.get("id")
