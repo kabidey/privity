@@ -1,43 +1,65 @@
 <analysis>**original_problem_statement:**
-The user initially reported that the PE Desk admin role could not access all menu items despite having full permissions. After this was fixed, the user provided a new set of requests and bug reports:
-1.  **Inventory Recalculation Logic**: When recalculating inventory, the system should also check if a stock has been transferred by the Depository Participant (DP) and release the block if it has. The user later reported that the block was not being released.
-2.  **Client Employee Mapping**: On the client page, the list of employees for mapping was not loading.
-3.  **Refresh Booking Feature**: The user requested a button to refresh a booking's status. This should check if all payments are made, if the client approval is pending, and automatically approve the client if the first payment has been made. The user later reported the refresh button was showing a fail to refresh error.
-4.  **Referral Partner (RP) Mapping**: The user requested that the RP mapping on a booking be editable. They also requested that when a booking is created, the RP should default to the one associated with the user creating the booking.
-5.  **Hierarchy-based My Dashboard**: The My Dashboard page for users should show details according to their position in the user hierarchy (e.g., a manager seeing their team's data).
+The user initially reported an access issue for the PE Desk admin role. After that was resolved, the user provided a series of new requests:
+1.  **Inventory Recalculation Logic**: Fix block release logic.
+2.  **Client Employee Mapping**: Fix a UI bug where the employee list failed to load.
+3.  **Refresh Booking Feature**: Add a button to refresh a booking's status.
+4.  **Referral Partner (RP) Mapping**: Make RP on a booking editable and set a default on creation.
+5.  **Hierarchy-based My Dashboard**: Display data according to the user's position in the org hierarchy.
+
+After these items were addressed, the user requested the following major tasks:
+1.  **Full Backend RBAC Audit**: A complete security audit and lockdown of all backend API endpoints.
+2.  **Selective Database Clear**: Enhance the Clear Database feature to allow selective clearing of specific data collections.
+3.  **Advanced DB Clear Options**: Further enhance the clear feature with options for clearing by category, previewing changes, excluding records, and clearing only uploaded files.
+4.  **Fix Data Integrity**: Resolve a server error on the  endpoint.
+5.  **Complete RBAC Audit**: The current task is to finish the full RBAC audit that was started.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB system for managing bookings and financial operations. In this session, the agent performed a large-scale security enhancement by applying granular Role-Based Access Control (RBAC) checks to dozens of backend API endpoints.
-
-Subsequently, the agent diagnosed and fixed a critical frontend race condition that was preventing the PE Desk admin from accessing numerous pages. This fix was applied to over 15 page components.
-
-Following that, the agent addressed a new list of user requests, implementing a Refresh Booking feature, fixing the inventory recalculation logic, resolving a bug in the client-employee mapping UI, and completely overhauling the My Dashboard to be hierarchy-aware. Work has begun on making the Referral Partner (RP) mapping on bookings editable.
+The application is a full-stack React/FastAPI/MongoDB system for managing financial bookings. In this session, the agent has made significant progress on multiple fronts:
+1.  **Completed the Referral Partner (RP) mapping feature** by building the required UI in  and testing it end-to-end.
+2.  **Executed a large-scale backend security overhaul** by performing an RBAC audit and applying permission checks () to dozens of endpoints across approximately 18 different router files. This task is nearly complete.
+3.  **Implemented a Selective Database Clear feature** from scratch, including a new backend API and a dynamic frontend dialog in  that allows admins to choose specific collections to delete.
+4.  **Further enhanced the Clear DB feature** with advanced capabilities like clearing by category, previewing deletions, excluding specific records, and clearing only uploaded files.
+5.  **Fixed a critical data integrity bug** in the  endpoint caused by missing data in the database, which made the endpoint unusable. The fix involved making the Pydantic model more robust and cleaning up orphaned data.
 
 **Last working item**:
--   Last item agent was working: Implementing the ability to edit the Referral Partner (RP) mapping on bookings and setting a default RP on booking creation. The agent has added the backend logic to automatically assign the creator's default RP and has added the state management and handler functions to the frontend  page for the editing UI.
+-   Last item agent was working: Continuing the **Full Backend RBAC Audit**. The agent had just fixed a data integrity issue with  and was proceeding to add permission checks to the remaining unprotected endpoints in  as part of the broader audit.
 -   Status: IN PROGRESS
--   Agent Testing Done: N
--   Which testing method agent to use? frontend testing agent
+-   Agent Testing Done: Y (The  fix was tested. The RBAC audit has been tested in phases).
+-   Which testing method agent to use? backend testing agent (to run a final, comprehensive check on all endpoints once the audit is complete).
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1 (Recurring):** The fail to refresh booking status error appeared multiple times before it was fixed. The fix involved correcting a function call from  to . While resolved, this indicates a potential fragility that may need monitoring.
-    -   Status: RESOLVED
+-   **Issue 1: Incomplete Full Backend RBAC Audit (P0)**
+    -   This is the highest priority task currently in progress. The agent is systematically adding RBAC permission checks to all remaining unprotected API endpoints.
+    -   Next debug checklist:
+        1.  Run the audit script (/app/backend/routers/__init__.py
+/app/backend/routers/auth.py
+/app/backend/routers/group_chat.py
+/app/backend/routers/kill_switch.py
+/app/backend/routers/notifications.py
+/app/backend/routers/reports.py
+/app/backend/routers/research.py
+/app/backend/routers/revenue_dashboard.py
+/app/backend/routers/sohini.py
+/app/backend/routers/two_factor.py) to identify the final set of unprotected router files.
+        2.  Focus on the remaining files, which include , , , , and .
+        3.  Add the appropriate  to each unprotected endpoint.
+        4.  After all files are updated, run a final test using both an admin and a non-admin user to confirm all rules are enforced correctly.
+    -   Why fix this issue and what will be achieved with the fix? This will complete a critical security overhaul of the entire application, ensuring that all backend operations are protected by granular, role-based permissions.
+    -   Status: IN PROGRESS
+    -   Is recurring issue? N
+    -   Should Test frontend/backend/both after fix? Backend
+    -   Blocked on other issue: None
 
 **In progress Task List**:
--   **Task 1: Complete UI for Editing Referral Partner (RP) Mapping (P0)**
-    -   Where to resume: The state and handler functions (, ) have been added to . The next step is to add the UI elements: a button in the booking actions column to open the dialog, and the dialog component itself containing a dropdown of RPs and a save button.
-    -   What will be achieved with this? Users will be able to change the Referral Partner assigned to a booking after its creation.
-    -   Status: IN PROGRESS
-    -   Should Test frontend/backend/both after fix? Both.
-    -   Blocked on something: None.
+-   There are no other in-progress tasks. The RBAC audit is the primary active task.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   (P0) **Full Backend RBAC Audit**: Although many critical endpoints are now protected, a full audit is needed to ensure all 96+ permissions defined in the system are being enforced on the correct API endpoints.
-    -   (P1) **Enforce 2FA for Admin Roles**: Propose and implement enforcing 2FA for admin roles as a security enhancement.
+    -   (P0) **Full RBAC Test**: Once the audit is complete, run a comprehensive test of all 96+ permissions against all endpoints using the testing agent to validate the entire security model.
+    -   (P1) **Enforce 2FA for Admin Roles**: Propose and implement enforcing Two-Factor Authentication for all administrative roles as a security enhancement.
 -   **Future Tasks**:
     -   (P2) Refactor security state management to a persistent store like Redis.
     -   (P2) Implement a feature to close multiple bookings at once.
@@ -46,16 +68,11 @@ Following that, the agent addressed a new list of user requests, implementing a 
     -   (P3) Automatically generate backend API documentation (Swagger/OpenAPI).
 
 **Completed work in this session**
--   **RBAC: API Endpoint Enforcement**: Systematically added  to dozens of endpoints across , , , , , , , , and  routers.
--   **Bug Fix: PE Desk Full Menu Access**: Resolved a widespread frontend race condition where permission checks would run before user data was loaded, causing incorrect redirects. The fix involved adding loading state checks () to the  hook in ~15 page components, including , , , and .
--   **Feature: My Dashboard Hierarchy View**: Implemented the previously incomplete  endpoint in  to calculate and return user-specific and team-based statistics. The frontend page  was completely refactored to display this new hierarchical data.
--   **Bug Fix: Inventory Recalculation**: Fixed the logic in  to ensure it includes stock IDs from the  collection during recalculation. This ensures blocks are correctly released for all relevant stocks, even those without prior purchases.
--   **Feature: Refresh Booking Status**:
-    -   Created a  endpoint to re-evaluate a booking's status.
-    -   Added a Refresh button to the  UI.
-    -   Fixed a bug where the frontend showed a Failed to refresh toast by correcting a function call from  to  inside the success handler.
--   **Bug Fix: Client-Employee Mapping Dropdown**: Fixed a race condition in  that prevented the list of employees from loading in the mapping dialog.
--   **Feature: Default Referral Partner Assignment**: Modified the booking creation logic in  to automatically assign the creator's linked Referral Partner if one is not explicitly provided.
+-   **Feature: Edit Referral Partner (RP) UI**: Completed the UI in  including the dialog and button, and fully tested the frontend/backend flow.
+-   **Task: Full Backend RBAC Audit (In Progress)**: Added RBAC protection to dozens of endpoints across ~18 routers (, , , , , , , , , , , , , , etc.).
+-   **Feature: Selective Database Clear**: Implemented a new UI and backend () for selective clearing of database collections from .
+-   **Feature: Enhanced Database Clear**: Added four new advanced options: Clear by Category, Preview Mode, Exclude Records, and Clear Files Only, with corresponding backend logic and UI updates.
+-   **Bug Fix: Corporate Actions Data Integrity**: Fixed a  on the  endpoint by making the  field optional in the data model and enhancing the endpoint to handle orphaned records gracefully.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -67,58 +84,70 @@ Following that, the agent addressed a new list of user requests, implementing a 
 
 
 **Key Technical Concepts**
--   **Frontend Race Condition Debugging**: Identified and fixed a recurring issue where components would perform permission checks before the  hook had loaded user data from . The standard fix was to delay the check by adding the  object to the  dependency array and adding a  guard.
--   **Backend RBAC Enforcement**: Migrated dozens of API endpoints from old, hardcoded role checks to a dynamic, database-driven system using a FastAPI  dependency.
--   **State Management & API Calls**: Debugged a frontend bug where a successful API call was followed by a UI error toast. The cause was an incorrect function call ( instead of ) in the  block of the API request, which was found by adding  statements.
--   **Complex Data Aggregation (Backend)**: Implemented logic in  to traverse user hierarchies, find subordinates, and aggregate metrics (bookings, clients, value) for both the individual user and their entire team.
--   **Database Query Logic**: Fixed an inventory bug by realizing the recalculation query was only sourcing stock IDs from  and  collections, missing stocks that only existed in . The fix involved adding bookings to the initial set of stock IDs to process.
+-   **Granular RBAC Implementation**: Systematically applied  to a large number of FastAPI endpoints based on a scripted audit.
+-   **Dynamic UI Generation**: Created a frontend dialog in React that dynamically generates UI elements (checkboxes, tabs) for database collections and categories fetched from backend APIs.
+-   **Complex Backend Logic**: Implemented sophisticated logic for the enhanced DB clear feature, including categorization, previewing deletions, and file system operations.
+-   **Data Integrity & Migration**: Diagnosed and fixed a database consistency issue by modifying a Pydantic model and creating logic to handle orphaned records at runtime.
 
 **key DB schema**
--   **inventory**: The schema was updated (in the service layer, not DB) to explicitly track , , , and  for better debugging and accuracy.
+-   **corporate_actions**: This collection was found to have records with a missing , which caused validation errors. The  Pydantic model was adjusted to make this field optional.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   
--   
--   
--   
--   
--   
--   
--   (And the ~15 other frontend pages that were patched for the race condition, such as , , etc.)
+-   **Heavily Modified**:
+    -   
+    -   
+    -   Most files within  due to the ongoing RBAC audit.
+-   **Modified**:
+    -   
+    -   
+    -   
 
 **Areas that need refactoring**:
--   The race condition was fixed in over a dozen separate page components. A more robust, centralized solution could be implemented in the  or a new wrapper hook to avoid patching every new page that requires permissions.
+-   The frontend race condition fix from the previous session (patched across ~15 pages) is still a candidate for a centralized solution, perhaps in a custom hook, to avoid patching every new page.
 
 **key api endpoints**
 -   **New**:
-    -   : Triggers a status re-evaluation for a specific booking.
-    -   : Updates the referral partner for a booking (backend logic exists, UI is in progress).
+    -   : Lists collections for clearing, with record counts and categories.
+    -   : Previews the results of a selective clear operation without deleting data.
+    -   : Retrieves statistics on uploaded files.
 -   **Modified**:
-    -   : Was incomplete; now fully implemented to provide hierarchical dashboard data.
-    -   : Logic updated to correctly source all relevant stock IDs.
-    -   Numerous endpoints across most routers were updated to include  for RBAC.
+    -   : Endpoint heavily updated to accept lists of collections, categories, exclusion IDs, and flags for preview/file-only clearing.
+    -   : Fixed to prevent server errors from data inconsistencies.
+    -   Dozens of endpoints across the backend were modified to add the  dependency.
 
 **Critical Info for New Agent**
-1.  **Race Condition Pattern**: Be aware of the common frontend race condition where pages check permissions before the  object is loaded. If a page meant for an admin redirects or shows an access error, the first thing to check is if the  hook waits for the user data to be available (e.g., ).
-2.  **RP Mapping Task**: The immediate task is to complete the UI for Referral Partner mapping in . The backend logic and frontend state/handlers are already in place.
-3.  **My Dashboard**: The My Dashboard has been significantly changed. Testing it requires a user with a manager role and direct reports to fully verify the team hierarchy statistics.
+1.  **RBAC Audit is the Priority**: The main task is to complete the security audit. Use a script like /app/backend/routers/__init__.py
+/app/backend/routers/auth.py
+/app/backend/routers/group_chat.py
+/app/backend/routers/kill_switch.py
+/app/backend/routers/notifications.py
+/app/backend/routers/reports.py
+/app/backend/routers/research.py
+/app/backend/routers/revenue_dashboard.py
+/app/backend/routers/sohini.py
+/app/backend/routers/two_factor.py to find the remaining unprotected endpoints and secure them.
+2.  **Test with Multiple Roles**: After completing the RBAC audit, it's critical to test using both an admin role () and a restricted role () to verify that permissions are correctly granted and denied across the application.
+3.  **DB Clear Feature is Complex**: Be aware that the database clearing functionality in  is now highly advanced, with multiple modes of operation (selective, by category, preview, file-only) supported by complex backend logic in .
 
 **documents and test reports created in this job**
 -   
--    (updated extensively)
+-   
+-    (updated with all completed features)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  : **COMPLETED**. User confirms the PE Desk menu access issue is resolved.
-2.  : **IN PROGRESS**. User provided a new list of four feature/bug requests. Agent started working on them.
-3.  : **IN PROGRESS**. User provided more detail on the inventory and refresh booking issues.
-4.  : **IN PROGRESS**. User reported inventory issue again and requested a hierarchy-based My Dashboard.
-5.  : **IN PROGRESS**. User clarified requirements for the Referral Partner feature.
+1.  : User confirms the initial work plan. **COMPLETED**.
+2.  : User requests the audit task. **IN PROGRESS**.
+3.  : User asks to continue the audit. **IN PROGRESS**.
+4.  : User requests the selective DB clear feature. **COMPLETED**.
+5.  : User requests advanced DB clear options. **IN PROGRESS**.
+6.  : User specifies the exact advanced options needed. **COMPLETED**.
+7.  : User's latest request to fix a bug and continue the main audit task. **IN PROGRESS**.
 
 **Project Health Check:**
--   **Broken**: None.
+-   **Broken**: None. A critical endpoint () was broken but has been fixed.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
@@ -129,15 +158,15 @@ Following that, the agent addressed a new list of user requests, implementing a 
 -    &  (for TOTP/2FA feature)
 
 **Testing status**
--   Testing agent used after significant changes: YES (for the initial RBAC enforcement).
+-   Testing agent used after significant changes: YES (for both the RP Mapping and the initial RBAC audit phase).
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None.
+-   Known regressions: None. The  issue was identified as pre-existing data corruption.
 
 **Credentials to test flow:**
 -   **PE Desk Super Admin**:  / 
 -   **Employee**:  / 
--   **Finance User**:  / 
+-   **Finance User**:  /  (Note: The agent found this password to be invalid during testing).
 
 **What agent forgot to execute**
--   The UI portion of the Edit Referral Partner feature is incomplete. The agent added the backend logic and frontend state/handlers but did not add the actual button or dialog to the UI in .</analysis>
+-   The agent is actively working on the user's latest request and has not forgotten any items. The primary ongoing task is to complete the RBAC audit.</analysis>

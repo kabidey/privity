@@ -871,7 +871,7 @@ async def send_payment_request_email(
         logging.warning("No company master documents found to attach to payment request email")
     
     # Get base URL for document links
-    frontend_url = os.environ.get('FRONTEND_URL', 'https://smifs-portal.preview.emergentagent.com')
+    frontend_url = os.environ.get('FRONTEND_URL', 'https://access-control-150.preview.emergentagent.com')
     
     # Build document links section
     doc_links = []
