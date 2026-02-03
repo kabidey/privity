@@ -18,8 +18,9 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 PE_DESK_EMAIL = "pe@smifs.com"
 PE_DESK_PASSWORD = "Kutta@123"
 
-EMPLOYEE_EMAIL = "employee@test.com"
-EMPLOYEE_PASSWORD = "Test@123"
+# Viewer user (role 4) - has limited permissions
+VIEWER_EMAIL = "testuser@smifs.com"
+VIEWER_PASSWORD = "Test@123"
 
 
 class TestRBACPermissionEnforcement:
