@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import api from '../utils/api';
 import { getFullVersion } from '../version';
 import { useCurrentUser } from '../hooks/useCurrentUser';
+import { usePermissions } from '../hooks/usePermissions';
 import { 
   LayoutDashboard, 
   Users, 
