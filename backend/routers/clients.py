@@ -1235,7 +1235,11 @@ SMIFS Private Equity Team"""
 
 
 @router.get("/clients/{client_id}/portfolio")
-async def get_client_portfolio(client_id: str, current_user: dict = Depends(get_current_user)):
+async def get_client_portfolio(
+    client_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view", "view client portfolio"))
+):
     """Get a client's portfolio showing all their holdings."""
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
