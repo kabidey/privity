@@ -1331,12 +1331,13 @@ async def update_booking(booking_id: str, booking_data: BookingCreate, current_u
 
 
 @router.delete("/bookings/{booking_id}")
-async def delete_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a booking (PE Desk only)."""
+async def delete_booking(
+    booking_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.delete", "delete bookings"))
+):
+    """Delete a booking (requires bookings.delete permission)."""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_desk_only(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete bookings")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
