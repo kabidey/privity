@@ -1176,12 +1176,12 @@ async def export_dp_transfer_excel(
 # to prevent FastAPI from matching 'pending-approval' as a booking_id parameter
 
 @router.get("/bookings/pending-approval", response_model=List[BookingWithDetails])
-async def get_pending_bookings(current_user: dict = Depends(get_current_user)):
+async def get_pending_bookings(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.approve", "view pending bookings"))
+):
     """Get bookings pending approval (PE Level only)."""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view pending bookings")
     
     bookings = await db.bookings.find(
         {"approval_status": "pending"},
