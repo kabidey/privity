@@ -35,17 +35,20 @@ const DPReceivables = () => {
   const [selectedDPType, setSelectedDPType] = useState('');
   const [confirming, setConfirming] = useState(false);
 
-  const { isPELevel } = useCurrentUser();
+  const { user, isPELevel } = useCurrentUser();
   const canAccess = isPELevel;
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     if (!canAccess) {
       toast.error('Access denied. Only PE Desk and PE Manager can access this page.');
       navigate('/');
       return;
     }
     fetchData();
-  }, [canAccess, navigate]);
+  }, [user, canAccess, navigate]);
 
   const fetchData = async () => {
     try {
