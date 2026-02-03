@@ -453,11 +453,11 @@ async def restore_database(
 
 
 @router.get("/stats")
-async def get_database_stats(current_user: dict = Depends(get_current_user)):
-    """Get database statistics (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access database stats")
-    
+async def get_database_stats(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.view", "view database stats"))
+):
+    """Get database statistics (requires database_backup.view permission)"""
     stats = {}
     
     # Get all collections dynamically
