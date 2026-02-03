@@ -181,6 +181,7 @@ function App() {
                           <Route path="/bookings" element={<Bookings />} />
                           <Route path="/reports" element={<Reports />} />
                           <Route path="/users" element={<UserManagement />} />
+                          <Route path="/roles" element={<RoleManagement />} />
                           <Route path="/analytics" element={<Analytics />} />
                           <Route path="/email-templates" element={<EmailTemplates />} />
                           <Route path="/email-logs" element={<EmailLogs />} />
