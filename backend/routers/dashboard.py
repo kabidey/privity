@@ -480,13 +480,12 @@ async def unblock_ip(ip_address: str, current_user: dict = Depends(get_current_u
 
 
 @router.post("/unlock-account")
-async def unlock_account(email: str, current_user: dict = Depends(get_current_user)):
+async def unlock_account(
+    email: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("security.unlock_accounts", "unlock user accounts"))
+):
     """Unlock a locked account (PE Desk only)"""
-    user_role = current_user.get("role", 6)
-    
-    if user_role != 1:
-        return {"error": "Access denied"}
-    
     from middleware.security import login_tracker
     
     login_tracker.clear_attempts(email)
