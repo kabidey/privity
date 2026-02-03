@@ -306,11 +306,11 @@ Privity System
 
 
 @router.get("/presets")
-async def get_smtp_presets(current_user: dict = Depends(get_current_user)):
+async def get_smtp_presets(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.config", "view SMTP presets"))
+):
     """Get common SMTP provider presets (PE Level only)"""
-    if current_user.get("role", 5) not in [1, 2]:
-        raise HTTPException(status_code=403, detail="Only PE Level users can access SMTP presets")
-    
     return [
         {"key": key, **value}
         for key, value in SMTP_PRESETS.items()
@@ -318,16 +318,15 @@ async def get_smtp_presets(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/status")
-async def get_smtp_status(current_user: dict = Depends(get_current_user)):
+async def get_smtp_status(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.config", "view SMTP status"))
+):
     """Get SMTP configuration status for dashboard warning (PE Level only)
     
     Returns only whether SMTP is configured, not sensitive data.
     Used by dashboard to show warning banner for admins.
     """
-    if current_user.get("role", 5) not in [1, 2]:
-        # Non-PE users don't need to see this warning
-        return {"is_configured": True, "show_warning": False}
-    
     config = await db.smtp_settings.find_one({}, {"_id": 0, "smtp_host": 1, "smtp_password": 1, "is_enabled": 1, "last_test_result": 1})
     
     if not config:
