@@ -263,14 +263,10 @@ async def resend_email(
 @router.delete("/cleanup")
 async def cleanup_old_email_logs(
     days_to_keep: int = Query(90, ge=30, le=365),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.delete_logs", "cleanup email logs"))
 ):
     """Delete email logs older than specified days (PE Desk only)"""
-    user_role = current_user.get("role", 6)
-    
-    if user_role != 1:  # PE Desk only
-        raise HTTPException(status_code=403, detail="Only PE Desk can cleanup email logs")
-    
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days_to_keep)).isoformat()
     
     result = await db.email_logs.delete_many({"created_at": {"$lt": cutoff_date}})
