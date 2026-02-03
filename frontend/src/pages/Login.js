@@ -37,6 +37,29 @@ const Login = () => {
   const [captchaQuestion, setCaptchaQuestion] = useState('');
   const [captchaAnswer, setCaptchaAnswer] = useState('');
 
+  // Private Equity Quotes
+  const peQuotes = [
+    { quote: "Private equity is not just about buying companies, it's about building them.", author: "Henry Kravis" },
+    { quote: "The best investment you can make is in yourself and the companies you believe in.", author: "Warren Buffett" },
+    { quote: "In private equity, patience is not just a virtue—it's the entire strategy.", author: "David Rubenstein" },
+    { quote: "Value creation is the cornerstone of successful private equity investing.", author: "Stephen Schwarzman" },
+    { quote: "Private markets offer opportunities that public markets simply cannot match.", author: "Marc Andreessen" },
+    { quote: "The key to private equity is finding diamonds in the rough and polishing them.", author: "Leon Black" },
+    { quote: "Long-term thinking creates long-term value.", author: "Jeff Bezos" },
+    { quote: "In unlisted markets, information asymmetry is your competitive advantage.", author: "Ray Dalio" },
+    { quote: "Private equity transforms potential into performance.", author: "Carlyle Group" },
+    { quote: "True wealth is built through strategic, patient capital deployment.", author: "Charlie Munger" },
+  ];
+
+  const [currentQuote, setCurrentQuote] = useState(() => 
+    peQuotes[Math.floor(Math.random() * peQuotes.length)]
+  );
+
+  // Rotate quotes on component mount
+  useEffect(() => {
+    setCurrentQuote(peQuotes[Math.floor(Math.random() * peQuotes.length)]);
+  }, []);
+
   // Fetch SSO config on mount
   useEffect(() => {
     const fetchSsoConfig = async () => {
