@@ -133,12 +133,10 @@ async def reset_email_template(
 async def preview_email_template(
     template_key: str,
     preview_data: EmailTemplatePreview,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.templates", "preview email templates"))
 ):
     """Preview an email template with sample variables (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can preview email templates")
-    
     template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
     default_template = EMAIL_TEMPLATES.get(template_key)
     
