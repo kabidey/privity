@@ -198,7 +198,7 @@ const ContractNotes = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total Contract Notes</p>
+                <p className="text-sm text-gray-500">Total Confirmation Notes</p>
                 <p className="text-2xl font-bold text-emerald-600">{total}</p>
               </div>
               <FileCheck className="w-8 h-8 text-emerald-500" />
@@ -288,12 +288,12 @@ const ContractNotes = () => {
         </CardContent>
       </Card>
 
-      {/* Contract Notes Table */}
+      {/* Confirmation Notes Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            Contract Notes ({total})
+            Confirmation Notes ({total})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -301,7 +301,7 @@ const ContractNotes = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Contract Note #</TableHead>
+                  <TableHead>Confirmation Note #</TableHead>
                   <TableHead>Booking #</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Stock</TableHead>
@@ -387,7 +387,7 @@ const ContractNotes = () => {
                               size="sm"
                               onClick={() => handleRegenerate(note.id)}
                               disabled={regenerating === note.id}
-                              title="Regenerate Contract Note"
+                              title="Regenerate Confirmation Note"
                               className="text-orange-600 hover:text-orange-700"
                             >
                               {regenerating === note.id ? (
@@ -447,14 +447,14 @@ const ContractNotes = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Contract Note Details
+              Confirmation Note Details
             </DialogTitle>
           </DialogHeader>
           {selectedNote && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-gray-500">Contract Note #</Label>
+                  <Label className="text-gray-500">Confirmation Note #</Label>
                   <p className="font-mono font-medium">{selectedNote.contract_note_number}</p>
                 </div>
                 <div>
