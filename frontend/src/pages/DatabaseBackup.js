@@ -636,15 +636,15 @@ const DatabaseBackup = () => {
       </Dialog>
 
       {/* Clear Database Dialog */}
-      <Dialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
-        <DialogContent data-testid="clear-database-dialog">
+      <Dialog open={clearDialogOpen} onOpenChange={(open) => { setClearDialogOpen(open); if (!open) { setClearConfirmText(''); setSelectedCollections([]); } }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="clear-database-dialog">
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center gap-2">
               <XCircle className="h-5 w-5" />
-              Clear Database
+              Clear Database - Selective
             </DialogTitle>
             <DialogDescription>
-              This will permanently delete all data except user accounts.
+              Select specific collections to clear. User accounts and backups are always protected.
             </DialogDescription>
           </DialogHeader>
           
@@ -652,13 +652,67 @@ const DatabaseBackup = () => {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Danger: This Cannot Be Undone!</AlertTitle>
             <AlertDescription>
-              This will <strong>permanently delete</strong> all clients, vendors, stocks, bookings, purchases, inventory, and other data.
-              <br /><br />
-              <strong>User accounts will be preserved.</strong>
-              <br /><br />
-              Consider creating a backup first before clearing the database.
+              Selected data will be <strong>permanently deleted</strong>.
+              Consider creating a backup first before clearing any data.
             </AlertDescription>
           </Alert>
+          
+          {/* Collection Selection */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Select Collections to Clear:</Label>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleAllCollections}
+                disabled={loadingCollections}
+                className="text-xs"
+              >
+                {selectedCollections.length === clearableCollections.length ? 'Deselect All' : 'Select All'}
+              </Button>
+            </div>
+            
+            {loadingCollections ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-muted-foreground">Loading collections...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2 border rounded-lg bg-muted/30">
+                {clearableCollections.map((collection) => (
+                  <div 
+                    key={collection.name}
+                    className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted transition-colors ${
+                      selectedCollections.includes(collection.name) ? 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700' : 'bg-background'
+                    }`}
+                    onClick={() => toggleCollection(collection.name)}
+                  >
+                    <Checkbox 
+                      checked={selectedCollections.includes(collection.name)}
+                      onCheckedChange={() => toggleCollection(collection.name)}
+                      data-testid={`collection-checkbox-${collection.name}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{collection.display_name}</p>
+                      <p className="text-xs text-muted-foreground">{collection.count.toLocaleString()} records</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Selection Summary */}
+            {selectedCollections.length > 0 && (
+              <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                  <strong>{selectedCollections.length}</strong> collection(s) selected
+                </p>
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  {getSelectedRecordCount().toLocaleString()} records will be permanently deleted
+                </p>
+              </div>
+            )}
+          </div>
           
           <div className="space-y-2">
             <Label>Type <strong>CLEAR DATABASE</strong> to confirm:</Label>
@@ -671,11 +725,11 @@ const DatabaseBackup = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setClearDialogOpen(false); setClearConfirmText(''); }}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setClearDialogOpen(false); setClearConfirmText(''); setSelectedCollections([]); }}>Cancel</Button>
             <Button 
               variant="destructive" 
               onClick={handleClearDatabase} 
-              disabled={clearing || clearConfirmText !== 'CLEAR DATABASE'}
+              disabled={clearing || clearConfirmText !== 'CLEAR DATABASE' || selectedCollections.length === 0}
               data-testid="confirm-clear-database"
             >
               {clearing ? (
@@ -685,8 +739,8 @@ const DatabaseBackup = () => {
                 </>
               ) : (
                 <>
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Clear Database
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear {selectedCollections.length} Collection(s)
                 </>
               )}
             </Button>
