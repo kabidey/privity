@@ -190,15 +190,8 @@ const Layout = ({ children }) => {
   };
 
   // Build menu items based on user role
-  // New Role mapping: 1=PE Desk, 2=PE Manager, 3=Finance, 4=Viewer, 5=Partners Desk, 6=Business Partner, 7=Employee
+  // Using centralized role utility from useCurrentUser hook
   const menuItems = [];
-  const isPEDesk = user.role === 1;
-  const isPELevel = user.role === 1 || user.role === 2;
-  const isViewer = user.role === 4;
-  const isFinance = user.role === 3;
-  const isPartnersDesk = user.role === 5;
-  const isBusinessPartner = user.role === 6;
-  const isEmployee = user.role === 7;
   
   // Role-specific dashboards as first item
   if (isPELevel) {
