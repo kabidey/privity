@@ -525,8 +525,8 @@ const UserManagement = () => {
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {hierarchyTree.peUsers.map(user => (
-                      <Badge key={user.id} className={ROLES[user.role]?.color || 'bg-gray-100'}>
-                        {user.name} ({ROLES[user.role]?.name})
+                      <Badge key={user.id} className={roles[user.role]?.color || 'bg-gray-100'}>
+                        {user.name} ({roles[user.role]?.name})
                       </Badge>
                     ))}
                   </div>
