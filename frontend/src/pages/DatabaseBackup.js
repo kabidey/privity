@@ -233,13 +233,24 @@ const DatabaseBackup = () => {
   const openClearDialog = async () => {
     setClearDialogOpen(true);
     setLoadingCollections(true);
+    setClearMode('collections');
+    setPreviewData(null);
+    setExcludedRecords([]);
+    setExcludeInput('');
     try {
-      const response = await api.get('/database/clearable-collections');
-      setClearableCollections(response.data.collections);
-      setSelectedCollections([]); // Reset selection
+      const [collectionsRes, filesRes] = await Promise.all([
+        api.get('/database/clearable-collections'),
+        api.get('/database/files/stats')
+      ]);
+      setClearableCollections(collectionsRes.data.collections);
+      setCategories(collectionsRes.data.categories || []);
+      setFileStats(filesRes.data.file_stats);
+      setSelectedCollections([]);
+      setSelectedFileTypes([]);
     } catch (error) {
       toast.error('Failed to fetch collections');
       setClearableCollections([]);
+      setCategories([]);
     } finally {
       setLoadingCollections(false);
     }
@@ -251,6 +262,22 @@ const DatabaseBackup = () => {
         ? prev.filter(c => c !== collectionName)
         : [...prev, collectionName]
     );
+    setPreviewData(null); // Reset preview when selection changes
+  };
+
+  const toggleCategory = (categoryKey) => {
+    const category = categories.find(c => c.key === categoryKey);
+    if (!category) return;
+    
+    const categoryCollections = category.collections;
+    const allSelected = categoryCollections.every(c => selectedCollections.includes(c));
+    
+    if (allSelected) {
+      setSelectedCollections(prev => prev.filter(c => !categoryCollections.includes(c)));
+    } else {
+      setSelectedCollections(prev => [...new Set([...prev, ...categoryCollections])]);
+    }
+    setPreviewData(null);
   };
 
   const toggleAllCollections = () => {
@@ -259,12 +286,61 @@ const DatabaseBackup = () => {
     } else {
       setSelectedCollections(clearableCollections.map(c => c.name));
     }
+    setPreviewData(null);
+  };
+
+  const toggleFileType = (fileType) => {
+    setSelectedFileTypes(prev => 
+      prev.includes(fileType) 
+        ? prev.filter(f => f !== fileType)
+        : [...prev, fileType]
+    );
+  };
+
+  const addExcludedRecord = () => {
+    if (!excludeInput.trim()) return;
+    // Format: collection:id
+    if (!excludeInput.includes(':')) {
+      toast.error('Format: collection_name:record_id');
+      return;
+    }
+    if (!excludedRecords.includes(excludeInput.trim())) {
+      setExcludedRecords(prev => [...prev, excludeInput.trim()]);
+      setExcludeInput('');
+      setPreviewData(null);
+    }
+  };
+
+  const removeExcludedRecord = (record) => {
+    setExcludedRecords(prev => prev.filter(r => r !== record));
+    setPreviewData(null);
   };
 
   const getSelectedRecordCount = () => {
     return clearableCollections
       .filter(c => selectedCollections.includes(c.name))
       .reduce((sum, c) => sum + c.count, 0);
+  };
+
+  const handlePreview = async () => {
+    if (selectedCollections.length === 0) {
+      toast.error('Please select at least one collection');
+      return;
+    }
+    
+    setPreviewLoading(true);
+    try {
+      const params = new URLSearchParams();
+      selectedCollections.forEach(c => params.append('collections', c));
+      excludedRecords.forEach(e => params.append('exclude_ids', e));
+      
+      const response = await api.post(`/database/clear/preview?${params.toString()}`);
+      setPreviewData(response.data);
+    } catch (error) {
+      toast.error('Failed to generate preview');
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   const formatBytes = (bytes) => {
