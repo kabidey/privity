@@ -588,7 +588,7 @@ class TestDatabaseBackupPermissions:
     """Test database backup specific permissions"""
     
     pe_desk_token = None
-    employee_token = None
+    viewer_token = None
     
     @classmethod
     def setup_class(cls):
@@ -600,49 +600,49 @@ class TestDatabaseBackupPermissions:
         if response.status_code == 200:
             cls.pe_desk_token = response.json().get("token")
         
-        time.sleep(0.5)
+        time.sleep(1)
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
-            json={"email": EMPLOYEE_EMAIL, "password": EMPLOYEE_PASSWORD}
+            json={"email": VIEWER_EMAIL, "password": VIEWER_PASSWORD}
         )
         if response.status_code == 200:
-            cls.employee_token = response.json().get("token")
+            cls.viewer_token = response.json().get("token")
     
     def get_pe_desk_headers(self):
         return {"Authorization": f"Bearer {self.pe_desk_token}", "Content-Type": "application/json"}
     
-    def get_employee_headers(self):
-        return {"Authorization": f"Bearer {self.employee_token}", "Content-Type": "application/json"}
+    def get_viewer_headers(self):
+        return {"Authorization": f"Bearer {self.viewer_token}", "Content-Type": "application/json"}
     
-    def test_employee_cannot_create_backup(self):
-        """Employee should not be able to create database backups (requires database_backup.create)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_cannot_create_backup(self):
+        """Viewer should not be able to create database backups (requires database_backup.create)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.post(
             f"{BASE_URL}/api/database/backups",
             json={"name": "Test Backup", "description": "Test"},
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied backup creation: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied backup creation (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied backup creation: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied backup creation (status: {response.status_code})")
     
-    def test_employee_cannot_clear_database(self):
-        """Employee should not be able to clear database (requires database_backup.clear)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_cannot_clear_database(self):
+        """Viewer should not be able to clear database (requires database_backup.clear)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.delete(
             f"{BASE_URL}/api/database/clear",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied database clear: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied database clear (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied database clear: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied database clear (status: {response.status_code})")
 
 
 if __name__ == "__main__":
