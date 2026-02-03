@@ -143,18 +143,18 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access audit logs: {response.text}"
         print(f"✓ PE Desk can access audit logs (status: {response.status_code})")
     
-    def test_employee_denied_audit_logs(self):
-        """Employee should be denied access to /api/audit-logs (requires audit_logs.view)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_audit_logs(self):
+        """Viewer should be denied access to /api/audit-logs (requires audit_logs.view)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/audit-logs",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied audit logs: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied audit logs (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied audit logs: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied audit logs (status: {response.status_code})")
     
     # ============== DATABASE BACKUP PERMISSION TESTS ==============
     
