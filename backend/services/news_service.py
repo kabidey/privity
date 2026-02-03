@@ -1,6 +1,7 @@
 """
 Stock News Service - AI-Powered Real News Search
 Fetches real stock market news using Google News RSS and AI summarization
+Uses Emergent LLM integration for OpenAI access
 """
 import os
 import asyncio
@@ -18,9 +19,6 @@ logger = logging.getLogger(__name__)
 _news_cache: Dict[str, dict] = {}
 CACHE_TTL_SECONDS = 3600  # 1 hour cache
 
-# Emergent LLM Key for OpenAI
-EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY", "sk-emergent-83fA4Ac5d5b70CaDf4")
-
 
 async def search_google_news_rss(query: str) -> List[dict]:
     """
@@ -33,7 +31,7 @@ async def search_google_news_rss(query: str) -> List[dict]:
             url = f"https://news.google.com/rss/search?q={encoded_query}&hl=en-IN&gl=IN&ceid=IN:en"
             
             response = await client.get(url, headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
             })
             
             if response.status_code == 200:
@@ -46,11 +44,9 @@ async def search_google_news_rss(query: str) -> List[dict]:
                 )
                 
                 for title, link, pub_date, source in items[:10]:
-                    # Clean up title
                     title = re.sub(r'<!\[CDATA\[|\]\]>', '', title).strip()
                     source = re.sub(r'<!\[CDATA\[|\]\]>', '', source).strip()
                     
-                    # Skip generic titles
                     if len(title) < 20 or title.startswith('Google'):
                         continue
                     
@@ -69,63 +65,47 @@ async def search_google_news_rss(query: str) -> List[dict]:
 
 async def summarize_news_with_ai(stock_name: str, stock_symbol: str, raw_news: List[dict]) -> List[dict]:
     """
-    Use OpenAI GPT to summarize and extract news gist for stocks
+    Use OpenAI GPT via Emergent integration to summarize news
     """
     if not raw_news:
         return []
     
     try:
-        from openai import OpenAI
-        
-        client = OpenAI(api_key=EMERGENT_LLM_KEY)
+        from emergentintegrations.llm.openai import chat_completion
         
         # Prepare news content for AI
         news_text = ""
         for i, item in enumerate(raw_news[:8], 1):
-            news_text += f"\n{i}. Title: {item['title']}\n   Source: {item['source']}\n"
+            news_text += f"\n{i}. {item['title']} (Source: {item['source']})"
         
-        prompt = f"""Analyze these news headlines about {stock_name} ({stock_symbol}) stock from Indian markets.
+        prompt = f"""Analyze these news headlines about {stock_name} ({stock_symbol}) stock.
 
-For each headline, provide:
-1. A clear gist explaining what the news means for investors (1-2 sentences)
-2. Sentiment: Bullish (positive for stock), Bearish (negative), or Neutral
-3. Category: Earnings, Price Movement, Corporate Action, Analyst View, Market Update, Regulatory, IPO, M&A, or Sector News
+For each relevant headline, provide:
+1. A clear gist (1-2 sentences explaining what this means for investors)
+2. Sentiment: Bullish, Bearish, or Neutral
+3. Category: Earnings, Price Movement, Corporate Action, Analyst View, Market Update, or Sector News
 
-Headlines:
-{news_text}
+Headlines:{news_text}
 
-Return ONLY a valid JSON array (no markdown):
-[
-  {{
-    "title": "Shortened headline (max 80 chars)",
-    "gist": "Clear explanation of what this news means for investors",
-    "sentiment": "Bullish/Bearish/Neutral",
-    "category": "Category",
-    "source": "Source name"
-  }}
-]
+Return ONLY a JSON array (no markdown, no explanation):
+[{{"title": "Short title", "gist": "What this means for investors", "sentiment": "Bullish/Bearish/Neutral", "category": "Category", "source": "Source"}}]
 
-Include only news genuinely about {stock_symbol}. Return 3-6 most relevant items."""
+Include only the 4-6 most relevant items about {stock_symbol}."""
 
-        response = client.chat.completions.create(
+        # Use Emergent integration
+        response = await chat_completion(
             model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are a financial analyst providing stock news summaries. Return only valid JSON."
-                },
-                {
-                    "role": "user", 
-                    "content": prompt
-                }
+                {"role": "system", "content": "You are a financial analyst. Return only valid JSON arrays."},
+                {"role": "user", "content": prompt}
             ],
             temperature=0.3,
             max_tokens=1500
         )
         
-        response_text = response.choices[0].message.content.strip()
+        response_text = response.strip()
         
-        # Clean markdown formatting
+        # Clean markdown
         response_text = re.sub(r'^```json?\n?', '', response_text)
         response_text = re.sub(r'\n?```$', '', response_text)
         
@@ -135,15 +115,15 @@ Include only news genuinely about {stock_symbol}. Return 3-6 most relevant items
         result = []
         
         for i, item in enumerate(summarized):
-            # Find matching URL from raw news
+            # Find URL from raw news
             source_url = "#"
             source_name = item.get('source', 'News')
             for raw in raw_news:
-                if source_name.lower() in raw['source'].lower() or raw['source'].lower() in source_name.lower():
+                if source_name.lower() in raw['source'].lower():
                     source_url = raw['url']
                     break
             if source_url == "#" and raw_news:
-                source_url = raw_news[i % len(raw_news)]['url']
+                source_url = raw_news[min(i, len(raw_news)-1)]['url']
             
             result.append({
                 'id': hash(item.get('title', '')) & 0xffffffff,
@@ -168,13 +148,13 @@ Include only news genuinely about {stock_symbol}. Return 3-6 most relevant items
 
 
 def format_raw_news(raw_news: List[dict], stock_symbol: str) -> List[dict]:
-    """Format raw search results as news items (fallback)"""
+    """Format raw news as fallback"""
     now = datetime.now(timezone.utc).isoformat()
     return [
         {
             'id': hash(item['title']) & 0xffffffff,
             'title': item['title'][:100],
-            'description': f"Latest news from {item['source']} about {stock_symbol}",
+            'description': f"Latest update from {item['source']} regarding {stock_symbol} stock.",
             'source': item['source'],
             'source_url': item.get('url', '#'),
             'published_at': now,
@@ -182,7 +162,7 @@ def format_raw_news(raw_news: List[dict], stock_symbol: str) -> List[dict]:
             'sentiment': 'Neutral',
             'related_stock': stock_symbol
         }
-        for item in raw_news[:5]
+        for item in raw_news[:6]
     ]
 
 
@@ -190,9 +170,8 @@ async def fetch_stock_news(stock_symbols: List[str] = None, stock_names: List[st
     """
     Fetch real stock news using Google News RSS and AI summarization.
     """
-    # Create cache key
     symbols_key = ','.join(sorted(stock_symbols or []))[:100]
-    cache_key = f"gnews_{symbols_key}_{limit}"
+    cache_key = f"gnews_v2_{symbols_key}_{limit}"
     
     # Check cache
     if cache_key in _news_cache:
@@ -206,43 +185,32 @@ async def fetch_stock_news(stock_symbols: List[str] = None, stock_names: List[st
     
     all_news = []
     
-    # Create stock pairs
     stock_pairs = list(zip(
         stock_symbols or [''] * len(stock_names or []),
         stock_names or [''] * len(stock_symbols or [])
     ))
     
-    # Search for each stock
     for symbol, name in stock_pairs[:5]:
         if not symbol and not name:
             continue
-            
-        # Skip test stocks
         if 'test' in (symbol or '').lower() or 'test' in (name or '').lower():
             continue
         
-        # Build search query
         search_name = name.split('(')[0].strip() if name else symbol
         query = f"{search_name} {symbol} stock"
         
         logger.info(f"Searching Google News for: {query}")
         
-        # Search Google News RSS
         raw_results = await search_google_news_rss(query)
         logger.info(f"Found {len(raw_results)} results for {symbol}")
         
         if raw_results:
-            # Summarize with AI
-            summarized = await summarize_news_with_ai(
-                stock_name=search_name,
-                stock_symbol=symbol,
-                raw_news=raw_results
-            )
+            summarized = await summarize_news_with_ai(search_name, symbol, raw_results)
             all_news.extend(summarized)
         
         await asyncio.sleep(0.3)
     
-    # Remove duplicates
+    # Deduplicate
     seen = set()
     unique_news = []
     for item in all_news:
@@ -256,7 +224,6 @@ async def fetch_stock_news(stock_symbols: List[str] = None, stock_names: List[st
     if not unique_news:
         unique_news = get_no_real_news_message(stock_symbols)
     
-    # Cache results
     _news_cache[cache_key] = {
         'data': unique_news,
         'timestamp': datetime.now(timezone.utc).timestamp()
@@ -266,12 +233,11 @@ async def fetch_stock_news(stock_symbols: List[str] = None, stock_names: List[st
 
 
 def get_no_stocks_message() -> List[dict]:
-    """Message when no stocks in system"""
     now = datetime.now(timezone.utc).isoformat()
     return [{
         'id': 1,
         'title': 'Add Stocks to See Related News',
-        'description': 'News will appear here once you add stocks to your inventory. Add real stock symbols like RELIANCE, TCS, INFY through the Stocks page.',
+        'description': 'Add real stock symbols like RELIANCE, TCS, INFY to see AI-summarized news.',
         'source': 'System',
         'source_url': '#',
         'published_at': now,
@@ -282,14 +248,13 @@ def get_no_stocks_message() -> List[dict]:
 
 
 def get_no_real_news_message(symbols: List[str]) -> List[dict]:
-    """Message when no real news found"""
     now = datetime.now(timezone.utc).isoformat()
-    valid_symbols = [s for s in (symbols or []) if s and 'test' not in s.lower()]
-    stocks_str = ', '.join(valid_symbols[:3]) if valid_symbols else 'your stocks'
+    valid = [s for s in (symbols or []) if s and 'test' not in s.lower()]
+    stocks_str = ', '.join(valid[:3]) if valid else 'your stocks'
     return [{
         'id': 1,
         'title': f'No Recent News for {stocks_str}',
-        'description': f'Unable to find recent news for {stocks_str}. Try adding popular stocks like RELIANCE, TCS, HDFC, INFY, etc.',
+        'description': f'Try adding popular stocks like RELIANCE, TCS, HDFC, INFY for better coverage.',
         'source': 'System',
         'source_url': '#',
         'published_at': now,
@@ -300,7 +265,5 @@ def get_no_real_news_message(symbols: List[str]) -> List[dict]:
 
 
 def clear_news_cache():
-    """Clear the news cache"""
     global _news_cache
     _news_cache = {}
-    logger.info("News cache cleared")
