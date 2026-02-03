@@ -889,7 +889,8 @@ async def download_client_document(
 async def get_document_ocr(
     client_id: str,
     filename: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view_docs", "view document OCR"))
 ):
     """Get OCR data for a specific document."""
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
@@ -944,7 +945,8 @@ async def ocr_preview(
 @router.get("/clients/{client_id}/document-status")
 async def get_client_document_status(
     client_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view", "view document status"))
 ):
     """
     Get document verification status for a client.
