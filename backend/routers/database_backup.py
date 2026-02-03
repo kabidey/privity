@@ -116,11 +116,11 @@ class RestoreRequest(BaseModel):
 
 # ============== Backup Endpoints ==============
 @router.get("/backups")
-async def list_backups(current_user: dict = Depends(get_current_user)):
-    """List all database backups (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can access database backups")
-    
+async def list_backups(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.view", "view database backups"))
+):
+    """List all database backups (requires database_backup.view permission)"""
     backups = await db.database_backups.find(
         {},
         {"_id": 0, "data": 0}  # Exclude actual data from listing
@@ -134,18 +134,16 @@ async def create_backup(
     name: str,
     description: Optional[str] = None,
     include_all: bool = False,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.create", "create database backups"))
 ):
-    """Create a new database backup (PE Level)
+    """Create a new database backup (requires database_backup.create permission)
     
     Args:
         name: Name for the backup
         description: Optional description
         include_all: If True, backup all collections dynamically (recommended)
     """
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can create database backups")
-    
     backup_id = str(uuid.uuid4())
     backup_data = {}
     record_counts = {}
