@@ -180,11 +180,13 @@ async def create_user(
 
 
 @router.put("/{user_id}")
-async def update_user(user_id: str, user_data: UserUpdate, current_user: dict = Depends(get_current_user)):
-    """Update a user (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update users")
-    
+async def update_user(
+    user_id: str,
+    user_data: UserUpdate,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("users.edit", "update users"))
+):
+    """Update a user (requires users.edit permission)"""
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
