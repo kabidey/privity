@@ -458,7 +458,8 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
 async def approve_booking(
     booking_id: str,
     approve: bool = True,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.approve", "approve bookings"))
 ):
     """
     Approve or reject a booking with atomic inventory update.
@@ -466,9 +467,6 @@ async def approve_booking(
     When approved, inventory is atomically updated to prevent race conditions.
     """
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can approve bookings")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
