@@ -381,6 +381,33 @@ const Bookings = () => {
     }
   };
 
+  // Refresh booking status - checks payments, client approval, etc.
+  const handleRefreshBookingStatus = async (bookingId) => {
+    setRefreshingBooking(bookingId);
+    try {
+      const response = await api.post(`/bookings/${bookingId}/refresh-status`);
+      const { actions_taken, booking } = response.data;
+      
+      // Show actions taken
+      if (actions_taken.length > 0) {
+        actions_taken.forEach(action => {
+          if (action.includes('No status changes')) {
+            toast.info(action);
+          } else {
+            toast.success(action);
+          }
+        });
+      }
+      
+      // Refresh bookings list to show updated data
+      await fetchBookings();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to refresh booking status');
+    } finally {
+      setRefreshingBooking(null);
+    }
+  };
+
   const handleOpenPaymentDialog = (booking) => {
     setSelectedBooking(booking);
     setPaymentForm({
