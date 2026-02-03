@@ -84,7 +84,11 @@ def get_client_emails(client: dict) -> list:
 
 
 @router.get("/bookings/check-client-rp-conflict/{client_id}")
-async def check_client_rp_conflict(client_id: str, current_user: dict = Depends(get_current_user)):
+async def check_client_rp_conflict(
+    client_id: str, 
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.create", "check client RP conflict"))
+):
     """
     Check if a client is also registered as a Referral Partner.
     Returns conflict info if found, null otherwise.
@@ -116,7 +120,11 @@ async def check_client_rp_conflict(client_id: str, current_user: dict = Depends(
 
 
 @router.post("/bookings", response_model=Booking)
-async def create_booking(booking_data: BookingCreate, current_user: dict = Depends(get_current_user)):
+async def create_booking(
+    booking_data: BookingCreate, 
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.create", "create bookings"))
+):
     """
     Create a new booking with high-concurrency safety.
     
