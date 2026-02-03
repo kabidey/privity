@@ -595,11 +595,11 @@ const Layout = ({ children }) => {
                   ? 'bg-gradient-to-br from-emerald-400 to-teal-500' 
                   : 'bg-gradient-to-br from-blue-400 to-indigo-500'
               }`}>
-                {user.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'}
+                {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm text-gray-900 dark:text-white truncate">{user.name}</div>
-                <div className="text-xs text-emerald-600 dark:text-emerald-400">{user.role_name}</div>
+                <div className="font-medium text-sm text-gray-900 dark:text-white truncate">{user?.name}</div>
+                <div className="text-xs text-emerald-600 dark:text-emerald-400">{roleName}</div>
               </div>
               <div 
                 className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isPeAvailable ? 'bg-green-500' : 'bg-red-500'}`}
