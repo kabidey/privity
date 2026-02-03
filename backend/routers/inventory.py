@@ -250,12 +250,13 @@ async def update_landing_price(
 
 
 @router.delete("/{stock_id}")
-async def delete_inventory(stock_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete inventory for a stock (PE Desk only)"""
+async def delete_inventory(
+    stock_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.delete", "delete inventory"))
+):
+    """Delete inventory for a stock (requires inventory.delete permission)"""
     user_role = current_user.get("role", 6)
-    
-    if user_role != 1:  # Only PE Desk
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete inventory")
     
     result = await db.inventory.delete_one({"stock_id": stock_id})
     if result.deleted_count == 0:
