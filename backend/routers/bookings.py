@@ -42,6 +42,17 @@ import asyncio
 _booking_number_lock = asyncio.Lock()
 
 
+# Helper function for backward compatibility with is_pe_level
+def is_pe_level(role: int) -> bool:
+    """Check if role is PE level (PE Desk or PE Manager). For sync contexts."""
+    return role in [1, 2]
+
+
+def is_pe_desk_only(role: int) -> bool:
+    """Check if role is PE Desk only. For sync contexts."""
+    return role == 1
+
+
 async def generate_booking_number() -> str:
     """Generate a unique booking number in format BK-YYYY-NNNNN using atomic counter."""
     year = datetime.now().year
