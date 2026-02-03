@@ -383,18 +383,14 @@ const Bookings = () => {
 
   // Refresh booking status - checks payments, client approval, etc.
   const handleRefreshBookingStatus = async (bookingId) => {
-    console.log('Refreshing booking status for:', bookingId);
     if (!bookingId) {
-      console.error('No booking ID provided');
       toast.error('No booking ID provided');
       return;
     }
     setRefreshingBooking(bookingId);
     try {
-      console.log('Making API call to:', `/bookings/${bookingId}/refresh-status`);
       const response = await api.post(`/bookings/${bookingId}/refresh-status`);
-      console.log('API response:', response.data);
-      const { actions_taken, booking } = response.data;
+      const { actions_taken } = response.data;
       
       // Show actions taken
       if (actions_taken && actions_taken.length > 0) {
@@ -412,8 +408,6 @@ const Bookings = () => {
       // Refresh bookings list to show updated data
       await fetchData();
     } catch (error) {
-      console.error('Refresh error:', error);
-      console.error('Error response:', error.response?.data);
       toast.error(error.response?.data?.detail || 'Failed to refresh booking status');
     } finally {
       setRefreshingBooking(null);
