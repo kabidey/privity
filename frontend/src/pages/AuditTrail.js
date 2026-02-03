@@ -39,9 +39,12 @@ const AuditTrail = () => {
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
   const [statsDays, setStatsDays] = useState(7);
 
-  const { isPELevel } = useCurrentUser();
+  const { user, isPELevel } = useCurrentUser();
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     if (!isPELevel) {
       toast.error('Access denied. Only PE Desk or PE Manager can view audit trail.');
       navigate('/');
@@ -51,7 +54,7 @@ const AuditTrail = () => {
     fetchStats();
     fetchEntityTypes();
     fetchActions();
-  }, [isPELevel, navigate]);
+  }, [user, isPELevel, navigate]);
 
   const fetchLogs = async () => {
     try {
