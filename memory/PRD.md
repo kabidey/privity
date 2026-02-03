@@ -37,6 +37,25 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 03, 2026)
 
+#### ✅ Selective Database Clear Feature - COMPLETED (Feb 03, 2026)
+
+**Enhanced Clear DB Functionality:**
+- Added selective clearing - users can now choose specific collections to clear
+- New endpoint: `GET /api/database/clearable-collections` - returns all clearable collections with record counts
+- Updated `DELETE /api/database/clear` - accepts optional `collections` query parameter for selective clearing
+- Protected collections (users, database_backups) are always preserved
+- New UI dialog with:
+  - Grid of checkboxes for each collection showing name and record count
+  - "Select All" / "Deselect All" button
+  - Selection summary showing total records to be deleted
+  - Red highlighting for selected collections
+  - Confirmation text input required ("CLEAR DATABASE")
+- Audit logging captures selective clear operations with requested collections
+
+**Files Modified:**
+- `backend/routers/database_backup.py` - Added clearable-collections endpoint, updated clear endpoint
+- `frontend/src/pages/DatabaseBackup.js` - New selective clear dialog UI
+
 #### ✅ Feature Enhancements - COMPLETED (Feb 03, 2026)
 
 **1. Refresh Booking Status Button**
