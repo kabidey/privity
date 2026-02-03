@@ -418,6 +418,49 @@ const Bookings = () => {
     }
   };
 
+  // Open RP mapping dialog for a booking
+  const handleOpenRpMapping = (booking) => {
+    if (booking.stock_transferred) {
+      toast.error('Cannot change RP mapping after stock has been transferred');
+      return;
+    }
+    if (booking.is_bp_booking) {
+      toast.error('Cannot assign RP to a Business Partner booking');
+      return;
+    }
+    setRpMappingBooking(booking);
+    setRpMappingData({
+      referral_partner_id: booking.referral_partner_id || '',
+      rp_revenue_share_percent: booking.rp_revenue_share_percent || 30
+    });
+    setRpMappingDialogOpen(true);
+  };
+
+  // Update RP mapping for a booking
+  const handleUpdateRpMapping = async () => {
+    if (!rpMappingBooking) return;
+    
+    setUpdatingRpMapping(true);
+    try {
+      const params = new URLSearchParams();
+      if (rpMappingData.referral_partner_id) {
+        params.append('referral_partner_id', rpMappingData.referral_partner_id);
+        params.append('rp_revenue_share_percent', rpMappingData.rp_revenue_share_percent.toString());
+      }
+      
+      await api.put(`/bookings/${rpMappingBooking.id}/referral-partner?${params.toString()}`);
+      
+      toast.success('Referral Partner mapping updated successfully');
+      setRpMappingDialogOpen(false);
+      setRpMappingBooking(null);
+      await fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update RP mapping');
+    } finally {
+      setUpdatingRpMapping(false);
+    }
+  };
+
   const handleOpenPaymentDialog = (booking) => {
     setSelectedBooking(booking);
     setPaymentForm({
