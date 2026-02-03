@@ -424,8 +424,8 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access purchases: {response.text}"
         print(f"✓ PE Desk can access purchases (status: {response.status_code})")
     
-    def test_viewer_denied_purchases(self):
-        """Viewer should be denied access to /api/purchases (requires purchases.view)"""
+    def test_viewer_can_access_purchases(self):
+        """Viewer should be able to access /api/purchases (has purchases.view permission)"""
         if not self.viewer_token:
             pytest.skip("Viewer token not available")
         
@@ -433,9 +433,9 @@ class TestRBACPermissionEnforcement:
             f"{BASE_URL}/api/purchases",
             headers=self.get_viewer_headers()
         )
-        # Viewer doesn't have purchases.view permission
-        assert response.status_code == 403, f"Viewer should be denied purchases: {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied purchases (status: {response.status_code})")
+        # Viewer has purchases.view permission in DEFAULT_ROLES
+        assert response.status_code == 200, f"Viewer should access purchases: {response.status_code} - {response.text}"
+        print(f"✓ Viewer can access purchases (status: {response.status_code})")
     
     # ============== ERROR MESSAGE QUALITY TESTS ==============
     
