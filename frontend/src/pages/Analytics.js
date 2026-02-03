@@ -27,16 +27,19 @@ const Analytics = () => {
   const [dailyTrend, setDailyTrend] = useState([]);
   const [sectorDistribution, setSectorDistribution] = useState([]);
 
-  const { isPELevel } = useCurrentUser();
+  const { user, isPELevel } = useCurrentUser();
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     if (!isPELevel) {
       toast.error('Access denied. Only PE Desk or PE Manager can access analytics.');
       navigate('/');
       return;
     }
     fetchAnalytics();
-  }, [days, isPELevel, navigate]);
+  }, [days, user, isPELevel, navigate]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
