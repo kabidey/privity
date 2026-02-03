@@ -15,8 +15,14 @@ const categoryIcons = {
   'Corporate Action': Building2,
   'Regulatory': AlertCircle,
   'FII/DII': TrendingUp,
+  'Institutional': TrendingUp,
   'M&A': Building2,
   'Market News': Newspaper,
+  'Market Update': Newspaper,
+  'Stock Update': TrendingUp,
+  'Price Movement': TrendingUp,
+  'Analyst View': FileText,
+  'Info': AlertCircle,
 };
 
 const categoryColors = {
@@ -26,8 +32,20 @@ const categoryColors = {
   'Corporate Action': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
   'Regulatory': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
   'FII/DII': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',
+  'Institutional': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',
   'M&A': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
   'Market News': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+  'Market Update': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+  'Stock Update': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  'Price Movement': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+  'Analyst View': 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400',
+  'Info': 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400',
+};
+
+const sentimentColors = {
+  'Bullish': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+  'Bearish': 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400',
+  'Neutral': 'bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400',
 };
 
 const StockNewsSection = () => {
