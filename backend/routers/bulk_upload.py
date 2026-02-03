@@ -15,7 +15,8 @@ from database import db
 from routers.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/bulk-upload", tags=["Bulk Upload"])
@@ -128,12 +129,10 @@ async def generate_booking_number() -> str:
 @router.get("/template/{entity_type}")
 async def download_sample_template(
     entity_type: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.clients", "access bulk upload templates"))
 ):
     """Download sample CSV template for bulk upload (PE Desk only)"""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can access bulk upload")
-    
     if entity_type not in SAMPLE_TEMPLATES:
         raise HTTPException(status_code=400, detail=f"Invalid entity type. Valid types: {', '.join(SAMPLE_TEMPLATES.keys())}")
     
@@ -149,11 +148,11 @@ async def download_sample_template(
 
 
 @router.get("/templates")
-async def list_templates(current_user: dict = Depends(get_current_user)):
+async def list_templates(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.clients", "access bulk upload templates"))
+):
     """List all available bulk upload templates (PE Desk only)"""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can access bulk upload")
-    
     return {
         "templates": [
             {
@@ -172,12 +171,10 @@ async def list_templates(current_user: dict = Depends(get_current_user)):
 @router.post("/clients")
 async def bulk_upload_clients(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.clients", "bulk upload clients"))
 ):
     """Bulk upload clients from CSV (PE Desk only). Skips duplicates by PAN number."""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can perform bulk uploads")
-    
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
