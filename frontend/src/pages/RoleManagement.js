@@ -247,8 +247,8 @@ const RoleManagement = () => {
             </TableHeader>
             <TableBody>
               {roles.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell className="font-mono">{role.id}</TableCell>
+                <TableRow key={role.id} className="group">
+                  <TableCell className="font-mono text-muted-foreground">{role.id}</TableCell>
                   <TableCell>
                     <Badge className={role.color || 'bg-gray-100 text-gray-800'}>
                       {role.name}
@@ -272,20 +272,43 @@ const RoleManagement = () => {
                   </TableCell>
                   <TableCell>
                     {role.permissions?.includes('*') ? (
-                      <span className="text-emerald-600 font-medium">All Permissions</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-600 font-medium">All Permissions</span>
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                          Full Access
+                        </Badge>
+                      </div>
+                    ) : role.permissions?.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-medium">{role.permissions?.length || 0} permissions</span>
+                        <div className="flex flex-wrap gap-1 max-w-[300px]">
+                          {role.permissions?.slice(0, 4).map(p => {
+                            const category = p.split('.')[0];
+                            return (
+                              <Badge key={p} variant="outline" className="text-[10px] px-1.5 py-0">
+                                {category}
+                              </Badge>
+                            );
+                          })}
+                          {role.permissions?.length > 4 && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                              +{role.permissions.length - 4} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     ) : (
-                      <span className="text-muted-foreground">
-                        {role.permissions?.length || 0} permissions
-                      </span>
+                      <span className="text-muted-foreground text-sm">No permissions</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleOpenDialog(role)}
                         data-testid={`edit-role-${role.id}`}
+                        title="Edit role permissions"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -299,6 +322,7 @@ const RoleManagement = () => {
                             setDeleteDialogOpen(true);
                           }}
                           data-testid={`delete-role-${role.id}`}
+                          title="Delete role"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
