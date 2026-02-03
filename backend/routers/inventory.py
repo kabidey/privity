@@ -254,3 +254,63 @@ async def delete_inventory(stock_id: str, current_user: dict = Depends(get_curre
         raise HTTPException(status_code=404, detail="Inventory not found")
     
     return {"message": "Inventory deleted successfully"}
+
+
+@router.post("/recalculate")
+async def recalculate_all_inventory(current_user: dict = Depends(get_current_user)):
+    """
+    Recalculate inventory for ALL stocks (PE Desk only).
+    
+    This is a manual fail-safe to ensure inventory data is accurate.
+    It recalculates available_quantity, blocked_quantity, and weighted_avg_price
+    for every stock based on actual purchases and bookings.
+    """
+    user_role = current_user.get("role", 6)
+    
+    if user_role != 1:  # Only PE Desk
+        raise HTTPException(status_code=403, detail="Only PE Desk can recalculate inventory")
+    
+    from services.inventory_service import update_inventory
+    
+    # Get all unique stock IDs from purchases and inventory
+    purchase_stock_ids = await db.purchases.distinct("stock_id")
+    inventory_stock_ids = await db.inventory.distinct("stock_id")
+    all_stock_ids = list(set(purchase_stock_ids + inventory_stock_ids))
+    
+    results = {
+        "total_stocks": len(all_stock_ids),
+        "recalculated": 0,
+        "errors": []
+    }
+    
+    for stock_id in all_stock_ids:
+        try:
+            await update_inventory(stock_id)
+            results["recalculated"] += 1
+        except Exception as e:
+            logger.error(f"Error recalculating inventory for stock {stock_id}: {str(e)}")
+            results["errors"].append({"stock_id": stock_id, "error": str(e)})
+    
+    # Create audit log
+    from services.audit_service import create_audit_log
+    await create_audit_log(
+        action="INVENTORY_RECALCULATE_ALL",
+        entity_type="inventory",
+        entity_id="all",
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=user_role,
+        entity_name="All Stocks",
+        details={
+            "total_stocks": results["total_stocks"],
+            "recalculated": results["recalculated"],
+            "errors_count": len(results["errors"])
+        }
+    )
+    
+    logger.info(f"Inventory recalculated for {results['recalculated']}/{results['total_stocks']} stocks by {current_user['name']}")
+    
+    return {
+        "message": f"Inventory recalculated for {results['recalculated']} of {results['total_stocks']} stocks",
+        "details": results
+    }
