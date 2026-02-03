@@ -110,7 +110,16 @@ const RoleManagement = () => {
     setSaving(true);
     try {
       if (editingRole) {
-        await api.put(`/roles/${editingRole.id}`, formData);
+        // For system roles, don't send the name field (can't be renamed)
+        const updateData = editingRole.is_system 
+          ? { 
+              description: formData.description,
+              permissions: formData.permissions,
+              color: formData.color
+            }
+          : formData;
+        
+        await api.put(`/roles/${editingRole.id}`, updateData);
         toast.success('Role updated successfully');
       } else {
         await api.post('/roles', formData);
