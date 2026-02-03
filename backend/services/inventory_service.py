@@ -148,16 +148,19 @@ async def release_inventory_reservation(
     booking_id: str
 ) -> Tuple[bool, str]:
     """
-    Release a previously made inventory reservation.
+    Recalculate inventory after a booking is voided/rejected.
     
     Used when:
     - Booking is voided
     - Booking is rejected
     - Booking fails validation
     
+    Note: We just recalculate inventory from bookings data rather than
+    doing atomic decrements. This ensures consistency.
+    
     Args:
-        stock_id: The stock to release
-        quantity: Amount to release
+        stock_id: The stock to update
+        quantity: Amount that was reserved (for logging)
         booking_id: The booking ID releasing the reservation
     
     Returns:
@@ -166,26 +169,16 @@ async def release_inventory_reservation(
     lock = get_inventory_lock(stock_id)
     
     async with lock:
-        result = await db.inventory.find_one_and_update(
-            {"stock_id": stock_id},
-            {
-                "$inc": {
-                    "available_quantity": quantity,
-                    "blocked_quantity": -quantity
-                },
-                "$set": {
-                    "last_updated": datetime.now(timezone.utc).isoformat()
-                }
-            },
-            return_document=True
-        )
+        # Recalculate inventory from actual booking data
+        # This ensures blocked_qty is accurate based on approved bookings
+        inventory = await _recalculate_inventory_internal(stock_id)
         
-        if result is None:
-            logger.warning(f"Failed to release reservation for stock {stock_id}, booking {booking_id}")
-            return False, "Failed to release inventory reservation"
-        
-        logger.info(f"Released {quantity} units of stock {stock_id} from booking {booking_id}")
-        return True, "Inventory released successfully"
+        if inventory:
+            logger.info(f"Inventory recalculated after releasing {quantity} units from booking {booking_id}. Available: {inventory.get('available_quantity')}, Blocked: {inventory.get('blocked_quantity')}")
+            return True, "Inventory updated successfully"
+        else:
+            logger.warning(f"Failed to recalculate inventory for stock {stock_id}, booking {booking_id}")
+            return False, "Failed to update inventory"
 
 
 async def transfer_inventory(
