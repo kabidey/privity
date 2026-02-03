@@ -121,7 +121,7 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "roles": ["view", "create", "edit", "delete"],
         "business_partners": ["view", "create", "edit", "delete", "approve"],
         "referral_partners": ["view", "create", "edit", "approve", "view_payouts"],
-        "reports": ["view", "pnl", "export"],
+        "reports": ["view", "pnl", "export", "pe_hit"],
         "analytics": ["view", "revenue", "performance", "export"],
         "dp": ["view_receivables", "confirm_receipt", "transfer", "view_transfers"],
         "email": ["view_templates", "edit_templates", "view_logs", "server_config"],
@@ -129,9 +129,11 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "security": ["view_dashboard", "view_audit", "manage_2fa", "kill_switch"],
         "database": ["view_backups", "create_backup", "restore", "download"],
         "bulk_upload": ["clients", "stocks", "purchases", "bookings"],
-        "research": ["view", "upload", "ai_analysis"],
+        "research": ["view", "upload", "delete", "ai"],
         "contract_notes": ["view", "generate", "send", "download"],
-        "client_approval": ["view", "approve", "reject"]
+        "client_approval": ["view", "approve", "reject"],
+        "revenue": ["rp_view", "employee_view", "team_view"],
+        "system": ["kill_switch"]
     }
     
     expanded = set()
