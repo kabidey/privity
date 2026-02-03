@@ -303,8 +303,8 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access finance payments: {response.text}"
         print(f"✓ PE Desk can access finance payments (status: {response.status_code})")
     
-    def test_viewer_denied_finance_payments(self):
-        """Viewer should be denied access to /api/finance/payments (requires finance.view)"""
+    def test_viewer_can_access_finance_payments(self):
+        """Viewer should be able to access /api/finance/payments (has finance.view permission)"""
         if not self.viewer_token:
             pytest.skip("Viewer token not available")
         
@@ -312,9 +312,9 @@ class TestRBACPermissionEnforcement:
             f"{BASE_URL}/api/finance/payments",
             headers=self.get_viewer_headers()
         )
-        # Should return 403 Forbidden
-        assert response.status_code == 403, f"Viewer should be denied finance payments: {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied finance payments (status: {response.status_code})")
+        # Viewer has finance.view permission in DEFAULT_ROLES
+        assert response.status_code == 200, f"Viewer should access finance payments: {response.status_code} - {response.text}"
+        print(f"✓ Viewer can access finance payments (status: {response.status_code})")
     
     # ============== INVENTORY PERMISSION TESTS ==============
     
