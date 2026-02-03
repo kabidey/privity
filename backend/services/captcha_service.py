@@ -125,7 +125,7 @@ class SecurityAlertService:
     @staticmethod
     async def send_account_locked_alert(email: str, ip_address: str, lockout_minutes: int):
         """Send alert when account is locked due to failed attempts"""
-        from services.email_service import send_email_async
+        from services.email_service import send_email
         from database import db
         
         # Get user info
@@ -190,7 +190,7 @@ class SecurityAlertService:
         # Send to all PE users
         for pe_user in pe_users:
             try:
-                await send_email_async(
+                await send_email(
                     to_email=pe_user["email"],
                     subject=subject,
                     body=body,
@@ -207,7 +207,7 @@ class SecurityAlertService:
         details: dict
     ):
         """Send alert for suspicious activity"""
-        from services.email_service import send_email_async
+        from services.email_service import send_email
         from database import db
         
         # Get PE Desk users for alert
@@ -260,7 +260,7 @@ class SecurityAlertService:
         # Send to PE Desk users
         for pe_user in pe_users:
             try:
-                await send_email_async(
+                await send_email(
                     to_email=pe_user["email"],
                     subject=subject,
                     body=body,
@@ -272,7 +272,7 @@ class SecurityAlertService:
     @staticmethod
     async def send_new_login_alert(user_email: str, user_name: str, ip_address: str, user_agent: str):
         """Send alert to user about new login"""
-        from services.email_service import send_email_async
+        from services.email_service import send_email
         
         subject = "🔐 New Login to Your PRIVITY Account"
         
@@ -317,7 +317,7 @@ class SecurityAlertService:
         """
         
         try:
-            await send_email_async(
+            await send_email(
                 to_email=user_email,
                 subject=subject,
                 body=body,
@@ -336,7 +336,7 @@ class SecurityAlertService:
         location_data: dict
     ):
         """Send alert for unusual login location"""
-        from services.email_service import send_email_async
+        from services.email_service import send_email
         from database import db
         
         location = location_data.get("location", {})
@@ -438,7 +438,7 @@ class SecurityAlertService:
         
         for pe_user in pe_users:
             try:
-                await send_email_async(
+                await send_email(
                     to_email=pe_user["email"],
                     subject=subject,
                     body=body,
@@ -450,7 +450,7 @@ class SecurityAlertService:
         
         # Also notify the user themselves
         try:
-            await send_email_async(
+            await send_email(
                 to_email=user_email,
                 subject=f"{emoji} Security Alert: Unusual login to your account",
                 body=body,
