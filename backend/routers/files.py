@@ -17,7 +17,8 @@ from services.file_storage import (
 )
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/files", tags=["files"])
@@ -33,15 +34,12 @@ def is_pe_level(role: int) -> bool:
 
 @router.get("/storage-stats")
 async def get_file_stats(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("files.view_stats", "view file storage stats"))
 ):
     """
     Get file storage statistics (PE Desk/Manager only).
     """
-    user_role = current_user.get("role", 6)
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view file stats")
-    
     # Count files in GridFS
     total_files = await db.fs.files.count_documents({})
     
