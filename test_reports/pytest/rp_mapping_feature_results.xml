@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="12" skipped="0" tests="12" time="3.341" timestamp="2026-02-03T13:20:37.595052+00:00" hostname="agent-env-69cf2a05-7150-494e-8385-cb3eb5b127e3"><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_01_login_pe_desk" time="0.523"><failure message="AssertionError: Failed to get access token&#10;assert None is not None">backend/tests/test_rp_mapping_feature.py:74: in test_01_login_pe_desk
+    assert token is not None, "Failed to get access token"
+E   AssertionError: Failed to get access token
+E   assert None is not None</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_02_get_bookings_list" time="0.280"><failure message="AssertionError: Failed to get bookings: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:81: in test_02_get_bookings_list
+    assert response.status_code == 200, f"Failed to get bookings: {response.text}"
+E   AssertionError: Failed to get bookings: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_03_get_approved_rps" time="0.284"><failure message="AssertionError: Failed to get RPs: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:90: in test_03_get_approved_rps
+    assert response.status_code == 200, f"Failed to get RPs: {response.text}"
+E   AssertionError: Failed to get RPs: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_04_update_rp_mapping_add_rp" time="0.283"><failure message="AssertionError: Failed to get bookings: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:99: in test_04_update_rp_mapping_add_rp
+    booking = self.get_test_booking()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+backend/tests/test_rp_mapping_feature.py:47: in get_test_booking
+    assert response.status_code == 200, f"Failed to get bookings: {response.text}"
+E   AssertionError: Failed to get bookings: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_05_update_rp_mapping_change_share" time="0.287"><failure message="AssertionError: Failed to get bookings: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:132: in test_05_update_rp_mapping_change_share
+    booking = self.get_test_booking()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+backend/tests/test_rp_mapping_feature.py:47: in get_test_booking
+    assert response.status_code == 200, f"Failed to get bookings: {response.text}"
+E   AssertionError: Failed to get bookings: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_06_update_rp_mapping_remove_rp" time="0.274"><failure message="AssertionError: Failed to get bookings: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:162: in test_06_update_rp_mapping_remove_rp
+    booking = self.get_test_booking()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+backend/tests/test_rp_mapping_feature.py:47: in get_test_booking
+    assert response.status_code == 200, f"Failed to get bookings: {response.text}"
+E   AssertionError: Failed to get bookings: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_07_verify_booking_after_rp_update" time="0.321"><failure message="AssertionError: Failed to get bookings: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:185: in test_07_verify_booking_after_rp_update
+    booking = self.get_test_booking()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+backend/tests/test_rp_mapping_feature.py:47: in get_test_booking
+    assert response.status_code == 200, f"Failed to get bookings: {response.text}"
+E   AssertionError: Failed to get bookings: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_08_rp_share_max_30_percent" time="0.276"><failure message="AssertionError: Failed to get bookings: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:220: in test_08_rp_share_max_30_percent
+    booking = self.get_test_booking()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+backend/tests/test_rp_mapping_feature.py:47: in get_test_booking
+    assert response.status_code == 200, f"Failed to get bookings: {response.text}"
+E   AssertionError: Failed to get bookings: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_09_cannot_update_transferred_booking" time="0.274"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:257: in test_09_cannot_update_transferred_booking
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_10_cannot_update_bp_booking" time="0.314"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:293: in test_10_cannot_update_bp_booking
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_11_invalid_rp_id" time="0.045"><failure message="AssertionError: Login failed: {&quot;detail&quot;:&quot;Too many requests. Please try again later.&quot;}&#10;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:325: in test_11_invalid_rp_id
+    self.login_pe_desk()
+backend/tests/test_rp_mapping_feature.py:38: in login_pe_desk
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Too many requests. Please try again later."}
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_rp_mapping_feature.TestRPMappingFeature" name="test_12_invalid_booking_id" time="0.034"><failure message="AssertionError: Login failed: {&quot;detail&quot;:&quot;Too many requests. Please try again later.&quot;}&#10;assert 429 == 200&#10; +  where 429 = &lt;Response [429]&gt;.status_code">backend/tests/test_rp_mapping_feature.py:346: in test_12_invalid_booking_id
+    self.login_pe_desk()
+backend/tests/test_rp_mapping_feature.py:38: in login_pe_desk
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Too many requests. Please try again later."}
+E   assert 429 == 200
+E    +  where 429 = &lt;Response [429]&gt;.status_code</failure></testcase></testsuite></testsuites>
