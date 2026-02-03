@@ -37,6 +37,35 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 03, 2026)
 
+#### ✅ PE Desk Menu Access Fix - COMPLETED (Feb 03, 2026)
+**Bug**: PE Desk was being redirected away from protected pages (Audit Trail, Email Server, Vendors, DP Receivables, DP Transfer, Business Partners, etc.) due to a race condition where permission checks ran before user data loaded.
+
+**Root Cause**: The `useEffect` hooks in multiple pages checked `isPELevel` or `isPEDesk` permissions before the user data was loaded from localStorage, causing false redirects.
+
+**Fix Applied**: Updated 15 frontend pages to wait for user data to load before checking permissions:
+- Added `user` to useCurrentUser destructuring
+- Added `if (user === null) return;` check before permission validation
+- Updated useEffect dependencies to include `user`
+
+**Pages Fixed**:
+1. AuditTrail.js
+2. EmailServerConfig.js
+3. Analytics.js
+4. ContractNotes.js
+5. EmailLogs.js
+6. EmailTemplates.js
+7. PEDashboard.js
+8. Purchases.js
+9. BulkUpload.js
+10. CompanyMaster.js
+11. SecurityDashboard.js
+12. BusinessPartners.js
+13. DPReceivables.js
+14. DPTransferClient.js
+15. Vendors.js
+
+**Test Results**: 30/30 menu pages accessible to PE Desk ✅
+
 #### ✅ Granular Permission Enforcement on Backend APIs - COMPLETED (Feb 03, 2026)
 **Major Enhancement**: Enforced 96+ granular permissions on corresponding backend API endpoints using `Depends(require_permission("...", "..."))`
 **Changes Made**:
