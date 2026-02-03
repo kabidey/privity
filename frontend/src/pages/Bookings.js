@@ -1677,6 +1677,131 @@ const Bookings = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* RP Mapping Edit Dialog */}
+      <Dialog open={rpMappingDialogOpen} onOpenChange={setRpMappingDialogOpen}>
+        <DialogContent className="max-w-md" data-testid="rp-mapping-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-purple-600" />
+              Edit Referral Partner Mapping
+            </DialogTitle>
+            <DialogDescription>
+              Update the referral partner assigned to this booking
+            </DialogDescription>
+          </DialogHeader>
+          
+          {rpMappingBooking && (
+            <div className="space-y-4">
+              {/* Booking Info */}
+              <div className="p-3 bg-muted rounded-lg text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Booking ID</span>
+                  <span className="font-mono font-semibold">{rpMappingBooking.booking_number}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Client</span>
+                  <span className="font-medium">{rpMappingBooking.client_name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Stock</span>
+                  <span className="font-medium">{rpMappingBooking.stock_symbol}</span>
+                </div>
+                {rpMappingBooking.rp_name && (
+                  <div className="flex justify-between border-t pt-1 mt-1">
+                    <span className="text-muted-foreground">Current RP</span>
+                    <span className="font-medium text-purple-600">{rpMappingBooking.rp_code} - {rpMappingBooking.rp_name}</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* RP Selection */}
+              <div className="space-y-2">
+                <Label>Referral Partner</Label>
+                <Select
+                  value={rpMappingData.referral_partner_id}
+                  onValueChange={(value) => setRpMappingData({ ...rpMappingData, referral_partner_id: value })}
+                  data-testid="rp-mapping-select"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Referral Partner (or leave empty to remove)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">-- Remove RP Assignment --</SelectItem>
+                    {referralPartners.map((rp) => (
+                      <SelectItem key={rp.id} value={rp.id}>
+                        {rp.rp_code} - {rp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Revenue Share - only show if RP selected */}
+              {rpMappingData.referral_partner_id && (
+                <div className="space-y-2">
+                  <Label>Revenue Share % (Max 30%)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="30"
+                    step="0.1"
+                    value={rpMappingData.rp_revenue_share_percent}
+                    onChange={(e) => {
+                      let val = parseFloat(e.target.value);
+                      if (val > 30) val = 30;
+                      if (val < 0) val = 0;
+                      setRpMappingData({ ...rpMappingData, rp_revenue_share_percent: isNaN(val) ? 0 : val });
+                    }}
+                    placeholder="e.g., 10 (max 30)"
+                    data-testid="rp-mapping-share-input"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Employee share will be: {(100 - (rpMappingData.rp_revenue_share_percent || 0)).toFixed(1)}%
+                  </p>
+                </div>
+              )}
+              
+              {/* Warning about removing RP */}
+              {!rpMappingData.referral_partner_id && rpMappingBooking.referral_partner_id && (
+                <Alert className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <AlertDescription className="text-yellow-700 dark:text-yellow-300 text-sm">
+                    You are about to remove the RP assignment. The employee will receive 100% revenue share.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter className="flex gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setRpMappingDialogOpen(false);
+                setRpMappingBooking(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpdateRpMapping}
+              disabled={updatingRpMapping}
+              className="bg-purple-600 hover:bg-purple-700"
+              data-testid="save-rp-mapping-btn"
+            >
+              {updatingRpMapping ? (
+                <>Updating...</>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Update RP Mapping
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
