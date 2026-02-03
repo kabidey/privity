@@ -397,18 +397,18 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access stocks: {response.text}"
         print(f"✓ PE Desk can access stocks (status: {response.status_code})")
     
-    def test_employee_can_access_stocks_view(self):
-        """Employee should be able to access /api/stocks (has stocks.view)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_can_access_stocks_view(self):
+        """Viewer should be able to access /api/stocks (has stocks.view)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/stocks",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
-        # Employee should have stocks.view permission
-        assert response.status_code == 200, f"Employee should access stocks view: {response.status_code} - {response.text}"
-        print(f"✓ Employee can access stocks view (status: {response.status_code})")
+        # Viewer should have stocks.view permission
+        assert response.status_code == 200, f"Viewer should access stocks view: {response.status_code} - {response.text}"
+        print(f"✓ Viewer can access stocks view (status: {response.status_code})")
     
     # ============== PURCHASES PERMISSION TESTS ==============
     
