@@ -442,11 +442,10 @@ async def delete_company_logo(
 @router.delete("/document/{document_type}")
 async def delete_company_document(
     document_type: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.upload_docs", "delete company documents"))
 ):
     """Delete company document (PE Desk only)"""
-    check_pe_desk(current_user)
-    
     valid_types = ["cml_cdsl", "cml_nsdl", "cancelled_cheque", "pan_card"]
     if document_type not in valid_types:
         raise HTTPException(
