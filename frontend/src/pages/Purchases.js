@@ -51,7 +51,7 @@ const Purchases = () => {
   const [paymentsDialog, setPaymentsDialog] = useState({ open: false, purchase: null, payments: [] });
   const [paymentsLoading, setPaymentsLoading] = useState(false);
 
-  const { isPEDesk, isPELevel, isFinance, canDelete, hasFinanceAccess } = useCurrentUser();
+  const { user, isPEDesk, isPELevel, isFinance, canDelete, hasFinanceAccess } = useCurrentUser();
   const canPay = isPELevel || isFinance; // PE Desk, PE Manager, and Finance can pay
 
   // Fetch payments for a purchase
