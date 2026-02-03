@@ -792,13 +792,19 @@ rp_payments: {
 - `/app/test_reports/iteration_35.json` - Company Logo Upload feature (11/11 tests passed)
 - `/app/test_reports/iteration_36.json` - iOS-Style UI/UX Redesign (98% frontend pass)
 - `/app/test_reports/iteration_37.json` - Business Partner Feature Enhancements (100% pass, 15/15 backend + all frontend)
+- `/app/test_reports/iteration_50.json` - Recalculate Inventory Feature + Layout Refactoring (100% pass, 7/7 backend + all frontend)
 
 ## Prioritized Backlog
 
 ### P0 (Critical)
 - ✅ All resolved - no critical issues
+- 🟡 **Integrate Dynamic Permissions into All Backend Endpoints** - IN PROGRESS
+  - Foundation created: `/app/backend/services/permission_service.py`
+  - Recalculate inventory endpoint using it
+  - Need to migrate all remaining hardcoded `role == 1` and `is_pe_level` checks
 
 ### P1 (High Priority)
+- ✅ Recalculate Inventory Button - Complete (Feb 03, 2026)
 - ✅ RP Finance Integration - Complete
 - ✅ 30% Revenue Share Cap - Complete
 - ✅ Remove duplicate endpoints from server.py - Complete (verified via regression testing)
