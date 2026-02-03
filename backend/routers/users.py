@@ -15,7 +15,8 @@ from utils.auth import get_current_user, check_permission
 from services.permission_service import (
     has_permission,
     check_permission as check_dynamic_permission,
-    is_pe_level_dynamic
+    is_pe_level_dynamic,
+    require_permission
 )
 
 router = APIRouter(prefix="/users", tags=["Users"])
