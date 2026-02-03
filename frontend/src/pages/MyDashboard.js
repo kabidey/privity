@@ -8,7 +8,8 @@ import { toast } from 'sonner';
 import api from '../utils/api';
 import { 
   User, Users, FileText, TrendingUp, Briefcase, RefreshCw, 
-  ArrowRight, CheckCircle, Clock, IndianRupee, Target, Calendar
+  ArrowRight, CheckCircle, Clock, IndianRupee, Target, Calendar,
+  UserCheck, Building2
 } from 'lucide-react';
 
 const MyDashboard = () => {
@@ -51,15 +52,6 @@ const MyDashboard = () => {
     });
   };
 
-  const getStatusBadge = (status) => {
-    const colors = {
-      'open': 'bg-blue-500',
-      'closed': 'bg-green-500',
-      'cancelled': 'bg-gray-500'
-    };
-    return <Badge className={colors[status] || 'bg-gray-500'}>{status}</Badge>;
-  };
-
   const getApprovalBadge = (status) => {
     const colors = {
       'pending': 'bg-orange-500',
@@ -92,6 +84,8 @@ const MyDashboard = () => {
     );
   }
 
+  const hasTeam = data.user?.has_team || (data.team_stats?.direct_reports_count > 0);
+
   return (
     <div className="space-y-6" data-testid="employee-dashboard">
       <div className="flex items-center justify-between">
@@ -100,7 +94,12 @@ const MyDashboard = () => {
             <User className="w-7 h-7 text-blue-600" />
             My Dashboard
           </h1>
-          <p className="text-gray-500">Welcome, {currentUser.name}</p>
+          <p className="text-gray-500">Welcome, {data.user?.name || currentUser.name}</p>
+          {hasTeam && (
+            <Badge className="mt-1 bg-purple-100 text-purple-700">
+              Team Manager - {data.team_stats?.direct_reports_count} Direct Reports
+            </Badge>
+          )}
         </div>
         <Button variant="outline" onClick={fetchData}>
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -108,28 +107,16 @@ const MyDashboard = () => {
         </Button>
       </div>
 
-      {/* Quick Stats */}
+      {/* My Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card className="cursor-pointer hover:shadow-md" onClick={() => navigate('/clients')}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">My Clients</p>
-                <p className="text-2xl font-bold text-blue-600">{data.overview.total_clients}</p>
+                <p className="text-2xl font-bold text-blue-600">{data.my_stats?.total_clients || 0}</p>
               </div>
               <Users className="w-8 h-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md" onClick={() => navigate('/referral-partners')}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs text-gray-500">My RPs</p>
-                <p className="text-2xl font-bold text-purple-600">{data.overview.total_rps}</p>
-              </div>
-              <Briefcase className="w-8 h-8 text-purple-200" />
             </div>
           </CardContent>
         </Card>
@@ -138,8 +125,8 @@ const MyDashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500">Total Bookings</p>
-                <p className="text-2xl font-bold text-gray-800">{data.overview.total_bookings}</p>
+                <p className="text-xs text-gray-500">My Bookings</p>
+                <p className="text-2xl font-bold text-gray-800">{data.my_stats?.total_bookings || 0}</p>
               </div>
               <FileText className="w-8 h-8 text-gray-200" />
             </div>
@@ -150,10 +137,10 @@ const MyDashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500">Open</p>
-                <p className="text-2xl font-bold text-blue-600">{data.overview.open_bookings}</p>
+                <p className="text-xs text-gray-500">Pending Bookings</p>
+                <p className="text-2xl font-bold text-orange-600">{data.my_stats?.pending_bookings || 0}</p>
               </div>
-              <Clock className="w-8 h-8 text-blue-200" />
+              <Clock className="w-8 h-8 text-orange-200" />
             </div>
           </CardContent>
         </Card>
@@ -162,8 +149,8 @@ const MyDashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500">Closed</p>
-                <p className="text-2xl font-bold text-green-600">{data.overview.closed_bookings}</p>
+                <p className="text-xs text-gray-500">Approved</p>
+                <p className="text-2xl font-bold text-green-600">{data.my_stats?.approved_bookings || 0}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-200" />
             </div>
@@ -174,210 +161,246 @@ const MyDashboard = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500">Pending</p>
-                <p className="text-2xl font-bold text-orange-600">{data.overview.pending_approval}</p>
+                <p className="text-xs text-gray-500">Pending Clients</p>
+                <p className="text-2xl font-bold text-yellow-600">{data.my_stats?.pending_clients || 0}</p>
               </div>
-              <Clock className="w-8 h-8 text-orange-200" />
+              <UserCheck className="w-8 h-8 text-yellow-200" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500">My Value</p>
+                <p className="text-lg font-bold text-emerald-600">{formatCurrency(data.my_stats?.total_value || 0)}</p>
+              </div>
+              <IndianRupee className="w-8 h-8 text-emerald-200" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Performance Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-emerald-700 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Total Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-emerald-800">{formatCurrency(data.performance.total_revenue)}</p>
-            <p className="text-xs text-emerald-600 mt-1">From all your bookings</p>
-          </CardContent>
-        </Card>
+      {/* Team Stats - Only show if user has team */}
+      {hasTeam && (
+        <>
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mt-6">
+            <Building2 className="w-5 h-5 text-purple-600" />
+            Team Overview
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="bg-purple-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-purple-600">Direct Reports</p>
+                    <p className="text-2xl font-bold text-purple-700">{data.team_stats?.direct_reports_count || 0}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-purple-300" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-blue-700 flex items-center gap-2">
-              <IndianRupee className="w-4 h-4" />
-              Total Profit
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className={`text-3xl font-bold ${data.performance.total_profit >= 0 ? 'text-blue-800' : 'text-red-600'}`}>
-              {formatCurrency(data.performance.total_profit)}
-            </p>
-            <p className="text-xs text-blue-600 mt-1">Net profit from bookings</p>
-          </CardContent>
-        </Card>
+            <Card className="bg-purple-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-purple-600">Team Clients</p>
+                    <p className="text-2xl font-bold text-purple-700">{data.team_stats?.team_clients_count || 0}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-purple-300" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-purple-700 flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              This Month
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-purple-800">{data.performance.this_month_bookings}</p>
-            <p className="text-xs text-purple-600 mt-1">Bookings created this month</p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="bg-purple-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-purple-600">Team Bookings</p>
+                    <p className="text-2xl font-bold text-purple-700">{data.team_stats?.team_bookings_count || 0}</p>
+                  </div>
+                  <FileText className="w-8 h-8 text-purple-300" />
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* My Clients & RPs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* My Clients */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                My Clients
-              </span>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/clients')}>
-                View All <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.my_clients.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>PAN</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.my_clients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.name}</TableCell>
-                      <TableCell className="text-sm font-mono">{client.pan_number}</TableCell>
-                      <TableCell>
-                        <Badge className={client.approval_status === 'approved' ? 'bg-green-500' : 'bg-orange-500'}>
-                          {client.approval_status}
-                        </Badge>
-                      </TableCell>
+            <Card className="bg-purple-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-purple-600">Team Value</p>
+                    <p className="text-lg font-bold text-purple-700">{formatCurrency(data.team_stats?.team_value || 0)}</p>
+                  </div>
+                  <IndianRupee className="w-8 h-8 text-purple-300" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Team Performance Table */}
+          {data.team_performance && data.team_performance.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
+                  Team Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Team Member</TableHead>
+                      <TableHead className="text-right">Clients</TableHead>
+                      <TableHead className="text-right">Bookings</TableHead>
+                      <TableHead className="text-right">Value</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Users className="w-12 h-12 mx-auto text-gray-300 mb-2" />
-                <p>No clients assigned yet</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {data.team_performance.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{member.name}</p>
+                            <p className="text-xs text-gray-500">{member.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">{member.clients_count}</TableCell>
+                        <TableCell className="text-right">{member.bookings_count}</TableCell>
+                        <TableCell className="text-right font-medium text-emerald-600">
+                          {formatCurrency(member.bookings_value)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
 
-        {/* My RPs */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Briefcase className="w-5 h-5" />
-                My Referral Partners
-              </span>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/referral-partners')}>
-                View All <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.my_rps.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.my_rps.map((rp) => (
-                    <TableRow key={rp.id}>
-                      <TableCell className="font-medium">{rp.name}</TableCell>
-                      <TableCell className="text-sm font-mono">{rp.code}</TableCell>
-                      <TableCell>
-                        <Badge className={rp.approval_status === 'approved' ? 'bg-green-500' : 'bg-orange-500'}>
-                          {rp.approval_status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Briefcase className="w-12 h-12 mx-auto text-gray-300 mb-2" />
-                <p>No RPs assigned yet</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Bookings */}
+      {/* My Recent Bookings */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Recent Bookings
-            </span>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/bookings')}>
-              View All <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-600" />
+            My Recent Bookings
           </CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/bookings')}>
+            View All <ArrowRight className="w-4 h-4 ml-1" />
+          </Button>
         </CardHeader>
         <CardContent>
-          {data.recent_bookings.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Booking #</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Approval</TableHead>
-                    <TableHead>Date</TableHead>
+          {data.my_recent_bookings && data.my_recent_bookings.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Booking #</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead className="text-right">Qty</TableHead>
+                  <TableHead className="text-right">Value</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.my_recent_bookings.map((booking) => (
+                  <TableRow key={booking.id}>
+                    <TableCell className="font-mono text-sm">{booking.booking_number}</TableCell>
+                    <TableCell>{booking.client_name}</TableCell>
+                    <TableCell>{booking.stock_symbol}</TableCell>
+                    <TableCell className="text-right">{booking.quantity}</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(booking.quantity * booking.selling_price)}
+                    </TableCell>
+                    <TableCell>{getApprovalBadge(booking.approval_status)}</TableCell>
+                    <TableCell className="text-sm text-gray-500">{formatDate(booking.created_at)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.recent_bookings.map((booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell className="font-medium">{booking.booking_number}</TableCell>
-                      <TableCell>{booking.client_name}</TableCell>
-                      <TableCell>{booking.stock_symbol}</TableCell>
-                      <TableCell>{booking.quantity}</TableCell>
-                      <TableCell>{formatCurrency(booking.quantity * booking.buying_price)}</TableCell>
-                      <TableCell>{getStatusBadge(booking.status)}</TableCell>
-                      <TableCell>{getApprovalBadge(booking.approval_status)}</TableCell>
-                      <TableCell className="text-xs text-gray-500">{formatDate(booking.created_at)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <FileText className="w-12 h-12 mx-auto text-gray-300 mb-2" />
-              <p>No bookings yet</p>
-              <Button className="mt-4" onClick={() => navigate('/bookings')}>
-                Create First Booking
-              </Button>
-            </div>
+            <p className="text-center text-gray-500 py-8">No bookings yet</p>
           )}
         </CardContent>
       </Card>
+
+      {/* My Clients */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Users className="w-5 h-5 text-blue-600" />
+            My Clients
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/clients')}>
+            View All <ArrowRight className="w-4 h-4 ml-1" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {data.my_clients && data.my_clients.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>PAN</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.my_clients.map((client) => (
+                  <TableRow key={client.id}>
+                    <TableCell className="font-medium">{client.name}</TableCell>
+                    <TableCell className="font-mono text-sm">{client.pan_number}</TableCell>
+                    <TableCell>{getApprovalBadge(client.approval_status)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-center text-gray-500 py-8">No clients mapped to you</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Pending Client Approvals */}
+      {data.my_pending_clients && data.my_pending_clients.length > 0 && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2 text-orange-700">
+              <Clock className="w-5 h-5" />
+              Pending Client Approvals ({data.my_pending_clients.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>PAN</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.my_pending_clients.map((client) => (
+                  <TableRow key={client.id}>
+                    <TableCell className="font-medium">{client.name}</TableCell>
+                    <TableCell className="font-mono text-sm">{client.pan_number}</TableCell>
+                    <TableCell>
+                      <Button size="sm" variant="outline" onClick={() => navigate('/clients')}>
+                        Review
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
