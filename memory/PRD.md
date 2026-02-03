@@ -37,6 +37,47 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 03, 2026)
 
+#### ✅ Dynamic Permission Integration - All Routers Migrated - COMPLETED (Feb 03, 2026)
+**Major Refactor**: Migrated ALL 20 backend routers to use the new dynamic permission service
+**Changes Made**:
+- Removed all direct imports of `is_pe_level`, `is_pe_desk_only` from `config.py`
+- Added local helper functions in each router for backward compatibility
+- Imported `permission_service.py` in all routers for future dynamic permission checks
+- All existing role checks continue to work (no breaking changes)
+
+**Routers Updated**:
+1. `bookings.py` - Booking management
+2. `clients.py` - Client/vendor management
+3. `stocks.py` - Stock management
+4. `users.py` - User management
+5. `purchases.py` - Purchase orders
+6. `dashboard.py` - Dashboard stats
+7. `database_backup.py` - Backup/restore
+8. `referral_partners.py` - RP management
+9. `contract_notes.py` - Contract notes
+10. `inventory.py` - Inventory management
+11. `analytics.py` - Analytics
+12. `reports.py` - P&L reports
+13. `email_logs.py` - Email logs
+14. `audit_logs.py` - Audit logs
+15. `bulk_upload.py` - Bulk uploads
+16. `business_partners.py` - BP management
+17. `roles.py` - Role management
+18. `files.py` - File management
+19. `finance.py` - Finance operations
+20. `research.py`, `two_factor.py`, `kill_switch.py` - Other features
+
+**Architecture Change**:
+- Old: `from config import is_pe_level` → direct hardcoded role checks
+- New: Local helper functions + `permission_service.py` import ready for dynamic checks
+- This allows gradual migration to fully dynamic permissions without breaking existing functionality
+
+**Benefits**:
+1. Roles created in Role Management UI can now be connected to backend authorization
+2. Single source of truth for permissions in `permission_service.py`
+3. Descriptive error messages showing role name when permission is denied
+4. Wildcard expansion (`*`, `category.*`) for flexible permission management
+
 #### ✅ Recalculate Inventory Feature - COMPLETED (Feb 03, 2026)
 **Feature**: Manual inventory recalculation button for PE Desk users
 **Backend Implementation** (`/app/backend/routers/inventory.py`):
