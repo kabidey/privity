@@ -187,13 +187,14 @@ async def transfer_inventory(
     booking_id: str
 ) -> Tuple[bool, str]:
     """
-    Mark inventory as transferred (completed sale).
+    Recalculate inventory after stock transfer (completed sale).
     
-    Moves stock from blocked to transferred status.
+    The booking's stock_transferred flag should already be set to True
+    before calling this function. We just recalculate to update counts.
     
     Args:
         stock_id: The stock being transferred
-        quantity: Amount being transferred
+        quantity: Amount being transferred (for logging)
         booking_id: The booking ID for the transfer
     
     Returns:
@@ -202,29 +203,16 @@ async def transfer_inventory(
     lock = get_inventory_lock(stock_id)
     
     async with lock:
-        # Decrement blocked quantity (available stays same since it was already blocked)
-        result = await db.inventory.find_one_and_update(
-            {
-                "stock_id": stock_id,
-                "blocked_quantity": {"$gte": quantity}
-            },
-            {
-                "$inc": {
-                    "blocked_quantity": -quantity
-                },
-                "$set": {
-                    "last_updated": datetime.now(timezone.utc).isoformat()
-                }
-            },
-            return_document=True
-        )
+        # Recalculate inventory from actual booking data
+        # transferred_qty is calculated from bookings with stock_transferred=True
+        inventory = await _recalculate_inventory_internal(stock_id)
         
-        if result is None:
-            logger.warning(f"Failed to transfer inventory for stock {stock_id}, booking {booking_id}")
+        if inventory:
+            logger.info(f"Inventory recalculated after transfer of {quantity} units for booking {booking_id}. Available: {inventory.get('available_quantity')}, Blocked: {inventory.get('blocked_quantity')}")
+            return True, "Inventory transferred successfully"
+        else:
+            logger.warning(f"Failed to recalculate inventory for stock {stock_id}, booking {booking_id}")
             return False, "Failed to mark inventory as transferred"
-        
-        logger.info(f"Transferred {quantity} units of stock {stock_id} for booking {booking_id}")
-        return True, "Inventory transferred successfully"
 
 
 async def get_stock_weighted_avg_price(stock_id: str) -> float:
