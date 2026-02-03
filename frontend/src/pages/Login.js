@@ -322,6 +322,14 @@ const Login = () => {
 
       {/* Right Side - Form */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 min-h-screen lg:min-h-0">
+        {/* Quote above logo - shown on both mobile and desktop */}
+        <div className="mb-4 text-center max-w-sm" data-testid="pe-quote-above-logo">
+          <p className="text-sm italic text-muted-foreground">
+            "{currentQuote.quote}"
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1">— {currentQuote.author}</p>
+        </div>
+        
         {/* Logo - shown on both mobile and desktop */}
         <div className="mb-6 lg:mb-8 flex justify-center">
           <img 
