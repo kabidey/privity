@@ -225,18 +225,16 @@ async def create_backup(
 
 @router.post("/backups/full")
 async def create_full_backup(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.full", "create full backups"))
 ):
-    """Create a FULL database backup including ALL collections and files info (PE Desk only)
+    """Create a FULL database backup including ALL collections and files info (requires database_backup.full permission)
     
     This backup includes:
     - ALL database collections (dynamically detected)
     - Metadata about all uploaded files
     - Ready for complete system restore
     """
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can create full backups")
-    
     backup_id = str(uuid.uuid4())
     backup_data = {}
     record_counts = {}
