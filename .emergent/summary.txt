@@ -1,41 +1,46 @@
 <analysis>**original_problem_statement:**
-The user initiated a session with a broad set of requests, starting with implementing Two-Factor Authentication (TOTP). During and after the implementation, several new issues and requests were raised:
-
-1.  **2FA Blank Screen Bug**: After implementing 2FA, clicking the Enable button on the password change page resulted in a blank screen.
-2.  **Account Security Page Visibility**: The user could not find the link to the Account Security page.
-3.  **Role System Consistency**: The user requested a full-app audit to ensure the new, refactored role system was being applied consistently everywhere, as inconsistencies were found.
-4.  **Booking Approval Failure**: An error failed to process approval was occurring when trying to approve bookings.
-5.  **Duplicate Bookings**: The user requested to force implement a check to prevent the creation of duplicate bookings.
-6.  **Default User Role**: New users were not being created with the default 'Employee' role as intended.
-7.  **Viewer Role Permissions**: A 'Viewer' role should be able to see everything but not create, edit, delete, or download anything.
-8.  **Booking Excel Export**: The Excel export feature on the booking page was not working.
-9.  **Email Formatting & Broken Links**: All outgoing emails were poorly formatted. The client confirmation email link was exposing the backend deployment URL and led to a booking does not exist error.
+The user initiated the session with a variety of requests and bug reports. The primary issues included:
+1.  **Email & Confirmation Flow**: User reported that all outgoing emails were poorly formatted and the client confirmation email link was broken.
+2.  **Payment Recording Blank Screen**: When trying to record a payment in a booking, the page would go blank.
+3.  **Incorrect Payment Statuses**: After making payments, the booking status was not updating correctly to Client Approved after the first payment, or DP Ready after full payment.
+4.  **Payment Deletion**: The user requested the ability for PE Desk/Managers to delete incorrectly entered payments.
+5.  **Payment Deletion Status Reset**: After implementing payment deletion, the user noted that the DP Ready status was not being reset correctly.
+6.  **Centralized Role Utility**: The user requested a centralized utility in the frontend to handle role-based logic to avoid inconsistencies.
+7.  **Broken User Management Page**: The user reported that the User Management page was blank after the role management refactoring.
+8.  **Email Attachments**: The user requested that company master documents be attached to the payment request email sent to clients, and that download links also be embedded in the email body.
+9.  **Dynamic Role Management**: The user requested the ability to create new roles and assign permissions dynamically through the UI, as roles were previously hardcoded.
+10. **Inventory Double-Blocking**: A bug was reported where deleting and re-entering a payment caused the inventory calculation to create a double block.
+11. **Inventory Recalculation**: The user requested a button on the inventory page for PE Desk users to manually trigger an inventory recalculation.
+12. **Deployment & UI Questions**: The user asked for instructions on deploying to AWS EC2 and for the location of the role management menu.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB system. In this session, the agent successfully implemented a complete Two-Factor Authentication (TOTP) feature. A major effort was then spent on bug fixing and hardening the application based on user feedback. The agent addressed a critical UI bug in the 2FA flow by refactoring it to a dedicated page. A comprehensive audit and fix of the role-based access control was performed across the frontend, ensuring the new roles are respected. Key business logic bugs in booking approvals, duplicate booking creation, and user creation defaults have been resolved. The agent also implemented read-only restrictions for a new 'Viewer' role and fixed a broken Excel export feature. The last action was an attempt to fix broken email confirmation links and poor email formatting.
+The application is a full-stack React/FastAPI/MongoDB system for managing bookings and related financial operations. In this session, the agent successfully resolved a cascade of bugs related to the payment and booking lifecycle. This included fixing a critical bug that caused a blank screen during payment recording, correcting the logic for status updates (Client Approved, DP Ready), and implementing a feature to delete payments with proper status rollbacks.
+
+A significant frontend refactoring was completed by creating a centralized role utility ( hook) and applying it to over 20 pages to ensure consistent role-based UI rendering.
+
+Following a user request, a complete dynamic Role & Permission Management system was built from scratch, including backend CRUD APIs and a comprehensive frontend interface for creating roles and assigning granular permissions.
+
+A critical inventory calculation bug that caused double-blocking was fixed by refactoring the entire inventory service to rely on idempotent recalculations instead of faulty atomic increments. The agent also enhanced the client payment request email to attach all company documents and include direct download links.
 
 **Last working item**:
--   Last item agent was working: Fixing badly formatted emails and a broken client booking confirmation flow. The confirmation link in the email used an incorrect URL and pointed to a non-existent backend endpoint, causing an error.
+-   Last item agent was working: Implementing a new feature to add a Recalculate Inventory button on the inventory page, exclusively for 'PE Desk' users. The agent had just started creating the backend endpoint.
 -   Status: IN PROGRESS
 -   Agent Testing Done: N
--   Which testing method agent to use? both
+-   Which testing method agent to use? backend testing agent
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1**: Client Confirmation Flow and Email Formatting (P0)
-    -   **Attempted fixes**:
-        -   A new backend endpoint  was created in  to handle the confirmation logic.
-        -   The  variable was added to the  file to be used for generating links.
-        -   The agent reviewed  but did not modify the HTML structure, suspecting the issue might be old templates in the database.
+-   **Issue 1**: Add Recalculate Inventory Button (P1)
+    -   **Attempted fixes**: The agent created a new file  and started adding a new POST endpoint.
     -   **Next debug checklist**:
-        1.  Create a new booking to trigger a fresh client confirmation email.
-        2.  Inspect backend logs to verify the generated  uses the correct  and points to the frontend path .
-        3.  Thoroughly review and improve the HTML structure within the email templates in  to ensure proper rendering in email clients. Use tables for layout if necessary.
-        4.  Manually trigger the  function with a test booking to inspect the generated email content without going through the full UI flow.
-        5.  Once the link is correct and emails are formatted, perform an end-to-end test by clicking the link in the (logged) email and verifying the  page successfully calls the new backend endpoint.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a critical client-facing feature. Fixing it will allow clients to confirm or deny bookings, which is a core part of the business workflow. It will also improve the professionalism of all email communications.
+        1.  Complete the  endpoint in . This endpoint should call the  service function.
+        2.  Protect the endpoint so it is only accessible by 'PE Desk' users (role 1).
+        3.  Add a Recalculate Inventory button to the  page.
+        4.  Ensure the button is only visible to users with the 'PE Desk' role using the  hook.
+        5.  Implement the  handler for the button to call the new backend endpoint.
+    -   **Why fix this issue and what will be achieved with the fix?**: This provides a manual fail-safe for admins to ensure inventory data is always accurate, correcting any potential data drift without needing developer intervention.
     -   **Status**: IN PROGRESS
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** both
@@ -46,24 +51,24 @@ The application is a full-stack React/FastAPI/MongoDB system. In this session, t
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    *   (P0) **Enforce 2FA**: The user expressed interest in enforcing 2FA for admin roles (PE Desk/Manager). This should be proposed as the next step after the current bug is fixed.
-    *   (P1) **Centralized Role Utility**: Create a single, shared utility/hook in the frontend for role checks (, , etc.) to be imported by all components. This will prevent future inconsistencies.
+    -   (P0) **Integrate Dynamic Permissions into Backend**: The new dynamic role system is built, but the backend's authorization logic still uses old, hardcoded role checks (e.g., , ). A full refactor is needed to replace these checks with calls to the new permissions system to make the created roles effective.
+    -   (P1) **Enforce 2FA for Admin Roles**: Propose enforcing 2FA for admin roles (PE Desk/Manager) as a security enhancement.
 -   **Future Tasks**:
-    *   (P2) **Refactor Security State Management**: Migrate in-memory security state (login attempts, blocked IPs) to a persistent, shared store like Redis.
-    *   (P2) **Bulk Booking Closure**: Implement a feature to close multiple bookings at once.
-    *   (P2) **Configurable Loss-Booking Thresholds**: Add settings for auto-approving loss-making bookings.
-    *   (P2) **Referral Partner (RP) Dashboard**: Create a dedicated dashboard for RPs.
-    *   (P3) **API Documentation**: Automatically generate backend API documentation using a tool like Swagger/OpenAPI.
+    -   (P2) Refactor Security State Management to a persistent store like Redis.
+    -   (P2) Implement a feature to close multiple bookings at once.
+    -   (P2) Add settings for auto-approving loss-making bookings.
+    -   (P2) Create a dedicated dashboard for Referral Partners (RPs).
+    -   (P3) Automatically generate backend API documentation (Swagger/OpenAPI).
 
 **Completed work in this session**
--   **Feature: Two-Factor Authentication (TOTP)**: Implemented a full-stack 2FA system for user accounts, including backend logic for generating secrets, verifying codes, and managing backup codes (, ).
--   **Bug Fix: 2FA Blank Screen**: Fixed a critical bug where the 2FA setup UI would go blank by refactoring the flow from a problematic modal into a dedicated, stable setup page ().
--   **Bug Fix: Role Inconsistencies**: Audited and corrected hardcoded role ID checks across numerous frontend files (, , , etc.) to align with the central  definitions.
--   **Feature: Viewer Role Restrictions**: Implemented read-only permissions for the 'Viewer' role (ID 4) by disabling buttons and actions in the frontend (, ) and adding authorization checks in the backend.
--   **Feature: Duplicate Booking Prevention**: Added robust backend logic in  to prevent duplicate booking creation based on recent attempts and existing pending bookings.
--   **Bug Fix: Booking Approval Failure**: Resolved a server error () during booking approval by adding safe  access in .
--   **Bug Fix: Booking Excel Export**: Fixed the non-functional Excel export by creating a new  endpoint in .
--   **Bug Fix: Default User Role**: Corrected the registration logic in  to assign new users the 'Employee' role by default.
+-   **Bug Fix: Payment Recording Blank Screen**: Fixed the bug by changing the backend payment endpoint () to accept a JSON body instead of query parameters.
+-   **Bug Fix: Incorrect Payment Statuses**: Corrected the backend logic to set  to 'accepted' on first payment and  to  on full payment.
+-   **Feature: Delete Payments**: Implemented a  endpoint and added UI for PE Desk/Managers to delete payments. The logic correctly resets  and other statuses.
+-   **Refactor: Centralized Role Utility**: Created a  hook and  in the frontend and refactored over 20 pages to use this central utility for consistent role checking.
+-   **Bug Fix: Broken User Management Page**: Resolved a crash on the  page caused by incorrect variable usage after the role utility refactor.
+-   **Feature: Dynamic Role & Permission Management**: Built a full-stack feature allowing PE Desk admins to create/edit roles and assign granular permissions via a new UI at .
+-   **Bug Fix: Inventory Double-Blocking**: Overhauled the  to use an idempotent recalculation method, fixing a critical bug where inventory was double-counted.
+-   **Feature: Enhanced Payment Request Email**: Modified  to attach all available company master documents (including the previously missing cancelled cheque) to the payment request email and embed download links in the email body.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -75,73 +80,66 @@ The application is a full-stack React/FastAPI/MongoDB system. In this session, t
 
 
 **Key Technical Concepts**
--   **TOTP-based 2FA**: Implementation using  for secrets/verification and  for generating the setup image. The flow includes setup, verification, backup codes, and disabling the feature.
--   **UI Flow Refactoring (Page over Modal)**: Solved a persistent UI bug where a dialog/modal was unstable by moving the feature into a dedicated, isolated page. This is a key pattern for handling complex, multi-step stateful interactions in the preview environment.
--   **Role-Based Access Control (RBAC) Hardening**: Systematically enforced 'Viewer' role restrictions on both the frontend (disabling UI controls) and backend (protecting API endpoints) to ensure a consistent read-only experience.
--   **Idempotency & Duplicate Prevention**: Enhanced the booking creation endpoint with server-side checks to prevent creating duplicate records, improving data integrity.
+-   **Dynamic Role-Based Access Control (RBAC)**: A full-stack system was created to manage roles and permissions from a database and UI, moving away from hardcoded values.
+-   **Idempotent Service Design**: The inventory service was refactored to be idempotent. Instead of relying on risky incremental updates, it recalculates state from a source of truth (approved bookings), making it resilient to duplicate calls or out-of-order operations.
+-   **Frontend State & Hook Refactoring**: Consolidated scattered role-checking logic across 20+ files into a single, reusable React hook (), dramatically improving maintainability and consistency.
+-   **API Endpoint Debugging**: Traced and fixed a bug caused by a mismatch between the frontend sending a JSON  and the backend expecting  parameters.
 
 **key DB schema**
--   **users**:
-    -   : String (Encrypted TOTP secret).
-    -   : Boolean.
-    -   : Array of strings (Hashed backup codes).
+-   **roles**: (New Collection)
+    -   
 -   **bookings**:
-    -   : String (Token for client email confirmation).
-    -   : Datetime.
+    -   : Boolean (Indicates if booking is fully paid and ready for stock transfer).
+    -   : Boolean (Indicates if booking is fully paid).
 
 **changes in tech stack**
--   **Backend**: Added  and  dependencies.
+-   None
 
 **All files of reference**
--   
--   
--   
--   
--   
--   
--   
--   
--   
--   
+-    (New file for inventory actions)
+-    (Heavily refactored)
+-    (New file for role management)
+-    (New page for role management UI)
+-    (Central role logic hook)
+-    (Central role constants)
+-    (Payment and status logic)
+-    (Payment UI)
+-    (Bug fix and refactor)
 
 **Areas that need refactoring**:
--   The frontend uses inconsistent role-checking logic (e.g., , ). This should be centralized into a single  hook or utility file to improve maintainability, as suggested in the upcoming tasks.
+-   The backend authorization system needs a complete overhaul to use the new dynamic permissions stored in the  collection. Currently, all authorization is still based on old, hardcoded role IDs.
+-   The  component was missed during the role utility refactor and still contains its own local role-checking logic. It should be updated to use the  hook.
 
 **key api endpoints**
--   **2FA Endpoints**:
-    -   
-    -   
-    -   
-    -   
-    -    (For login flow)
--   **Booking Endpoints**:
-    -   : **(New)** Handles booking confirmation from the client's email link.
-    -   : **(New)** Exports bookings data to Excel/CSV.
-    -   : **(Modified)** Added duplicate booking prevention logic.
-    -   : **(Fixed)** Resolved server error.
+-   **New Endpoints**:
+    -   : Manage roles collection.
+    -   : Manage a specific role.
+    -   : Get a list of all available permissions in the system.
+-   **Modified Endpoints**:
+    -   : Changed from accepting  params to a JSON .
+    -   : Permissions updated to allow PE Managers; logic added to correctly reset booking statuses.
 
 **Critical Info for New Agent**
-1.  **Top Priority is Email/Confirmation Fix**: The most urgent task is to fix the client booking confirmation email flow. This involves ensuring email templates are well-formatted and that the confirmation links are generated with the correct production-ready frontend URL.
-2.  **2FA UI is a Dedicated Page**: The 2FA setup flow was deliberately moved from a modal to a full page () to solve a critical and persistent UI bug. Do not revert this to a modal.
-3.  **Role System is Key**: Continue to be vigilant about applying role-based restrictions. The  role (ID 4) must be read-only. Propose the creation of a centralized role-checking utility to the user.
-4.  **Backend Testing**: The previous agent made good use of  and multi-step bash scripts to test backend logic before touching the UI. Continue this practice, especially for complex business logic like booking prevention and approvals.
+1.  **Finish Inventory Recalculation Button**: Your first task is to complete the Recalculate Inventory button feature. This involves finishing the backend endpoint in  and adding the button to the  frontend page, ensuring it's only visible to 'PE Desk' users.
+2.  **CRITICAL - Integrate Dynamic Permissions**: The most important upcoming task is to make the new Role Management system functional. You must refactor the backend's authorization checks. Replace all hardcoded checks like  or  with a new dependency that checks if the user's role has the required permission string (e.g., ). Without this, any new roles created in the UI are useless.
+3.  **Inventory Service Logic**: The inventory service was intentionally refactored to be idempotent. All blocking/unblocking of inventory is now handled by recalculating from the state of the  collection. Do not re-introduce separate atomic increment/decrement operations, as this led to the double-counting bug.
 
 **documents and test reports created in this job**
 -   
--    (Updated)
--    (Created by testing agent)
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
--   : **IN PROGRESS**. The user reported that emails look bad and the client confirmation link is broken. The agent started fixing this.
--   : **COMPLETED**. The agent implemented robust duplicate booking prevention on the backend.
--   : **COMPLETED**. The agent fixed all three of these issues.
--   : **COMPLETED**. The agent found and fixed a  in the backend inventory service.
--   : **COMPLETED**. The agent pointed out the menu location and performed a full audit/fix of role usage in the frontend.
--   : **COMPLETED**. The agent debugged this and fixed it by refactoring the UI to use a dedicated page instead of a modal.
--   : User confirmed the agent's initial plan.
+1.  : **COMPLETED**. Agent added download links to the payment request email.
+2.  : **COMPLETED**. Agent investigated and fixed the crash on the  page.
+3.  : **COMPLETED**. Agent provided detailed instructions for both Emergent-managed deployment and manual export to EC2.
+4.  : **COMPLETED**. Agent provided a screenshot and explanation showing the Users menu item.
+5.  : **COMPLETED**. Agent explained the limitation and then built a full dynamic role management system upon user approval.
+6.  : **COMPLETED**. User confirmation to build the dynamic role system.
+7.  : **COMPLETED**. Agent found the root cause in the inventory service and refactored it to fix the bug.
+8.  : **IN PROGRESS**. This is the last working item.
 
 **Project Health Check:**
--   **Broken**: The client email confirmation flow is broken.
+-   **Broken**: Backend authorization is inconsistent and does not respect the newly created dynamic roles. All API endpoint protection is still using hardcoded role IDs.
 -   **Mocked**: None
 
 **3rd Party Integrations**
@@ -152,15 +150,15 @@ The application is a full-stack React/FastAPI/MongoDB system. In this session, t
 -    &  (for TOTP/2FA feature)
 
 **Testing status**
--   **Testing agent used after significant changes**: YES (for the 2FA feature)
--   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: []
--   **Known regressions**: None
+-   Testing agent used after significant changes: YES (for payment dialog fix)
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: []
+-   Known regressions: None
 
 **Credentials to test flow:**
 -   **PE Desk Super Admin**:  / 
 -   **Employee**:  / 
--   **Note**: A 'Viewer' user account should be created to test the read-only restrictions.
 
 **What agent forgot to execute**
--   While the agent implemented many 'Viewer' role restrictions, a full, exhaustive audit of every single button and action across the entire application was not performed. Some interactive elements might still be accessible to Viewers.</analysis>
+-   The agent did not refactor  to use the new centralized  hook; it still contains its own hardcoded role logic.
+-   The backend integration of the new dynamic role & permission system was not started. This is the most critical pending task to make the new feature functional end-to-end.</analysis>
