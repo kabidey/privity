@@ -462,13 +462,10 @@ async def notify_clients_for_corporate_action(action_id: str):
 async def send_corporate_action_notifications(
     action_id: str,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("stocks.corporate_actions", "send corporate action notifications"))
 ):
     """Send email notifications to all clients holding the stock (PE Desk only)"""
-    user_role = current_user.get("role", 5)
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can send notifications")
-    
     action = await db.corporate_actions.find_one({"id": action_id}, {"_id": 0})
     if not action:
         raise HTTPException(status_code=404, detail="Corporate action not found")
@@ -497,7 +494,8 @@ async def send_corporate_action_notifications(
 @router.get("/corporate-actions", response_model=List[CorporateAction])
 async def get_corporate_actions(
     current_user: dict = Depends(get_current_user),
-    stock_id: Optional[str] = None
+    stock_id: Optional[str] = None,
+    _: None = Depends(require_permission("stocks.view", "view corporate actions"))
 ):
     """Get corporate actions"""
     query = {"stock_id": stock_id} if stock_id else {}
