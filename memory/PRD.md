@@ -39,22 +39,42 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 #### ✅ Selective Database Clear Feature - COMPLETED (Feb 03, 2026)
 
-**Enhanced Clear DB Functionality:**
-- Added selective clearing - users can now choose specific collections to clear
-- New endpoint: `GET /api/database/clearable-collections` - returns all clearable collections with record counts
-- Updated `DELETE /api/database/clear` - accepts optional `collections` query parameter for selective clearing
-- Protected collections (users, database_backups) are always preserved
-- New UI dialog with:
-  - Grid of checkboxes for each collection showing name and record count
-  - "Select All" / "Deselect All" button
-  - Selection summary showing total records to be deleted
-  - Red highlighting for selected collections
-  - Confirmation text input required ("CLEAR DATABASE")
-- Audit logging captures selective clear operations with requested collections
+**Enhanced Clear DB Functionality with 4 New Options:**
+
+**1. Clear by Category:**
+- Collections grouped into 11 categories: Finance Data, System Logs, Client Data, Booking Data, Inventory & Purchases, Partner Data, Stock Master Data, System Settings, Notifications & Messages, Research & Reports, Other Data
+- Click category to select/deselect all collections in that category
+- Visual indication of partially selected categories
+- Backend: `GET /api/database/clearable-collections` returns collections with category assignments
+
+**2. Preview Mode:**
+- "Preview What Will Be Deleted" button
+- Shows exact counts: records to delete, records to preserve, collections affected
+- Sample records preview (first 5 from each collection)
+- Backend: `POST /api/database/clear/preview` endpoint
+
+**3. Exclude Specific Records:**
+- Input field to add records to exclude (format: `collection_name:record_id`)
+- Badge display of excluded records with click-to-remove
+- Backend: `exclude_ids` query parameter on clear endpoint
+- Records with matching IDs are preserved during clear
+
+**4. Clear Uploaded Files Only:**
+- New "Files Only" tab in dialog
+- File types: Client Docs, BP Docs, RP Docs, Company Docs, Logos
+- Shows file counts and sizes (GridFS + filesystem)
+- Clears files without touching database records
+- Backend: `DELETE /api/database/clear/files` and `GET /api/database/files/stats` endpoints
 
 **Files Modified:**
-- `backend/routers/database_backup.py` - Added clearable-collections endpoint, updated clear endpoint
-- `frontend/src/pages/DatabaseBackup.js` - New selective clear dialog UI
+- `backend/routers/database_backup.py` - Added 4 new endpoints, COLLECTION_CATEGORIES mapping
+- `frontend/src/pages/DatabaseBackup.js` - Complete dialog redesign with tabs, preview, exclusions
+
+**UI Components:**
+- 3-tab layout: Collections, Categories, Files Only
+- Preview results section with delete/preserve/collections counts
+- Exclusion badge management
+- File type selection with size information
 
 #### ✅ Feature Enhancements - COMPLETED (Feb 03, 2026)
 
