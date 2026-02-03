@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="2" failures="14" skipped="0" tests="18" time="3.764" timestamp="2026-02-03T05:45:11.880227+00:00" hostname="agent-env-39935339-4f96-4433-b37d-0083728d6e1c"><testcase classname="backend.tests.test_permission_service_migration.TestAuthSetup" name="test_pe_desk_login" time="0.488"><error message="failed on setup with &quot;AssertionError: No access_token in response&#10;assert 'access_token' in {'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAxODM5MTJ9.GQMDGgiLYs0ApEs4Ln4MLEvcfzEEIufN_Rq0UvG3k-U', 'user': {'agreement_accepted': True, 'agreement_accepted_at': '2026-02-01T19:08:16.448953+00:00', 'created_at': '2026-02-01T17:46:15.846195+00:00', 'email': 'pe@smifs.com', ...}}&quot;">backend/tests/test_permission_service_migration.py:36: in pe_desk_token
+    assert "access_token" in data, "No access_token in response"
+E   AssertionError: No access_token in response
+E   assert 'access_token' in {'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAxODM5MTJ9.GQMDGgiLYs0ApEs4Ln4MLEvcfzEEIufN_Rq0UvG3k-U', 'user': {'agreement_accepted': True, 'agreement_accepted_at': '2026-02-01T19:08:16.448953+00:00', 'created_at': '2026-02-01T17:46:15.846195+00:00', 'email': 'pe@smifs.com', ...}}</error></testcase><testcase classname="backend.tests.test_permission_service_migration.TestAuthSetup" name="test_viewer_login" time="0.262"><error message="failed on setup with &quot;AssertionError: No access_token in response&#10;assert 'access_token' in {'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjU3ZDc4M2YtOTgwYy00OTljLWJjN2MtYTExZTJhNWQwNDdmIiwiZW1haWwiOiJ0ZXN0dXNlckBzbWlmcy5jb20iLCJleHAiOjE3NzAxODM5MTJ9.sGke7aZ9k9IaWe4YaRMGrvtl_srH78OyahF14Lu5wiE', 'user': {'agreement_accepted': True, 'agreement_accepted_at': '2026-02-03T05:26:17.653890+00:00', 'created_at': '2026-01-24T14:55:02.697504+00:00', 'email': 'testuser@smifs.com', ...}}&quot;">backend/tests/test_permission_service_migration.py:45: in viewer_token
+    assert "access_token" in data, "No access_token in response"
+E   AssertionError: No access_token in response
+E   assert 'access_token' in {'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjU3ZDc4M2YtOTgwYy00OTljLWJjN2MtYTExZTJhNWQwNDdmIiwiZW1haWwiOiJ0ZXN0dXNlckBzbWlmcy5jb20iLCJleHAiOjE3NzAxODM5MTJ9.sGke7aZ9k9IaWe4YaRMGrvtl_srH78OyahF14Lu5wiE', 'user': {'agreement_accepted': True, 'agreement_accepted_at': '2026-02-03T05:26:17.653890+00:00', 'created_at': '2026-01-24T14:55:02.697504+00:00', 'email': 'testuser@smifs.com', ...}}</error></testcase><testcase classname="backend.tests.test_permission_service_migration.TestDashboardEndpoints" name="test_dashboard_stats_pe_desk" time="0.302"><failure message="AssertionError: Dashboard stats failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:79: in test_dashboard_stats_pe_desk
+    assert response.status_code == 200, f"Dashboard stats failed: {response.text}"
+E   AssertionError: Dashboard stats failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestDashboardEndpoints" name="test_dashboard_stats_viewer" time="0.299"><failure message="AssertionError: Viewer dashboard stats failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:94: in test_dashboard_stats_viewer
+    assert response.status_code == 200, f"Viewer dashboard stats failed: {response.text}"
+E   AssertionError: Viewer dashboard stats failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestDashboardEndpoints" name="test_dashboard_analytics_pe_desk" time="0.043"><failure message="AssertionError: Dashboard analytics failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:104: in test_dashboard_analytics_pe_desk
+    assert response.status_code == 200, f"Dashboard analytics failed: {response.text}"
+E   AssertionError: Dashboard analytics failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestBookingsEndpoints" name="test_bookings_list_pe_desk" time="0.301"><failure message="AssertionError: Bookings list failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:128: in test_bookings_list_pe_desk
+    assert response.status_code == 200, f"Bookings list failed: {response.text}"
+E   AssertionError: Bookings list failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestBookingsEndpoints" name="test_bookings_list_viewer" time="0.297"><failure message="AssertionError: Viewer bookings list failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:138: in test_bookings_list_viewer
+    assert response.status_code == 200, f"Viewer bookings list failed: {response.text}"
+E   AssertionError: Viewer bookings list failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestBookingsEndpoints" name="test_bookings_list_with_filters" time="0.039"><failure message="AssertionError: Filtered bookings failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:148: in test_bookings_list_with_filters
+    assert response.status_code == 200, f"Filtered bookings failed: {response.text}"
+E   AssertionError: Filtered bookings failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestClientsEndpoints" name="test_clients_list_pe_desk" time="0.303"><failure message="AssertionError: Clients list failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:170: in test_clients_list_pe_desk
+    assert response.status_code == 200, f"Clients list failed: {response.text}"
+E   AssertionError: Clients list failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestClientsEndpoints" name="test_clients_list_viewer" time="0.302"><failure message="AssertionError: Viewer clients list failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:180: in test_clients_list_viewer
+    assert response.status_code == 200, f"Viewer clients list failed: {response.text}"
+E   AssertionError: Viewer clients list failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestInventoryEndpoints" name="test_inventory_list_pe_desk" time="0.339"><failure message="AssertionError: Inventory list failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:204: in test_inventory_list_pe_desk
+    assert response.status_code == 200, f"Inventory list failed: {response.text}"
+E   AssertionError: Inventory list failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestInventoryEndpoints" name="test_inventory_list_viewer" time="0.298"><failure message="AssertionError: Viewer inventory list failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:219: in test_inventory_list_viewer
+    assert response.status_code == 200, f"Viewer inventory list failed: {response.text}"
+E   AssertionError: Viewer inventory list failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestInventoryEndpoints" name="test_recalculate_inventory_pe_desk" time="0.034"><failure message="AssertionError: Recalculate inventory failed: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:229: in test_recalculate_inventory_pe_desk
+    assert response.status_code == 200, f"Recalculate inventory failed: {response.text}"
+E   AssertionError: Recalculate inventory failed: {"detail":"Invalid token"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestInventoryEndpoints" name="test_recalculate_inventory_viewer_forbidden" time="0.034"><failure message="AssertionError: Expected 403, got 401: {&quot;detail&quot;:&quot;Invalid token&quot;}&#10;assert 401 == 403&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:240: in test_recalculate_inventory_viewer_forbidden
+    assert response.status_code == 403, f"Expected 403, got {response.status_code}: {response.text}"
+E   AssertionError: Expected 403, got 401: {"detail":"Invalid token"}
+E   assert 401 == 403
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestPermissionServiceIntegration" name="test_pe_desk_user_info" time="0.067"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:268: in test_pe_desk_user_info
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestPermissionServiceIntegration" name="test_viewer_user_info" time="0.069"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_permission_service_migration.py:278: in test_viewer_user_info
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_permission_service_migration.TestPermissionServiceIntegration" name="test_unauthenticated_access_denied" time="0.077" /><testcase classname="backend.tests.test_permission_service_migration.TestPermissionServiceIntegration" name="test_invalid_token_denied" time="0.035" /></testsuite></testsuites>
