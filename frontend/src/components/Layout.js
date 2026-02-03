@@ -74,7 +74,22 @@ const Layout = ({ children }) => {
     confirm_password: ''
   });
   const [peStatus, setPeStatus] = useState({ pe_online: false, message: 'Checking...', online_users: [] });
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  // Use centralized role utility hook
+  const { 
+    user, 
+    role,
+    roleName,
+    isPEDesk, 
+    isPELevel, 
+    isPEManager,
+    isFinance, 
+    isViewer, 
+    isPartnersDesk, 
+    isBusinessPartner, 
+    isEmployee 
+  } = useCurrentUser();
+  
   const { theme, toggleTheme } = useTheme();
   
   // Changelog modal hook
