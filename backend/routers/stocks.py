@@ -154,11 +154,13 @@ async def update_stock(stock_id: str, stock_data: StockCreate, current_user: dic
 
 
 @router.delete("/stocks/{stock_id}")
-async def delete_stock(stock_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a stock (PE Desk only)"""
+async def delete_stock(
+    stock_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("stocks.delete", "delete stocks"))
+):
+    """Delete a stock (requires stocks.delete permission)"""
     user_role = current_user.get("role", 5)
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete stocks")
     
     result = await db.stocks.delete_one({"id": stock_id})
     if result.deleted_count == 0:
