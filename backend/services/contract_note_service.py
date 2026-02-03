@@ -1,6 +1,6 @@
 """
-Contract Note Service
-Generates Contract Notes (Contract cum Bill) for share transactions
+Confirmation Note Service
+Generates Confirmation Notes (Confirmation Note cum Bill) for share transactions
 Sent to clients after DP transfer
 """
 import io
@@ -64,7 +64,7 @@ async def generate_contract_note_number():
 
 async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     """
-    Generate Contract Note PDF for a booking after DP transfer
+    Generate Confirmation Note cum Bill PDF for a booking after DP transfer
     
     Args:
         booking: The booking document with client, stock, and transaction details
@@ -218,10 +218,10 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     elements.append(HRFlowable(width="100%", thickness=2, color=colors.Color(0.02, 0.3, 0.23)))
     elements.append(Spacer(1, 0.2*cm))
     
-    # ==================== CONTRACT NOTE TITLE ====================
+    # ==================== CONFIRMATION NOTE TITLE ====================
     contract_number = booking.get("contract_note_number", await generate_contract_note_number())
     
-    elements.append(Paragraph("<b>CONTRACT NOTE CUM BILL</b>", title_style))
+    elements.append(Paragraph("<b>CONFIRMATION NOTE CUM BILL</b>", title_style))
     
     # Contract details table
     contract_date = booking.get("stock_transfer_date", datetime.now().strftime("%d-%b-%Y"))
