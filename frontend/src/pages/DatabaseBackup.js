@@ -757,15 +757,15 @@ const DatabaseBackup = () => {
       </Dialog>
 
       {/* Clear Database Dialog */}
-      <Dialog open={clearDialogOpen} onOpenChange={(open) => { setClearDialogOpen(open); if (!open) { setClearConfirmText(''); setSelectedCollections([]); } }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="clear-database-dialog">
+      <Dialog open={clearDialogOpen} onOpenChange={(open) => { setClearDialogOpen(open); if (!open) { setClearConfirmText(''); setSelectedCollections([]); setSelectedFileTypes([]); setExcludedRecords([]); setPreviewData(null); } }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="clear-database-dialog">
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center gap-2">
               <XCircle className="h-5 w-5" />
-              Clear Database - Selective
+              Clear Database - Advanced Options
             </DialogTitle>
             <DialogDescription>
-              Select specific collections to clear. User accounts and backups are always protected.
+              Select what to clear. User accounts and backups are always protected.
             </DialogDescription>
           </DialogHeader>
           
@@ -778,62 +778,296 @@ const DatabaseBackup = () => {
             </AlertDescription>
           </Alert>
           
-          {/* Collection Selection */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">Select Collections to Clear:</Label>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={toggleAllCollections}
-                disabled={loadingCollections}
-                className="text-xs"
-              >
-                {selectedCollections.length === clearableCollections.length ? 'Deselect All' : 'Select All'}
-              </Button>
-            </div>
+          {/* Tabs for different clear modes */}
+          <Tabs value={clearMode} onValueChange={setClearMode} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="collections" className="flex items-center gap-1">
+                <Database className="h-4 w-4" />
+                Collections
+              </TabsTrigger>
+              <TabsTrigger value="categories" className="flex items-center gap-1">
+                <Layers className="h-4 w-4" />
+                Categories
+              </TabsTrigger>
+              <TabsTrigger value="files" className="flex items-center gap-1">
+                <FileX className="h-4 w-4" />
+                Files Only
+              </TabsTrigger>
+            </TabsList>
             
-            {loadingCollections ? (
-              <div className="flex items-center justify-center py-8">
-                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                <span className="ml-2 text-muted-foreground">Loading collections...</span>
+            {/* Collections Tab */}
+            <TabsContent value="collections" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Select Collections to Clear:</Label>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleAllCollections}
+                  disabled={loadingCollections}
+                  className="text-xs"
+                >
+                  {selectedCollections.length === clearableCollections.length ? 'Deselect All' : 'Select All'}
+                </Button>
               </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2 border rounded-lg bg-muted/30">
-                {clearableCollections.map((collection) => (
-                  <div 
-                    key={collection.name}
-                    className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted transition-colors ${
-                      selectedCollections.includes(collection.name) ? 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700' : 'bg-background'
-                    }`}
-                    onClick={() => toggleCollection(collection.name)}
+              
+              {loadingCollections ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-muted-foreground">Loading collections...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border rounded-lg bg-muted/30">
+                  {clearableCollections.map((collection) => (
+                    <div 
+                      key={collection.name}
+                      className={`flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-muted transition-colors ${
+                        selectedCollections.includes(collection.name) ? 'bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700' : 'bg-background'
+                      }`}
+                      onClick={() => toggleCollection(collection.name)}
+                    >
+                      <Checkbox 
+                        checked={selectedCollections.includes(collection.name)}
+                        onCheckedChange={() => toggleCollection(collection.name)}
+                        data-testid={`collection-checkbox-${collection.name}`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{collection.display_name}</p>
+                        <p className="text-xs text-muted-foreground">{collection.count.toLocaleString()} records</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Exclude Records Section */}
+              <div className="space-y-2 p-3 border rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <FolderX className="h-4 w-4" />
+                  Exclude Specific Records (Optional)
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Keep specific records from being deleted. Format: collection_name:record_id
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    value={excludeInput}
+                    onChange={(e) => setExcludeInput(e.target.value)}
+                    placeholder="e.g., bookings:abc-123-def"
+                    className="flex-1"
+                    onKeyDown={(e) => e.key === 'Enter' && addExcludedRecord()}
+                  />
+                  <Button variant="outline" size="sm" onClick={addExcludedRecord}>Add</Button>
+                </div>
+                {excludedRecords.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {excludedRecords.map((record) => (
+                      <Badge 
+                        key={record} 
+                        variant="secondary" 
+                        className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={() => removeExcludedRecord(record)}
+                      >
+                        {record} ×
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Preview Button */}
+              {selectedCollections.length > 0 && (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handlePreview} 
+                    disabled={previewLoading}
+                    className="flex-1"
                   >
-                    <Checkbox 
-                      checked={selectedCollections.includes(collection.name)}
-                      onCheckedChange={() => toggleCollection(collection.name)}
-                      data-testid={`collection-checkbox-${collection.name}`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{collection.display_name}</p>
-                      <p className="text-xs text-muted-foreground">{collection.count.toLocaleString()} records</p>
+                    {previewLoading ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Generating Preview...
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Preview What Will Be Deleted
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+              
+              {/* Preview Results */}
+              {previewData && (
+                <div className="p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-950/30 space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Preview Results
+                  </Label>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-2xl font-bold text-red-600">{previewData.summary.total_to_delete.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">To Delete</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-green-600">{previewData.summary.total_to_preserve.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">To Preserve</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-blue-600">{previewData.summary.collections_affected}</p>
+                      <p className="text-xs text-muted-foreground">Collections</p>
+                    </div>
+                  </div>
+                  {Object.keys(previewData.sample_records).length > 0 && (
+                    <details className="text-xs">
+                      <summary className="cursor-pointer text-muted-foreground">View sample records to be deleted</summary>
+                      <div className="mt-2 max-h-32 overflow-y-auto">
+                        {Object.entries(previewData.sample_records).map(([coll, samples]) => (
+                          <div key={coll} className="mb-2">
+                            <p className="font-medium">{coll}:</p>
+                            {samples.map((s, i) => (
+                              <p key={i} className="ml-2 text-muted-foreground truncate">
+                                {s.id?.substring(0, 20)}... {s.name || s.booking_number || s.email || s.symbol || ''}
+                              </p>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              )}
+              
+              {/* Selection Summary */}
+              {selectedCollections.length > 0 && (
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                    <strong>{selectedCollections.length}</strong> collection(s) selected
+                  </p>
+                  <p className="text-xs text-red-600 dark:text-red-400">
+                    {getSelectedRecordCount().toLocaleString()} records will be permanently deleted
+                    {excludedRecords.length > 0 && ` (excluding ${excludedRecords.length} records)`}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+            
+            {/* Categories Tab */}
+            <TabsContent value="categories" className="space-y-4 mt-4">
+              <Label className="text-sm font-medium">Select Categories to Clear:</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {categories.map((category) => {
+                  const categoryCollections = category.collections;
+                  const selectedInCategory = categoryCollections.filter(c => selectedCollections.includes(c)).length;
+                  const allSelected = selectedInCategory === categoryCollections.length && categoryCollections.length > 0;
+                  const partiallySelected = selectedInCategory > 0 && !allSelected;
+                  
+                  return (
+                    <div 
+                      key={category.key}
+                      className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                        allSelected ? 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700' :
+                        partiallySelected ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700' :
+                        'bg-background hover:bg-muted'
+                      }`}
+                      onClick={() => toggleCategory(category.key)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Checkbox 
+                            checked={allSelected}
+                            className={partiallySelected ? 'data-[state=unchecked]:bg-orange-500' : ''}
+                          />
+                          <div>
+                            <p className="font-medium text-sm">{category.name}</p>
+                            <p className="text-xs text-muted-foreground">{category.description}</p>
+                          </div>
+                        </div>
+                        <Badge variant={allSelected ? "destructive" : "secondary"}>
+                          {category.total_records.toLocaleString()} records
+                        </Badge>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {categoryCollections.map(coll => (
+                          <Badge 
+                            key={coll} 
+                            variant={selectedCollections.includes(coll) ? "destructive" : "outline"}
+                            className="text-xs"
+                          >
+                            {coll.replace(/_/g, ' ')}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {selectedCollections.length > 0 && (
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                    <strong>{selectedCollections.length}</strong> collection(s) selected across categories
+                  </p>
+                  <p className="text-xs text-red-600 dark:text-red-400">
+                    {getSelectedRecordCount().toLocaleString()} records will be permanently deleted
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+            
+            {/* Files Tab */}
+            <TabsContent value="files" className="space-y-4 mt-4">
+              <Alert>
+                <FileX className="h-4 w-4" />
+                <AlertTitle>Clear Uploaded Files Only</AlertTitle>
+                <AlertDescription>
+                  This clears only uploaded files (documents, images) without touching database records.
+                  Database references to these files will become broken.
+                </AlertDescription>
+              </Alert>
+              
+              <Label className="text-sm font-medium">Select File Types to Clear:</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {fileStats && Object.entries(fileStats).map(([key, stats]) => (
+                  <div 
+                    key={key}
+                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedFileTypes.includes(key) ? 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700' : 'bg-background hover:bg-muted'
+                    }`}
+                    onClick={() => toggleFileType(key)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Checkbox checked={selectedFileTypes.includes(key)} />
+                        <div>
+                          <p className="font-medium text-sm">{stats.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {stats.total_count} files ({stats.total_size_mb} MB)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <span>GridFS: {stats.gridfs_count} ({stats.gridfs_size_mb} MB)</span>
+                      <span>Files: {stats.filesystem_count} ({stats.filesystem_size_mb} MB)</span>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-            
-            {/* Selection Summary */}
-            {selectedCollections.length > 0 && (
-              <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                  <strong>{selectedCollections.length}</strong> collection(s) selected
-                </p>
-                <p className="text-xs text-red-600 dark:text-red-400">
-                  {getSelectedRecordCount().toLocaleString()} records will be permanently deleted
-                </p>
-              </div>
-            )}
-          </div>
+              
+              {selectedFileTypes.length > 0 && (
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                    <strong>{selectedFileTypes.length}</strong> file type(s) selected
+                  </p>
+                  <p className="text-xs text-red-600 dark:text-red-400">
+                    {selectedFileTypes.map(f => fileStats[f]?.total_count || 0).reduce((a, b) => a + b, 0)} files will be permanently deleted
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
           
           <div className="space-y-2">
             <Label>Type <strong>CLEAR DATABASE</strong> to confirm:</Label>
@@ -845,26 +1079,48 @@ const DatabaseBackup = () => {
             />
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setClearDialogOpen(false); setClearConfirmText(''); setSelectedCollections([]); }}>Cancel</Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleClearDatabase} 
-              disabled={clearing || clearConfirmText !== 'CLEAR DATABASE' || selectedCollections.length === 0}
-              data-testid="confirm-clear-database"
-            >
-              {clearing ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Clearing...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Clear {selectedCollections.length} Collection(s)
-                </>
-              )}
-            </Button>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => { setClearDialogOpen(false); setClearConfirmText(''); setSelectedCollections([]); setSelectedFileTypes([]); setExcludedRecords([]); setPreviewData(null); }}>Cancel</Button>
+            
+            {clearMode === 'files' ? (
+              <Button 
+                variant="destructive" 
+                onClick={handleClearFiles} 
+                disabled={clearingFiles || clearConfirmText !== 'CLEAR DATABASE' || selectedFileTypes.length === 0}
+                data-testid="confirm-clear-files"
+              >
+                {clearingFiles ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Clearing Files...
+                  </>
+                ) : (
+                  <>
+                    <FileX className="h-4 w-4 mr-2" />
+                    Clear {selectedFileTypes.length} File Type(s)
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button 
+                variant="destructive" 
+                onClick={handleClearDatabase} 
+                disabled={clearing || clearConfirmText !== 'CLEAR DATABASE' || selectedCollections.length === 0}
+                data-testid="confirm-clear-database"
+              >
+                {clearing ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Clearing...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Clear {selectedCollections.length} Collection(s)
+                  </>
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
