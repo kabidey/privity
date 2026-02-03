@@ -11,7 +11,8 @@ from config import AUDIT_ACTIONS, ROLES
 from utils.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/audit-logs", tags=["Audit Logs"])
