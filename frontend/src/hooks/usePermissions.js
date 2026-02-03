@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../utils/api';
 
 /**
@@ -10,28 +10,39 @@ export function usePermissions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Get user data synchronously for initial render
+  const userData = useMemo(() => {
+    try {
+      const data = localStorage.getItem('user');
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const roleId = userData?.role || 7;
+  
+  // PE Desk (role 1) always has all permissions - set immediately
+  const isPEDesk = roleId === 1;
+
   // Fetch user's role permissions
   useEffect(() => {
     const fetchPermissions = async () => {
       try {
-        const userData = localStorage.getItem('user');
         if (!userData) {
           setPermissions([]);
           setLoading(false);
           return;
         }
 
-        const user = JSON.parse(userData);
-        const roleId = user.role || 7;
-
-        // PE Desk (role 1) has all permissions
-        if (roleId === 1) {
+        // PE Desk (role 1) has all permissions - no API call needed
+        if (isPEDesk) {
           setPermissions(['*']);
           setLoading(false);
           return;
         }
 
-        // Fetch role permissions from API
+        // Fetch role permissions from API for other roles
         const response = await api.get(`/roles/${roleId}`);
         const rolePerms = response.data.permissions || [];
         setPermissions(rolePerms);
@@ -56,7 +67,7 @@ export function usePermissions() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [userData, roleId, isPEDesk]);
 
   /**
    * Check if user has a specific permission
