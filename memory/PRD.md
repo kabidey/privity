@@ -50,15 +50,27 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Fixed race condition in Clients.js where employee list wasn't loading
 - Employee mapping dropdown now shows all employees correctly
 
-**3. Referral Partner Mapping Update**
-- Added `PUT /api/bookings/{booking_id}/referral-partner` endpoint
-- Allows changing or removing RP assignment on bookings
+**3. Referral Partner Mapping Update (UI + Backend) - COMPLETED**
+- Added `PUT /api/bookings/{booking_id}/referral-partner` endpoint (backend)
+- Added "Edit RP" button (Users icon, purple) in Bookings action column (frontend)
+- Added "Edit Referral Partner Mapping" dialog with:
+  - Booking info display (booking number, client, stock, current RP)
+  - RP dropdown with "Remove RP Assignment" option and list of approved RPs
+  - Revenue Share % input (capped at 30%, appears when RP selected)
+  - Employee share calculation display
+  - Update RP Mapping button
 - Only allowed before stock transfer is completed
-- Creates audit log for RP changes
+- Only visible for PE Level users
+- Not shown for BP bookings, transferred bookings, or voided bookings
+- Creates audit log for RP changes (BOOKING_RP_UPDATE action)
+
+**4. Default Referral Partner Assignment**
+- When creating a booking, if no RP is selected, system auto-assigns the creator's linked RP (if any)
+- Default revenue share is 30%
 
 **Files Modified**:
-- `backend/routers/bookings.py` - Added refresh-status and referral-partner endpoints
-- `frontend/src/pages/Bookings.js` - Added refresh button and handler
+- `backend/routers/bookings.py` - Added refresh-status and referral-partner endpoints, auto-assign creator's RP
+- `frontend/src/pages/Bookings.js` - Added refresh button, Edit RP button, RP Mapping dialog
 - `frontend/src/pages/Clients.js` - Fixed useEffect to wait for user data
 
 #### ✅ PE Desk Menu Access Fix - COMPLETED (Feb 03, 2026)
