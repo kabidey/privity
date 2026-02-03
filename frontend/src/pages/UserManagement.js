@@ -794,8 +794,8 @@ const UserManagement = () => {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
                   <span className="text-sm text-gray-500">Role</span>
-                  <Badge className={ROLES[selectedUser.role]?.color}>
-                    {ROLES[selectedUser.role]?.name || 'Unknown'}
+                  <Badge className={roles[selectedUser.role]?.color}>
+                    {roles[selectedUser.role]?.name || 'Unknown'}
                   </Badge>
                 </div>
               </div>
