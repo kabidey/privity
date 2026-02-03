@@ -583,12 +583,7 @@ class TestViewerDeniedKillSwitchAccess:
         """Login Viewer"""
         print(f"\n=== Testing Kill Switch Endpoints - Viewer Denial ===")
         
-        response = requests.post(
-            f"{BASE_URL}/api/auth/login",
-            json={"email": VIEWER_EMAIL, "password": VIEWER_PASSWORD}
-        )
-        if response.status_code == 200:
-            cls.viewer_token = response.json().get("token")
+        cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
     
     def get_headers(self):
         return {"Authorization": f"Bearer {self.viewer_token}", "Content-Type": "application/json"}
