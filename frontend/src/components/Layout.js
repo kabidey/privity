@@ -193,14 +193,14 @@ const Layout = ({ children }) => {
     }
   };
 
-  // Build menu items based on user role
-  // Using centralized role utility from useCurrentUser hook
+  // Build menu items based on user role AND permissions
+  // Uses both legacy role checks and new dynamic permissions
   const menuItems = [];
   
   // Role-specific dashboards as first item
-  if (isPELevel) {
+  if (isPELevel || hasPermission('dashboard.pe_view')) {
     menuItems.push({ icon: Shield, label: 'PE Dashboard', path: '/pe-dashboard' });
-  } else if (isFinance) {
+  } else if (isFinance || hasPermission('finance.view')) {
     menuItems.push({ icon: Banknote, label: 'Finance Dashboard', path: '/finance-dashboard' });
   } else if (isViewer) {
     menuItems.push({ icon: LayoutDashboard, label: 'Overview Dashboard', path: '/pe-dashboard' });
@@ -209,70 +209,133 @@ const Layout = ({ children }) => {
   }
   
   // Research - at the top for all (not BP)
-  if (!isBusinessPartner) {
+  if (!isBusinessPartner && (hasPermission('research.view') || !isBusinessPartner)) {
     menuItems.push({ icon: BookOpen, label: 'Research', path: '/research' });
   }
   
   // General Dashboard for all
   menuItems.push({ icon: LayoutDashboard, label: 'Dashboard', path: '/' });
-  menuItems.push({ icon: Users, label: 'Clients', path: '/clients' });
+  
+  // Clients - based on permission
+  if (hasPermission('clients.view') || isPELevel || isViewer || isEmployee || isPartnersDesk || isBusinessPartner) {
+    menuItems.push({ icon: Users, label: 'Clients', path: '/clients' });
+  }
 
-  // Vendors - PE Level and Viewer (view-only for Viewer)
-  if (isPELevel || isViewer) {
+  // Vendors - based on permission
+  if (hasPermission('vendors.view') || isPELevel || isViewer) {
     menuItems.push({ icon: Building2, label: 'Vendors', path: '/vendors' });
   }
   
-  menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
+  // Stocks - based on permission
+  if (hasPermission('stocks.view') || !isBusinessPartner) {
+    menuItems.push({ icon: Package, label: 'Stocks', path: '/stocks' });
+  }
   
-  // Purchases - PE Desk, PE Manager, and Viewer (view-only)
-  if (isPELevel || isViewer) {
+  // Purchases - based on permission
+  if (hasPermission('purchases.view') || isPELevel || isViewer) {
     menuItems.push({ icon: ShoppingCart, label: 'Purchases', path: '/purchases' });
+  }
+  
+  // DP Operations - based on permissions
+  if (hasPermission('dp.view_receivables') || isPELevel || isViewer) {
     menuItems.push({ icon: ArrowDownToLine, label: 'DP Receivables', path: '/dp-receivables' });
+  }
+  if (hasPermission('dp.transfer') || isPELevel || isViewer) {
     menuItems.push({ icon: Send, label: 'DP Transfer', path: '/dp-transfer-client' });
   }
   
-  menuItems.push(
-    { icon: Boxes, label: 'Inventory', path: '/inventory' },
-    { icon: FileText, label: 'Bookings', path: '/bookings' },
-    { icon: BarChart3, label: 'Reports', path: '/reports' }
-  );
+  // Inventory - based on permission
+  if (hasPermission('inventory.view') || !isBusinessPartner) {
+    menuItems.push({ icon: Boxes, label: 'Inventory', path: '/inventory' });
+  }
+  
+  // Bookings - based on permission
+  if (hasPermission('bookings.view') || !isBusinessPartner) {
+    menuItems.push({ icon: FileText, label: 'Bookings', path: '/bookings' });
+  }
+  
+  // Reports - based on permission
+  if (hasPermission('reports.view') || !isBusinessPartner) {
+    menuItems.push({ icon: BarChart3, label: 'Reports', path: '/reports' });
+  }
 
-  // Add finance for Finance role, PE level, or Viewer
-  if (isFinance || isPELevel || isViewer) {
+  // Finance - based on permission
+  if (hasPermission('finance.view') || isFinance || isPELevel || isViewer) {
     menuItems.push({ icon: Banknote, label: 'Finance', path: '/finance' });
   }
 
-  // Add user management for PE level or Viewer
-  if (isPELevel || isViewer) {
+  // User Management - based on permission
+  if (hasPermission('users.view') || isPELevel || isViewer) {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
   }
 
-  // Add Role Management for PE Desk only
-  if (isPEDesk) {
+  // Role Management - based on permission (PE Desk only by default)
+  if (hasPermission('roles.view') || isPEDesk) {
     menuItems.push({ icon: Shield, label: 'Role Management', path: '/roles' });
   }
 
-  // Add Referral Partners for PE level, Employee, Partners Desk, or Viewer
-  if (isPELevel || isEmployee || isPartnersDesk || isViewer) {
+  // Referral Partners - based on permission
+  if (hasPermission('referral_partners.view') || isPELevel || isEmployee || isPartnersDesk || isViewer) {
     menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
   }
 
-  // Add Analytics and Email Templates for PE Level and Viewer (view-only for viewer)
-  if (isPELevel || isViewer) {
+  // Business Partners - based on permission
+  if (hasPermission('business_partners.view') || isPELevel || isPartnersDesk || isViewer) {
+    menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
+  }
+
+  // Analytics - based on permission
+  if (hasPermission('analytics.view') || isPELevel || isViewer) {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
+  }
+  
+  // Contract Notes - based on permission
+  if (hasPermission('contract_notes.view') || isPELevel || isViewer) {
     menuItems.push({ icon: FileText, label: 'Contract Notes', path: '/contract-notes' });
+  }
+  
+  // Email Templates - based on permission
+  if (hasPermission('email.view_templates') || isPELevel || isViewer) {
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
+  }
+  
+  // Email Logs - based on permission
+  if (hasPermission('email.view_logs') || isPELevel || isViewer) {
     menuItems.push({ icon: MailCheck, label: 'Email Logs', path: '/email-logs' });
+  }
+  
+  // Audit Trail - based on permission
+  if (hasPermission('security.view_audit') || isPELevel || isViewer) {
     menuItems.push({ icon: Shield, label: 'Audit Trail', path: '/audit-trail' });
+  }
+  
+  // Email Server - based on permission
+  if (hasPermission('email.server_config') || isPELevel || isViewer) {
     menuItems.push({ icon: Server, label: 'Email Server', path: '/email-server' });
   }
 
-  // Company Master & Bulk Upload & Database Backup & Security Dashboard & File Migration - PE Desk only
-  if (isPEDesk) {
+  // Company Master - based on permission
+  if (hasPermission('company.view') || isPEDesk) {
     menuItems.push({ icon: Building2, label: 'Company Master', path: '/company-master' });
+  }
+  
+  // Database Backup - based on permission
+  if (hasPermission('database.view_backups') || isPEDesk) {
     menuItems.push({ icon: Database, label: 'Database Backup', path: '/database-backup' });
+  }
+  
+  // Bulk Upload - based on permission
+  if (hasPermission('bulk_upload.clients') || isPEDesk) {
     menuItems.push({ icon: Upload, label: 'Bulk Upload', path: '/bulk-upload' });
-    menuItems.push({ icon: Shield, label: 'Security Dashboard', path: '/security' });
+  }
+  
+  // Security Dashboard - based on permission
+  if (hasPermission('security.view_dashboard') || isPEDesk) {
+    menuItems.push({ icon: ShieldCheck, label: 'Security Dashboard', path: '/security' });
+  }
+  
+  // File Migration - PE Desk only
+  if (isPEDesk) {
     menuItems.push({ icon: HardDrive, label: 'File Migration', path: '/file-migration' });
   }
 
