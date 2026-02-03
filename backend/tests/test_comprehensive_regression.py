@@ -10,7 +10,7 @@ from datetime import datetime
 # Get BASE_URL from environment
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://payment-fix-58.preview.emergentagent.com"
+    BASE_URL = "https://smifs-portal.preview.emergentagent.com"
 
 # Test credentials
 PE_DESK_EMAIL = "pedesk@smifs.com"
