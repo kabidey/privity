@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { TrendingUp, AlertCircle, Loader2, Building2, Mail, ArrowLeft, Code } from 'lucide-react';
+import { TrendingUp, AlertCircle, Loader2, Building2, Mail, ArrowLeft, Code, Quote } from 'lucide-react';
 import { getMsalConfig, getLoginRequest } from '../config/msalConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getFullVersion } from '../version';
