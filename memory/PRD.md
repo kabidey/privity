@@ -173,30 +173,38 @@ Build a Share Booking System for managing client share bookings, inventory track
 - PE Manager now has access to research, reports, contract notes, revenue dashboards
 
 #### ✅ Stock Market News Section - COMPLETED (Feb 04, 2026)
-**Feature**: Live stock market news feed on the Dashboard
+**Feature**: AI-powered real stock market news feed on the Dashboard
 **Implementation**:
-- **Backend**: Created `/api/dashboard/stock-news` endpoint in `dashboard.py`
-- **News Service**: Created `/app/backend/services/news_service.py` with:
-  - Web search integration for Indian stock market news
-  - Intelligent news categorization (Market Index, Earnings, IPO, Corporate Action, FII/DII, M&A)
-  - Source extraction and credibility filtering
+- **Backend**: `/api/dashboard/stock-news` endpoint with AI summarization
+- **News Service** (`/app/backend/services/news_service.py`):
+  - Google News RSS integration for real-time stock news
+  - AI summarization using GPT-4o-mini via Emergent LLM integration
+  - Generates investor-focused gist for each headline
+  - Sentiment analysis (Bullish/Bearish/Neutral)
+  - Category classification (Price Movement, Earnings, M&A, Analyst View, etc.)
   - 1-hour cache to reduce API calls
-  - Fallback news for offline/error scenarios
-  - **Stock-specific news** - Only shows news for stocks in the system
-- **Frontend**: Created `StockNewsSection.js` component with:
-  - Auto-scrolling news ticker (25px/second)
-  - Hover-to-pause functionality
-  - Category badges with color coding
-  - Stock symbol badges showing which stock the news relates to
-  - Source attribution (non-clickable)
-  - Manual refresh button
-  - Last updated timestamp
-  - Gradient overlays for smooth scroll effect
+  - Only shows news for stocks in the system database
+- **Frontend** (`StockNewsSection.js`):
+  - Auto-scrolling news ticker (25px/second, pauses on hover)
+  - Sentiment badges (🟢 Bullish, 🔴 Bearish, ⚪ Neutral)
+  - Category and stock symbol badges
+  - Real source attribution (non-clickable as requested)
   - 550px height for prominent visibility
   - Polls every 1 hour for updates
 
+**AI-Generated News Example**:
+- Title: "Reliance share price jumps 7% after acquisition update"
+- Gist: "The acquisition news and optimism surrounding India-US trade deal suggest potential growth, making it a favorable time for investment."
+- Sentiment: Bullish
+- Category: Market Update
+- Source: Mint
+
+**Dependencies**:
+- `emergentintegrations` library for OpenAI GPT-4o-mini access
+- Google News RSS (free, no API key required)
+
 **Files Created/Modified**:
-- `backend/services/news_service.py` - News fetching and parsing service
+- `backend/services/news_service.py` - AI-powered news fetching service
 - `backend/routers/dashboard.py` - Added `/stock-news` endpoint
 - `frontend/src/components/StockNewsSection.js` - News display component
 - `frontend/src/pages/Dashboard.js` - Integrated news section
