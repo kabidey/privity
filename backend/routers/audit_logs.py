@@ -39,14 +39,11 @@ async def get_audit_logs(
     end_date: Optional[str] = None,
     limit: int = Query(100, ge=1, le=1000),
     skip: int = Query(0, ge=0),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("audit_logs.view", "view audit logs"))
 ):
-    """Get audit logs with filters"""
+    """Get audit logs with filters (requires audit_logs.view permission)"""
     user_role = current_user.get("role", 6)
-    
-    # Only PE level can view all audit logs
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Insufficient permissions to view audit logs")
     
     query = {}
     
