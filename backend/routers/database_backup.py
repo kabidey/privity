@@ -514,14 +514,14 @@ async def get_database_stats(
 
 # ============== Clear Database Endpoint ==============
 @router.delete("/clear")
-async def clear_database(current_user: dict = Depends(get_current_user)):
-    """Clear all database collections except users and database_backups (PE Desk only)
+async def clear_database(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.clear", "clear database"))
+):
+    """Clear all database collections except users and database_backups (requires database_backup.clear permission)
     
     WARNING: This permanently deletes all data except user accounts and backups!
     """
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can clear the database")
-    
     cleared_counts = {}
     errors = []
     
