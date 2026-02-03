@@ -103,31 +103,31 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access DP transferred bookings: {response.text}"
         print(f"✓ PE Desk can access DP transferred bookings (status: {response.status_code})")
     
-    def test_employee_denied_dp_ready_bookings(self):
-        """Employee should be denied access to /api/bookings/dp-ready (requires dp.view_receivables)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_dp_ready_bookings(self):
+        """Viewer should be denied access to /api/bookings/dp-ready (requires dp.view_receivables)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/bookings/dp-ready",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied DP ready bookings: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied DP ready bookings (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied DP ready bookings: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied DP ready bookings (status: {response.status_code})")
     
-    def test_employee_denied_dp_transferred_bookings(self):
-        """Employee should be denied access to /api/bookings/dp-transferred (requires dp.view_transfers)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_dp_transferred_bookings(self):
+        """Viewer should be denied access to /api/bookings/dp-transferred (requires dp.view_transfers)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/bookings/dp-transferred",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied DP transferred bookings: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied DP transferred bookings (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied DP transferred bookings: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied DP transferred bookings (status: {response.status_code})")
     
     # ============== AUDIT LOGS PERMISSION TESTS ==============
     
