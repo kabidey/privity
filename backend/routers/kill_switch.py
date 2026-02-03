@@ -11,7 +11,8 @@ from database import db
 from routers.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/kill-switch", tags=["Kill Switch"])
@@ -71,7 +72,7 @@ async def get_status():
     }
 
 
-@router.post("/activate")
+@router.post("/activate", dependencies=[Depends(require_permission("system.kill_switch", "activate kill switch"))])
 async def activate_kill_switch(
     reason: Optional[str] = "Emergency system freeze",
     current_user: dict = Depends(get_current_user)
@@ -135,7 +136,7 @@ async def activate_kill_switch(
     }
 
 
-@router.post("/deactivate")
+@router.post("/deactivate", dependencies=[Depends(require_permission("system.kill_switch", "deactivate kill switch"))])
 async def deactivate_kill_switch(current_user: dict = Depends(get_current_user)):
     """Deactivate kill switch - PE Desk only, after cooldown period"""
     if not is_pe_desk_only(current_user.get("role", 6)):
