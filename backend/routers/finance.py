@@ -52,12 +52,10 @@ async def get_all_payments(
     payment_type: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.view", "view finance data"))
 ):
-    """Get all payments (client and vendor) for finance dashboard."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access finance data")
-    
+    """Get all payments (client and vendor) for finance dashboard (requires finance.view permission)."""
     all_payments = []
     
     # Get client payments from bookings
