@@ -570,7 +570,7 @@ async def generate_vendor_purchase_contract_note_number():
 
 async def generate_vendor_purchase_contract_note_pdf(purchase: dict) -> io.BytesIO:
     """
-    Generate Purchase Contract Note PDF for a vendor purchase after DP received
+    Generate Purchase Confirmation Note PDF for a vendor purchase after DP received
     
     Args:
         purchase: The purchase document with vendor, stock, and transaction details
@@ -657,7 +657,7 @@ async def generate_vendor_purchase_contract_note_pdf(purchase: dict) -> io.Bytes
     elements.append(Spacer(1, 0.2*cm))
     
     # Document Title
-    elements.append(Paragraph("<b>PURCHASE CONTRACT NOTE</b>", 
+    elements.append(Paragraph("<b>PURCHASE CONFIRMATION NOTE</b>", 
         ParagraphStyle('DocTitle', fontSize=14, alignment=TA_CENTER, textColor=colors.HexColor('#065f46'), fontName='Helvetica-Bold')
     ))
     elements.append(Paragraph("(Stock Purchase Acknowledgment)", 
