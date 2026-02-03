@@ -15,7 +15,8 @@ from routers.auth import get_current_user
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/research", tags=["Research"])
@@ -60,7 +61,7 @@ class ResearchReportResponse(BaseModel):
 
 
 # ============== Upload Research Report ==============
-@router.post("/reports")
+@router.post("/reports", dependencies=[Depends(require_permission("research.upload", "upload research reports"))])
 async def upload_research_report(
     stock_id: str = Form(...),
     title: str = Form(...),
@@ -167,7 +168,7 @@ async def upload_research_report(
 
 
 # ============== List Research Reports ==============
-@router.get("/reports")
+@router.get("/reports", dependencies=[Depends(require_permission("research.view", "view research reports"))])
 async def list_research_reports(
     stock_id: Optional[str] = None,
     report_type: Optional[str] = None,
@@ -187,7 +188,7 @@ async def list_research_reports(
 
 
 # ============== Get Reports by Stock ==============
-@router.get("/reports/stock/{stock_id}")
+@router.get("/reports/stock/{stock_id}", dependencies=[Depends(require_permission("research.view", "view stock research reports"))])
 async def get_stock_reports(
     stock_id: str,
     current_user: dict = Depends(get_current_user)
@@ -210,7 +211,7 @@ async def get_stock_reports(
 
 
 # ============== Delete Research Report ==============
-@router.delete("/reports/{report_id}")
+@router.delete("/reports/{report_id}", dependencies=[Depends(require_permission("research.delete", "delete research reports"))])
 async def delete_research_report(
     report_id: str,
     current_user: dict = Depends(get_current_user)
@@ -253,7 +254,7 @@ async def delete_research_report(
 
 
 # ============== AI Stock Research ==============
-@router.post("/ai-research")
+@router.post("/ai-research", dependencies=[Depends(require_permission("research.ai", "use AI research assistant"))])
 async def ai_stock_research(
     query: str = Form(...),
     stock_id: Optional[str] = Form(None),
@@ -336,7 +337,7 @@ Remember: This is for informational purposes only and should not be considered a
 
 
 # ============== Get Research Stats ==============
-@router.get("/stats")
+@router.get("/stats", dependencies=[Depends(require_permission("research.view", "view research statistics"))])
 async def get_research_stats(current_user: dict = Depends(get_current_user)):
     """Get research section statistics"""
     total_reports = await db.research_reports.count_documents({})
