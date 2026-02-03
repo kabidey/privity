@@ -45,6 +45,10 @@ const Bookings = () => {
   const [showHighRpShareWarning, setShowHighRpShareWarning] = useState(false);
   const [clientIsRpWarning, setClientIsRpWarning] = useState(null); // Stores RP info if client matches an RP
   const [refreshingBooking, setRefreshingBooking] = useState(null); // Track which booking is being refreshed
+  const [rpMappingDialogOpen, setRpMappingDialogOpen] = useState(false); // RP mapping dialog
+  const [rpMappingBooking, setRpMappingBooking] = useState(null); // Booking being mapped to RP
+  const [rpMappingData, setRpMappingData] = useState({ referral_partner_id: '', rp_revenue_share_percent: 30 });
+  const [updatingRpMapping, setUpdatingRpMapping] = useState(false);
   const [formData, setFormData] = useState({
     client_id: '',
     stock_id: '',
