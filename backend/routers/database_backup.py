@@ -21,7 +21,8 @@ from routers.auth import get_current_user
 from services.file_storage import upload_file_to_gridfs, download_file_from_gridfs, get_file_url
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/database", tags=["Database Management"])
