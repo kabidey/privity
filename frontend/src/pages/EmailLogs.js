@@ -35,9 +35,12 @@ const EmailLogs = () => {
   });
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
 
-  const { isPELevel, isPEDesk } = useCurrentUser();
+  const { user, isPELevel, isPEDesk } = useCurrentUser();
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     if (!isPELevel) {
       toast.error('Access denied. Only PE Desk or PE Manager can view email logs.');
       navigate('/');
@@ -45,7 +48,7 @@ const EmailLogs = () => {
     }
     fetchLogs();
     fetchStats();
-  }, [isPELevel, navigate]);
+  }, [user, isPELevel, navigate]);
 
   const fetchLogs = async () => {
     try {
