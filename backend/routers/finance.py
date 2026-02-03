@@ -18,7 +18,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(tags=["Finance"])
