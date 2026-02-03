@@ -35,6 +35,7 @@ const StockNewsSection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [stocksTracked, setStocksTracked] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const scrollContainerRef = useRef(null);
   const scrollAnimationRef = useRef(null);
@@ -44,6 +45,7 @@ const StockNewsSection = () => {
     try {
       const response = await api.get('/dashboard/stock-news?limit=20');
       setNews(response.data.news || []);
+      setStocksTracked(response.data.stocks_tracked || 0);
       setLastUpdated(new Date());
       setError(null);
     } catch (err) {
