@@ -40,9 +40,12 @@ const EmailServerConfig = () => {
     last_test_result: null
   });
 
-  const { isPELevel } = useCurrentUser();
+  const { user, isPELevel } = useCurrentUser();
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     if (!isPELevel) {
       navigate('/');
       return;
