@@ -296,12 +296,25 @@ const Login = () => {
               data-testid="smifs-privity-logo"
             />
           </div>
-          {/* Center Content */}
+          {/* Center Content with Quote */}
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-white px-8">
-              <TrendingUp className="w-16 h-16 mx-auto mb-4" strokeWidth={1.5} />
-              <h1 className="text-4xl font-bold mb-4">SMIFS Private Equity</h1>
-              <p className="text-lg opacity-90">Manage your client bookings and track profit & loss efficiently</p>
+            <div className="text-center text-white px-8 max-w-lg">
+              {/* Quote Section */}
+              <div className="mb-8 relative" data-testid="pe-quote-section">
+                <Quote className="w-10 h-10 mx-auto mb-4 opacity-60" strokeWidth={1.5} />
+                <blockquote className="text-xl italic font-light leading-relaxed mb-3">
+                  "{currentQuote.quote}"
+                </blockquote>
+                <cite className="text-sm opacity-80 not-italic">— {currentQuote.author}</cite>
+              </div>
+              
+              {/* Divider */}
+              <div className="w-24 h-0.5 bg-white/30 mx-auto mb-8"></div>
+              
+              {/* Title Section */}
+              <TrendingUp className="w-14 h-14 mx-auto mb-4" strokeWidth={1.5} />
+              <h1 className="text-3xl font-bold mb-3">SMIFS Private Equity</h1>
+              <p className="text-base opacity-90">Manage your client bookings and track profit & loss efficiently</p>
             </div>
           </div>
         </div>
