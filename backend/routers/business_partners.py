@@ -260,8 +260,10 @@ async def get_business_partner(
         # BP can only view their own profile
         if bp["email"].lower() != current_user.get("email", "").lower():
             raise HTTPException(status_code=403, detail="You can only view your own profile")
-    elif not can_manage_business_partners(current_user.get("role", 5)):
-        raise HTTPException(status_code=403, detail="Access denied")
+    else:
+        # Check permission for viewing BPs
+        if not await has_permission(current_user, "business_partners.view"):
+            raise HTTPException(status_code=403, detail="Access denied")
     
     return BusinessPartnerResponse(**bp)
 
@@ -270,12 +272,10 @@ async def get_business_partner(
 async def update_business_partner(
     bp_id: str,
     bp_data: BusinessPartnerUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("business_partners.edit", "update business partners"))
 ):
     """Update a Business Partner (PE Level or Partners Desk)"""
-    if not can_manage_business_partners(current_user.get("role", 5)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Partners Desk can update Business Partners")
-    
     bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
     if not bp:
         raise HTTPException(status_code=404, detail="Business Partner not found")
@@ -334,12 +334,10 @@ async def update_business_partner(
 @router.delete("/{bp_id}")
 async def delete_business_partner(
     bp_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("business_partners.delete", "delete business partners"))
 ):
     """Delete a Business Partner (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete Business Partners")
-    
     bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
     if not bp:
         raise HTTPException(status_code=404, detail="Business Partner not found")
@@ -374,7 +372,7 @@ async def upload_bp_document(
     user_role = current_user.get("role", 5)
     is_self = user_role == 8 and current_user.get("id") == bp_id
     
-    if not can_manage_business_partners(user_role) and not is_self:
+    if not await has_permission(current_user, "business_partners.edit") and not is_self:
         raise HTTPException(status_code=403, detail="Not authorized to upload documents")
     
     if doc_type not in ALLOWED_DOC_TYPES:
