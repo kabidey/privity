@@ -595,11 +595,11 @@ async def bulk_upload_bookings(
 
 
 @router.get("/stats")
-async def get_upload_stats(current_user: dict = Depends(get_current_user)):
+async def get_upload_stats(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.clients", "view bulk upload stats"))
+):
     """Get current counts for all entities (PE Desk only)"""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can access bulk upload")
-    
     clients_count = await db.clients.count_documents({"is_vendor": False})
     vendors_count = await db.clients.count_documents({"is_vendor": True})
     stocks_count = await db.stocks.count_documents({})
