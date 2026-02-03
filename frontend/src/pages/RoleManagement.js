@@ -206,6 +206,107 @@ const RoleManagement = () => {
     );
   }
 
+  // Get permission display for a role
+  const getPermissionSummary = (role) => {
+    if (!role.permissions || role.permissions.length === 0) return [];
+    if (role.permissions.includes('*')) return ['All Access'];
+    
+    // Group by category
+    const categories = {};
+    role.permissions.forEach(p => {
+      const cat = p.split('.')[0];
+      if (!categories[cat]) categories[cat] = [];
+      categories[cat].push(p);
+    });
+    return Object.keys(categories);
+  };
+
+  // Visual permission card component
+  const PermissionCard = ({ role }) => {
+    const perms = role.permissions || [];
+    const hasAll = perms.includes('*');
+    
+    // Map categories to their display info
+    const categoryInfo = {
+      dashboard: { icon: '📊', label: 'Dashboard', color: 'bg-blue-100 text-blue-800' },
+      bookings: { icon: '📝', label: 'Bookings', color: 'bg-green-100 text-green-800' },
+      clients: { icon: '👥', label: 'Clients', color: 'bg-purple-100 text-purple-800' },
+      client_approval: { icon: '✅', label: 'Client Approval', color: 'bg-teal-100 text-teal-800' },
+      stocks: { icon: '📈', label: 'Stocks', color: 'bg-orange-100 text-orange-800' },
+      inventory: { icon: '📦', label: 'Inventory', color: 'bg-yellow-100 text-yellow-800' },
+      purchases: { icon: '🛒', label: 'Purchases', color: 'bg-pink-100 text-pink-800' },
+      vendors: { icon: '🏪', label: 'Vendors', color: 'bg-indigo-100 text-indigo-800' },
+      contract_notes: { icon: '📄', label: 'Contract Notes', color: 'bg-cyan-100 text-cyan-800' },
+      finance: { icon: '💰', label: 'Finance', color: 'bg-emerald-100 text-emerald-800' },
+      analytics: { icon: '📉', label: 'Analytics', color: 'bg-violet-100 text-violet-800' },
+      users: { icon: '👤', label: 'Users', color: 'bg-rose-100 text-rose-800' },
+      roles: { icon: '🔐', label: 'Roles', color: 'bg-amber-100 text-amber-800' },
+      business_partners: { icon: '🤝', label: 'Business Partners', color: 'bg-lime-100 text-lime-800' },
+      referral_partners: { icon: '🔗', label: 'Referral Partners', color: 'bg-sky-100 text-sky-800' },
+      reports: { icon: '📊', label: 'Reports', color: 'bg-fuchsia-100 text-fuchsia-800' },
+      dp: { icon: '🏦', label: 'DP Operations', color: 'bg-stone-100 text-stone-800' },
+      email: { icon: '📧', label: 'Email', color: 'bg-red-100 text-red-800' },
+      company: { icon: '🏢', label: 'Company Master', color: 'bg-blue-100 text-blue-800' },
+      security: { icon: '🛡️', label: 'Security', color: 'bg-gray-100 text-gray-800' },
+      database: { icon: '💾', label: 'Database', color: 'bg-slate-100 text-slate-800' },
+      bulk_upload: { icon: '📤', label: 'Bulk Upload', color: 'bg-zinc-100 text-zinc-800' },
+      research: { icon: '🔬', label: 'Research', color: 'bg-neutral-100 text-neutral-800' },
+    };
+    
+    if (hasAll) {
+      return (
+        <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-3">
+            <Badge className={role.color || 'bg-gray-100'}>{role.name}</Badge>
+            <Badge className="bg-emerald-500 text-white">Full Access</Badge>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(categoryInfo).map(([key, info]) => (
+              <div key={key} className={`px-2 py-1 rounded text-xs ${info.color} flex items-center gap-1`}>
+                <span>{info.icon}</span>
+                <span>{info.label}</span>
+                <Check className="h-3 w-3" />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    // Get categories this role has access to
+    const categories = new Set();
+    perms.forEach(p => {
+      const cat = p.split('.')[0];
+      categories.add(cat);
+    });
+    
+    return (
+      <div className="p-4 bg-white border rounded-lg">
+        <div className="flex items-center gap-2 mb-3">
+          <Badge className={role.color || 'bg-gray-100'}>{role.name}</Badge>
+          <span className="text-xs text-muted-foreground">{perms.length} permissions</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(categoryInfo).map(([key, info]) => {
+            const hasCategory = categories.has(key) || perms.includes(`${key}.*`);
+            return (
+              <div 
+                key={key} 
+                className={`px-2 py-1 rounded text-xs flex items-center gap-1 ${
+                  hasCategory ? info.color : 'bg-gray-100 text-gray-400'
+                }`}
+              >
+                <span>{info.icon}</span>
+                <span>{info.label}</span>
+                {hasCategory ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -225,9 +326,24 @@ const RoleManagement = () => {
         </Button>
       </div>
 
-      {/* Roles List */}
-      <Card>
-        <CardHeader>
+      {/* Tabs for different views */}
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList>
+          <TabsTrigger value="list">Role List</TabsTrigger>
+          <TabsTrigger value="visual">Visual Permissions</TabsTrigger>
+          <TabsTrigger value="matrix">Permission Matrix</TabsTrigger>
+        </TabsList>
+        
+        {/* List View */}
+        <TabsContent value="list">
+          <Card>
+            <CardHeader>
+              <CardTitle>System & Custom Roles</CardTitle>
+              <CardDescription>
+                System roles (1-7) cannot be deleted but their permissions can be customized.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
           <CardTitle>System & Custom Roles</CardTitle>
           <CardDescription>
             System roles (1-7) cannot be deleted but their permissions can be customized
