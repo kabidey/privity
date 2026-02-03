@@ -15,9 +15,16 @@ import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, Chev
 
 import { ROLE_NAMES } from '../hooks/useCurrentUser';
 
-const ROLES = {
+// Default roles (fallback if API fails)
+const DEFAULT_ROLES = {
   1: { name: ROLE_NAMES[1], color: 'bg-purple-100 text-purple-800' },
   2: { name: ROLE_NAMES[2], color: 'bg-indigo-100 text-indigo-800' },
+  3: { name: ROLE_NAMES[3], color: 'bg-emerald-100 text-emerald-800' },
+  4: { name: ROLE_NAMES[4], color: 'bg-gray-100 text-gray-800' },
+  5: { name: ROLE_NAMES[5], color: 'bg-pink-100 text-pink-800' },
+  6: { name: ROLE_NAMES[6], color: 'bg-orange-100 text-orange-800' },
+  7: { name: ROLE_NAMES[7], color: 'bg-blue-100 text-blue-800' },
+};
   3: { name: ROLE_NAMES[3], color: 'bg-emerald-100 text-emerald-800' },
   4: { name: ROLE_NAMES[4], color: 'bg-gray-100 text-gray-800' },
   5: { name: ROLE_NAMES[5], color: 'bg-pink-100 text-pink-800' },
