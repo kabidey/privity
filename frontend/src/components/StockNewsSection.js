@@ -113,14 +113,14 @@ const StockNewsSection = () => {
 
   if (loading && news.length === 0) {
     return (
-      <Card className="border shadow-sm h-[500px]" data-testid="stock-news-section">
+      <Card className="border shadow-lg h-[550px]" data-testid="stock-news-section">
         <CardHeader className="pb-3 border-b">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             <Newspaper className="h-6 w-6 text-emerald-600" />
             Stock Market News
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 flex items-center justify-center h-[420px]">
+        <CardContent className="p-4 flex items-center justify-center h-[470px]">
           <div className="text-center">
             <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground">Loading latest news...</p>
@@ -132,7 +132,7 @@ const StockNewsSection = () => {
 
   return (
     <Card 
-      className="border shadow-sm h-[500px] overflow-hidden" 
+      className="border shadow-lg h-[550px] overflow-hidden" 
       data-testid="stock-news-section"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -169,7 +169,7 @@ const StockNewsSection = () => {
         </div>
       </CardHeader>
       
-      <CardContent className="p-0 h-[420px] overflow-hidden relative">
+      <CardContent className="p-0 h-[470px] overflow-hidden relative">
         {error ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
