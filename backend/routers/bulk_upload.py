@@ -401,12 +401,10 @@ async def bulk_upload_stocks(
 @router.post("/purchases")
 async def bulk_upload_purchases(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.purchases", "bulk upload purchases"))
 ):
     """Bulk upload purchases from CSV (PE Desk only). Updates inventory automatically."""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can perform bulk uploads")
-    
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
@@ -512,12 +510,10 @@ async def bulk_upload_purchases(
 @router.post("/bookings")
 async def bulk_upload_bookings(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.bookings", "bulk upload bookings"))
 ):
     """Bulk upload bookings from CSV (PE Desk only). Creates bookings in 'open' status."""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can perform bulk uploads")
-    
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
