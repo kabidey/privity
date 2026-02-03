@@ -607,7 +607,8 @@ async def approve_booking(
 async def void_booking(
     booking_id: str,
     reason: str = Query(..., description="Reason for voiding the booking"),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.delete", "void bookings"))
 ):
     """
     Void a booking with atomic inventory release.
@@ -616,9 +617,6 @@ async def void_booking(
     If the booking had payments, creates a refund request.
     """
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can void bookings")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
