@@ -484,10 +484,12 @@ async def approve_client(
 
 
 @router.delete("/clients/{client_id}")
-async def delete_client(client_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a client (PE Desk only)."""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete clients")
+async def delete_client(
+    client_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.delete", "delete clients"))
+):
+    """Delete a client (requires clients.delete permission)."""
     
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
