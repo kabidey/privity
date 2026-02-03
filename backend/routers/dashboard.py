@@ -675,19 +675,16 @@ async def get_client_dashboard(
 
 
 @router.post("/clear-cache")
-async def clear_system_cache(current_user: dict = Depends(get_current_user)):
+async def clear_system_cache(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("system.clear_cache", "clear system cache"))
+):
     """
     Clear system cache and refresh data (PE Desk only)
     - Recalculates inventory weighted averages
     - Cleans up orphaned records
     - Resets temporary data
     """
-    user_role = current_user.get("role", 6)
-    
-    if user_role != 1:  # Only PE Desk
-        from fastapi import HTTPException
-        raise HTTPException(status_code=403, detail="Only PE Desk can clear system cache")
-    
     cleanup_results = {
         "orphaned_inventory_deleted": 0,
         "inventory_recalculated": 0,
