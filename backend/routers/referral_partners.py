@@ -536,21 +536,14 @@ class RPApprovalRequest(BaseModel):
 async def approve_referral_partner(
     rp_id: str,
     approval_data: RPApprovalRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.approve", "approve referral partners"))
 ):
     """
     Approve or reject a referral partner.
     Only PE Desk and PE Manager can approve/reject RPs.
     Sends email notification to the RP upon approval/rejection.
     """
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(
-            status_code=403,
-            detail="Only PE Desk or PE Manager can approve Referral Partners"
-        )
-    
     rp = await db.referral_partners.find_one({"id": rp_id}, {"_id": 0})
     if not rp:
         raise HTTPException(status_code=404, detail="Referral Partner not found")
