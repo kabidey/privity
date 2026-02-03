@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from database import db
 from utils.auth import get_current_user
 from config import ROLES
+from services.permission_service import require_permission
 
 router = APIRouter(tags=["Revenue Dashboard"])
 
@@ -68,7 +69,7 @@ async def get_subordinate_user_ids(user_id: str, user_role: int) -> List[str]:
 
 # ================== RP Revenue Dashboard ==================
 
-@router.get("/rp-revenue")
+@router.get("/rp-revenue", dependencies=[Depends(require_permission("revenue.rp_view", "view RP revenue dashboard"))])
 async def get_rp_revenue_dashboard(
     rp_id: Optional[str] = None,
     start_date: Optional[str] = None,
@@ -202,7 +203,7 @@ async def get_rp_revenue_dashboard(
     }
 
 
-@router.get("/rp-revenue/{rp_id}/bookings")
+@router.get("/rp-revenue/{rp_id}/bookings", dependencies=[Depends(require_permission("revenue.rp_view", "view RP bookings"))])
 async def get_rp_bookings(
     rp_id: str,
     start_date: Optional[str] = None,
@@ -282,7 +283,7 @@ async def get_rp_bookings(
 
 # ================== Employee Revenue Dashboard ==================
 
-@router.get("/employee-revenue")
+@router.get("/employee-revenue", dependencies=[Depends(require_permission("revenue.employee_view", "view employee revenue dashboard"))])
 async def get_employee_revenue_dashboard(
     employee_id: Optional[str] = None,
     start_date: Optional[str] = None,
@@ -437,7 +438,7 @@ async def get_employee_revenue_dashboard(
     }
 
 
-@router.get("/employee-revenue/{employee_id}/bookings")
+@router.get("/employee-revenue/{employee_id}/bookings", dependencies=[Depends(require_permission("revenue.employee_view", "view employee bookings"))])
 async def get_employee_bookings(
     employee_id: str,
     start_date: Optional[str] = None,
@@ -534,7 +535,7 @@ async def get_employee_bookings(
 
 # ================== Manager Hierarchy ==================
 
-@router.get("/my-team")
+@router.get("/my-team", dependencies=[Depends(require_permission("revenue.team_view", "view team members"))])
 async def get_my_team(current_user: dict = Depends(get_current_user)):
     """Get team members under current user based on hierarchy."""
     user_role = current_user.get("role", 6)
