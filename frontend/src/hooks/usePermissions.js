@@ -172,12 +172,13 @@ export function usePermissions() {
     if (!required) return true; // Default allow if not configured
     
     return hasAnyPermission(required);
-  }, [hasAnyPermission]);
+  }, [hasAnyPermission, isPEDesk]);
 
   return {
     permissions,
     loading,
     error,
+    isPEDesk,
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
