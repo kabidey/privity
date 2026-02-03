@@ -748,3 +748,49 @@ async def clear_system_cache(
         "results": cleanup_results,
         "cleared_at": datetime.now(timezone.utc).isoformat()
     }
+
+
+
+# ============== Stock News Endpoint ==============
+
+@router.get("/stock-news")
+async def get_stock_news(
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dashboard.view", "view stock news"))
+):
+    """
+    Get latest stock market news for the dashboard.
+    News is cached for 1 hour to reduce API calls.
+    """
+    from services.news_service import fetch_stock_news
+    
+    try:
+        # Get stock symbols from the database for relevant news
+        stocks = await db.stocks.find(
+            {"is_active": True},
+            {"_id": 0, "symbol": 1}
+        ).limit(10).to_list(10)
+        
+        stock_symbols = [s.get("symbol") for s in stocks if s.get("symbol")]
+        
+        # Fetch news
+        news_items = await fetch_stock_news(stock_symbols, limit)
+        
+        return {
+            "news": news_items,
+            "total": len(news_items),
+            "cached_until": None,  # Will be set by cache
+            "fetched_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        # Return fallback news on error
+        from services.news_service import get_fallback_news
+        return {
+            "news": get_fallback_news(),
+            "total": 5,
+            "is_fallback": True,
+            "fetched_at": datetime.now(timezone.utc).isoformat()
+        }
+
