@@ -352,7 +352,8 @@ async def upload_rp_documents(
     rp_id: str,
     document_type: str = Form(..., description="pan_card, aadhar_card, or cancelled_cheque"),
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.edit", "upload referral partner documents"))
 ):
     """
     Upload documents for a referral partner. Stored in GridFS for persistence.
