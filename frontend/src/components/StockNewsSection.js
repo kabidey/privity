@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import api from '../utils/api';
 
 const POLL_INTERVAL = 60 * 60 * 1000; // 1 hour in milliseconds
-const SCROLL_SPEED = 30; // pixels per second
+const SCROLL_SPEED = 25; // pixels per second (slower for better readability)
 
 const categoryIcons = {
   'Market Index': TrendingUp,
