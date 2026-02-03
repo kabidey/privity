@@ -211,6 +211,43 @@ const DatabaseBackup = () => {
     setRestoreDialogOpen(true);
   };
 
+  const openClearDialog = async () => {
+    setClearDialogOpen(true);
+    setLoadingCollections(true);
+    try {
+      const response = await api.get('/database/clearable-collections');
+      setClearableCollections(response.data.collections);
+      setSelectedCollections([]); // Reset selection
+    } catch (error) {
+      toast.error('Failed to fetch collections');
+      setClearableCollections([]);
+    } finally {
+      setLoadingCollections(false);
+    }
+  };
+
+  const toggleCollection = (collectionName) => {
+    setSelectedCollections(prev => 
+      prev.includes(collectionName) 
+        ? prev.filter(c => c !== collectionName)
+        : [...prev, collectionName]
+    );
+  };
+
+  const toggleAllCollections = () => {
+    if (selectedCollections.length === clearableCollections.length) {
+      setSelectedCollections([]);
+    } else {
+      setSelectedCollections(clearableCollections.map(c => c.name));
+    }
+  };
+
+  const getSelectedRecordCount = () => {
+    return clearableCollections
+      .filter(c => selectedCollections.includes(c.name))
+      .reduce((sum, c) => sum + c.count, 0);
+  };
+
   const formatBytes = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
