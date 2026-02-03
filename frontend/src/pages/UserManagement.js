@@ -428,7 +428,7 @@ const UserManagement = () => {
                                 </Button>
                               )}
                               {/* Proxy Login - PE Desk only, not for self or other PE Desk */}
-                              {isPEDesk && user.id !== currentUser.id && user.role !== 1 && (
+                              {isPEDesk && currentUser && user.id !== currentUser.id && user.role !== 1 && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
