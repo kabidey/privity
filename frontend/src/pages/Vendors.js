@@ -55,10 +55,13 @@ const Vendors = () => {
     bank_declaration: null,  // Required if proprietor with name mismatch
   });
 
-  const { isPEDesk, isPEManager, isPELevel } = useCurrentUser();
+  const { user, isPEDesk, isPEManager, isPELevel } = useCurrentUser();
   const canAccessVendors = isPELevel;
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     // PE Desk and PE Manager can access vendors
     if (!canAccessVendors) {
       toast.error('Access denied. Only PE Desk and PE Manager can manage vendors.');
@@ -66,7 +69,7 @@ const Vendors = () => {
       return;
     }
     fetchVendors();
-  }, [canAccessVendors, navigate]);
+  }, [user, canAccessVendors, navigate]);
 
   const fetchVendors = async () => {
     try {
