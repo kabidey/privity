@@ -528,7 +528,7 @@ class TestClientApprovalPermissions:
     """Test client approval specific permissions"""
     
     pe_desk_token = None
-    employee_token = None
+    viewer_token = None
     
     @classmethod
     def setup_class(cls):
@@ -540,48 +540,48 @@ class TestClientApprovalPermissions:
         if response.status_code == 200:
             cls.pe_desk_token = response.json().get("token")
         
-        time.sleep(0.5)
+        time.sleep(1)
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
-            json={"email": EMPLOYEE_EMAIL, "password": EMPLOYEE_PASSWORD}
+            json={"email": VIEWER_EMAIL, "password": VIEWER_PASSWORD}
         )
         if response.status_code == 200:
-            cls.employee_token = response.json().get("token")
+            cls.viewer_token = response.json().get("token")
     
-    def get_employee_headers(self):
-        return {"Authorization": f"Bearer {self.employee_token}", "Content-Type": "application/json"}
+    def get_viewer_headers(self):
+        return {"Authorization": f"Bearer {self.viewer_token}", "Content-Type": "application/json"}
     
-    def test_employee_cannot_approve_client(self):
-        """Employee should not be able to approve clients (requires client_approval.approve)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_cannot_approve_client(self):
+        """Viewer should not be able to approve clients (requires client_approval.approve)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         # Try to approve a non-existent client - should fail with 403 before 404
         response = requests.put(
             f"{BASE_URL}/api/clients/fake-client-id/approve",
             params={"approve": True},
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied client approval: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied client approval (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied client approval: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied client approval (status: {response.status_code})")
     
-    def test_employee_cannot_delete_client(self):
-        """Employee should not be able to delete clients (requires clients.delete)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_cannot_delete_client(self):
+        """Viewer should not be able to delete clients (requires clients.delete)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         # Try to delete a non-existent client - should fail with 403 before 404
         response = requests.delete(
             f"{BASE_URL}/api/clients/fake-client-id",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied client delete: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied client delete (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied client delete: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied client delete (status: {response.status_code})")
 
 
 class TestDatabaseBackupPermissions:
