@@ -167,11 +167,10 @@ By clicking "I Agree", you confirm that you have read, understood, and agree to 
 @router.put("", response_model=CompanyMasterResponse)
 async def update_company_master(
     data: CompanyMasterCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.edit", "update company master"))
 ):
     """Update company master settings (PE Desk only)"""
-    check_pe_desk(current_user)
-    
     update_data = {
         "company_name": data.company_name,
         "company_address": data.company_address,
@@ -217,15 +216,14 @@ async def update_company_master(
 async def upload_company_document(
     document_type: str,
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.upload_docs", "upload company documents"))
 ):
     """
     Upload company document (PE Desk only) - Stored in GridFS for persistence
     
     document_type: cml_cdsl, cml_nsdl, cancelled_cheque, pan_card
     """
-    check_pe_desk(current_user)
-    
     valid_types = ["cml_cdsl", "cml_nsdl", "cancelled_cheque", "pan_card"]
     if document_type not in valid_types:
         raise HTTPException(
