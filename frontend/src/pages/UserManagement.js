@@ -520,7 +520,7 @@ const UserManagement = () => {
                   </div>
                 ) : (
                   <p className="text-center py-4 text-muted-foreground">
-                    No hierarchy structure defined yet. Use the "Set Hierarchy" button on users to build the reporting structure.
+                    No hierarchy structure defined yet. Use the &quot;Set Hierarchy&quot; button on users to build the reporting structure.
                   </p>
                 )}
               </CardContent>
