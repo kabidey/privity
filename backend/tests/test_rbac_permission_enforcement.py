@@ -330,31 +330,31 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access inventory: {response.text}"
         print(f"✓ PE Desk can access inventory (status: {response.status_code})")
     
-    def test_employee_can_access_inventory_view(self):
-        """Employee should be able to access /api/inventory (has inventory.view)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_can_access_inventory_view(self):
+        """Viewer should be able to access /api/inventory (has inventory.view)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/inventory",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
-        # Employee should have inventory.view permission
-        assert response.status_code == 200, f"Employee should access inventory view: {response.status_code} - {response.text}"
-        print(f"✓ Employee can access inventory view (status: {response.status_code})")
+        # Viewer should have inventory.view permission
+        assert response.status_code == 200, f"Viewer should access inventory view: {response.status_code} - {response.text}"
+        print(f"✓ Viewer can access inventory view (status: {response.status_code})")
     
-    def test_employee_denied_inventory_recalculate(self):
-        """Employee should be denied access to POST /api/inventory/recalculate (requires inventory.recalculate)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_inventory_recalculate(self):
+        """Viewer should be denied access to POST /api/inventory/recalculate (requires inventory.recalculate)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.post(
             f"{BASE_URL}/api/inventory/recalculate",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied inventory recalculate: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied inventory recalculate (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied inventory recalculate: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied inventory recalculate (status: {response.status_code})")
     
     # ============== CLIENTS PERMISSION TESTS ==============
     
