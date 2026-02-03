@@ -247,6 +247,11 @@ const StockNewsSection = () => {
                             <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${categoryColor}`}>
                               {item.category}
                             </Badge>
+                            {item.sentiment && item.sentiment !== 'Neutral' && (
+                              <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 ${sentimentColors[item.sentiment] || sentimentColors['Neutral']}`}>
+                                {item.sentiment}
+                              </Badge>
+                            )}
                             {item.related_stock && (
                               <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
                                 {item.related_stock}
