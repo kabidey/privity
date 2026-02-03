@@ -37,6 +37,36 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 03, 2026)
 
+#### ✅ Granular Permission Enforcement on Backend APIs - COMPLETED (Feb 03, 2026)
+**Major Enhancement**: Enforced 96+ granular permissions on corresponding backend API endpoints using `Depends(require_permission("...", "..."))`
+**Changes Made**:
+- Updated 50+ API endpoints to use dynamic permission checks via `require_permission()` dependency
+- All endpoints now return 403 Forbidden with descriptive error messages when permissions are denied
+- Error messages include role name and action description for better debugging
+
+**Routers Updated with Permission Enforcement**:
+1. `bookings.py` - bookings.approve, bookings.delete, bookings.record_payment, bookings.delete_payment, dp.view_receivables, dp.view_transfers, dp.transfer
+2. `clients.py` - client_approval.approve, client_approval.view, clients.delete, clients.suspend, clients.map, clients.create
+3. `inventory.py` - inventory.edit_landing_price, inventory.delete
+4. `stocks.py` - stocks.delete, stocks.corporate_actions, bulk_upload.stocks
+5. `users.py` - users.view, users.create, users.edit, users.delete, users.change_role, users.reset_password
+6. `purchases.py` - purchases.create, purchases.record_payment, purchases.delete, dp.view_receivables, dp.view_transfers, dp.transfer
+7. `finance.py` - finance.view (and related finance operations)
+8. `contract_notes.py` - contract_notes.view, contract_notes.generate
+9. `audit_logs.py` - audit_logs.view
+10. `database_backup.py` - database_backup.view, database_backup.create, database_backup.full, database_backup.delete, database_backup.restore, database_backup.clear
+
+**Testing Results**: 35/35 backend tests passed (100% success rate)
+- PE Desk (role 1 with wildcard `*` permission) can access ALL endpoints
+- Viewer (role 4 with limited permissions) correctly denied write/admin operations
+- Error messages are descriptive: "Permission denied. Viewer role does not have permission to..."
+
+**Architecture Benefits**:
+1. Roles created in Role Management UI are now properly connected to backend authorization
+2. Single source of truth for permissions in `permission_service.py`
+3. Flexible permission expansion with wildcards (`*`, `category.*`)
+4. No breaking changes - existing functionality preserved
+
 #### ✅ Dynamic Permission Integration - All Routers Migrated - COMPLETED (Feb 03, 2026)
 **Major Refactor**: Migrated ALL 20 backend routers to use the new dynamic permission service
 **Changes Made**:
