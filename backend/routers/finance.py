@@ -147,12 +147,10 @@ async def get_all_payments(
 async def get_finance_summary(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.view", "view finance summary"))
 ):
     """Get finance summary statistics."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access finance data")
-    
     # Get all payments
     payments = await get_all_payments(None, start_date, end_date, current_user)
     
@@ -205,12 +203,10 @@ async def get_finance_summary(
 @router.get("/finance/refund-requests")
 async def get_refund_requests(
     status: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.refunds", "view refund requests"))
 ):
     """Get all refund requests."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access refund requests")
-    
     query = {}
     if status:
         query["status"] = status
@@ -220,11 +216,12 @@ async def get_refund_requests(
 
 
 @router.get("/finance/refund-requests/{request_id}")
-async def get_refund_request(request_id: str, current_user: dict = Depends(get_current_user)):
+async def get_refund_request(
+    request_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.refunds", "view refund request"))
+):
     """Get a specific refund request."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access refund requests")
-    
     refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
     if not refund:
         raise HTTPException(status_code=404, detail="Refund request not found")
@@ -236,12 +233,10 @@ async def get_refund_request(request_id: str, current_user: dict = Depends(get_c
 async def update_refund_request(
     request_id: str,
     update_data: RefundStatusUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.manage_refunds", "update refund requests"))
 ):
     """Update refund request status."""
-    if not can_manage_finance(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update refund requests")
-    
     refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
     if not refund:
         raise HTTPException(status_code=404, detail="Refund request not found")
