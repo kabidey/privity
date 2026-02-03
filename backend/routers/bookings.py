@@ -1424,6 +1424,90 @@ async def update_booking(booking_id: str, booking_data: BookingCreate, current_u
     return updated_booking
 
 
+@router.put("/bookings/{booking_id}/referral-partner")
+async def update_booking_referral_partner(
+    booking_id: str,
+    referral_partner_id: Optional[str] = None,
+    rp_revenue_share_percent: Optional[float] = None,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.edit", "update booking RP"))
+):
+    """
+    Update the referral partner mapping for a booking.
+    
+    - Can change or remove RP assignment
+    - Can update RP revenue share percentage
+    - Only allowed before stock transfer is completed
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("stock_transferred"):
+        raise HTTPException(
+            status_code=400, 
+            detail="Cannot change RP mapping after stock has been transferred"
+        )
+    
+    if booking.get("is_bp_booking"):
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot assign RP to a Business Partner booking"
+        )
+    
+    updates = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    old_rp_id = booking.get("referral_partner_id")
+    old_rp_share = booking.get("rp_revenue_share_percent")
+    
+    if referral_partner_id:
+        # Validate RP exists and is active
+        rp = await db.referral_partners.find_one(
+            {"id": referral_partner_id, "is_active": True, "approval_status": "approved"},
+            {"_id": 0}
+        )
+        if not rp:
+            raise HTTPException(status_code=404, detail="Referral Partner not found or not approved")
+        
+        updates["referral_partner_id"] = referral_partner_id
+        updates["rp_code"] = rp.get("rp_code")
+        updates["rp_name"] = rp.get("name")
+        updates["rp_revenue_share_percent"] = rp_revenue_share_percent if rp_revenue_share_percent is not None else 30.0
+        updates["employee_revenue_share_percent"] = 100.0 - updates["rp_revenue_share_percent"]
+    else:
+        # Remove RP assignment
+        updates["referral_partner_id"] = None
+        updates["rp_code"] = None
+        updates["rp_name"] = None
+        updates["rp_revenue_share_percent"] = 0
+        updates["employee_revenue_share_percent"] = 100.0
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": updates})
+    
+    # Create audit log
+    await create_audit_log(
+        action="BOOKING_RP_UPDATE",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 6),
+        entity_name=booking.get("booking_number"),
+        details={
+            "old_rp_id": old_rp_id,
+            "new_rp_id": referral_partner_id,
+            "old_rp_share": old_rp_share,
+            "new_rp_share": updates.get("rp_revenue_share_percent")
+        }
+    )
+    
+    return {
+        "message": "Referral partner mapping updated",
+        "referral_partner_id": updates.get("referral_partner_id"),
+        "rp_name": updates.get("rp_name"),
+        "rp_revenue_share_percent": updates.get("rp_revenue_share_percent")
+    }
+
+
 @router.delete("/bookings/{booking_id}")
 async def delete_booking(
     booking_id: str,
