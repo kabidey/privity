@@ -41,6 +41,24 @@ VIEWER_EMAIL = "testuser@smifs.com"
 VIEWER_PASSWORD = "Test@123"
 
 
+def login_with_retry(email, password, max_retries=3, delay=5):
+    """Login with retry logic to handle rate limiting"""
+    for attempt in range(max_retries):
+        response = requests.post(
+            f"{BASE_URL}/api/auth/login",
+            json={"email": email, "password": password}
+        )
+        if response.status_code == 200:
+            return response.json().get("token")
+        elif response.status_code == 429:  # Rate limited
+            print(f"Rate limited, waiting {delay}s before retry {attempt + 1}/{max_retries}")
+            time.sleep(delay)
+        else:
+            print(f"Login failed: {response.status_code} - {response.text}")
+            return None
+    return None
+
+
 class TestPEAdminReportsAccess:
     """Test PE Admin access to reports.py endpoints"""
     
