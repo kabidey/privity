@@ -244,7 +244,8 @@ async def get_clients(
     is_vendor: Optional[bool] = None,
     pending_approval: Optional[bool] = None,
     include_unmapped: Optional[bool] = False,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view", "view clients"))
 ):
     """Get all clients with optional filters based on hierarchy."""
     from services.hierarchy_service import get_team_user_ids
@@ -335,7 +336,11 @@ async def get_pending_clients(
 
 
 @router.get("/clients/{client_id}", response_model=Client)
-async def get_client(client_id: str, current_user: dict = Depends(get_current_user)):
+async def get_client(
+    client_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view", "view client details"))
+):
     """Get a specific client by ID."""
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
@@ -344,7 +349,12 @@ async def get_client(client_id: str, current_user: dict = Depends(get_current_us
 
 
 @router.put("/clients/{client_id}", response_model=Client)
-async def update_client(client_id: str, client_data: ClientCreate, current_user: dict = Depends(get_current_user)):
+async def update_client(
+    client_id: str,
+    client_data: ClientCreate,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.edit", "edit clients"))
+):
     """Update an existing client."""
     existing = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not existing:
