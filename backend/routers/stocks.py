@@ -172,12 +172,11 @@ async def delete_stock(
 @router.post("/stocks/bulk-upload")
 async def bulk_upload_stocks(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.stocks", "bulk upload stocks"))
 ):
-    """Bulk upload stocks from Excel file (PE Desk and PE Manager)"""
+    """Bulk upload stocks from Excel file (requires bulk_upload.stocks permission)"""
     user_role = current_user.get("role", 5)
-    if user_role not in [1, 2]:
-        raise HTTPException(status_code=403, detail="Only PE Desk and PE Manager can bulk upload stocks")
     
     try:
         import openpyxl
