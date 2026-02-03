@@ -26,7 +26,8 @@ from services.email_service import send_templated_email, send_payment_request_em
 from services.permission_service import (
     has_permission,
     check_permission as check_dynamic_permission,
-    is_pe_level_dynamic
+    is_pe_level_dynamic,
+    require_permission
 )
 from services.inventory_service import (
     update_inventory,
