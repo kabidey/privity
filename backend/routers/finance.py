@@ -733,12 +733,10 @@ async def get_bp_payments(
 
 @router.get("/finance/bp-payments/summary")
 async def get_bp_payments_summary(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("business_partners.view_payouts", "view BP payments summary"))
 ):
     """Get BP payments summary statistics."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access BP payments")
-    
     all_payments = await db.bp_payments.find({}, {"_id": 0}).to_list(10000)
     
     pending = [p for p in all_payments if p.get("status") == "pending"]
@@ -761,12 +759,10 @@ async def get_bp_payments_summary(
 async def update_bp_payment(
     payment_id: str,
     update_data: BPPaymentUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("business_partners.process_payouts", "update BP payment"))
 ):
     """Update a BP payment status."""
-    if not can_manage_finance(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or Finance can update BP payments")
-    
     payment = await db.bp_payments.find_one({"id": payment_id}, {"_id": 0})
     if not payment:
         raise HTTPException(status_code=404, detail="BP payment not found")
@@ -803,12 +799,10 @@ async def export_finance_excel(
     payment_type: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.export", "export finance data"))
 ):
     """Export finance data to Excel."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can export finance data")
-    
     payments = await get_all_payments(payment_type, start_date, end_date, current_user)
     
     # Create workbook
