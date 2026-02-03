@@ -172,6 +172,33 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Updated `DEFAULT_ROLES` with new permissions for each role
 - PE Manager now has access to research, reports, contract notes, revenue dashboards
 
+#### ✅ Stock Market News Section - COMPLETED (Feb 04, 2026)
+**Feature**: Live stock market news feed on the Dashboard
+**Implementation**:
+- **Backend**: Created `/api/dashboard/stock-news` endpoint in `dashboard.py`
+- **News Service**: Created `/app/backend/services/news_service.py` with:
+  - Web search integration for Indian stock market news
+  - Intelligent news categorization (Market Index, Earnings, IPO, Corporate Action, FII/DII, M&A)
+  - Source extraction and credibility filtering
+  - 1-hour cache to reduce API calls
+  - Fallback news for offline/error scenarios
+- **Frontend**: Created `StockNewsSection.js` component with:
+  - Auto-scrolling news ticker (25px/second)
+  - Hover-to-pause functionality
+  - Category badges with color coding
+  - Source attribution (non-clickable)
+  - Manual refresh button
+  - Last updated timestamp
+  - Gradient overlays for smooth scroll effect
+  - 550px height for prominent visibility
+  - Polls every 1 hour for updates
+
+**Files Created/Modified**:
+- `backend/services/news_service.py` - News fetching and parsing service
+- `backend/routers/dashboard.py` - Added `/stock-news` endpoint
+- `frontend/src/components/StockNewsSection.js` - News display component
+- `frontend/src/pages/Dashboard.js` - Integrated news section
+
 #### ✅ Extended RBAC Audit - COMPLETED (Feb 03, 2026)
 **Objective**: Complete coverage of RBAC enforcement on ALL backend API endpoints
 
