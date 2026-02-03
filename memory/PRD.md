@@ -141,6 +141,37 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 **Test Results**: 30/30 menu pages accessible to PE Desk ✅
 
+#### ✅ Full Backend RBAC Audit - COMPLETED (Feb 04, 2026)
+**Objective**: Complete coverage of RBAC enforcement on ALL backend API endpoints
+
+**Final Status: 100% Complete - All Routers Protected**
+- Extended from previous 98% to full completion
+- Added RBAC to remaining unprotected routers
+
+**Newly Protected Routers (Feb 04, 2026):**
+- `reports.py` - 6 endpoints ✅ (pnl, exports, portfolio, PE HIT report)
+- `research.py` - 7 endpoints ✅ (upload, list, delete, AI research, stats)
+- `revenue_dashboard.py` - 6 endpoints ✅ (RP revenue, employee revenue, team)
+- `kill_switch.py` - 2 endpoints ✅ (activate, deactivate)
+
+**New Permissions Added:**
+- `reports.view`, `reports.export`, `reports.pe_hit` - P&L and HIT reports
+- `research.view`, `research.upload`, `research.delete`, `research.ai` - Research operations
+- `revenue.rp_view`, `revenue.employee_view`, `revenue.team_view` - Revenue dashboards
+- `system.kill_switch` - Emergency kill switch control
+
+**Routers Intentionally Without RBAC (User-Specific Operations):**
+- `auth.py` - Public authentication endpoints
+- `two_factor.py` - User's own 2FA management
+- `group_chat.py` - Authenticated user chat
+- `notifications.py` - User's own notifications
+- `sohini.py` - AI assistant for authenticated users
+
+**Permission Service Updated:**
+- Added new permission categories to `ALL_PERMISSIONS`
+- Updated `DEFAULT_ROLES` with new permissions for each role
+- PE Manager now has access to research, reports, contract notes, revenue dashboards
+
 #### ✅ Extended RBAC Audit - COMPLETED (Feb 03, 2026)
 **Objective**: Complete coverage of RBAC enforcement on ALL backend API endpoints
 
