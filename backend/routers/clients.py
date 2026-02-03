@@ -24,7 +24,8 @@ from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
     has_permission,
     check_permission as check_dynamic_permission,
-    is_pe_level_dynamic
+    is_pe_level_dynamic,
+    require_permission
 )
 
 router = APIRouter(tags=["Clients"])
