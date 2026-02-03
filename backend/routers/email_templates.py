@@ -11,6 +11,7 @@ from database import db
 from routers.auth import get_current_user
 from config import DEFAULT_EMAIL_TEMPLATES as EMAIL_TEMPLATES
 from services.email_service import render_template
+from services.permission_service import require_permission
 
 router = APIRouter(prefix="/email-templates", tags=["Email Templates"])
 
@@ -27,11 +28,11 @@ class EmailTemplatePreview(BaseModel):
 
 # ============== Email Template Endpoints ==============
 @router.get("")
-async def get_email_templates(current_user: dict = Depends(get_current_user)):
+async def get_email_templates(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.templates", "view email templates"))
+):
     """Get all email templates (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access email templates")
-    
     # Get templates from database (custom overrides)
     templates = await db.email_templates.find({}, {"_id": 0}).to_list(100)
     db_templates = {t["key"]: t for t in templates}
@@ -53,10 +54,11 @@ async def get_email_templates(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/{template_key}")
-async def get_email_template(template_key: str, current_user: dict = Depends(get_current_user)):
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access email templates")
-    
+async def get_email_template(
+    template_key: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.templates", "view email template"))
+):
     template = await db.email_templates.find_one({"key": template_key}, {"_id": 0})
     default_template = EMAIL_TEMPLATES.get(template_key)
     
