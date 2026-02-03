@@ -162,6 +162,19 @@ async def create_booking(booking_data: BookingCreate, current_user: dict = Depen
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
+    # Auto-assign creator's RP if no RP is specified and user is not a Business Partner
+    if not is_business_partner and not booking_data.referral_partner_id:
+        # Find RP created by the current user (default to creator's RP)
+        creator_rp = await db.referral_partners.find_one(
+            {"created_by": current_user["id"], "is_active": True, "approval_status": "approved"},
+            {"_id": 0, "id": 1, "rp_code": 1, "name": 1}
+        )
+        if creator_rp:
+            booking_data.referral_partner_id = creator_rp["id"]
+            # Set default RP revenue share if not specified
+            if not booking_data.rp_revenue_share_percent:
+                booking_data.rp_revenue_share_percent = 30.0  # Default 30%
+    
     # Check client approval status
     if client.get("approval_status") != "approved":
         raise HTTPException(
