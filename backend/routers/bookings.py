@@ -915,15 +915,10 @@ async def export_bookings(
     format: str = "xlsx",  # "xlsx" or "csv"
     status: Optional[str] = None,
     approval_status: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.export", "export bookings"))
 ):
     """Export bookings to Excel or CSV"""
-    user_role = current_user.get("role", 7)
-    
-    # Viewer (role 4) cannot download/export
-    if user_role == 4:
-        raise HTTPException(status_code=403, detail="Viewers are not allowed to download or export data")
-    
     # Build query
     query = {"is_voided": {"$ne": True}}
     if status:
