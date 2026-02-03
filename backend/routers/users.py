@@ -9,11 +9,32 @@ import uuid
 import bcrypt
 
 from database import db
-from config import ROLES, is_pe_level, is_pe_desk_only, can_manage_business_partners
+from config import ROLES
 from models import User
 from utils.auth import get_current_user, check_permission
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission,
+    is_pe_level_dynamic
+)
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+
+# Helper functions for backward compatibility
+def is_pe_level(role: int) -> bool:
+    """Check if role is PE level (PE Desk or PE Manager)."""
+    return role in [1, 2]
+
+
+def is_pe_desk_only(role: int) -> bool:
+    """Check if role is PE Desk only."""
+    return role == 1
+
+
+def can_manage_business_partners(role: int) -> bool:
+    """Check if role can manage business partners."""
+    return role in [1, 2, 5]  # PE Desk, PE Manager, Partners Desk
 
 
 # ============== Pydantic Models ==============
