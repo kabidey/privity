@@ -111,13 +111,11 @@ async def get_contract_notes(
 @router.get("/{note_id}", response_model=ContractNote)
 async def get_contract_note(
     note_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.view", "view contract notes"))
 ):
-    """Get single contract note by ID"""
+    """Get single contract note by ID (requires contract_notes.view permission)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view contract notes")
     
     note = await db.contract_notes.find_one({"id": note_id}, {"_id": 0})
     if not note:
@@ -135,16 +133,14 @@ async def get_contract_note(
 @router.post("/generate/{booking_id}")
 async def generate_contract_note(
     booking_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.generate", "generate contract notes"))
 ):
     """
-    Generate contract note for a booking (PE Level only)
+    Generate contract note for a booking (requires contract_notes.generate permission)
     Usually triggered after DP transfer is marked complete
     """
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can generate contract notes")
     
     # Check booking exists
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
