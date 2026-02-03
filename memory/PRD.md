@@ -35,7 +35,45 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## What's Been Implemented
 
-### Latest Updates (Feb 02, 2026)
+### Latest Updates (Feb 03, 2026)
+
+#### ✅ Dynamic Role & Permission Management System - COMPLETED (Feb 03, 2026)
+**Feature**: Full dynamic role management with granular permissions
+**Backend Implementation** (`/app/backend/routers/roles.py`):
+- `GET /api/roles` - List all roles (system + custom)
+- `GET /api/roles/{role_id}` - Get specific role
+- `POST /api/roles` - Create new custom role
+- `PUT /api/roles/{role_id}` - Update role permissions
+- `DELETE /api/roles/{role_id}` - Delete custom role (not system roles)
+- `GET /api/roles/permissions` - Get all available permissions grouped by category
+- `POST /api/roles/check-permission` - Check if user has specific permission
+- `GET /api/roles/user/{user_id}/permissions` - Get all permissions for a user
+
+**Available Permission Categories**:
+- Dashboard, Bookings, Clients, Stocks, Inventory, Purchases, Vendors
+- Finance, Users, Roles, Business Partners, Referral Partners
+- Reports & Analytics, Settings, DP Operations
+
+**Frontend Implementation** (`/app/frontend/src/pages/RoleManagement.js`):
+- Role list with system/custom role indicators
+- Create new custom roles with name, description, color
+- Edit role permissions with category-based accordion
+- Select All / individual permission checkboxes
+- Delete custom roles (with user assignment check)
+- Visual badge color picker
+
+**7 Default System Roles**:
+1. PE Desk - All Permissions (admin)
+2. PE Manager - 14 permissions (management)
+3. Finance - 9 permissions (payments)
+4. Viewer - 13 permissions (read-only)
+5. Partners Desk - 7 permissions (BP management)
+6. Business Partner - 5 permissions (limited)
+7. Employee - 8 permissions (basic)
+
+**Menu Location**: Left sidebar → "Role Management" (PE Desk only)
+
+### Previous Updates (Feb 02, 2026)
 
 #### ✅ Payment Request Email - Company Documents Attachment - COMPLETED (Feb 02, 2026)
 **Feature**: Attach company master documents to payment request emails sent to clients
