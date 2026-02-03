@@ -570,11 +570,11 @@ const UserManagement = () => {
                   <div className="flex flex-wrap gap-2">
                     {getUnassignedUsers().map(user => (
                       <div key={user.id} className="flex items-center gap-2 border rounded-lg px-3 py-2">
-                        <Badge className={ROLES[user.role]?.color || 'bg-gray-100'}>
+                        <Badge className={roles[user.role]?.color || 'bg-gray-100'}>
                           {user.name}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          ({ROLES[user.role]?.name || 'Unknown'})
+                          ({roles[user.role]?.name || 'Unknown'})
                         </span>
                         <Button
                           size="sm"
