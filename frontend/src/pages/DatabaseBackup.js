@@ -137,12 +137,21 @@ const DatabaseBackup = () => {
       return;
     }
     
+    if (selectedCollections.length === 0) {
+      toast.error('Please select at least one collection to clear');
+      return;
+    }
+    
     setClearing(true);
     try {
-      const response = await api.delete('/database/clear');
-      toast.success(`Database cleared! ${response.data.total_deleted} records deleted.`);
+      const params = new URLSearchParams();
+      selectedCollections.forEach(c => params.append('collections', c));
+      
+      const response = await api.delete(`/database/clear?${params.toString()}`);
+      toast.success(`Cleared ${response.data.collections_cleared} collections! ${response.data.total_deleted} records deleted.`);
       setClearDialogOpen(false);
       setClearConfirmText('');
+      setSelectedCollections([]);
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to clear database');
