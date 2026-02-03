@@ -441,12 +441,12 @@ class TestRBACPermissionEnforcement:
     
     def test_permission_denied_error_message_is_descriptive(self):
         """Permission denied error should include role name and action description"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/audit-logs",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         
         assert response.status_code == 403
