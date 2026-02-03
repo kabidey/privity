@@ -580,12 +580,12 @@ async def get_dp_receivables(
 
 
 @router.get("/dp-received")
-async def get_dp_received(current_user: dict = Depends(get_current_user)):
-    """Get all purchases with DP received status (PE Level only)"""
+async def get_dp_received(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dp.view_transfers", "view DP received records"))
+):
+    """Get all purchases with DP received status (requires dp.view_transfers permission)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can view DP received records")
     
     # Get purchases with dp_status = "received"
     purchases = await db.purchases.find(
