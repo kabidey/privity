@@ -283,7 +283,10 @@ async def get_finance_dashboard(
 
 # ============== EMPLOYEE DASHBOARD ==============
 @router.get("/employee")
-async def get_employee_dashboard(current_user: dict = Depends(get_current_user)):
+async def get_employee_dashboard(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dashboard.view", "view employee dashboard"))
+):
     """Get Employee specific dashboard data"""
     user_id = current_user.get("id")
     user_name = current_user.get("name")
@@ -399,14 +402,11 @@ async def get_employee_dashboard(current_user: dict = Depends(get_current_user))
 
 # ============== Security Status ==============
 @router.get("/security-status")
-async def get_security_status(current_user: dict = Depends(get_current_user)):
+async def get_security_status(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("security.view_dashboard", "view security status"))
+):
     """Get security status and recent security events (PE Desk only)"""
-    user_role = current_user.get("role", 6)
-    
-    # Only PE Desk can view security status
-    if user_role != 1:
-        return {"error": "Access denied"}
-    
     from middleware.security import rate_limiter, login_tracker
     
     # Get recent security events from database
