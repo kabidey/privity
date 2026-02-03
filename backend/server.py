@@ -409,6 +409,7 @@ app.include_router(research_router, prefix="/api")
 app.include_router(group_chat_router, prefix="/api")
 app.include_router(files_router, prefix="/api")
 app.include_router(two_factor_router, prefix="/api")
+app.include_router(roles_router, prefix="/api")
 
 
 # ====================
