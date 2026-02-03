@@ -862,7 +862,8 @@ async def export_finance_excel(
 @router.get("/finance/tcs-export")
 async def export_tcs_report(
     financial_year: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.export", "export TCS report"))
 ):
     """
     Export TCS (Tax Collected at Source) report to Excel.
@@ -871,9 +872,6 @@ async def export_tcs_report(
     Format follows standard TCS filing requirements:
     - Vendor Name, PAN, Total Payments, TCS Amount, Payment Details
     """
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can export TCS data")
-    
     # Get current FY if not specified
     if not financial_year:
         now = datetime.now()
