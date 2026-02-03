@@ -458,12 +458,10 @@ async def upload_bp_document(
 async def delete_bp_document(
     bp_id: str,
     doc_type: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("business_partners.delete", "delete business partner documents"))
 ):
     """Delete a document for Business Partner (PE Level only)"""
-    if not is_pe_level(current_user.get("role", 5)):
-        raise HTTPException(status_code=403, detail="Only PE Level can delete documents")
-    
     bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
     if not bp:
         raise HTTPException(status_code=404, detail="Business Partner not found")
@@ -508,7 +506,7 @@ async def get_bp_documents(
     user_role = current_user.get("role", 5)
     is_self = user_role == 8 and current_user.get("id") == bp_id
     
-    if not can_manage_business_partners(user_role) and not is_self:
+    if not await has_permission(current_user, "business_partners.view") and not is_self:
         raise HTTPException(status_code=403, detail="Not authorized to view documents")
     
     bp = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
