@@ -380,6 +380,38 @@ async def approve_client(client_id: str, approve: bool = True, current_user: dic
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
+    # MANDATORY DOCUMENT CHECK: Require all 3 documents before approval
+    if approve:
+        documents = client.get("documents", [])
+        doc_types = [d.get("doc_type") for d in documents]
+        
+        missing_docs = []
+        if "pan_card" not in doc_types:
+            missing_docs.append("PAN Card")
+        if "cml_copy" not in doc_types:
+            missing_docs.append("CML Copy")
+        if "cancelled_cheque" not in doc_types:
+            missing_docs.append("Cancelled Cheque")
+        
+        if missing_docs:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot approve: Missing mandatory documents - {', '.join(missing_docs)}. All documents must be uploaded before approval."
+            )
+        
+        # Verify documents are actually stored in GridFS (have file_id)
+        docs_without_files = []
+        for doc in documents:
+            file_id = doc.get("file_id")
+            if not file_id or file_id == "None" or file_id == "null":
+                docs_without_files.append(doc.get("doc_type", "Unknown"))
+        
+        if docs_without_files:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot approve: Documents not properly uploaded to storage - {', '.join(docs_without_files)}. Please re-upload these documents."
+            )
+    
     # PE Manager cannot approve proprietor clients with name mismatch unless bank proof is uploaded
     # PE Desk (role 1) can bypass this check
     if approve and user_role == 2:  # PE Manager
