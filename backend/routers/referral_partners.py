@@ -53,7 +53,8 @@ async def generate_rp_code() -> str:
 @router.post("/referral-partners", response_model=ReferralPartner)
 async def create_referral_partner(
     rp_data: ReferralPartnerCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.create", "create referral partners"))
 ):
     """
     Create a new Referral Partner.
