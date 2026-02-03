@@ -18,16 +18,19 @@ const PEDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [clearingCache, setClearingCache] = useState(false);
 
-  const { isPELevel, isPEDesk } = useCurrentUser();
+  const { user, isPELevel, isPEDesk } = useCurrentUser();
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     if (!isPELevel) {
       toast.error('Access denied. Only PE Desk or PE Manager can view this dashboard.');
       navigate('/');
       return;
     }
     fetchData();
-  }, [isPELevel, navigate]);
+  }, [user, isPELevel, navigate]);
 
   const fetchData = async () => {
     try {
