@@ -309,14 +309,13 @@ async def upload_company_document(
 @router.post("/upload-logo")
 async def upload_company_logo(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.upload_docs", "upload company logo"))
 ):
     """
     Upload company logo (PE Desk only) - Stored in GridFS for persistence
     Supports PNG, JPG, JPEG, SVG, WEBP formats
     """
-    check_pe_desk(current_user)
-    
     # Validate file type - images only
     allowed_extensions = [".png", ".jpg", ".jpeg", ".svg", ".webp"]
     file_ext = os.path.splitext(file.filename)[1].lower()
@@ -393,11 +392,10 @@ async def upload_company_logo(
 
 @router.delete("/logo")
 async def delete_company_logo(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.upload_docs", "delete company logo"))
 ):
     """Delete company logo (PE Desk only)"""
-    check_pe_desk(current_user)
-    
     # Get current logo
     master = await db.company_master.find_one({"_id": "company_settings"})
     if not master:
