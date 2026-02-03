@@ -154,13 +154,11 @@ class PaymentRequest(BaseModel):
 @router.post("", response_model=Purchase)
 async def create_purchase(
     purchase_data: PurchaseCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("purchases.create", "create purchases"))
 ):
-    """Create a new purchase order"""
+    """Create a new purchase order (requires purchases.create permission)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can create purchases")
     
     # Validate vendor
     vendor = await db.clients.find_one(
