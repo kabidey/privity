@@ -260,12 +260,10 @@ async def update_refund_request(
 @router.get("/finance/tcs-payments")
 async def get_tcs_payments(
     financial_year: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.view_tcs", "view TCS payments"))
 ):
     """Get all vendor payments with TCS deducted."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access TCS data")
-    
     # Build query for payments with TCS
     query = {"tcs_applicable": True}
     
@@ -303,12 +301,10 @@ async def get_tcs_payments(
 @router.get("/finance/tcs-summary")
 async def get_tcs_summary(
     financial_year: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.view_tcs", "view TCS summary"))
 ):
     """Get TCS summary grouped by vendor."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access TCS data")
-    
     # Get current FY if not specified
     if not financial_year:
         now = datetime.now()
@@ -361,12 +357,10 @@ async def update_refund_bank_details(
     ifsc_code: str,
     account_holder_name: str,
     branch: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.manage_refunds", "update refund bank details"))
 ):
     """Update bank details for a refund request."""
-    if not can_manage_finance(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update refund requests")
-    
     refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
     if not refund:
         raise HTTPException(status_code=404, detail="Refund request not found")
@@ -396,12 +390,10 @@ class RPPaymentUpdate(BaseModel):
 async def get_rp_payments(
     status: Optional[str] = None,
     rp_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.view_payouts", "view RP payments"))
 ):
     """Get all RP payments for finance dashboard."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access RP payments")
-    
     query = {}
     if status:
         query["status"] = status
