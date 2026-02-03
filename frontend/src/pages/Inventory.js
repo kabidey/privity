@@ -69,6 +69,23 @@ const Inventory = () => {
     }
   };
 
+  const handleRecalculateInventory = async () => {
+    if (!window.confirm('Are you sure you want to recalculate inventory for ALL stocks? This will update available quantities, blocked quantities, and weighted average prices based on actual purchases and bookings.')) {
+      return;
+    }
+    
+    setRecalculating(true);
+    try {
+      const response = await api.post('/inventory/recalculate');
+      toast.success(response.data.message || 'Inventory recalculated successfully');
+      fetchInventory();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to recalculate inventory');
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
   const startEditLP = (item) => {
     setEditingLP(item.stock_id);
     setNewLP(item.landing_price?.toString() || item.weighted_avg_price?.toString() || '');
