@@ -410,7 +410,7 @@ const Bookings = () => {
       }
       
       // Refresh bookings list to show updated data
-      await fetchBookings();
+      await fetchData();
     } catch (error) {
       console.error('Refresh error:', error);
       console.error('Error response:', error.response?.data);
