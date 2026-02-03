@@ -55,7 +55,11 @@ async def generate_otc_ucc() -> str:
 
 
 @router.post("/clients", response_model=Client)
-async def create_client(client_data: ClientCreate, current_user: dict = Depends(get_current_user)):
+async def create_client(
+    client_data: ClientCreate,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.create", "create clients"))
+):
     """Create a new client or vendor."""
     user_role = current_user.get("role", 5)
     
