@@ -316,7 +316,7 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Stock Market News Section - Prominent Display */}
+      {/* Unlisted News Section - Prominent Display */}
       <div className="mb-6 md:mb-8">
         <StockNewsSection />
       </div>

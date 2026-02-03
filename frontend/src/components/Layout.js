@@ -289,9 +289,9 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
   }
   
-  // Contract Notes - based on permission
+  // Confirmation Notes - based on permission
   if (hasPermission('contract_notes.view') || isPELevel || isViewer) {
-    menuItems.push({ icon: FileText, label: 'Contract Notes', path: '/contract-notes' });
+    menuItems.push({ icon: FileText, label: 'Confirmation Notes', path: '/contract-notes' });
   }
   
   // Email Templates - based on permission

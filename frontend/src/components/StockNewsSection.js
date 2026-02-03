@@ -164,7 +164,7 @@ const StockNewsSection = () => {
               <Newspaper className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <span className="text-foreground">Stock Market News</span>
+              <span className="text-foreground">Unlisted News</span>
               <p className="text-xs font-normal text-muted-foreground mt-0.5">
                 {stocksTracked > 0 
                   ? `Tracking ${stocksTracked} stocks • Auto-updates every hour • Hover to pause`

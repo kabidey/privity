@@ -236,7 +236,7 @@ const RoleManagement = () => {
       inventory: { icon: '📦', label: 'Inventory', color: 'bg-yellow-100 text-yellow-800' },
       purchases: { icon: '🛒', label: 'Purchases', color: 'bg-pink-100 text-pink-800' },
       vendors: { icon: '🏪', label: 'Vendors', color: 'bg-indigo-100 text-indigo-800' },
-      contract_notes: { icon: '📄', label: 'Contract Notes', color: 'bg-cyan-100 text-cyan-800' },
+      contract_notes: { icon: '📄', label: 'Confirmation Notes', color: 'bg-cyan-100 text-cyan-800' },
       finance: { icon: '💰', label: 'Finance', color: 'bg-emerald-100 text-emerald-800' },
       analytics: { icon: '📉', label: 'Analytics', color: 'bg-violet-100 text-violet-800' },
       users: { icon: '👤', label: 'Users', color: 'bg-rose-100 text-rose-800' },
