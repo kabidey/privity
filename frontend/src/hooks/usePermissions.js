@@ -77,6 +77,9 @@ export function usePermissions() {
   const hasPermission = useCallback((permission) => {
     if (!permission) return false;
     
+    // PE Desk always has all permissions (immediate check, no async needed)
+    if (isPEDesk) return true;
+    
     // Wildcard all
     if (permissions.includes('*')) return true;
     
@@ -86,7 +89,7 @@ export function usePermissions() {
     
     // Exact permission
     return permissions.includes(permission);
-  }, [permissions]);
+  }, [permissions, isPEDesk]);
 
   /**
    * Check if user has any of the given permissions
@@ -94,8 +97,10 @@ export function usePermissions() {
    * @returns {boolean}
    */
   const hasAnyPermission = useCallback((permissionList) => {
+    // PE Desk always has all permissions
+    if (isPEDesk) return true;
     return permissionList.some(p => hasPermission(p));
-  }, [hasPermission]);
+  }, [hasPermission, isPEDesk]);
 
   /**
    * Check if user has all of the given permissions
