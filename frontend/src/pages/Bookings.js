@@ -1309,6 +1309,19 @@ const Bookings = () => {
                             {!isEmployee && !isViewer && (
                               <Button variant="ghost" size="sm" onClick={() => handleEdit(booking)}><Pencil className="h-4 w-4" /></Button>
                             )}
+                            {/* Edit RP Mapping button - PE Level only, not for BP bookings or transferred */}
+                            {isPELevel && !booking.is_bp_booking && !booking.stock_transferred && !booking.is_voided && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleOpenRpMapping(booking)}
+                                title="Edit Referral Partner Mapping"
+                                className="text-purple-600"
+                                data-testid="edit-rp-mapping-btn"
+                              >
+                                <Users className="h-4 w-4" />
+                              </Button>
+                            )}
                             {/* Refresh Status button - PE Level only */}
                             {isPELevel && (
                               <Button 
