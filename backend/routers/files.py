@@ -6,7 +6,6 @@ from fastapi.responses import StreamingResponse, Response
 from typing import Optional, List
 import io
 from database import db
-from config import is_pe_level
 from utils.auth import get_current_user
 from services.file_storage import (
     upload_file_to_gridfs,
@@ -16,8 +15,18 @@ from services.file_storage import (
     list_files_by_category,
     get_file_url
 )
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission
+)
 
 router = APIRouter(prefix="/files", tags=["files"])
+
+
+# Helper function for backward compatibility
+def is_pe_level(role: int) -> bool:
+    """Check if role is PE level (PE Desk or PE Manager)."""
+    return role in [1, 2]
 
 
 # ============== Static routes (must come before dynamic /{file_id} routes) ==============
