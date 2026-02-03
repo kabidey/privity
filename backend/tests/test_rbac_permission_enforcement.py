@@ -182,31 +182,31 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access database stats: {response.text}"
         print(f"✓ PE Desk can access database stats (status: {response.status_code})")
     
-    def test_employee_denied_database_backups(self):
-        """Employee should be denied access to /api/database/backups (requires database_backup.view)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_database_backups(self):
+        """Viewer should be denied access to /api/database/backups (requires database_backup.view)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/database/backups",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied database backups: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied database backups (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied database backups: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied database backups (status: {response.status_code})")
     
-    def test_employee_denied_database_stats(self):
-        """Employee should be denied access to /api/database/stats (requires database_backup.view)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_database_stats(self):
+        """Viewer should be denied access to /api/database/stats (requires database_backup.view)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/database/stats",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied database stats: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied database stats (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied database stats: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied database stats (status: {response.status_code})")
     
     # ============== USER MANAGEMENT PERMISSION TESTS ==============
     
