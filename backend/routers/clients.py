@@ -614,7 +614,12 @@ async def unsuspend_client(
 
 
 @router.post("/clients/{client_id}/bank-account")
-async def add_bank_account(client_id: str, bank_account: BankAccount, current_user: dict = Depends(get_current_user)):
+async def add_bank_account(
+    client_id: str,
+    bank_account: BankAccount,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.edit", "add bank account"))
+):
     """Add a bank account to a client."""
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
@@ -664,20 +669,13 @@ async def upload_client_document(
     client_id: str,
     doc_type: str = Form(...),
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.upload_docs", "upload client documents"))
 ):
     """Upload a document for a client with OCR processing. Stored in GridFS for persistence."""
-    user_role = current_user.get("role", 5)
-    
-    # Allow both manage_clients (managers+) and create_clients (employees) to upload docs
-    if user_role == 5:  # Employee
-        check_permission(current_user, "create_clients")
-        client = await db.clients.find_one({"id": client_id}, {"_id": 0})
-        if not client:
-            raise HTTPException(status_code=404, detail="Client not found")
-        if client.get("created_by") != current_user["id"]:
-            raise HTTPException(status_code=403, detail="You can only upload documents to your own clients")
-    else:
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
         check_permission(current_user, "manage_clients")
         client = await db.clients.find_one({"id": client_id}, {"_id": 0})
         if not client:
