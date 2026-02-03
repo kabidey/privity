@@ -193,16 +193,14 @@ async def get_landing_price(stock_id: str, current_user: dict = Depends(get_curr
 async def update_landing_price(
     stock_id: str,
     data: UpdateLandingPriceRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.edit_landing_price", "update landing price"))
 ):
     """
-    Update landing price for a stock (PE Desk only).
+    Update landing price for a stock (requires inventory.edit_landing_price permission).
     Landing Price (LP) is the price shown to non-PE users and used for booking revenue calculation.
     """
     user_role = current_user.get("role", 6)
-    
-    if user_role != 1:  # Only PE Desk
-        raise HTTPException(status_code=403, detail="Only PE Desk can update landing price")
     
     if data.landing_price <= 0:
         raise HTTPException(status_code=400, detail="Landing price must be greater than 0")
