@@ -27,7 +27,7 @@ class TestRBACPermissionEnforcement:
     """Test RBAC permission enforcement on backend API endpoints"""
     
     pe_desk_token = None
-    employee_token = None
+    viewer_token = None
     
     @classmethod
     def setup_class(cls):
@@ -43,26 +43,26 @@ class TestRBACPermissionEnforcement:
         else:
             print(f"✗ PE Desk login failed: {response.status_code} - {response.text}")
         
-        time.sleep(0.5)  # Rate limiting protection
+        time.sleep(1)  # Rate limiting protection
         
-        # Login Employee
+        # Login Viewer
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
-            json={"email": EMPLOYEE_EMAIL, "password": EMPLOYEE_PASSWORD}
+            json={"email": VIEWER_EMAIL, "password": VIEWER_PASSWORD}
         )
         if response.status_code == 200:
-            cls.employee_token = response.json().get("token")
-            print(f"✓ Employee login successful")
+            cls.viewer_token = response.json().get("token")
+            print(f"✓ Viewer login successful")
         else:
-            print(f"✗ Employee login failed: {response.status_code} - {response.text}")
+            print(f"✗ Viewer login failed: {response.status_code} - {response.text}")
     
     def get_pe_desk_headers(self):
         """Get headers with PE Desk token"""
         return {"Authorization": f"Bearer {self.pe_desk_token}", "Content-Type": "application/json"}
     
-    def get_employee_headers(self):
-        """Get headers with Employee token"""
-        return {"Authorization": f"Bearer {self.employee_token}", "Content-Type": "application/json"}
+    def get_viewer_headers(self):
+        """Get headers with Viewer token"""
+        return {"Authorization": f"Bearer {self.viewer_token}", "Content-Type": "application/json"}
     
     # ============== BOOKINGS PERMISSION TESTS ==============
     
