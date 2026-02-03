@@ -523,11 +523,10 @@ async def delete_client(
 async def suspend_client(
     client_id: str,
     suspension: ClientSuspensionRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.suspend", "suspend clients"))
 ):
-    """Suspend a client (PE Level only)."""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can suspend clients")
+    """Suspend a client (requires clients.suspend permission)."""
     
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
