@@ -18,10 +18,25 @@ import base64
 
 from database import db
 from routers.auth import get_current_user
-from config import is_pe_level, is_pe_desk_only
 from services.file_storage import upload_file_to_gridfs, download_file_from_gridfs, get_file_url
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission
+)
 
 router = APIRouter(prefix="/database", tags=["Database Management"])
+
+
+# Helper functions for backward compatibility
+def is_pe_level(role: int) -> bool:
+    """Check if role is PE level (PE Desk or PE Manager)."""
+    return role in [1, 2]
+
+
+def is_pe_desk_only(role: int) -> bool:
+    """Check if role is PE Desk only."""
+    return role == 1
+
 
 # Upload directory path (for backward compatibility)
 UPLOADS_DIR = "/app/uploads"
