@@ -276,18 +276,18 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access contract notes: {response.text}"
         print(f"✓ PE Desk can access contract notes (status: {response.status_code})")
     
-    def test_employee_denied_contract_notes(self):
-        """Employee should be denied access to /api/contract-notes (requires contract_notes.view)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_contract_notes(self):
+        """Viewer should be denied access to /api/contract-notes (requires contract_notes.view)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/contract-notes",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied contract notes: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied contract notes (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied contract notes: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied contract notes (status: {response.status_code})")
     
     # ============== FINANCE PERMISSION TESTS ==============
     
