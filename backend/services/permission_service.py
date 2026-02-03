@@ -24,7 +24,8 @@ DEFAULT_ROLES = {
             "dashboard.*", "bookings.*", "clients.*", "stocks.*", 
             "inventory.*", "purchases.*", "vendors.*", "finance.view",
             "finance.view_reports", "users.view", "business_partners.*",
-            "referral_partners.*", "reports.*", "dp.*"
+            "referral_partners.*", "reports.*", "dp.*", "revenue.*",
+            "research.*", "contract_notes.*"
         ]
     },
     3: {  # Finance
@@ -32,7 +33,8 @@ DEFAULT_ROLES = {
         "permissions": [
             "dashboard.view", "bookings.view", "bookings.view_all",
             "bookings.record_payment", "finance.*", "reports.view",
-            "reports.view_reports", "purchases.view", "purchases.record_payment"
+            "reports.view_reports", "purchases.view", "purchases.record_payment",
+            "revenue.rp_view", "revenue.employee_view"
         ]
     },
     4: {  # Viewer
@@ -42,7 +44,7 @@ DEFAULT_ROLES = {
             "clients.view", "stocks.view", "inventory.view",
             "purchases.view", "vendors.view", "finance.view",
             "users.view", "business_partners.view", "referral_partners.view",
-            "reports.view"
+            "reports.view", "research.view", "revenue.rp_view", "revenue.employee_view"
         ]
     },
     5: {  # Partners Desk
@@ -50,7 +52,7 @@ DEFAULT_ROLES = {
         "permissions": [
             "dashboard.view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "business_partners.*",
-            "referral_partners.view"
+            "referral_partners.view", "revenue.rp_view"
         ]
     },
     6: {  # Business Partner
@@ -65,7 +67,8 @@ DEFAULT_ROLES = {
         "permissions": [
             "dashboard.view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "clients.edit",
-            "stocks.view", "inventory.view"
+            "stocks.view", "inventory.view", "revenue.rp_view",
+            "revenue.employee_view", "revenue.team_view", "research.view"
         ]
     }
 }
