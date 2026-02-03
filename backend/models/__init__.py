@@ -218,7 +218,7 @@ class CorporateAction(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     stock_id: str
-    stock_symbol: str
+    stock_symbol: Optional[str] = None  # Made optional for backwards compatibility
     stock_name: Optional[str] = None
     action_type: str
     ratio_from: Optional[int] = None
