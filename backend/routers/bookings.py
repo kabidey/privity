@@ -1790,15 +1790,13 @@ async def approve_loss_booking(
 async def mark_dp_transferred(
     booking_id: str,
     dp_type: str,  # "NSDL" or "CDSL"
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dp.transfer", "mark DP as transferred"))
 ):
     """Mark a booking as DP transferred and send notification to client"""
     from services.email_service import send_stock_transferred_email
     
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can mark DP as transferred")
     
     if dp_type not in ["NSDL", "CDSL"]:
         raise HTTPException(status_code=400, detail="dp_type must be 'NSDL' or 'CDSL'")
