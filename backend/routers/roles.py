@@ -451,11 +451,13 @@ async def create_role(
 
 
 @router.put("/{role_id}")
-async def update_role(role_id: int, role_data: RoleUpdate, current_user: dict = Depends(get_current_user)):
+async def update_role(
+    role_id: int,
+    role_data: RoleUpdate,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("roles.edit", "edit roles"))
+):
     """Update a role's permissions (PE Desk only)"""
-    if not is_pe_desk_only(current_user.get("role", 7)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can edit roles")
-    
     # Check if role exists
     existing = await db.roles.find_one({"id": role_id})
     is_system_role = role_id <= 7
@@ -497,11 +499,12 @@ async def update_role(role_id: int, role_data: RoleUpdate, current_user: dict = 
 
 
 @router.delete("/{role_id}")
-async def delete_role(role_id: int, current_user: dict = Depends(get_current_user)):
+async def delete_role(
+    role_id: int,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("roles.delete", "delete roles"))
+):
     """Delete a custom role (PE Desk only, cannot delete system roles)"""
-    if not is_pe_desk_only(current_user.get("role", 7)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete roles")
-    
     if role_id <= 7:
         raise HTTPException(status_code=400, detail="Cannot delete system roles")
     
@@ -552,7 +555,11 @@ async def check_permission(
 
 
 @router.get("/user/{user_id}/permissions")
-async def get_user_permissions(user_id: str, current_user: dict = Depends(get_current_user)):
+async def get_user_permissions(
+    user_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("roles.view", "view user permissions"))
+):
     """Get all permissions for a specific user"""
     user = await db.users.find_one({"id": user_id}, {"_id": 0, "role": 1})
     if not user:
