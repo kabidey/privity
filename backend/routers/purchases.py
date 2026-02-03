@@ -893,13 +893,11 @@ async def mark_dp_received(
 @router.get("/dp-receivables/export")
 async def export_dp_receivables_excel(
     status: str = "all",  # "receivable", "received", or "all"
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dp.view_receivables", "export DP data"))
 ):
-    """Export DP receivables data to Excel"""
+    """Export DP receivables data to Excel (requires dp.view_receivables permission)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can export DP data")
     
     # Build query based on status
     query = {}
