@@ -172,7 +172,31 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Updated `DEFAULT_ROLES` with new permissions for each role
 - PE Manager now has access to research, reports, contract notes, revenue dashboards
 
-#### ✅ Stock Market News Section - COMPLETED (Feb 04, 2026)
+#### ✅ UI Renaming Updates - COMPLETED (Feb 04, 2026)
+**Changes Made**:
+1. **Stock Market News → Unlisted News**
+   - Updated `StockNewsSection.js` component title
+   - Updated `Dashboard.js` comment
+
+2. **Contract Note → Confirmation Note**
+   - Updated sidebar menu label in `Layout.js`
+   - Updated `ContractNotes.js` page (title, headers, table columns, dialogs)
+   - Updated `RoleManagement.js` permission labels
+   - Updated `changelog.js` descriptions
+   - Updated backend `contract_notes.py` router tags and comments
+   - Updated `contract_note_service.py`:
+     - PDF document title: "**CONFIRMATION NOTE CUM BILL**"
+     - Purchase PDF title: "**PURCHASE CONFIRMATION NOTE**"
+
+**Files Modified**:
+- `frontend/src/components/StockNewsSection.js`
+- `frontend/src/pages/Dashboard.js`
+- `frontend/src/components/Layout.js`
+- `frontend/src/pages/ContractNotes.js`
+- `frontend/src/pages/RoleManagement.js`
+- `frontend/src/changelog.js`
+- `backend/routers/contract_notes.py`
+- `backend/services/contract_note_service.py`
 **Feature**: AI-powered real stock market news feed on the Dashboard
 **Implementation**:
 - **Backend**: `/api/dashboard/stock-news` endpoint with AI summarization
