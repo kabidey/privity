@@ -500,11 +500,13 @@ async def get_corporate_actions(
 
 
 @router.delete("/corporate-actions/{action_id}")
-async def delete_corporate_action(action_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a corporate action (PE Desk only, only if not applied)"""
+async def delete_corporate_action(
+    action_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("stocks.corporate_actions", "delete corporate actions"))
+):
+    """Delete a corporate action (requires stocks.corporate_actions permission, only if not applied)"""
     user_role = current_user.get("role", 5)
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete corporate actions")
     
     action = await db.corporate_actions.find_one({"id": action_id}, {"_id": 0})
     if not action:
