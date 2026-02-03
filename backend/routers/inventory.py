@@ -265,10 +265,10 @@ async def recalculate_all_inventory(current_user: dict = Depends(get_current_use
     It recalculates available_quantity, blocked_quantity, and weighted_avg_price
     for every stock based on actual purchases and bookings.
     """
-    user_role = current_user.get("role", 6)
+    from services.permission_service import check_permission
     
-    if user_role != 1:  # Only PE Desk
-        raise HTTPException(status_code=403, detail="Only PE Desk can recalculate inventory")
+    # Check permission dynamically
+    await check_permission(current_user, "inventory.recalculate", "recalculate inventory")
     
     from services.inventory_service import update_inventory
     
@@ -299,7 +299,7 @@ async def recalculate_all_inventory(current_user: dict = Depends(get_current_use
         entity_id="all",
         user_id=current_user["id"],
         user_name=current_user["name"],
-        user_role=user_role,
+        user_role=current_user.get("role", 6),
         entity_name="All Stocks",
         details={
             "total_stocks": results["total_stocks"],
