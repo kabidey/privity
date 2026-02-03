@@ -281,10 +281,11 @@ async def recalculate_all_inventory(current_user: dict = Depends(get_current_use
     
     from services.inventory_service import update_inventory
     
-    # Get all unique stock IDs from purchases and inventory
+    # Get all unique stock IDs from purchases, inventory, AND bookings
     purchase_stock_ids = await db.purchases.distinct("stock_id")
     inventory_stock_ids = await db.inventory.distinct("stock_id")
-    all_stock_ids = list(set(purchase_stock_ids + inventory_stock_ids))
+    booking_stock_ids = await db.bookings.distinct("stock_id")
+    all_stock_ids = list(set(purchase_stock_ids + inventory_stock_ids + booking_stock_ids))
     
     results = {
         "total_stocks": len(all_stock_ids),
