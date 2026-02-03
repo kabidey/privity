@@ -264,3 +264,56 @@ async def can_edit_landing_price(user: dict) -> bool:
 async def can_recalculate_inventory(user: dict) -> bool:
     """Check if user can recalculate inventory."""
     return await has_permission(user, "inventory.recalculate")
+
+
+# FastAPI Dependency Factory
+def require_permission(permission: str, action_name: str = None):
+    """
+    Create a FastAPI dependency that checks for a specific permission.
+    
+    Usage:
+        @router.post("/endpoint")
+        async def my_endpoint(
+            current_user: dict = Depends(get_current_user),
+            _: None = Depends(require_permission("bookings.approve", "approve bookings"))
+        ):
+            # User has permission if we get here
+            pass
+    
+    Args:
+        permission: Permission string to check (e.g., "bookings.approve")
+        action_name: Human-readable action name for error message
+        
+    Returns:
+        FastAPI dependency function
+    """
+    from fastapi import Depends
+    from utils.auth import get_current_user
+    
+    if action_name is None:
+        action_name = permission.replace(".", " ").replace("_", " ")
+    
+    async def permission_checker(current_user: dict = Depends(get_current_user)):
+        await check_permission(current_user, permission, action_name)
+        return None
+    
+    return permission_checker
+
+
+# Convenience functions for common permission checks
+async def require_pe_desk(user: dict, action_name: str = "perform this action"):
+    """Require PE Desk level (full admin) for an action."""
+    await check_permission(user, "settings.company_master", action_name)
+
+
+async def require_pe_level(user: dict, action_name: str = "perform this action"):
+    """Require PE Level (PE Desk or PE Manager) for an action."""
+    # Check if user has any PE-level permission indicator
+    if not await is_pe_level_dynamic(user):
+        from fastapi import HTTPException
+        role_name = await get_role_name(user.get("role", 7))
+        raise HTTPException(
+            status_code=403,
+            detail=f"Permission denied. {role_name} role does not have PE-level access to {action_name}."
+        )
+
