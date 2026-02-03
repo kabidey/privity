@@ -244,12 +244,11 @@ async def bulk_upload_stocks(
 async def create_corporate_action(
     action_data: CorporateActionCreate,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("stocks.corporate_actions", "create corporate actions"))
 ):
-    """Create a corporate action (PE Desk only)"""
+    """Create a corporate action (requires stocks.corporate_actions permission)"""
     user_role = current_user.get("role", 5)
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can create corporate actions")
     
     stock = await db.stocks.find_one({"id": action_data.stock_id}, {"_id": 0})
     if not stock:
