@@ -11,7 +11,6 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 from database import db
-from config import is_pe_level
 from utils.auth import get_current_user
 from services.audit_service import create_audit_log
 from services.contract_note_service import (
@@ -21,8 +20,18 @@ from services.contract_note_service import (
 )
 from services.email_service import send_email
 from services.file_storage import upload_file_to_gridfs, get_file_url
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission
+)
 
 router = APIRouter(prefix="/contract-notes", tags=["Contract Notes"])
+
+
+# Helper function for backward compatibility
+def is_pe_level(role: int) -> bool:
+    """Check if role is PE level (PE Desk or PE Manager)."""
+    return role in [1, 2]
 
 
 class ContractNote(BaseModel):
