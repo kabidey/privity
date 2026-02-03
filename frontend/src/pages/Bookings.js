@@ -44,6 +44,7 @@ const Bookings = () => {
   const [showRpWarning, setShowRpWarning] = useState(false);
   const [showHighRpShareWarning, setShowHighRpShareWarning] = useState(false);
   const [clientIsRpWarning, setClientIsRpWarning] = useState(null); // Stores RP info if client matches an RP
+  const [refreshingBooking, setRefreshingBooking] = useState(null); // Track which booking is being refreshed
   const [formData, setFormData] = useState({
     client_id: '',
     stock_id: '',
