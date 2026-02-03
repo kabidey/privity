@@ -316,6 +316,11 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Stock Market News Section - Prominent Display */}
+      <div className="mb-6 md:mb-8">
+        <StockNewsSection />
+      </div>
+
       {/* Research Dashboard Section */}
       {isNotBP && (
         <div className="mb-6 md:mb-8">
