@@ -378,9 +378,95 @@ const RoleManagement = () => {
 
             {/* Right Column - Permissions */}
             <div className="space-y-2">
-              <Label>Permissions</Label>
-              <ScrollArea className="h-[400px] border rounded-md p-4">
-                <Accordion type="multiple" className="w-full">
+              <div className="flex items-center justify-between">
+                <Label>Permissions</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      // Select all permissions
+                      const allPerms = Object.values(permissions).flatMap(cat => cat.permissions.map(p => p.key));
+                      setFormData(prev => ({ ...prev, permissions: allPerms }));
+                    }}
+                    className="text-xs"
+                  >
+                    Select All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData(prev => ({ ...prev, permissions: [] }))}
+                    className="text-xs"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Quick Presets */}
+              <div className="flex flex-wrap gap-1 pb-2">
+                <span className="text-xs text-muted-foreground mr-2">Presets:</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => {
+                    // View-only preset
+                    const viewPerms = Object.values(permissions)
+                      .flatMap(cat => cat.permissions)
+                      .filter(p => p.key.includes('.view') || p.key.includes('.view_'))
+                      .map(p => p.key);
+                    setFormData(prev => ({ ...prev, permissions: viewPerms }));
+                  }}
+                >
+                  View Only
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => {
+                    // Standard user preset
+                    setFormData(prev => ({
+                      ...prev,
+                      permissions: [
+                        'dashboard.view', 'bookings.view', 'bookings.create',
+                        'clients.view', 'clients.create', 'stocks.view',
+                        'inventory.view', 'reports.view'
+                      ]
+                    }));
+                  }}
+                >
+                  Standard User
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 text-xs"
+                  onClick={() => {
+                    // Manager preset
+                    setFormData(prev => ({
+                      ...prev,
+                      permissions: [
+                        'dashboard.view', 'dashboard.pe_view',
+                        'bookings.view', 'bookings.view_all', 'bookings.create', 'bookings.edit', 'bookings.approve', 'bookings.record_payment',
+                        'clients.view', 'clients.create', 'clients.edit', 'client_approval.view', 'client_approval.approve',
+                        'stocks.view', 'inventory.view', 'inventory.edit_landing_price',
+                        'purchases.view', 'purchases.create',
+                        'finance.view', 'finance.view_reports',
+                        'reports.view', 'reports.pnl', 'analytics.view',
+                        'users.view', 'dp.view_receivables', 'dp.transfer'
+                      ]
+                    }));
+                  }}
+                >
+                  Manager
+                </Button>
+              </div>
+              
+              <ScrollArea className="h-[350px] border rounded-md p-4">
+                <Accordion type="multiple" className="w-full" defaultValue={Object.keys(permissions).slice(0, 3)}>
                   {Object.entries(permissions).map(([categoryKey, category]) => (
                     <AccordionItem key={categoryKey} value={categoryKey}>
                       <AccordionTrigger className="hover:no-underline">
