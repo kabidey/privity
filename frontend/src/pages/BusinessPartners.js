@@ -52,7 +52,7 @@ const BusinessPartners = () => {
     cancelled_cheque: useRef(null)
   };
 
-  const { isPELevel, isPEDesk, isPartnersDesk, canManageBusinessPartners, canDelete } = useCurrentUser();
+  const { user, isPELevel, isPEDesk, isPartnersDesk, canManageBusinessPartners, canDelete } = useCurrentUser();
   const canAccessBP = canManageBusinessPartners;
   const canDeleteBP = canDelete;
 
@@ -70,12 +70,15 @@ const BusinessPartners = () => {
   });
 
   useEffect(() => {
-    if (!canAccessBP) {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
+    if (!canAccessBP && !isPELevel) {
       navigate('/');
       return;
     }
     fetchData();
-  }, []);
+  }, [user, canAccessBP, isPELevel, navigate]);
 
   const fetchData = async () => {
     try {
