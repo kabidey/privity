@@ -148,7 +148,10 @@ const StockNewsSection = () => {
             <div>
               <span className="text-foreground">Stock Market News</span>
               <p className="text-xs font-normal text-muted-foreground mt-0.5">
-                Auto-updates every hour • Hover to pause
+                {stocksTracked > 0 
+                  ? `Tracking ${stocksTracked} stocks • Auto-updates every hour • Hover to pause`
+                  : 'Add stocks to see related news • Hover to pause'
+                }
               </p>
             </div>
           </CardTitle>
