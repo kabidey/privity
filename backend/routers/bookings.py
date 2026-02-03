@@ -1059,13 +1059,11 @@ async def export_bookings(
 @router.get("/bookings/dp-export")
 async def export_dp_transfer_excel(
     status: str = "all",  # "ready", "transferred", or "all"
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dp.view_transfers", "export DP data"))
 ):
     """Export DP transfer data to Excel"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can export DP data")
     
     # Build query based on status
     query = {"approval_status": "approved"}
