@@ -515,12 +515,16 @@ async def get_database_stats(
 # ============== Clear Database Endpoint ==============
 @router.delete("/clear")
 async def clear_database(
+    collections: Optional[List[str]] = Query(None, description="Specific collections to clear. If empty, clears all except protected."),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("database_backup.clear", "clear database"))
 ):
-    """Clear all database collections except users and database_backups (requires database_backup.clear permission)
+    """Clear selected database collections (requires database_backup.clear permission)
     
-    WARNING: This permanently deletes all data except user accounts and backups!
+    If no collections specified, clears all except protected ones (users, database_backups).
+    Pass specific collection names to selectively clear only those collections.
+    
+    WARNING: This permanently deletes data!
     """
     cleared_counts = {}
     errors = []
@@ -531,8 +535,13 @@ async def clear_database(
     # Collections to preserve (users for authentication, database_backups for recovery)
     protected_collections = ["users", "database_backups"]
     
-    # Clear all collections except protected ones
-    collections_to_clear = [c for c in all_collections if c not in protected_collections]
+    # Determine which collections to clear
+    if collections and len(collections) > 0:
+        # Selective clear - only clear specified collections (excluding protected)
+        collections_to_clear = [c for c in collections if c in all_collections and c not in protected_collections]
+    else:
+        # Clear all collections except protected ones
+        collections_to_clear = [c for c in all_collections if c not in protected_collections]
     
     for collection_name in collections_to_clear:
         try:
@@ -549,7 +558,7 @@ async def clear_database(
         "id": str(uuid.uuid4()),
         "action": "DATABASE_CLEAR",
         "entity_type": "database",
-        "entity_id": "all",
+        "entity_id": "all" if not collections else ",".join(collections),
         "user_id": current_user["id"],
         "user_name": current_user["name"],
         "user_role": current_user.get("role", 5),
@@ -557,18 +566,47 @@ async def clear_database(
             "collections_cleared": list(cleared_counts.keys()),
             "record_counts_deleted": cleared_counts,
             "protected_collections": protected_collections,
+            "selective_clear": bool(collections),
+            "requested_collections": collections,
             "errors": errors
         },
         "timestamp": datetime.now(timezone.utc).isoformat()
     })
     
     return {
-        "message": "Database cleared successfully" if not errors else "Database cleared with some errors",
+        "message": "Selected collections cleared successfully" if not errors else "Collections cleared with some errors",
         "cleared_counts": cleared_counts,
         "total_deleted": sum(cleared_counts.values()),
         "collections_cleared": len(cleared_counts),
         "protected_collections": protected_collections,
+        "selective_clear": bool(collections),
         "errors": errors
+    }
+
+
+@router.get("/clearable-collections")
+async def get_clearable_collections(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.clear", "view clearable collections"))
+):
+    """Get list of collections that can be cleared with their record counts"""
+    all_collections = await db.list_collection_names()
+    protected_collections = ["users", "database_backups"]
+    
+    clearable = []
+    for collection_name in sorted(all_collections):
+        if collection_name not in protected_collections:
+            count = await db[collection_name].count_documents({})
+            clearable.append({
+                "name": collection_name,
+                "count": count,
+                "display_name": collection_name.replace("_", " ").title()
+            })
+    
+    return {
+        "collections": clearable,
+        "protected_collections": protected_collections,
+        "total_clearable": len(clearable)
     }
 
 
