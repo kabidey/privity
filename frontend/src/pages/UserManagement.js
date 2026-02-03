@@ -639,9 +639,16 @@ const UserManagement = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(ROLES).map(([key, { name }]) => (
-                    <SelectItem key={key} value={key}>{name}</SelectItem>
-                  ))}
+                  {Object.entries(roles)
+                    .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                    .map(([key, role]) => (
+                      <SelectItem key={key} value={key}>
+                        <span className="flex items-center gap-2">
+                          {role.name}
+                          {!role.is_system && <Badge variant="outline" className="text-xs">Custom</Badge>}
+                        </span>
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
