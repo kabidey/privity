@@ -1756,11 +1756,10 @@ async def confirm_stock_transfer(
 async def approve_loss_booking(
     booking_id: str,
     approve: bool = True,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.approve", "approve loss bookings"))
 ):
-    """Approve or reject a loss booking (PE Level only)."""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can approve loss bookings")
+    """Approve or reject a loss booking (requires bookings.approve permission)."""
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
