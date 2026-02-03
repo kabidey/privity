@@ -344,12 +344,6 @@ const RoleManagement = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-          <CardTitle>System & Custom Roles</CardTitle>
-          <CardDescription>
-            System roles (1-7) cannot be deleted but their permissions can be customized
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
