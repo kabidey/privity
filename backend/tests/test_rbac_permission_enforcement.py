@@ -222,18 +222,18 @@ class TestRBACPermissionEnforcement:
         assert response.status_code == 200, f"PE Desk should access users list: {response.text}"
         print(f"✓ PE Desk can access users list (status: {response.status_code})")
     
-    def test_employee_denied_users_list(self):
-        """Employee should be denied access to /api/users (requires users.view)"""
-        if not self.employee_token:
-            pytest.skip("Employee token not available")
+    def test_viewer_denied_users_list(self):
+        """Viewer should be denied access to /api/users (requires users.view)"""
+        if not self.viewer_token:
+            pytest.skip("Viewer token not available")
         
         response = requests.get(
             f"{BASE_URL}/api/users",
-            headers=self.get_employee_headers()
+            headers=self.get_viewer_headers()
         )
         # Should return 403 Forbidden
-        assert response.status_code == 403, f"Employee should be denied users list: {response.status_code} - {response.text}"
-        print(f"✓ Employee correctly denied users list (status: {response.status_code})")
+        assert response.status_code == 403, f"Viewer should be denied users list: {response.status_code} - {response.text}"
+        print(f"✓ Viewer correctly denied users list (status: {response.status_code})")
     
     # ============== CLIENT APPROVAL PERMISSION TESTS ==============
     
