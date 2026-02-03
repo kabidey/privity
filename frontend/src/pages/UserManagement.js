@@ -51,11 +51,12 @@ const UserManagement = () => {
   const [availableManagers, setAvailableManagers] = useState([]);
   const [potentialManagers, setPotentialManagers] = useState([]);
   const [newPassword, setNewPassword] = useState('');
+  const [roles, setRoles] = useState(DEFAULT_ROLES); // Dynamic roles from API
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
-    role: 5,
+    role: 7,
     hierarchy_level: 1,
     reports_to: ''
   });
@@ -65,7 +66,28 @@ const UserManagement = () => {
   useEffect(() => {
     fetchUsers();
     fetchPotentialManagers();
+    fetchRoles(); // Fetch roles from API
   }, []);
+
+  // Fetch roles from API (includes custom roles)
+  const fetchRoles = async () => {
+    try {
+      const response = await api.get('/roles');
+      const rolesMap = {};
+      response.data.forEach(role => {
+        rolesMap[role.id] = {
+          name: role.name,
+          color: role.color || 'bg-gray-100 text-gray-800',
+          is_system: role.is_system,
+          permissions: role.permissions
+        };
+      });
+      setRoles(rolesMap);
+    } catch (error) {
+      console.error('Failed to fetch roles, using defaults:', error);
+      // Keep default roles on error
+    }
+  };
 
   const fetchUsers = async () => {
     try {
