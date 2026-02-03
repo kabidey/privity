@@ -449,8 +449,99 @@ const RoleManagement = () => {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Visual Permissions View */}
+        <TabsContent value="visual">
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Visual Permission Overview</CardTitle>
+                <CardDescription>
+                  See at a glance what each role can access. Green items are accessible, gray items are restricted.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {roles.map(role => (
+                  <PermissionCard key={role.id} role={role} />
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        {/* Permission Matrix View */}
+        <TabsContent value="matrix">
+          <Card>
+            <CardHeader>
+              <CardTitle>Permission Matrix</CardTitle>
+              <CardDescription>
+                Complete view of all permissions across all roles.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="sticky left-0 bg-white z-10 min-w-[200px]">Permission Category</TableHead>
+                      {roles.map(role => (
+                        <TableHead key={role.id} className="text-center min-w-[100px]">
+                          <Badge className={role.color || 'bg-gray-100'} variant="outline">
+                            {role.name}
+                          </Badge>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Object.entries(permissions).map(([catKey, category]) => (
+                      <TableRow key={catKey}>
+                        <TableCell className="sticky left-0 bg-white font-medium">
+                          {category.name}
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({category.permissions.length})
+                          </span>
+                        </TableCell>
+                        {roles.map(role => {
+                          const rolePerms = role.permissions || [];
+                          const hasAll = rolePerms.includes('*');
+                          const hasCategoryWildcard = rolePerms.includes(`${catKey}.*`);
+                          const categoryPermKeys = category.permissions.map(p => p.key);
+                          const matchedPerms = categoryPermKeys.filter(pk => rolePerms.includes(pk));
+                          const hasPartial = matchedPerms.length > 0;
+                          const hasFull = hasAll || hasCategoryWildcard || matchedPerms.length === categoryPermKeys.length;
+                          
+                          return (
+                            <TableCell key={role.id} className="text-center">
+                              {hasFull ? (
+                                <Badge className="bg-emerald-100 text-emerald-800">
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Full
+                                </Badge>
+                              ) : hasPartial ? (
+                                <Badge className="bg-yellow-100 text-yellow-800">
+                                  {matchedPerms.length}/{categoryPermKeys.length}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-gray-400">
+                                  <X className="h-3 w-3" />
+                                </Badge>
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Create/Edit Role Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
