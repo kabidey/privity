@@ -1381,7 +1381,8 @@ class PaymentRecordRequest(BaseModel):
 async def add_payment_tranche(
     booking_id: str,
     payment_data: PaymentRecordRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.record_payment", "record payments"))
 ):
     """Add a payment tranche to a booking."""
     user_role = current_user.get("role", 6)
