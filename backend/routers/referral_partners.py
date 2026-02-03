@@ -24,7 +24,8 @@ from services.email_service import send_templated_email
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(tags=["Referral Partners"])
