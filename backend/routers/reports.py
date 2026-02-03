@@ -18,10 +18,20 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT
 
 from database import db
-from config import is_pe_level, ROLES
+from config import ROLES
 from utils.auth import get_current_user
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission
+)
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
+
+
+# Helper function for backward compatibility
+def is_pe_level(role: int) -> bool:
+    """Check if role is PE level (PE Desk or PE Manager)."""
+    return role in [1, 2]
 
 
 @router.get("/pnl")
