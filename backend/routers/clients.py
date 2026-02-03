@@ -930,6 +930,85 @@ async def ocr_preview(
             temp_path.unlink()
 
 
+@router.get("/clients/{client_id}/document-status")
+async def get_client_document_status(
+    client_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get document verification status for a client.
+    Returns which mandatory documents are uploaded and properly stored.
+    """
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    documents = client.get("documents", [])
+    
+    # Check each mandatory document type
+    mandatory_docs = ["pan_card", "cml_copy", "cancelled_cheque"]
+    doc_status = {}
+    
+    for doc_type in mandatory_docs:
+        doc = next((d for d in documents if d.get("doc_type") == doc_type), None)
+        
+        if doc:
+            file_id = doc.get("file_id")
+            is_stored = file_id and file_id != "None" and file_id != "null"
+            
+            doc_status[doc_type] = {
+                "uploaded": True,
+                "stored_in_gridfs": is_stored,
+                "file_id": file_id if is_stored else None,
+                "filename": doc.get("filename"),
+                "upload_date": doc.get("upload_date"),
+                "has_ocr_data": bool(doc.get("ocr_data", {}).get("extracted_data"))
+            }
+        else:
+            doc_status[doc_type] = {
+                "uploaded": False,
+                "stored_in_gridfs": False,
+                "file_id": None,
+                "filename": None,
+                "upload_date": None,
+                "has_ocr_data": False
+            }
+    
+    # Check optional bank_proof for proprietor clients
+    bank_proof = next((d for d in documents if d.get("doc_type") == "bank_proof"), None)
+    if bank_proof:
+        file_id = bank_proof.get("file_id")
+        is_stored = file_id and file_id != "None" and file_id != "null"
+        doc_status["bank_proof"] = {
+            "uploaded": True,
+            "stored_in_gridfs": is_stored,
+            "file_id": file_id if is_stored else None,
+            "filename": bank_proof.get("filename"),
+            "upload_date": bank_proof.get("upload_date")
+        }
+    
+    # Calculate overall status
+    all_mandatory_uploaded = all(doc_status[dt]["uploaded"] for dt in mandatory_docs)
+    all_mandatory_stored = all(doc_status[dt]["stored_in_gridfs"] for dt in mandatory_docs)
+    
+    return {
+        "client_id": client_id,
+        "client_name": client.get("name"),
+        "is_vendor": client.get("is_vendor", False),
+        "is_proprietor": client.get("is_proprietor", False),
+        "has_name_mismatch": client.get("has_name_mismatch", False),
+        "approval_status": client.get("approval_status"),
+        "documents": doc_status,
+        "summary": {
+            "all_mandatory_uploaded": all_mandatory_uploaded,
+            "all_mandatory_stored": all_mandatory_stored,
+            "can_be_approved": all_mandatory_stored,
+            "missing_documents": [dt for dt in mandatory_docs if not doc_status[dt]["uploaded"]],
+            "documents_needing_reupload": [dt for dt in mandatory_docs if doc_status[dt]["uploaded"] and not doc_status[dt]["stored_in_gridfs"]]
+        }
+    }
+
+
 @router.post("/clients/{client_id}/clone")
 async def clone_client_vendor(
     client_id: str, 
