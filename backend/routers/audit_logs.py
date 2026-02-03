@@ -79,12 +79,12 @@ async def get_audit_logs(
 
 
 @router.get("/actions")
-async def get_available_actions(current_user: dict = Depends(get_current_user)):
-    """Get list of available audit actions"""
+async def get_available_actions(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("audit_logs.view", "view audit actions"))
+):
+    """Get list of available audit actions (requires audit_logs.view permission)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     return {
         "actions": AUDIT_ACTIONS
@@ -92,12 +92,12 @@ async def get_available_actions(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/entity-types")
-async def get_entity_types(current_user: dict = Depends(get_current_user)):
-    """Get distinct entity types from audit logs"""
+async def get_entity_types(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("audit_logs.view", "view entity types"))
+):
+    """Get distinct entity types from audit logs (requires audit_logs.view permission)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     entity_types = await db.audit_logs.distinct("entity_type")
     return {"entity_types": [et for et in entity_types if et]}
@@ -106,13 +106,11 @@ async def get_entity_types(current_user: dict = Depends(get_current_user)):
 @router.get("/stats")
 async def get_audit_stats(
     days: int = Query(7, ge=1, le=90),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("audit_logs.view", "view audit stats"))
 ):
-    """Get audit log statistics"""
+    """Get audit log statistics (requires audit_logs.view permission)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     start_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     
