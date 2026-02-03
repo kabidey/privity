@@ -289,11 +289,11 @@ async def get_hierarchy_levels(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/hierarchy/potential-managers")
-async def get_potential_managers(current_user: dict = Depends(get_current_user)):
+async def get_potential_managers(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("users.view", "view potential managers"))
+):
     """Get list of users who can be managers (hierarchy level > 1 or PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Access denied")
-    
     # Get users with hierarchy level > 1 or PE roles
     users = await db.users.find(
         {"$or": [
