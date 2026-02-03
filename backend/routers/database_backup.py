@@ -3,7 +3,7 @@ Database Backup and Restore Router
 Handles database backup creation, listing, and restoration (PE Desk only)
 Includes support for backing up uploaded files from GridFS
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 from fastapi.responses import JSONResponse, StreamingResponse
 from typing import List, Optional
 from pydantic import BaseModel
