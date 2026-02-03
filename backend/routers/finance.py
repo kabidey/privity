@@ -540,12 +540,10 @@ async def get_employee_commissions(
 
 @router.get("/finance/employee-commissions/summary")
 async def get_employee_commissions_summary(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.view", "view employee commission summary"))
 ):
     """Get summary of employee commissions by employee"""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access commission data")
-    
     bookings = await db.bookings.find(
         {
             "stock_transferred": True,
@@ -611,12 +609,10 @@ async def get_employee_commissions_summary(
 @router.put("/finance/employee-commissions/{booking_id}/mark-paid")
 async def mark_commission_paid(
     booking_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.manage_commissions", "mark commissions as paid"))
 ):
     """Mark an employee commission as paid"""
-    if not can_manage_finance(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can mark commissions as paid")
-    
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
@@ -648,12 +644,10 @@ class BPPaymentUpdate(BaseModel):
 async def get_bp_payments(
     status: Optional[str] = None,
     bp_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("business_partners.view_payouts", "view BP payments"))
 ):
     """Get all Business Partner payments for finance dashboard."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access BP payments")
-    
     # Get all bookings with BP revenue share
     query = {
         "is_bp_booking": True,
