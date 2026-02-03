@@ -1704,11 +1704,10 @@ async def confirm_stock_transfer(
     booking_id: str,
     dp_receipt_number: str = Query(None),
     notes: str = Query(None),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dp.transfer", "confirm stock transfers"))
 ):
-    """Confirm DP stock transfer (PE Level only)."""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can confirm transfers")
+    """Confirm DP stock transfer (requires dp.transfer permission)."""
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
