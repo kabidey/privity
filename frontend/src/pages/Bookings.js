@@ -1256,6 +1256,19 @@ const Bookings = () => {
                             {!isEmployee && !isViewer && (
                               <Button variant="ghost" size="sm" onClick={() => handleEdit(booking)}><Pencil className="h-4 w-4" /></Button>
                             )}
+                            {/* Refresh Status button - PE Level only */}
+                            {isPELevel && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleRefreshBookingStatus(booking.id)}
+                                disabled={refreshingBooking === booking.id}
+                                title="Refresh Status (checks payments, client approval, DP status)"
+                                className="text-blue-600"
+                              >
+                                <RefreshCw className={`h-4 w-4 ${refreshingBooking === booking.id ? 'animate-spin' : ''}`} />
+                              </Button>
+                            )}
                             {/* Void button - PE Desk only, not for transferred bookings */}
                             {isPEDesk && !isViewer && !booking.stock_transferred && !booking.is_voided && (
                               <Button 
