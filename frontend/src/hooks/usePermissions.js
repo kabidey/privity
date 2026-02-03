@@ -108,14 +108,19 @@ export function usePermissions() {
    * @returns {boolean}
    */
   const hasAllPermissions = useCallback((permissionList) => {
+    // PE Desk always has all permissions
+    if (isPEDesk) return true;
     return permissionList.every(p => hasPermission(p));
-  }, [hasPermission]);
+  }, [hasPermission, isPEDesk]);
 
   /**
    * Check if user can access a specific menu/feature
    * Maps menu items to their required permissions
    */
   const canAccess = useCallback((feature) => {
+    // PE Desk always has access to everything
+    if (isPEDesk) return true;
+    
     const featurePermissions = {
       // Dashboard
       'dashboard': ['dashboard.view'],
