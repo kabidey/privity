@@ -251,12 +251,10 @@ async def bulk_upload_clients(
 @router.post("/vendors")
 async def bulk_upload_vendors(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.clients", "bulk upload vendors"))
 ):
     """Bulk upload vendors from CSV (PE Desk only). Skips duplicates by PAN number."""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can perform bulk uploads")
-    
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
@@ -329,12 +327,10 @@ async def bulk_upload_vendors(
 @router.post("/stocks")
 async def bulk_upload_stocks(
     file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bulk_upload.stocks", "bulk upload stocks"))
 ):
     """Bulk upload stocks from CSV (PE Desk only). Skips duplicates by symbol or ISIN."""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can perform bulk uploads")
-    
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
