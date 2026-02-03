@@ -602,17 +602,15 @@ def get_files_stats(directory: str) -> tuple:
 async def download_backup(
     backup_id: str, 
     include_files: bool = True,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.view", "download backups"))
 ):
-    """Download a backup as a ZIP file (PE Level)
+    """Download a backup as a ZIP file (requires database_backup.view permission)
     
     Args:
         backup_id: ID of the backup to download
         include_files: If True, include all uploaded files (documents, logos, etc.)
     """
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can download backups")
-    
     # Get backup with data
     backup = await db.database_backups.find_one({"id": backup_id}, {"_id": 0})
     
