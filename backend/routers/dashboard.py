@@ -760,37 +760,44 @@ async def get_stock_news(
     _: None = Depends(require_permission("dashboard.view", "view stock news"))
 ):
     """
-    Get latest stock market news for the dashboard.
+    Get latest stock market news specifically for stocks in the system.
     News is cached for 1 hour to reduce API calls.
+    Only shows news related to stocks in the stocks collection.
     """
     from services.news_service import fetch_stock_news
     
     try:
-        # Get stock symbols from the database for relevant news
+        # Get stock symbols AND names from the database for targeted news
         stocks = await db.stocks.find(
             {"is_active": True},
-            {"_id": 0, "symbol": 1}
-        ).limit(10).to_list(10)
+            {"_id": 0, "symbol": 1, "name": 1}
+        ).limit(20).to_list(20)
         
         stock_symbols = [s.get("symbol") for s in stocks if s.get("symbol")]
+        stock_names = [s.get("name") for s in stocks if s.get("name")]
         
-        # Fetch news
-        news_items = await fetch_stock_news(stock_symbols, limit)
+        # Fetch news for these specific stocks
+        news_items = await fetch_stock_news(
+            stock_symbols=stock_symbols,
+            stock_names=stock_names,
+            limit=limit
+        )
         
         return {
             "news": news_items,
             "total": len(news_items),
-            "cached_until": None,  # Will be set by cache
+            "stocks_tracked": len(stock_symbols),
             "fetched_at": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
-        # Return fallback news on error
-        from services.news_service import get_fallback_news
+        # Return message when error occurs
+        from services.news_service import get_no_stocks_message
         return {
-            "news": get_fallback_news(),
-            "total": 5,
+            "news": get_no_stocks_message(),
+            "total": 1,
             "is_fallback": True,
+            "error": str(e),
             "fetched_at": datetime.now(timezone.utc).isoformat()
         }
 
