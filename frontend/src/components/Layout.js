@@ -20,6 +20,7 @@ import ChangelogModal, { useChangelogModal } from './ChangelogModal';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { getFullVersion } from '../version';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   LayoutDashboard, 
   Users, 
