@@ -869,6 +869,11 @@ rp_payments: {
 ## Prioritized Backlog
 
 ### P0 (Critical)
+- ✅ **Granular Permission Enforcement on Backend APIs** - COMPLETED (Feb 03, 2026)
+  - 50+ API endpoints now enforce dynamic permissions via `Depends(require_permission(...))`
+  - 35/35 backend tests passed for permission enforcement
+  - PE Desk (wildcard `*`) has full access; Viewer denied write/admin operations
+  - Descriptive error messages with role names and action descriptions
 - ✅ **Dynamic Permission Integration** - COMPLETED (Feb 03, 2026)
   - All 20 backend routers migrated to use permission_service.py
   - Recalculate inventory uses dynamic permission check
@@ -877,6 +882,7 @@ rp_payments: {
 
 ### P1 (High Priority)
 - ✅ Recalculate Inventory Button - Complete (Feb 03, 2026)
+- [ ] **Enforce 2FA for Admin Roles** - Security enhancement to require 2FA for admin-level access
 - ✅ RP Finance Integration - Complete
 - ✅ 30% Revenue Share Cap - Complete
 - ✅ Remove duplicate endpoints from server.py - Complete (verified via regression testing)
