@@ -19,7 +19,8 @@ from services.email_service import send_email, generate_otp
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/business-partners", tags=["Business Partners"])
@@ -168,12 +169,10 @@ async def send_bp_otp_email(email: str, otp: str, bp_name: str):
 @router.post("", response_model=BusinessPartnerResponse)
 async def create_business_partner(
     bp_data: BusinessPartnerCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("business_partners.create", "create business partners"))
 ):
     """Create a new Business Partner (PE Level or Partners Desk)"""
-    if not can_manage_business_partners(current_user.get("role", 5)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Partners Desk can create Business Partners")
-    
     # Check if email already exists
     existing = await db.business_partners.find_one({"email": bp_data.email.lower()})
     if existing:
@@ -234,12 +233,10 @@ async def create_business_partner(
 @router.get("", response_model=List[BusinessPartnerResponse])
 async def get_business_partners(
     current_user: dict = Depends(get_current_user),
-    linked_employee_id: Optional[str] = None
+    linked_employee_id: Optional[str] = None,
+    _: None = Depends(require_permission("business_partners.view", "view business partners"))
 ):
     """Get all Business Partners (PE Level or Partners Desk)"""
-    if not can_manage_business_partners(current_user.get("role", 5)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Partners Desk can view Business Partners")
-    
     query = {}
     if linked_employee_id:
         query["linked_employee_id"] = linked_employee_id
