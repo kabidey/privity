@@ -66,15 +66,13 @@ async def get_contract_notes(
     end_date: Optional[str] = None,
     limit: int = Query(50, ge=1, le=500),
     skip: int = Query(0, ge=0),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.view", "view contract notes"))
 ):
     """
-    Get contract notes with filters (PE Level only)
+    Get contract notes with filters (requires contract_notes.view permission)
     """
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can view contract notes")
     
     query = {}
     
