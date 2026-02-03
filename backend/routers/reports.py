@@ -22,7 +22,8 @@ from config import ROLES
 from utils.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
@@ -34,7 +35,7 @@ def is_pe_level(role: int) -> bool:
     return role in [1, 2]
 
 
-@router.get("/pnl")
+@router.get("/pnl", dependencies=[Depends(require_permission("reports.view", "view P&L reports"))])
 async def get_pnl_report(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -108,7 +109,7 @@ async def get_pnl_report(
     }
 
 
-@router.get("/export/excel")
+@router.get("/export/excel", dependencies=[Depends(require_permission("reports.export", "export P&L reports"))])
 async def export_pnl_excel(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -210,7 +211,7 @@ async def export_pnl_excel(
     )
 
 
-@router.get("/export/pdf")
+@router.get("/export/pdf", dependencies=[Depends(require_permission("reports.export", "export P&L reports"))])
 async def export_pnl_pdf(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -312,7 +313,7 @@ async def export_pnl_pdf(
     )
 
 
-@router.get("/client-portfolio/{client_id}")
+@router.get("/client-portfolio/{client_id}", dependencies=[Depends(require_permission("reports.view", "view client portfolio"))])
 async def get_client_portfolio(
     client_id: str,
     current_user: dict = Depends(get_current_user)
@@ -387,7 +388,7 @@ async def get_client_portfolio(
 
 # ============== PE Desk HIT Report ==============
 
-@router.get("/pe-desk-hit")
+@router.get("/pe-desk-hit", dependencies=[Depends(require_permission("reports.pe_hit", "view PE HIT report"))])
 async def get_pe_desk_hit_report(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -520,7 +521,7 @@ async def get_pe_desk_hit_report(
     }
 
 
-@router.get("/pe-desk-hit/export")
+@router.get("/pe-desk-hit/export", dependencies=[Depends(require_permission("reports.pe_hit", "export PE HIT report"))])
 async def export_pe_desk_hit_report(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
