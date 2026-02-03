@@ -119,12 +119,19 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "finance": ["view", "manage_refunds", "view_reports"],
         "users": ["view", "create", "edit", "delete", "change_role", "reset_password", "proxy_login"],
         "roles": ["view", "create", "edit", "delete"],
-        "business_partners": ["view", "create", "edit", "delete"],
-        "referral_partners": ["view", "create", "edit", "approve"],
-        "reports": ["view", "analytics", "export"],
-        "settings": ["company_master", "email_config", "email_templates", 
-                     "database_backup", "audit_trail", "security"],
-        "dp": ["view_receivables", "confirm_receipt", "transfer"]
+        "business_partners": ["view", "create", "edit", "delete", "approve"],
+        "referral_partners": ["view", "create", "edit", "approve", "view_payouts"],
+        "reports": ["view", "pnl", "export"],
+        "analytics": ["view", "revenue", "performance", "export"],
+        "dp": ["view_receivables", "confirm_receipt", "transfer", "view_transfers"],
+        "email": ["view_templates", "edit_templates", "view_logs", "server_config"],
+        "company": ["view", "edit", "upload_docs", "manage_bank"],
+        "security": ["view_dashboard", "view_audit", "manage_2fa", "kill_switch"],
+        "database": ["view_backups", "create_backup", "restore", "download"],
+        "bulk_upload": ["clients", "stocks", "purchases", "bookings"],
+        "research": ["view", "upload", "ai_analysis"],
+        "contract_notes": ["view", "generate", "send", "download"],
+        "client_approval": ["view", "approve", "reject"]
     }
     
     expanded = set()
