@@ -182,10 +182,12 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Source extraction and credibility filtering
   - 1-hour cache to reduce API calls
   - Fallback news for offline/error scenarios
+  - **Stock-specific news** - Only shows news for stocks in the system
 - **Frontend**: Created `StockNewsSection.js` component with:
   - Auto-scrolling news ticker (25px/second)
   - Hover-to-pause functionality
   - Category badges with color coding
+  - Stock symbol badges showing which stock the news relates to
   - Source attribution (non-clickable)
   - Manual refresh button
   - Last updated timestamp
@@ -198,6 +200,36 @@ Build a Share Booking System for managing client share bookings, inventory track
 - `backend/routers/dashboard.py` - Added `/stock-news` endpoint
 - `frontend/src/components/StockNewsSection.js` - News display component
 - `frontend/src/pages/Dashboard.js` - Integrated news section
+
+#### ✅ Comprehensive RBAC Audit Testing - COMPLETED (Feb 04, 2026)
+**Test Results**: 100% Pass Rate (46/46 tests)
+**Test Report**: `/app/test_reports/iteration_55.json`
+**Test File**: `/app/backend/tests/test_rbac_comprehensive_audit.py`
+
+**PE Admin (pe@smifs.com) Access Verified - 29 Endpoints:**
+- Reports: pnl, export/excel, export/pdf, pe-desk-hit ✅
+- Research: reports, stats ✅
+- Revenue Dashboard: rp-revenue, employee-revenue, my-team ✅
+- Kill Switch: status ✅
+- Analytics: summary, stock-performance, employee-performance, sector-distribution, daily-trend ✅
+- Database: backups, stats, clearable-collections ✅
+- Finance: payments, summary, refund-requests, tcs-payments, rp-payments, bp-payments, employee-commissions ✅
+- Roles: list, permissions ✅
+- Users: list, employees ✅
+
+**Viewer Role Denial Verified - 17 Endpoints (403 Forbidden):**
+- Reports: pe-desk-hit ❌
+- Kill Switch: activate, deactivate ❌
+- Database: backups, stats, clear, create backup ❌
+- Roles: list, create ❌
+- Users: create ❌
+- Client Approval: pending-approval, approve ❌
+- Booking Approval: approve, void, dp-ready, dp-transferred ❌
+- Research: delete ❌
+
+**Test Users:**
+- PE Desk Admin (Full Access): pe@smifs.com / Kutta@123
+- Viewer (Restricted): testuser@smifs.com / Test@123
 
 #### ✅ Extended RBAC Audit - COMPLETED (Feb 03, 2026)
 **Objective**: Complete coverage of RBAC enforcement on ALL backend API endpoints
