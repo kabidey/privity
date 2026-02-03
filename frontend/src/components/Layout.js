@@ -233,6 +233,11 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
   }
 
+  // Add Role Management for PE Desk only
+  if (isPEDesk) {
+    menuItems.push({ icon: Shield, label: 'Role Management', path: '/roles' });
+  }
+
   // Add Referral Partners for PE level, Employee, Partners Desk, or Viewer
   if (isPELevel || isEmployee || isPartnersDesk || isViewer) {
     menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
