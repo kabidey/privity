@@ -10,6 +10,7 @@ import smtplib
 
 from database import db
 from routers.auth import get_current_user
+from services.permission_service import require_permission
 
 router = APIRouter(prefix="/email-config", tags=["Email Configuration"])
 
@@ -89,11 +90,11 @@ SMTP_PRESETS = {
 
 # ============== SMTP Config Endpoints ==============
 @router.get("")
-async def get_smtp_config(current_user: dict = Depends(get_current_user)):
+async def get_smtp_config(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.config", "view SMTP configuration"))
+):
     """Get current SMTP configuration (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can access SMTP configuration")
-    
     config = await db.smtp_settings.find_one({}, {"_id": 0})
     
     if not config:
@@ -135,12 +136,10 @@ async def get_smtp_config(current_user: dict = Depends(get_current_user)):
 @router.put("")
 async def update_smtp_config(
     config: SMTPConfig,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("email.config", "update SMTP configuration"))
 ):
     """Update SMTP configuration (PE Desk only)"""
-    if current_user.get("role", 5) != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can update SMTP configuration")
-    
     # Handle both field name formats
     use_tls = config.smtp_use_tls if config.smtp_use_tls is not None else config.use_tls
     use_ssl = config.smtp_use_ssl if config.smtp_use_ssl is not None else config.use_ssl
