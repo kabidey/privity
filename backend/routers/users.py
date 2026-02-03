@@ -354,11 +354,13 @@ async def get_my_direct_reports(current_user: dict = Depends(get_current_user)):
 
 
 @router.put("/{user_id}/role")
-async def update_user_role(user_id: str, role: int, current_user: dict = Depends(get_current_user)):
-    """Update user role (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can update user roles")
-    
+async def update_user_role(
+    user_id: str,
+    role: int,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("users.change_role", "update user roles"))
+):
+    """Update user role (requires users.change_role permission)"""
     if role not in ROLES:
         raise HTTPException(status_code=400, detail="Invalid role")
     
@@ -385,11 +387,12 @@ async def update_user_role(user_id: str, role: int, current_user: dict = Depends
 
 
 @router.delete("/{user_id}")
-async def delete_user(user_id: str, current_user: dict = Depends(get_current_user)):
-    """Delete a user (PE Desk only - deletion restricted)"""
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete users")
-    
+async def delete_user(
+    user_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("users.delete", "delete users"))
+):
+    """Delete a user (requires users.delete permission)"""
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -408,11 +411,13 @@ async def delete_user(user_id: str, current_user: dict = Depends(get_current_use
 
 
 @router.post("/{user_id}/reset-password")
-async def reset_user_password(user_id: str, new_password: str, current_user: dict = Depends(get_current_user)):
-    """Reset a user's password (PE Level)"""
-    if not is_pe_level(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can reset passwords")
-    
+async def reset_user_password(
+    user_id: str,
+    new_password: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("users.reset_password", "reset passwords"))
+):
+    """Reset a user's password (requires users.reset_password permission)"""
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
