@@ -311,7 +311,87 @@ async def get_employee_dashboard(current_user: dict = Depends(get_current_user))
          "approval_status": 1, "created_at": 1}
     ).to_list(10000)
     
+    # Get direct reports if the user is a manager
+    direct_reports = await db.users.find(
+        {"reports_to": user_id},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+    ).to_list(100)
+    
+    direct_report_ids = [dr["id"] for dr in direct_reports]
+    
+    # Get team clients (clients mapped to direct reports)
+    team_clients = []
+    if direct_report_ids:
+        team_clients = await db.clients.find(
+            {"mapped_employee_id": {"$in": direct_report_ids}, "is_active": True, "is_vendor": False},
+            {"_id": 0, "id": 1, "name": 1, "pan_number": 1, "approval_status": 1, "mapped_employee_id": 1, "mapped_employee_name": 1}
+        ).to_list(1000)
+    
+    # Get team bookings (created by direct reports)
+    team_bookings = []
+    if direct_report_ids:
+        team_bookings = await db.bookings.find(
+            {"created_by": {"$in": direct_report_ids}, "status": {"$ne": "cancelled"}, "is_voided": {"$ne": True}},
+            {"_id": 0, "id": 1, "booking_number": 1, "client_name": 1, "stock_symbol": 1, 
+             "quantity": 1, "selling_price": 1, "approval_status": 1, "created_at": 1, "created_by": 1, "created_by_name": 1}
+        ).to_list(10000)
+    
     # Calculate metrics
+    total_bookings_value = sum(b.get("quantity", 0) * b.get("selling_price", 0) for b in my_bookings)
+    pending_bookings = [b for b in my_bookings if b.get("approval_status") == "pending"]
+    approved_bookings = [b for b in my_bookings if b.get("approval_status") == "approved"]
+    
+    team_bookings_value = sum(b.get("quantity", 0) * b.get("selling_price", 0) for b in team_bookings) if team_bookings else 0
+    
+    # Get pending client approvals for my clients
+    pending_clients = [c for c in my_clients if c.get("approval_status") == "pending"]
+    
+    # Get recent bookings (last 5)
+    recent_bookings = sorted(my_bookings, key=lambda x: x.get("created_at", ""), reverse=True)[:5]
+    
+    # Get team performance summary
+    team_performance = []
+    for report in direct_reports:
+        report_bookings = [b for b in team_bookings if b.get("created_by") == report["id"]]
+        report_value = sum(b.get("quantity", 0) * b.get("selling_price", 0) for b in report_bookings)
+        report_clients = [c for c in team_clients if c.get("mapped_employee_id") == report["id"]]
+        team_performance.append({
+            "id": report["id"],
+            "name": report["name"],
+            "email": report.get("email", ""),
+            "bookings_count": len(report_bookings),
+            "bookings_value": report_value,
+            "clients_count": len(report_clients)
+        })
+    
+    return {
+        "user": {
+            "id": user_id,
+            "name": user_name,
+            "role": user_role,
+            "hierarchy_level": current_user.get("hierarchy_level", 1),
+            "has_team": len(direct_reports) > 0
+        },
+        "my_stats": {
+            "total_clients": len(my_clients),
+            "pending_clients": len(pending_clients),
+            "total_bookings": len(my_bookings),
+            "pending_bookings": len(pending_bookings),
+            "approved_bookings": len(approved_bookings),
+            "total_value": total_bookings_value
+        },
+        "team_stats": {
+            "direct_reports_count": len(direct_reports),
+            "team_clients_count": len(team_clients),
+            "team_bookings_count": len(team_bookings),
+            "team_value": team_bookings_value
+        },
+        "my_clients": my_clients[:10],  # Top 10
+        "my_pending_clients": pending_clients[:5],
+        "my_recent_bookings": recent_bookings,
+        "direct_reports": direct_reports,
+        "team_performance": team_performance
+    }
 
 
 # ============== Security Status ==============
