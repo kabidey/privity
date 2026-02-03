@@ -37,6 +37,39 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 03, 2026)
 
+#### ✅ Recalculate Inventory Feature - COMPLETED (Feb 03, 2026)
+**Feature**: Manual inventory recalculation button for PE Desk users
+**Backend Implementation** (`/app/backend/routers/inventory.py`):
+- `POST /api/inventory/recalculate` - Recalculates inventory for ALL stocks
+- Uses new dynamic permission system via `permission_service.py`
+- Creates audit log entry for compliance tracking
+- Returns count of stocks recalculated and any errors
+**Frontend Implementation** (`/app/frontend/src/pages/Inventory.js`):
+- Blue "Recalculate Inventory" button with refresh icon
+- Visible only to PE Desk users
+- Confirmation dialog before execution
+- Loading state with spinning icon during recalculation
+- Success toast notification on completion
+**Testing**: 100% pass rate - 7/7 backend tests, all frontend UI tests passed
+
+#### ✅ Dynamic Permission Service - COMPLETED (Feb 03, 2026)
+**Feature**: Foundation for dynamic permission-based authorization
+**Implementation** (`/app/backend/services/permission_service.py`):
+- `get_role_permissions(role_id)` - Get permissions from DB or defaults
+- `expand_permissions(raw_permissions)` - Handle wildcards like `*` and `inventory.*`
+- `has_permission(user, permission)` - Check if user has specific permission
+- `check_permission(user, permission, action_name)` - Raise 403 if denied
+- Helper functions: `can_approve_bookings()`, `can_record_payments()`, etc.
+**Permission Categories**: dashboard, bookings, clients, stocks, inventory, purchases, vendors, finance, users, roles, business_partners, referral_partners, reports, settings, dp
+**Note**: This is the foundation for migrating all backend authorization to dynamic permissions
+
+#### ✅ Layout.js Refactoring - COMPLETED (Feb 03, 2026)
+**Refactor**: Updated Layout.js to use centralized `useCurrentUser` hook
+- Removed local role checking logic (was duplicated from utils/roles.js)
+- Now uses `isPEDesk`, `isPELevel`, `isViewer`, `roleName` from hook
+- Consistent role checking across all 25+ pages
+- Role name displays correctly in sidebar footer
+
 #### ✅ Dynamic Role & Permission Management System - COMPLETED (Feb 03, 2026)
 **Feature**: Full dynamic role management with granular permissions
 **Backend Implementation** (`/app/backend/routers/roles.py`):
