@@ -418,7 +418,7 @@ const Layout = ({ children }) => {
           </div>
           
           {/* Kill Switch - PE Desk Only - Inline */}
-          <KillSwitch userRole={user.role} />
+          <KillSwitch userRole={role} />
           
           {/* Compact user info row */}
           <div className="flex items-center justify-between mt-2 px-2 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
@@ -426,11 +426,11 @@ const Layout = ({ children }) => {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${
                 isPELevel ? 'bg-gradient-to-br from-emerald-500 to-teal-500' : 'bg-gradient-to-br from-blue-500 to-indigo-500'
               }`}>
-                {user.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}
+                {user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'U'}
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-[100px]">{user.name?.split(' ')[0]}</span>
-                <span className="text-[10px] text-gray-500">{user.role_name || 'User'}</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate max-w-[100px]">{user?.name?.split(' ')[0]}</span>
+                <span className="text-[10px] text-gray-500">{roleName || 'User'}</span>
               </div>
             </div>
             <div className="flex items-center gap-1">
