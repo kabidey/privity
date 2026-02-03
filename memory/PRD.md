@@ -37,6 +37,30 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 03, 2026)
 
+#### ✅ Feature Enhancements - COMPLETED (Feb 03, 2026)
+
+**1. Refresh Booking Status Button**
+- Added `POST /api/bookings/{booking_id}/refresh-status` endpoint
+- Checks if all payments are done → updates payment_status to 'paid'
+- Checks if client approval is pending and 1st payment made → auto-approves client
+- Updates DP status to 'ready' when booking approved and fully paid
+- Added refresh button (🔄) in Bookings page action column
+
+**2. Client Employee Mapping Fix**
+- Fixed race condition in Clients.js where employee list wasn't loading
+- Employee mapping dropdown now shows all employees correctly
+
+**3. Referral Partner Mapping Update**
+- Added `PUT /api/bookings/{booking_id}/referral-partner` endpoint
+- Allows changing or removing RP assignment on bookings
+- Only allowed before stock transfer is completed
+- Creates audit log for RP changes
+
+**Files Modified**:
+- `backend/routers/bookings.py` - Added refresh-status and referral-partner endpoints
+- `frontend/src/pages/Bookings.js` - Added refresh button and handler
+- `frontend/src/pages/Clients.js` - Fixed useEffect to wait for user data
+
 #### ✅ PE Desk Menu Access Fix - COMPLETED (Feb 03, 2026)
 **Bug**: PE Desk was being redirected away from protected pages (Audit Trail, Email Server, Vendors, DP Receivables, DP Transfer, Business Partners, etc.) due to a race condition where permission checks ran before user data loaded.
 
