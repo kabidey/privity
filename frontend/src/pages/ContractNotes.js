@@ -180,10 +180,10 @@ const ContractNotes = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <FileText className="w-7 h-7 text-emerald-600" />
-            Contract Notes
+            Confirmation Notes
           </h1>
           <p className="text-gray-500 mt-1">
-            Manage contract notes generated after DP transfer
+            Manage confirmation notes generated after DP transfer
           </p>
         </div>
         <Button variant="outline" onClick={fetchNotes}>
