@@ -380,9 +380,10 @@ async def get_tcs_preview(
 async def add_purchase_payment(
     purchase_id: str,
     payment_data: PaymentRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("purchases.record_payment", "add purchase payments"))
 ):
-    """Add a payment tranche to a purchase with TCS calculation"""
+    """Add a payment tranche to a purchase with TCS calculation (requires purchases.record_payment permission)"""
     user_role = current_user.get("role", 6)
     
     # Extract payment data from Pydantic model
@@ -394,9 +395,6 @@ async def add_purchase_payment(
     proof_url = payment_data.proof_url
     manual_tcs_amount = payment_data.tcs_amount
     manual_tcs_applicable = payment_data.tcs_applicable
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can add payments")
     
     purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
     if not purchase:
