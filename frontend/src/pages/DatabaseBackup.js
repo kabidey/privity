@@ -34,8 +34,17 @@ const DatabaseBackup = () => {
   const [clearConfirmText, setClearConfirmText] = useState('');
   const [uploadFile, setUploadFile] = useState(null);
   const [clearableCollections, setClearableCollections] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [selectedCollections, setSelectedCollections] = useState([]);
+  const [excludedRecords, setExcludedRecords] = useState([]);
+  const [excludeInput, setExcludeInput] = useState('');
   const [loadingCollections, setLoadingCollections] = useState(false);
+  const [previewData, setPreviewData] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [clearMode, setClearMode] = useState('collections'); // 'collections', 'categories', 'files'
+  const [fileStats, setFileStats] = useState(null);
+  const [selectedFileTypes, setSelectedFileTypes] = useState([]);
+  const [clearingFiles, setClearingFiles] = useState(false);
   const fileInputRef = useRef(null);
 
   // Get current user for role check - only PE Desk (role 1) can clear DB
