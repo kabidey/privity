@@ -497,7 +497,8 @@ async def unlock_account(email: str, current_user: dict = Depends(get_current_us
 async def get_login_locations(
     user_id: str = None,
     hours: int = 24,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("security.view_locations", "view login locations"))
 ):
     """Get login locations - PE Desk can view all, others can view their own"""
     user_role = current_user.get("role", 6)
@@ -527,15 +528,10 @@ async def get_login_locations(
 @router.get("/login-locations/map-data")
 async def get_login_map_data(
     user_id: str = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("security.view_locations", "view login map data"))
 ):
     """Get login locations formatted for map display"""
-    user_role = current_user.get("role", 6)
-    
-    # PE level only
-    if user_role not in [1, 2]:
-        return {"error": "Access denied"}
-    
     query = {}
     if user_id:
         query["user_id"] = user_id
@@ -574,13 +570,12 @@ async def get_login_map_data(
 
 # ============== CLIENT DASHBOARD ==============
 @router.get("/client")
-async def get_client_dashboard(current_user: dict = Depends(get_current_user)):
+async def get_client_dashboard(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dashboard.client_view", "view client dashboard"))
+):
     """Get Client specific dashboard data"""
-    user_role = current_user.get("role", 6)
     user_email = current_user.get("email")
-    
-    if user_role != 6:
-        return {"error": "This dashboard is for clients only"}
     
     # Find the client record linked to this user
     client = await db.clients.find_one(
