@@ -311,7 +311,7 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* System Frozen Overlay - shows for all users except PE Desk when kill switch is active */}
-      <SystemFrozenOverlay userRole={user.role} />
+      <SystemFrozenOverlay userRole={role} />
       
       {/* iOS-style Desktop Sidebar */}
       <aside className="hidden lg:flex lg:flex-col w-72 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-800/50 fixed h-screen z-40 overflow-hidden">
