@@ -371,11 +371,14 @@ async def update_client(client_id: str, client_data: ClientCreate, current_user:
 
 
 @router.put("/clients/{client_id}/approve")
-async def approve_client(client_id: str, approve: bool = True, current_user: dict = Depends(get_current_user)):
-    """Approve or reject a client (PE Level only)."""
+async def approve_client(
+    client_id: str,
+    approve: bool = True,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("client_approval.approve", "approve clients"))
+):
+    """Approve or reject a client (requires client_approval.approve permission)."""
     user_role = current_user.get("role", 6)
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can approve clients")
     
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
