@@ -103,13 +103,16 @@ const Clients = () => {
   const canMapClients = isPELevel;
 
   useEffect(() => {
+    // Wait for user to load before fetching data
+    if (currentUser === null) return;
+    
     fetchClients();
     // Fetch employees for mapping if user can map clients
     if (canMapClients) {
       fetchEmployees();
       fetchPendingClients();
     }
-  }, []);
+  }, [currentUser, canMapClients]);
 
   // Filter clients based on search query
   const filteredClients = clients.filter(client => {
