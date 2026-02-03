@@ -406,12 +406,10 @@ async def get_rp_payments(
 
 @router.get("/finance/rp-payments/summary")
 async def get_rp_payments_summary(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.view_payouts", "view RP payments summary"))
 ):
     """Get RP payments summary statistics."""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access RP payments")
-    
     all_payments = await db.rp_payments.find({}, {"_id": 0}).to_list(10000)
     
     pending = [p for p in all_payments if p.get("status") == "pending"]
@@ -434,12 +432,10 @@ async def get_rp_payments_summary(
 async def update_rp_payment(
     payment_id: str,
     update_data: RPPaymentUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.process_payouts", "update RP payment"))
 ):
     """Update RP payment status (mark as paid)."""
-    if not can_manage_finance(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update RP payments")
-    
     payment = await db.rp_payments.find_one({"id": payment_id}, {"_id": 0})
     if not payment:
         raise HTTPException(status_code=404, detail="RP payment not found")
@@ -477,12 +473,10 @@ async def get_employee_commissions(
     status: Optional[str] = None,  # pending, calculated, paid
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.view", "view employee commissions"))
 ):
     """Get employee commissions from confirmed bookings"""
-    if not has_finance_access(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access commission data")
-    
     query = {
         "stock_transferred": True,
         "employee_commission_amount": {"$exists": True, "$gt": 0}
