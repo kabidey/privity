@@ -14,7 +14,8 @@ from models import Stock, StockCreate, CorporateAction, CorporateActionCreate, I
 from services.email_service import send_email
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission
+    check_permission as check_dynamic_permission,
+    require_permission
 )
 
 router = APIRouter(tags=["Stocks"])
