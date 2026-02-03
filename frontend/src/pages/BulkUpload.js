@@ -83,12 +83,15 @@ const BulkUpload = () => {
   };
 
   useEffect(() => {
+    // Wait for user to load before checking permissions
+    if (user === null) return;
+    
     if (!isPEDesk) {
       navigate('/');
       return;
     }
     fetchStats();
-  }, []);
+  }, [user, isPEDesk]);
 
   const fetchStats = async () => {
     try {
