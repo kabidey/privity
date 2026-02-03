@@ -13,7 +13,7 @@ import aiofiles
 from pathlib import Path
 
 from database import db
-from config import is_pe_level, is_pe_desk_only, ROLES, UPLOAD_DIR
+from config import ROLES, UPLOAD_DIR
 from models import ClientCreate, Client, BankAccount, ClientSuspensionRequest
 from utils.auth import get_current_user, check_permission
 from services.notification_service import notify_roles, create_notification
@@ -21,8 +21,24 @@ from services.audit_service import create_audit_log
 from services.email_service import send_templated_email, send_email, get_email_template
 from services.ocr_service import process_document_ocr
 from services.file_storage import upload_file_to_gridfs, get_file_url
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission,
+    is_pe_level_dynamic
+)
 
 router = APIRouter(tags=["Clients"])
+
+
+# Helper functions for backward compatibility
+def is_pe_level(role: int) -> bool:
+    """Check if role is PE level (PE Desk or PE Manager)."""
+    return role in [1, 2]
+
+
+def is_pe_desk_only(role: int) -> bool:
+    """Check if role is PE Desk only."""
+    return role == 1
 
 
 async def generate_otc_ucc() -> str:
