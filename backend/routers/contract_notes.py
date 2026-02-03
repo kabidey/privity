@@ -26,7 +26,7 @@ from services.permission_service import (
     require_permission
 )
 
-router = APIRouter(prefix="/contract-notes", tags=["Contract Notes"])
+router = APIRouter(prefix="/contract-notes", tags=["Confirmation Notes"])
 
 
 # Helper function for backward compatibility

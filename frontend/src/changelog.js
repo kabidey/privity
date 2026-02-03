@@ -138,11 +138,11 @@ const CHANGELOG = [
   {
     version: 'v0.9.0',
     date: '2026-01-28',
-    title: 'Business Partner & Contract Notes',
+    title: 'Business Partner & Confirmation Notes',
     changes: [
       { type: 'feature', description: 'Business Partner (BP) role with OTP-based login' },
       { type: 'feature', description: 'BP Revenue Dashboard with document verification' },
-      { type: 'feature', description: 'Contract Notes generation with PDF and email' },
+      { type: 'feature', description: 'Confirmation Notes generation with PDF and email' },
       { type: 'feature', description: 'Company Master settings page' },
       { type: 'feature', description: 'Email Audit Logging system' },
       { type: 'improvement', description: 'Mandatory client document uploads' },
