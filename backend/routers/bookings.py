@@ -806,12 +806,12 @@ async def get_bookings(
 # NOTE: These routes MUST be defined before /bookings/{booking_id} to avoid path conflicts
 
 @router.get("/bookings/dp-ready")
-async def get_dp_ready_bookings(current_user: dict = Depends(get_current_user)):
+async def get_dp_ready_bookings(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("dp.view_receivables", "view DP ready bookings"))
+):
     """Get all bookings with DP ready status (fully paid, ready to transfer)"""
     user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE level can view DP ready bookings")
     
     # Get bookings with dp_status = "ready"
     bookings_list = await db.bookings.find(
