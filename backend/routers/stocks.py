@@ -12,8 +12,18 @@ from database import db
 from routers.auth import get_current_user
 from models import Stock, StockCreate, CorporateAction, CorporateActionCreate, Inventory
 from services.email_service import send_email
+from services.permission_service import (
+    has_permission,
+    check_permission as check_dynamic_permission
+)
 
 router = APIRouter(tags=["Stocks"])
+
+
+# Helper function for backward compatibility
+def is_pe_desk_only(role: int) -> bool:
+    """Check if role is PE Desk only."""
+    return role == 1
 
 
 # ============== Helper Functions ==============
