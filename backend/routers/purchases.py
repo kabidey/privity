@@ -509,13 +509,11 @@ async def add_purchase_payment(
 @router.delete("/{purchase_id}")
 async def delete_purchase(
     purchase_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("purchases.delete", "delete purchases"))
 ):
-    """Delete a purchase order (PE Desk only)"""
+    """Delete a purchase order (requires purchases.delete permission)"""
     user_role = current_user.get("role", 6)
-    
-    if user_role != 1:
-        raise HTTPException(status_code=403, detail="Only PE Desk can delete purchases")
     
     purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
     if not purchase:
