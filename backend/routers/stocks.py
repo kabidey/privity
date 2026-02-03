@@ -500,7 +500,20 @@ async def get_corporate_actions(
     """Get corporate actions"""
     query = {"stock_id": stock_id} if stock_id else {}
     actions = await db.corporate_actions.find(query, {"_id": 0}).to_list(10000)
-    return [CorporateAction(**a) for a in actions]
+    
+    # Enrich actions with stock_symbol if missing
+    result = []
+    for action in actions:
+        if not action.get("stock_symbol") and action.get("stock_id"):
+            stock = await db.stocks.find_one({"id": action["stock_id"]}, {"_id": 0, "symbol": 1, "name": 1})
+            if stock:
+                action["stock_symbol"] = stock.get("symbol")
+                action["stock_name"] = stock.get("name")
+            else:
+                action["stock_symbol"] = "DELETED"  # Stock was deleted
+        result.append(CorporateAction(**action))
+    
+    return result
 
 
 @router.delete("/corporate-actions/{action_id}")
