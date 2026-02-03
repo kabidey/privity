@@ -1253,6 +1253,100 @@ async def get_pending_loss_bookings(
     return enriched
 
 
+@router.post("/bookings/{booking_id}/refresh-status")
+async def refresh_booking_status(
+    booking_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.edit", "refresh booking status"))
+):
+    """
+    Refresh booking status by checking:
+    1. If all payments are done -> update payment_status to 'paid'
+    2. If client approval is pending and 1st payment is made -> auto-approve client
+    3. Recalculate any derived statuses
+    
+    Returns updated booking information and any actions taken.
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    actions_taken = []
+    updates = {}
+    
+    # Get client info
+    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+    
+    # Calculate payment status
+    quantity = booking.get("quantity", 0)
+    selling_price = booking.get("selling_price", 0)
+    total_amount = quantity * selling_price
+    payments = booking.get("payments", [])
+    total_paid = sum(p.get("amount", 0) for p in payments)
+    
+    # Check payment status
+    if total_paid >= total_amount and total_amount > 0:
+        if booking.get("payment_status") != "paid":
+            updates["payment_status"] = "paid"
+            actions_taken.append("Payment status updated to 'paid' (fully paid)")
+    elif total_paid > 0:
+        if booking.get("payment_status") != "partial":
+            updates["payment_status"] = "partial"
+            actions_taken.append(f"Payment status updated to 'partial' (₹{total_paid:,.2f} of ₹{total_amount:,.2f})")
+    else:
+        if booking.get("payment_status") != "pending":
+            updates["payment_status"] = "pending"
+            actions_taken.append("Payment status updated to 'pending' (no payments)")
+    
+    # Check if client needs auto-approval (1st payment made)
+    if client and client.get("approval_status") == "pending":
+        if len(payments) > 0 and total_paid > 0:
+            # Auto-approve client when first payment is made
+            await db.clients.update_one(
+                {"id": booking["client_id"]},
+                {"$set": {
+                    "approval_status": "approved",
+                    "approved_at": datetime.now(timezone.utc).isoformat(),
+                    "approved_by": current_user["id"],
+                    "approved_by_name": current_user["name"],
+                    "auto_approved_reason": f"Auto-approved due to first payment on booking {booking.get('booking_number')}"
+                }}
+            )
+            actions_taken.append(f"Client '{client.get('name')}' auto-approved (first payment received)")
+    
+    # Check DP status based on payment completion
+    if booking.get("approval_status") == "approved" and total_paid >= total_amount and total_amount > 0:
+        if booking.get("dp_status") != "ready" and not booking.get("stock_transferred"):
+            updates["dp_status"] = "ready"
+            actions_taken.append("DP status updated to 'ready' (booking approved and fully paid)")
+    
+    # Apply updates if any
+    if updates:
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.bookings.update_one({"id": booking_id}, {"$set": updates})
+    
+    if not actions_taken:
+        actions_taken.append("No status changes needed - booking is up to date")
+    
+    # Fetch updated booking
+    updated_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    
+    return {
+        "message": "Booking status refreshed",
+        "actions_taken": actions_taken,
+        "booking": {
+            "id": updated_booking.get("id"),
+            "booking_number": updated_booking.get("booking_number"),
+            "payment_status": updated_booking.get("payment_status"),
+            "approval_status": updated_booking.get("approval_status"),
+            "dp_status": updated_booking.get("dp_status"),
+            "total_amount": total_amount,
+            "total_paid": total_paid,
+            "remaining": total_amount - total_paid
+        }
+    }
+
+
 @router.get("/bookings/{booking_id}", response_model=BookingWithDetails)
 async def get_booking(booking_id: str, current_user: dict = Depends(get_current_user)):
     """Get a specific booking by ID."""
