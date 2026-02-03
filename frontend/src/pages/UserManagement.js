@@ -59,7 +59,7 @@ const UserManagement = () => {
     reports_to: ''
   });
 
-  const { isPEDesk } = useCurrentUser();
+  const { isPEDesk, user: currentUser } = useCurrentUser();
 
   useEffect(() => {
     fetchUsers();
