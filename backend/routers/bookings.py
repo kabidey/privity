@@ -154,6 +154,10 @@ async def create_booking(
         check_permission(current_user, "manage_bookings")
     
     # If Business Partner, get their BP profile for revenue share
+    bp_info = None
+    bp_revenue_override = None
+    bp_override_requires_approval = False
+    
     if is_business_partner:
         bp_id = current_user.get("user_id") or current_user.get("id")
         bp_info = await db.business_partners.find_one({"id": bp_id}, {"_id": 0})
@@ -164,6 +168,49 @@ async def create_booking(
         # BPs cannot select RPs - clear any RP data
         booking_data.referral_partner_id = None
         booking_data.rp_revenue_share_percent = None
+        
+        # Handle BP revenue share override
+        if booking_data.bp_revenue_share_override is not None:
+            default_bp_share = bp_info.get("revenue_share_percent", 0)
+            override_share = booking_data.bp_revenue_share_override
+            
+            # Override can only be LOWER than the default (giving away less revenue)
+            if override_share > default_bp_share:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Revenue share override ({override_share}%) cannot be higher than your default ({default_bp_share}%)"
+                )
+            if override_share < 0:
+                raise HTTPException(status_code=400, detail="Revenue share cannot be negative")
+            if override_share > 100:
+                raise HTTPException(status_code=400, detail="Revenue share cannot exceed 100%")
+            
+            bp_revenue_override = override_share
+            bp_override_requires_approval = True
+    
+    # Partners Desk creating booking for a BP - check for linked BP
+    elif user_role == 5:  # Partners Desk
+        # Check if booking has a BP linked via the client
+        # Partners Desk can also apply overrides for their linked BPs
+        linked_employee = await db.users.find_one({"id": current_user["id"]}, {"_id": 0, "linked_bp_id": 1})
+        if linked_employee and linked_employee.get("linked_bp_id"):
+            bp_info = await db.business_partners.find_one({"id": linked_employee["linked_bp_id"]}, {"_id": 0})
+            if bp_info and bp_info.get("is_active", True):
+                # Handle override from Partners Desk
+                if booking_data.bp_revenue_share_override is not None:
+                    default_bp_share = bp_info.get("revenue_share_percent", 0)
+                    override_share = booking_data.bp_revenue_share_override
+                    
+                    if override_share > default_bp_share:
+                        raise HTTPException(
+                            status_code=400, 
+                            detail=f"Revenue share override ({override_share}%) cannot be higher than BP default ({default_bp_share}%)"
+                        )
+                    if override_share < 0 or override_share > 100:
+                        raise HTTPException(status_code=400, detail="Revenue share must be between 0 and 100")
+                    
+                    bp_revenue_override = override_share
+                    bp_override_requires_approval = True
     
     # Verify client exists and is active
     client = await db.clients.find_one({"id": booking_data.client_id}, {"_id": 0})
