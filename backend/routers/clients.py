@@ -310,6 +310,10 @@ async def get_clients(
         else:
             query["$or"] = search_conditions
     
+    # CRITICAL: Add demo data isolation filter
+    # Demo users only see demo data, live users don't see demo data
+    query = add_demo_filter(query, current_user)
+    
     clients = await db.clients.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     
     # Add can_book field to each client
