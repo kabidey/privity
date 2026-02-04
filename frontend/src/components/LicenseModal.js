@@ -265,6 +265,9 @@ const LicenseModal = ({ open, onClose, onLicenseActivated }) => {
           <div className="text-center text-xs text-muted-foreground">
             <p>Need a license key? Contact your administrator or</p>
             <p>email <span className="text-emerald-600">support@smifs.com</span></p>
+            <p className="mt-2 text-emerald-600 font-medium">
+              Note: SMIFS employees (@smifs.com) are exempt from licensing.
+            </p>
           </div>
         </div>
       </DialogContent>
