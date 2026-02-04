@@ -114,12 +114,12 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "dashboard": ["view", "pe_view"],
         "bookings": ["view", "view_all", "create", "edit", "delete", "approve", 
                      "record_payment", "delete_payment", "export"],
-        "clients": ["view", "create", "edit", "delete", "map", "upload_docs"],
+        "clients": ["view", "create", "edit", "delete", "map", "upload_docs", "view_docs", "suspend"],
         "stocks": ["view", "create", "edit", "delete", "corporate_actions"],
         "inventory": ["view", "view_lp_history", "edit_landing_price", "recalculate", "delete"],
-        "purchases": ["view", "create", "delete", "record_payment"],
+        "purchases": ["view", "create", "edit", "delete", "record_payment"],
         "vendors": ["view", "create", "edit", "delete"],
-        "finance": ["view", "manage_refunds", "view_reports"],
+        "finance": ["view", "manage_refunds", "view_reports", "export"],
         "users": ["view", "create", "edit", "delete", "change_role", "reset_password", "proxy_login"],
         "roles": ["view", "create", "edit", "delete"],
         "business_partners": ["view", "create", "edit", "delete", "approve"],
@@ -136,7 +136,8 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "contract_notes": ["view", "generate", "send", "download"],
         "client_approval": ["view", "approve", "reject"],
         "revenue": ["rp_view", "employee_view", "team_view"],
-        "system": ["kill_switch"]
+        "system": ["kill_switch"],
+        "license": ["view", "generate", "activate", "revoke"]
     }
     
     expanded = set()
