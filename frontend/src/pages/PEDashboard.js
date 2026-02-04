@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   Shield, Clock, Users, AlertTriangle, FileText, CheckCircle, 
   TrendingUp, Activity, RefreshCw, ArrowRight, UserCheck, Briefcase
@@ -18,19 +18,15 @@ const PEDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [clearingCache, setClearingCache] = useState(false);
 
-  const { user, isPELevel, isPEDesk } = useCurrentUser();
+  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk or PE Manager can view this dashboard.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPELevel) {
-      toast.error('Access denied. Only PE Desk or PE Manager can view this dashboard.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchData();
-  }, [user, isPELevel, navigate]);
+  }, [isAuthorized]);
 
   const fetchData = async () => {
     try {

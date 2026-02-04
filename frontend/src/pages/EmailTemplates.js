@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { Mail, Edit, Eye, RotateCcw, Save, Code, FileText } from 'lucide-react';
 
 const EmailTemplates = () => {
-  const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingTemplate, setEditingTemplate] = useState(null);
@@ -28,19 +26,15 @@ const EmailTemplates = () => {
   });
   const [previewVariables, setPreviewVariables] = useState({});
 
-  const { user, isPELevel } = useCurrentUser();
+  const { isLoading, isAuthorized } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk or PE Manager can manage email templates.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPELevel) {
-      toast.error('Access denied. Only PE Desk or PE Manager can manage email templates.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchTemplates();
-  }, [user, isPELevel, navigate]);
+  }, [isAuthorized]);
 
   const fetchTemplates = async () => {
     try {
