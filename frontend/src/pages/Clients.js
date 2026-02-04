@@ -185,6 +185,7 @@ const Clients = () => {
     setRefreshing(true);
     try {
       // Clear cache to force fresh data fetch
+      localStorage.removeItem('privity_cache_clients');
       sessionStorage.removeItem('clientsCache');
       
       // Fetch fresh data from server
@@ -199,7 +200,7 @@ const Clients = () => {
       setEmployees(employeesRes.data);
       
       // Update cache
-      sessionStorage.setItem('clientsCache', JSON.stringify({
+      localStorage.setItem('privity_cache_clients', JSON.stringify({
         data: clientsRes.data,
         expiry: Date.now() + 5 * 60 * 1000
       }));
