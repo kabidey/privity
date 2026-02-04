@@ -489,12 +489,21 @@ const Inventory = () => {
                           </>
                         ) : (
                           <>
-                            {/* Non-PE users see LP as "Price" */}
+                            {/* Non-PE users see LP as "Price" with optional LP change indicator */}
                             <TableCell className="mono">
-                              {formatCurrency(item.weighted_avg_price)}
+                              {canViewLPChange ? (
+                                <div className={`flex items-center gap-1 px-2 py-1 rounded border ${lpChange.color}`}>
+                                  <LPIcon className="h-3 w-3" />
+                                  <span className="font-semibold">
+                                    {formatCurrency(item.landing_price || item.weighted_avg_price)}
+                                  </span>
+                                </div>
+                              ) : (
+                                formatCurrency(item.landing_price || item.weighted_avg_price)
+                              )}
                             </TableCell>
                             <TableCell className="mono font-semibold">
-                              {formatCurrency(item.total_value)}
+                              {formatCurrency(item.lp_total_value || item.total_value)}
                             </TableCell>
                           </>
                         )}
