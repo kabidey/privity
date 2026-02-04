@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCurrentUser } from './useCurrentUser';
@@ -43,42 +43,39 @@ export function useProtectedPage({
   const navigate = useNavigate();
   const currentUser = useCurrentUser();
   const { user } = currentUser;
-  
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [hasChecked, setHasChecked] = useState(false);
+  const hasRedirected = useRef(false);
   
   // Determine if still loading (user data not yet available)
   const isLoading = user === null;
   
-  useEffect(() => {
-    // Don't check permissions until user data is loaded
-    if (user === null) return;
-    
-    // If no allowIf function provided, allow access by default
+  // Compute authorization synchronously (no setState needed)
+  let isAuthorized = false;
+  if (user !== null) {
     if (!allowIf) {
-      setIsAuthorized(true);
-      setHasChecked(true);
-      return;
-    }
-    
-    // Run the permission check
-    const allowed = allowIf(currentUser);
-    
-    if (!allowed) {
-      toast.error(deniedMessage);
-      navigate(redirectTo);
-      setIsAuthorized(false);
+      // If no allowIf function provided, allow access by default
+      isAuthorized = true;
     } else {
-      setIsAuthorized(true);
+      isAuthorized = allowIf(currentUser);
     }
+  }
+  
+  // Handle redirect for unauthorized users (side effect)
+  useEffect(() => {
+    // Don't redirect until user data is loaded
+    if (user === null) return;
+    // Don't redirect if already authorized
+    if (isAuthorized) return;
+    // Don't redirect multiple times
+    if (hasRedirected.current) return;
     
-    setHasChecked(true);
-  }, [user, allowIf, deniedMessage, redirectTo, navigate, currentUser]);
+    hasRedirected.current = true;
+    toast.error(deniedMessage);
+    navigate(redirectTo);
+  }, [user, isAuthorized, deniedMessage, redirectTo, navigate]);
   
   return {
     isLoading,
     isAuthorized,
-    hasChecked,
     ...currentUser
   };
 }
