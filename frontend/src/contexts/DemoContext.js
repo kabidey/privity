@@ -112,55 +112,39 @@ export const TOUR_STEPS = {
   ],
 };
 
-// Feature showcase data
+// Feature showcase data - Employee Role focused features
 export const FEATURE_SHOWCASES = [
   {
     id: 'bookings',
-    title: 'Smart Booking Management',
-    description: 'Create, track, and manage client bookings with automated profit/loss calculations.',
+    title: 'Booking Management',
+    description: 'Create and manage client bookings with automated profit/loss calculations.',
     icon: '📝',
     color: 'from-emerald-500 to-teal-600',
-    features: ['One-click booking creation', 'Real-time P&L tracking', 'Multi-level approval workflow', 'Contract note generation'],
+    features: ['One-click booking creation', 'Real-time P&L tracking', 'View booking history', 'Track booking status'],
   },
   {
     id: 'clients',
     title: 'Client Management',
-    description: 'Complete KYC management with document verification and approval workflows.',
+    description: 'View your assigned clients and their details.',
     icon: '👥',
     color: 'from-blue-500 to-indigo-600',
-    features: ['Digital KYC submission', 'Document verification', 'Approval workflow', 'Client portfolio view'],
+    features: ['View assigned clients', 'Client portfolio overview', 'Search by name or PAN', 'Client booking history'],
   },
   {
     id: 'inventory',
-    title: 'Inventory Tracking',
-    description: 'Real-time stock inventory with weighted average pricing and availability.',
+    title: 'Stock Inventory',
+    description: 'View available stock inventory and pricing information.',
     icon: '📦',
     color: 'from-orange-500 to-red-600',
-    features: ['Live inventory levels', 'WAP calculation', 'Purchase management', 'Stock transfers'],
+    features: ['View available stocks', 'Check stock quantities', 'Landing price info', 'Stock availability'],
   },
   {
-    id: 'reports',
-    title: 'Business Intelligence',
-    description: 'Comprehensive reporting with custom filters and export capabilities.',
+    id: 'dashboard',
+    title: 'My Dashboard',
+    description: 'Your personal dashboard with key metrics and recent activities.',
     icon: '📊',
     color: 'from-purple-500 to-pink-600',
-    features: ['Revenue reports', 'Client analytics', 'Booking summaries', 'Excel/PDF export'],
-  },
-  {
-    id: 'security',
-    title: 'Role-Based Access',
-    description: 'Granular permission system with 26+ permission categories.',
-    icon: '🔐',
-    color: 'from-gray-600 to-slate-700',
-    features: ['Custom roles', 'Fine-grained permissions', 'Audit logging', 'Secure authentication'],
-  },
-  {
-    id: 'partners',
-    title: 'Partner Network',
-    description: 'Manage Business Partners and Referral Partners with revenue sharing.',
-    icon: '🤝',
-    color: 'from-cyan-500 to-blue-600',
-    features: ['BP/RP onboarding', 'Revenue share tracking', 'Commission management', 'Partner dashboard'],
+    features: ['Personal booking stats', 'Recent activities', 'Performance overview', 'Quick actions'],
   },
 ];
 
