@@ -112,6 +112,18 @@ const FEATURES_TO_EXPLORE = [
 const BadgeUnlockCelebration = ({ badge, onClose }) => {
   const IconComponent = badge.icon;
   
+  // Pre-generate confetti positions for stable rendering
+  const confettiPositions = React.useMemo(() => 
+    [...Array(20)].map((_, i) => ({
+      color: ['#fbbf24', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'][i % 5],
+      left: `${(i * 5) % 100}%`,
+      xOffset: ((i % 3) - 1) * 50,
+      rotateDir: i % 2 === 0 ? 1 : -1,
+      duration: 2 + (i % 3) * 0.5,
+      delay: (i % 10) * 0.05,
+    }))
+  , []);
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -129,23 +141,23 @@ const BadgeUnlockCelebration = ({ badge, onClose }) => {
       >
         {/* Confetti effect */}
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(20)].map((_, i) => (
+          {confettiPositions.map((conf, i) => (
             <motion.div
               key={i}
               className="absolute w-2 h-2 rounded-full"
               style={{
-                backgroundColor: ['#fbbf24', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'][i % 5],
-                left: `${Math.random() * 100}%`,
+                backgroundColor: conf.color,
+                left: conf.left,
                 top: '-10%',
               }}
               animate={{
                 y: ['0%', '1000%'],
-                x: [0, (Math.random() - 0.5) * 100],
-                rotate: [0, 360 * (Math.random() > 0.5 ? 1 : -1)],
+                x: [0, conf.xOffset],
+                rotate: [0, 360 * conf.rotateDir],
               }}
               transition={{
-                duration: 2 + Math.random(),
-                delay: Math.random() * 0.5,
+                duration: conf.duration,
+                delay: conf.delay,
                 repeat: Infinity,
               }}
             />
