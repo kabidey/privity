@@ -72,6 +72,8 @@ const BIReports = () => {
     try {
       const response = await api.get('/bi-reports/config');
       setConfig(response.data);
+      setCanExport(response.data.can_export || false);
+      setCanSaveTemplates(response.data.can_save_templates || false);
     } catch (error) {
       toast.error('Failed to load report configuration');
     } finally {
