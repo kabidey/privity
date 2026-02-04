@@ -897,11 +897,12 @@ async def get_bookings(
     user_id = current_user.get("id")
     hierarchy_level = current_user.get("hierarchy_level", 1)
     
-    # PE Level, Finance, and Viewer see all bookings
-    if is_pe_level(user_role) or user_role in [6, 7]:
+    # PE Level, Finance (6), and Viewer (8) see all bookings
+    # Employee (7) only sees their own bookings
+    if is_pe_level(user_role) or user_role in [6, 8]:
         pass  # No creator filter
     else:
-        # Use hierarchy to determine visibility
+        # Use hierarchy to determine visibility - includes Employee role
         team_ids = await get_team_user_ids(user_id, include_self=True)
         query["created_by"] = {"$in": team_ids}
     
