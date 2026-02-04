@@ -449,6 +449,52 @@ async def change_password(data: ChangePassword, current_user: dict = Depends(get
     return {"message": "Password changed successfully"}
 
 
+@router.post("/update-mobile")
+async def update_mobile_number(
+    mobile_number: str = Body(..., embed=True),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update mobile number for existing user.
+    Required for users who registered before mobile field was mandatory.
+    """
+    # Clean and validate mobile number (10 digits)
+    clean_mobile = ''.join(filter(str.isdigit, mobile_number))
+    if len(clean_mobile) != 10:
+        raise HTTPException(status_code=400, detail="Mobile number must be exactly 10 digits")
+    
+    # Check for duplicate mobile among users
+    existing_mobile_user = await db.users.find_one(
+        {"mobile_number": clean_mobile, "id": {"$ne": current_user["id"]}},
+        {"_id": 0, "name": 1, "email": 1}
+    )
+    if existing_mobile_user:
+        raise HTTPException(
+            status_code=400, 
+            detail="Mobile number already registered with another account"
+        )
+    
+    # Update user's mobile number
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"mobile_number": clean_mobile, "mobile_updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="MOBILE_NUMBER_UPDATE",
+        entity_type="user",
+        entity_id=current_user["id"],
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 5),
+        entity_name=current_user["name"],
+        details={"mobile_updated": True}
+    )
+    
+    return {"message": "Mobile number updated successfully", "mobile_number": clean_mobile}
+
+
 # ============== SSO Authentication Endpoints ==============
 
 @router.get("/sso/config")
