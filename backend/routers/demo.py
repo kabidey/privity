@@ -99,9 +99,15 @@ def generate_demo_stocks():
     
     for stock in stocks:
         stock["is_demo"] = True
+        stock["is_active"] = True
+        stock["exchange"] = "NSE"
+        stock["isin_number"] = f"INE{stock['symbol'][:6]}001"
+        stock["product"] = "equity"
+        stock["face_value"] = 10
         stock["available_quantity"] = random.randint(100, 1000)
-        stock["wap"] = stock["landing_price"] * random.uniform(0.95, 1.05)
-        stock["created_at"] = datetime.utcnow() - timedelta(days=random.randint(60, 180))
+        stock["wap"] = round(stock["landing_price"] * random.uniform(0.95, 1.05), 2)
+        stock["created_by"] = DEMO_USER["id"]
+        stock["created_at"] = (datetime.utcnow() - timedelta(days=random.randint(60, 180))).isoformat()
     
     return stocks
 
