@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, BookOpen, Play, RotateCcw, LogOut, HelpCircle } from 'lucide-react';
-import { useDemo, DEMO_TOURS, FEATURE_SHOWCASES } from '../contexts/DemoContext';
+import { useDemo, DEMO_TOURS, FEATURE_SHOWCASES } from '../../contexts/DemoContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function DemoModeBar() {
