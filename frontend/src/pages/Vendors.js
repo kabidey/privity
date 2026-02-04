@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,11 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { Plus, Pencil, Trash2, Building2, Copy, Upload, FileText, CreditCard, FileCheck, Loader2, Sparkles, FolderOpen, Download, Eye, AlertCircle, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const Vendors = () => {
-  const navigate = useNavigate();
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -55,21 +53,15 @@ const Vendors = () => {
     bank_declaration: null,  // Required if proprietor with name mismatch
   });
 
-  const { user, isPEDesk, isPEManager, isPELevel } = useCurrentUser();
-  const canAccessVendors = isPELevel;
+  const { isLoading, isAuthorized, isPEDesk, isPEManager, isPELevel } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk and PE Manager can manage vendors.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    // PE Desk and PE Manager can access vendors
-    if (!canAccessVendors) {
-      toast.error('Access denied. Only PE Desk and PE Manager can manage vendors.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchVendors();
-  }, [user, canAccessVendors, navigate]);
+  }, [isAuthorized]);
 
   const fetchVendors = async () => {
     try {
