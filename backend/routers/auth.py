@@ -352,12 +352,16 @@ async def login(
     # Get permissions for the user's role
     permissions = await get_role_permissions(role_id)
     
+    # Check if mobile number is required (missing for existing users)
+    mobile_required = not user.get("mobile_number") and role_id not in [1]  # Not required for PE Desk
+    
     token = create_token(user["id"], user["email"])
     user_response = User(
         id=user["id"],
         email=user["email"],
         name=user["name"],
         pan_number=user.get("pan_number"),
+        mobile_number=user.get("mobile_number"),
         role=role_id,
         role_name=role_name,
         permissions=permissions,
@@ -366,7 +370,13 @@ async def login(
         agreement_accepted_at=user.get("agreement_accepted_at")
     )
     
-    return TokenResponse(token=token, user=user_response)
+    response_data = {
+        "token": token,
+        "user": user_response.model_dump(),
+        "mobile_required": mobile_required
+    }
+    
+    return response_data
 
 
 @router.get("/me", response_model=User)
