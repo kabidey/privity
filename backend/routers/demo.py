@@ -194,9 +194,10 @@ async def initialize_demo():
             )
         
         for stock in stocks:
+            # Use symbol as the unique identifier since stocks has unique index on symbol
             await db.stocks.update_one(
-                {"id": stock["id"]},
-                {"$set": stock},
+                {"symbol": stock["symbol"]},
+                {"$set": {**stock, "is_demo": True}},
                 upsert=True
             )
             
