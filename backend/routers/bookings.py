@@ -1331,8 +1331,12 @@ async def get_pending_bookings(
     """Get bookings pending approval (PE Level only)."""
     user_role = current_user.get("role", 6)
     
+    # Build query with demo isolation
+    query = {"approval_status": "pending"}
+    query = add_demo_filter(query, current_user)
+    
     bookings = await db.bookings.find(
-        {"approval_status": "pending"},
+        query,
         {"_id": 0, "user_id": 0}
     ).to_list(1000)
     
@@ -1370,8 +1374,12 @@ async def get_pending_loss_bookings(
 ):
     """Get loss bookings pending approval (PE Level only)."""
     
+    # Build query with demo isolation
+    query = {"is_loss_booking": True, "loss_approval_status": "pending"}
+    query = add_demo_filter(query, current_user)
+    
     bookings = await db.bookings.find(
-        {"is_loss_booking": True, "loss_approval_status": "pending"},
+        query,
         {"_id": 0, "user_id": 0}
     ).to_list(1000)
     
