@@ -8,106 +8,80 @@ export const DEMO_TOURS = {
   BOOKINGS: 'bookings',
   CLIENTS: 'clients',
   INVENTORY: 'inventory',
-  REPORTS: 'reports',
-  USERS: 'users',
-  SETTINGS: 'settings',
 };
 
-// Demo tour steps for each section
+// Demo tour steps for each section - Employee focused
 export const TOUR_STEPS = {
   [DEMO_TOURS.DASHBOARD]: [
     {
       target: '[data-testid="pe-dashboard"]',
-      content: 'Welcome to the PE Dashboard! This is your command center for managing all private equity operations.',
+      content: 'Welcome to your Dashboard! View your key metrics and recent activities here.',
       disableBeacon: true,
       placement: 'center',
     },
     {
       target: '[data-testid="stats-cards"]',
-      content: 'Quick stats show your key metrics at a glance - total bookings, revenue, clients, and more.',
+      content: 'Quick stats show your personal performance - bookings created, clients managed, and more.',
       placement: 'bottom',
     },
     {
       target: '[data-testid="recent-bookings"]',
-      content: 'Recent bookings appear here with real-time status updates.',
+      content: 'Your recent bookings appear here with real-time status updates.',
       placement: 'top',
-    },
-    {
-      target: '[data-testid="pending-approvals"]',
-      content: 'Pending items requiring your attention are highlighted for quick action.',
-      placement: 'left',
     },
   ],
   [DEMO_TOURS.BOOKINGS]: [
     {
       target: '[data-testid="bookings-page"]',
-      content: 'The Bookings module is the heart of PRIVITY - manage all client investments here.',
+      content: 'The Bookings page is where you create and manage client investments.',
       disableBeacon: true,
       placement: 'center',
     },
     {
       target: '[data-testid="create-booking-btn"]',
-      content: 'Click here to create a new booking for a client.',
+      content: 'Click here to create a new booking for your assigned clients.',
       placement: 'bottom',
     },
     {
       target: '[data-testid="booking-filters"]',
-      content: 'Filter bookings by status, date, client, or stock.',
+      content: 'Filter your bookings by status, date, client, or stock.',
       placement: 'bottom',
     },
     {
       target: '[data-testid="booking-table"]',
-      content: 'View all bookings with details like client, stock, quantity, and profit/loss.',
+      content: 'View all your bookings with details like client, stock, quantity, and profit/loss.',
       placement: 'top',
     },
   ],
   [DEMO_TOURS.CLIENTS]: [
     {
       target: '[data-testid="clients-page"]',
-      content: 'Manage all your clients and their KYC documents in one place.',
+      content: 'View your assigned clients and their information here.',
       disableBeacon: true,
       placement: 'center',
-    },
-    {
-      target: '[data-testid="add-client-btn"]',
-      content: 'Add new clients with complete KYC verification workflow.',
-      placement: 'bottom',
     },
     {
       target: '[data-testid="client-search"]',
       content: 'Search clients by name, PAN, or mobile number.',
       placement: 'bottom',
     },
+    {
+      target: '[data-testid="client-table"]',
+      content: 'View client details and their booking history.',
+      placement: 'top',
+    },
   ],
   [DEMO_TOURS.INVENTORY]: [
     {
       target: '[data-testid="inventory-page"]',
-      content: 'Track your stock inventory with real-time pricing and availability.',
+      content: 'View available stock inventory and pricing information.',
       disableBeacon: true,
       placement: 'center',
     },
     {
       target: '[data-testid="inventory-table"]',
-      content: 'View available stocks, quantities, and weighted average pricing.',
+      content: 'Check available stocks, quantities, and pricing before creating bookings.',
       placement: 'top',
-    },
-  ],
-  [DEMO_TOURS.REPORTS]: [
-    {
-      target: '[data-testid="reports-page"]',
-      content: 'Generate comprehensive reports for revenue, bookings, and analytics.',
-      disableBeacon: true,
-      placement: 'center',
-    },
-    {
-      target: '[data-testid="report-filters"]',
-      content: 'Filter reports by date range, client, or stock.',
-      placement: 'bottom',
-    },
-    {
-      target: '[data-testid="export-btn"]',
-      content: 'Export reports to Excel or PDF for offline analysis.',
-      placement: 'left',
     },
   ],
 };
