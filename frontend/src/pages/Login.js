@@ -711,6 +711,47 @@ const Login = () => {
           </p>
         </div>
       </div>
+
+      {/* Mobile Number Required Modal */}
+      {mobileRequired && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="h-5 w-5 text-emerald-600" />
+                Mobile Number Required
+              </CardTitle>
+              <CardDescription>
+                Please enter your mobile number to continue. This is required for SMS/WhatsApp notifications.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Mobile Number (10 digits)</Label>
+                <Input
+                  type="tel"
+                  placeholder="9876543210"
+                  maxLength={10}
+                  value={mobileUpdateNumber}
+                  onChange={(e) => setMobileUpdateNumber(e.target.value.replace(/\D/g, ''))}
+                  data-testid="mobile-update-input"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your mobile number will be used for important updates about bookings, payments, and transfers.
+                </p>
+              </div>
+              <Button 
+                onClick={handleMobileUpdate} 
+                disabled={updatingMobile || mobileUpdateNumber.length !== 10}
+                className="w-full"
+                data-testid="update-mobile-btn"
+              >
+                {updatingMobile ? 'Updating...' : 'Continue'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
