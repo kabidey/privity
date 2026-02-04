@@ -116,7 +116,7 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
                      "record_payment", "delete_payment", "export"],
         "clients": ["view", "create", "edit", "delete", "map", "upload_docs", "view_docs", "suspend"],
         "stocks": ["view", "create", "edit", "delete", "corporate_actions"],
-        "inventory": ["view", "view_lp_history", "edit_landing_price", "recalculate", "delete"],
+        "inventory": ["view", "view_lp_change", "view_lp_history", "edit_landing_price", "recalculate", "delete"],
         "purchases": ["view", "create", "edit", "delete", "record_payment"],
         "vendors": ["view", "create", "edit", "delete"],
         "finance": ["view", "manage_refunds", "view_reports", "export"],
