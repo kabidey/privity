@@ -391,7 +391,8 @@ async def update_user_role(
     _: None = Depends(require_permission("users.change_role", "update user roles"))
 ):
     """Update user role (requires users.change_role permission)"""
-    if role not in ROLES:
+    # Validate role (system or custom)
+    if not await is_valid_role(role):
         raise HTTPException(status_code=400, detail="Invalid role")
     
     user = await db.users.find_one({"id": user_id}, {"_id": 0})
@@ -413,7 +414,8 @@ async def update_user_role(
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
     
-    return {"message": "User role updated successfully"}
+    role_name = await get_role_name(role)
+    return {"message": f"User role updated to {role_name} successfully"}
 
 
 @router.delete("/{user_id}")
