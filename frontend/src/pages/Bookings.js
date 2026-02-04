@@ -1267,10 +1267,16 @@ const Bookings = () => {
 
       <Card className="border shadow-sm">
         <CardHeader>
-          <CardTitle>{activeTab === 'pending' ? 'Pending Approval' : (activeTab === 'loss' ? 'Loss Bookings - Pending Approval' : 'All Bookings')}</CardTitle>
+          <CardTitle>
+            {activeTab === 'pending' ? 'Pending Approval' : 
+             (activeTab === 'loss' ? 'Loss Bookings - Pending Approval' : 
+             (activeTab === 'bp-overrides' ? 'BP Revenue Override Approvals' : 'All Bookings'))}
+          </CardTitle>
           <CardDescription>
             {activeTab === 'loss' 
               ? 'These bookings have selling price lower than landing price - requires PE Desk approval'
+              : activeTab === 'bp-overrides'
+              ? 'Business Partner bookings with revenue share override requests pending approval'
               : (canRecordPayments && 'Record payments for approved bookings to enable DP transfer')}
           </CardDescription>
         </CardHeader>
