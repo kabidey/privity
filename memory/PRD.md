@@ -89,6 +89,25 @@ Build a Share Booking System for managing client share bookings, inventory track
    - `/api/demo/status` - Check demo status with isolation info
    - `/api/demo/verify-isolation` - Verify complete separation
 
+**Demo Mode - Employee Role Revamp** (Feb 05, 2026):
+- **Change**: Demo mode revamped from PE Desk (Role 1) to Employee (Role 7) for realistic employee experience
+- **Demo User**: Name="Demo Employee", Role=7 (Employee), hierarchy_level=3
+- **Features Shown in Demo**:
+  - My Dashboard - Personal booking stats
+  - Clients - View assigned demo clients
+  - Stocks - View available stock inventory
+  - Inventory - Check stock availability
+  - Bookings - Create and view own bookings
+- **Features Hidden from Demo** (admin-only):
+  - Users Management
+  - Role Management
+  - Purchases
+  - DP Receivables/Transfer
+  - Finance
+  - Business Partners
+- **Tour Updated**: Welcome animation and progress tracker updated for Employee workflow
+- **Button Text**: "Try Employee Demo" with subtitle "Experience the Employee workflow"
+
 **Demo Data Isolation** (CRITICAL SECURITY FIX - Feb 05, 2026):
 - **Problem**: Demo mode was leaking live production data - users in demo could see real client, stock, and booking data
 - **Solution**: Implemented `add_demo_filter()` function in `utils/demo_isolation.py` applied to ALL data-fetching endpoints
