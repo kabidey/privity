@@ -505,7 +505,7 @@ async def export_report(
 @router.get("/saved")
 async def get_saved_reports(
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("reports.bi_builder", "view saved reports"))
+    _: None = Depends(require_permission("reports.bi_save_templates", "view saved reports"))
 ):
     """Get saved report templates"""
     reports = await db.bi_report_templates.find(
@@ -522,7 +522,7 @@ async def save_report_template(
     is_public: bool = Query(False),
     request: ReportRequest = ...,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("reports.bi_builder", "save report template"))
+    _: None = Depends(require_permission("reports.bi_save_templates", "save report template"))
 ):
     """Save a report configuration as a template"""
     import uuid
