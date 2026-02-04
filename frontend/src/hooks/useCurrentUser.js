@@ -143,6 +143,11 @@ export function useCurrentUser() {
     canManageBusinessPartners,
     canViewAllBookings,
     
+    // New permission-based checks
+    hasPermission,
+    canViewLPChange,
+    canViewLPHistory,
+    
     // Legacy compatibility
     canManageVendors,
     canDeleteVendors,
