@@ -54,7 +54,7 @@ whatsapp_sessions: dict = {}
 @router.get("/config")
 async def get_whatsapp_config(
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "view WhatsApp config"))
+    _: None = Depends(require_permission("notifications.whatsapp_view", "view WhatsApp config"))
 ):
     """Get current WhatsApp configuration"""
     config = await db.system_config.find_one(
@@ -79,7 +79,7 @@ async def get_whatsapp_config(
 async def update_whatsapp_config(
     enabled: bool = Query(...),
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "update WhatsApp config"))
+    _: None = Depends(require_permission("notifications.whatsapp_connect", "update WhatsApp config"))
 ):
     """Enable or disable WhatsApp notifications"""
     await db.system_config.update_one(
