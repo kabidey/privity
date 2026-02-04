@@ -9,7 +9,7 @@ import api from '../utils/api';
 import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   Shield, Clock, Users, AlertTriangle, FileText, CheckCircle, 
-  TrendingUp, Activity, RefreshCw, ArrowRight, UserCheck, Briefcase
+  TrendingUp, Activity, RefreshCw, ArrowRight, UserCheck, Briefcase, IndianRupee
 } from 'lucide-react';
 
 const PEDashboard = () => {
