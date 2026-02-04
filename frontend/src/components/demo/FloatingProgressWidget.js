@@ -59,10 +59,10 @@ export default function FloatingProgressWidget() {
                     scale: 0 
                   }}
                   animate={{ 
-                    x: 40 + (Math.random() - 0.5) * 100,
-                    y: 40 - Math.random() * 80,
+                    x: 40 + ((i % 5) - 2) * 25,
+                    y: 40 - (i + 1) * 8,
                     scale: [0, 1, 0],
-                    rotate: Math.random() * 360
+                    rotate: i * 36
                   }}
                   transition={{ duration: 1, delay: i * 0.1 }}
                 >
