@@ -169,9 +169,12 @@ async def create_user(
     if existing:
         raise HTTPException(status_code=400, detail="User with this email already exists")
     
-    # Validate role
-    if user_data.role not in ROLES:
+    # Validate role (system or custom)
+    if not await is_valid_role(user_data.role):
         raise HTTPException(status_code=400, detail="Invalid role")
+    
+    # Get role name
+    role_name = await get_role_name(user_data.role)
     
     # Create user
     user_id = str(uuid.uuid4())
@@ -197,7 +200,7 @@ async def create_user(
             "email": user_data.email.lower(),
             "name": user_data.name,
             "role": user_data.role,
-            "role_name": ROLES.get(user_data.role, "Viewer"),
+            "role_name": role_name,
             "hierarchy_level": user_data.hierarchy_level,
             "hierarchy_level_name": HIERARCHY_LEVELS.get(user_data.hierarchy_level, "Employee"),
             "reports_to": user_data.reports_to
