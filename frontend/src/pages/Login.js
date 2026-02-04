@@ -300,6 +300,33 @@ const Login = () => {
     }
   };
 
+  // Handle mobile number update for existing users
+  const handleMobileUpdate = async () => {
+    const cleanMobile = mobileUpdateNumber.replace(/\D/g, '');
+    if (cleanMobile.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number');
+      return;
+    }
+    
+    setUpdatingMobile(true);
+    try {
+      await api.post('/auth/update-mobile', { mobile_number: cleanMobile });
+      
+      // Update local storage with new mobile
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      user.mobile_number = cleanMobile;
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      toast.success('Mobile number updated successfully');
+      setMobileRequired(false);
+      navigate('/');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update mobile number');
+    } finally {
+      setUpdatingMobile(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Side - Image (hidden on mobile) */}
