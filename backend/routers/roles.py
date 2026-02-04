@@ -48,6 +48,9 @@ AVAILABLE_PERMISSIONS = {
             {"key": "bookings.record_payment", "name": "Record Payments", "description": "Record payment tranches"},
             {"key": "bookings.delete_payment", "name": "Delete Payments", "description": "Delete payment records"},
             {"key": "bookings.export", "name": "Export Bookings", "description": "Export bookings to Excel"},
+            {"key": "bookings.override_revenue_share", "name": "Override Revenue Share", "description": "Set BP revenue share override on bookings"},
+            {"key": "bookings.approve_revenue_override", "name": "Approve Revenue Override", "description": "Approve BP revenue share overrides"},
+            {"key": "bookings.edit_revenue_override", "name": "Edit Revenue Override", "description": "Edit existing revenue share overrides"},
         ]
     },
     "client_approval": {
