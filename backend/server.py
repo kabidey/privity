@@ -145,9 +145,14 @@ async def update_inventory(stock_id: str):
 
 @app.on_event("startup")
 async def startup_tasks():
-    """Startup tasks: create indexes and seed admin user"""
+    """Startup tasks: create indexes, seed admin user, start scheduler"""
     await create_indexes()
     await seed_admin_user()
+    
+    # Initialize and start the scheduler
+    from services.scheduler_service import init_scheduler
+    init_scheduler()
+    logging.info("Scheduler initialized for day-end reports at 6 PM IST")
 
 
 async def seed_admin_user():
