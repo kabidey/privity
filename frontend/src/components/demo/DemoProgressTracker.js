@@ -300,12 +300,10 @@ const ProgressRing = ({ progress, size = 120, strokeWidth = 8 }) => {
 
 // Main Progress Tracker Component
 export default function DemoProgressTracker({ isOpen, onClose }) {
-  const { completedTours, isDemoMode } = useDemo();
+  const { completedTours, isDemoMode, demoStartTime, exploredFeatures } = useDemo();
   const [unlockedBadges, setUnlockedBadges] = useState(['explorer']);
-  const [exploredFeatures, setExploredFeatures] = useState([]);
   const [totalPoints, setTotalPoints] = useState(10);
   const [newBadge, setNewBadge] = useState(null);
-  const [demoStartTime] = useState(Date.now());
 
   // Load progress from localStorage
   useEffect(() => {
