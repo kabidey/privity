@@ -34,16 +34,19 @@ class TestRoleManagementSystem:
         self.test_user_password = "TestPass123!"
         
     def get_pe_token(self):
-        """Get PE Desk authentication token"""
-        if self.pe_token:
-            return self.pe_token
+        """Get PE Desk authentication token (cached to avoid rate limiting)"""
+        global _token_cache
+        if 'pe_token' in _token_cache:
+            return _token_cache['pe_token']
+        
+        time.sleep(1)  # Small delay to avoid rate limiting
         response = self.session.post(f"{BASE_URL}/api/auth/login", json={
             "email": PE_DESK_EMAIL,
             "password": PE_DESK_PASSWORD
         })
         assert response.status_code == 200, f"PE Desk login failed: {response.text}"
-        self.pe_token = response.json()["token"]
-        return self.pe_token
+        _token_cache['pe_token'] = response.json()["token"]
+        return _token_cache['pe_token']
     
     def auth_headers(self, token=None):
         """Get authorization headers"""
