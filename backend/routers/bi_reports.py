@@ -478,6 +478,7 @@ async def save_report_template(
     }
     
     await db.bi_report_templates.insert_one(template)
-    del template["_id"] if "_id" in template else None
+    if "_id" in template:
+        del template["_id"]
     
     return {"message": "Report template saved successfully", "template": template}
