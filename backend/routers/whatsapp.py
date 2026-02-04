@@ -398,7 +398,8 @@ async def send_message(
     }
     
     await db.whatsapp_messages.insert_one(message_log)
-    del message_log["_id"] if "_id" in message_log else None
+    if "_id" in message_log:
+        del message_log["_id"]
     
     # In production, this would actually send via WhatsApp Web API
     # For now, we simulate success
