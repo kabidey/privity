@@ -4,7 +4,7 @@ Generates custom reports with multiple dimensions and filters
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel
 import io
@@ -22,8 +22,8 @@ router = APIRouter(prefix="/bi-reports", tags=["Business Intelligence"])
 class ReportFilter(BaseModel):
     field: str
     operator: str  # eq, ne, gt, lt, gte, lte, in, contains, between
-    value: any
-    value2: Optional[any] = None  # For 'between' operator
+    value: Any
+    value2: Optional[Any] = None  # For 'between' operator
 
 
 class ReportRequest(BaseModel):
