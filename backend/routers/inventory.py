@@ -175,7 +175,11 @@ async def get_inventory_item(
 
 
 @router.get("/{stock_id}/landing-price")
-async def get_landing_price(stock_id: str, current_user: dict = Depends(get_current_user)):
+async def get_landing_price(
+    stock_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.view", "view landing price"))
+):
     """Get the landing price for a stock (used by booking to get buying price)"""
     inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
     if not inventory:
