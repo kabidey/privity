@@ -262,10 +262,11 @@ async def upload_file(
     file: UploadFile = File(...),
     category: str = Query(..., description="File category (e.g., client_documents, company_logo)"),
     entity_id: Optional[str] = Query(None, description="Related entity ID"),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("files.upload", "upload files"))
 ):
     """
-    Upload a file to GridFS
+    Upload a file to GridFS (requires files.upload permission)
     """
     try:
         content = await file.read()
