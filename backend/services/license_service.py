@@ -216,6 +216,101 @@ async def check_license_status(user_email: str = None) -> Dict:
     
     license_doc = await get_current_license()
     
+
+
+async def send_license_expiry_notifications():
+    """
+    Check license status and send email notifications if expiring soon.
+    Should be called daily via a scheduled task.
+    """
+    from services.email_service import send_templated_email
+    
+    license_doc = await get_current_license()
+    if not license_doc:
+        return {"sent": 0, "message": "No active license"}
+    
+    expires_at = datetime.fromisoformat(license_doc["expires_at"].replace("Z", "+00:00"))
+    now = datetime.now(timezone.utc)
+    days_remaining = (expires_at - now).days
+    
+    # Get PE Desk users to notify (admins)
+    admins = await db.users.find(
+        {"role": 1, "is_active": True},
+        {"_id": 0, "email": 1, "name": 1}
+    ).to_list(10)
+    
+    if not admins:
+        return {"sent": 0, "message": "No admin users found"}
+    
+    sent_count = 0
+    
+    # Send warning if expiring within 30 days
+    if 0 < days_remaining <= 30:
+        template_key = "license_expiry_warning"
+        for admin in admins:
+            try:
+                await send_templated_email(
+                    to_email=admin["email"],
+                    template_key=template_key,
+                    variables={
+                        "user_name": admin.get("name", "Administrator"),
+                        "days_remaining": str(days_remaining),
+                        "license_key": license_doc["license_key"][:10] + "...",
+                        "expiry_date": expires_at.strftime("%B %d, %Y"),
+                        "organization_name": "SMIFS Private Equity"
+                    }
+                )
+                sent_count += 1
+                logger.info(f"License expiry warning sent to {admin['email']}")
+            except Exception as e:
+                logger.error(f"Failed to send license warning to {admin['email']}: {e}")
+    
+    # Send expired notification if already expired
+    elif days_remaining <= 0:
+        template_key = "license_expired"
+        for admin in admins:
+            try:
+                await send_templated_email(
+                    to_email=admin["email"],
+                    template_key=template_key,
+                    variables={
+                        "user_name": admin.get("name", "Administrator"),
+                        "license_key": license_doc["license_key"][:10] + "...",
+                        "expiry_date": expires_at.strftime("%B %d, %Y")
+                    }
+                )
+                sent_count += 1
+                logger.info(f"License expired notification sent to {admin['email']}")
+            except Exception as e:
+                logger.error(f"Failed to send expired notification to {admin['email']}: {e}")
+    
+    return {
+        "sent": sent_count,
+        "days_remaining": days_remaining,
+        "status": "expired" if days_remaining <= 0 else ("warning" if days_remaining <= 30 else "ok")
+    }
+
+
+async def check_and_notify_license_expiry():
+    """
+    Wrapper function for scheduled license expiry check.
+    Sends notifications at 30, 14, 7, 3, and 1 day(s) before expiry.
+    """
+    license_doc = await get_current_license()
+    if not license_doc:
+        return
+    
+    expires_at = datetime.fromisoformat(license_doc["expires_at"].replace("Z", "+00:00"))
+    now = datetime.now(timezone.utc)
+    days_remaining = (expires_at - now).days
+    
+    # Only notify on specific days to avoid spam
+    notify_days = [30, 14, 7, 3, 1, 0]
+    
+    if days_remaining in notify_days:
+        await send_license_expiry_notifications()
+        logger.info(f"License expiry notification triggered: {days_remaining} days remaining")
+
     if not license_doc:
         return {
             "is_valid": False,
