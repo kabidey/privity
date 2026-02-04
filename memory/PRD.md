@@ -35,7 +35,36 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## What's Been Implemented
 
-### Latest Updates (Feb 04, 2026)
+### Latest Updates (Feb 04-05, 2026)
+
+#### ✅ Day-End Report Scheduler (IST) - COMPLETED
+
+**Scheduler Configuration**
+- Server timezone: Asia/Kolkata (IST)
+- Day-end reports: 6:00 PM IST daily
+- Uses APScheduler with AsyncIO
+- Job management via PE Dashboard
+
+**Scheduler Endpoints**:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/dashboard/scheduled-jobs` | GET | View all scheduled jobs with next run times |
+| `/api/dashboard/trigger-job/{job_id}` | POST | Manually trigger a job immediately |
+| `/api/dashboard/job-history` | GET | View job execution history |
+
+**PE Dashboard Integration**:
+- "Scheduled Jobs" card showing job status
+- Current IST time display
+- "Run Now" button for manual trigger
+- Next run time in IST
+
+**Files Created/Modified**:
+- `backend/services/scheduler_service.py` (NEW) - APScheduler setup with IST timezone
+- `backend/server.py` - Scheduler init on startup, shutdown on exit
+- `backend/routers/dashboard.py` - Scheduler management endpoints
+- `frontend/src/pages/PEDashboard.js` - Scheduler status card
+
+---
 
 #### ✅ Mobile Number Registration & Activity Alerts - COMPLETED
 
