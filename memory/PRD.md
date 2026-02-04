@@ -37,6 +37,60 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 04, 2026)
 
+#### ✅ Version 6.2.4.7 - Business Intelligence & WhatsApp Integration - COMPLETED
+
+**1. Business Intelligence Report Builder**
+- Custom report generation with multiple dimensions and filters
+- **6 Report Types**: Bookings, Clients, Revenue, Inventory, Payments, P&L Analysis
+- Excel export (.xlsx) with summary statistics
+- Save report templates for reuse
+- Permission-based access: `reports.bi_builder`
+
+**API Endpoints**:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/bi-reports/config` | GET | Get report types and configurations |
+| `/api/bi-reports/generate` | POST | Generate custom report |
+| `/api/bi-reports/export` | POST | Export report to Excel |
+| `/api/bi-reports/saved` | GET | Get saved report templates |
+| `/api/bi-reports/save` | POST | Save report configuration as template |
+
+**2. WhatsApp Notification System**
+- Self-hosted QR-based WhatsApp Web connection (simulated)
+- 6 system templates: Booking Confirmation, Payment Reminder, Payment Received, DP Transfer Complete, BP Booking Alert, RP Commission Alert
+- Custom template creation
+- Send individual and bulk messages
+- Message history and statistics
+- Permission-based access: `notifications.whatsapp`
+
+**API Endpoints**:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/whatsapp/config` | GET/POST | Get/update WhatsApp configuration |
+| `/api/whatsapp/qr-code` | GET | Generate QR code for connection |
+| `/api/whatsapp/templates` | GET/POST | Get/create message templates |
+| `/api/whatsapp/send` | POST | Send individual message |
+| `/api/whatsapp/send-bulk` | POST | Send bulk messages |
+| `/api/whatsapp/messages` | GET | Get message history |
+| `/api/whatsapp/stats` | GET | Get messaging statistics |
+
+**3. PE Dashboard BP Overrides Widget**
+- New widget showing pending BP revenue override count
+- Clickable to navigate to Bookings page BP Overrides tab
+
+**Files Created/Modified**:
+- `backend/routers/bi_reports.py` (NEW)
+- `backend/routers/whatsapp.py` (NEW)
+- `frontend/src/pages/BIReports.js` (NEW)
+- `frontend/src/pages/WhatsAppNotifications.js` (NEW)
+- `frontend/src/pages/PEDashboard.js` - Added BP Overrides widget
+- `frontend/src/version.js` - Updated to v6.2.4.7
+- `frontend/src/changelog.js` - Added new version entries
+
+**Testing**: 21/21 backend tests passed, 100% frontend verification ✅
+
+---
+
 #### ✅ BP Revenue Share Override Feature - COMPLETED (Feb 04, 2026)
 **Request**: Allow Business Partners and Partners Desk users to request a lower revenue share percentage when creating bookings. These overrides require approval from PE Desk.
 
