@@ -264,6 +264,10 @@ async def get_purchases(
     if stock_id:
         query["stock_id"] = stock_id
     
+    # CRITICAL: Add demo data isolation filter
+    # Demo users only see demo data, live users don't see demo data
+    query = add_demo_filter(query, current_user)
+    
     purchases = await db.purchases.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     
     if not purchases:
