@@ -188,6 +188,13 @@ AVAILABLE_PERMISSIONS = {
             {"key": "reports.view", "name": "View Reports", "description": "Access reports section"},
             {"key": "reports.pnl", "name": "View P&L Reports", "description": "View profit and loss reports"},
             {"key": "reports.export", "name": "Export Reports", "description": "Export report data"},
+            {"key": "reports.bi_builder", "name": "BI Report Builder", "description": "Access Business Intelligence report builder"},
+        ]
+    },
+    "notifications": {
+        "name": "Notifications",
+        "permissions": [
+            {"key": "notifications.whatsapp", "name": "WhatsApp Management", "description": "Manage WhatsApp notifications, templates, and send messages"},
         ]
     },
     "dp_operations": {
