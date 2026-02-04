@@ -147,7 +147,7 @@ const PEDashboard = () => {
                   {data.pending_actions.total} Pending Actions Require Attention
                 </h3>
                 <p className="text-orange-600 text-sm">
-                  {data.pending_actions.bookings} bookings, {data.pending_actions.loss_approvals} loss approvals, {data.pending_actions.clients} clients, {data.pending_actions.rp_approvals} RP approvals
+                  {data.pending_actions.bookings} bookings, {data.pending_actions.loss_approvals} loss approvals, {data.pending_actions.clients} clients, {data.pending_actions.rp_approvals} RP approvals{data.pending_actions.bp_overrides > 0 ? `, ${data.pending_actions.bp_overrides} BP overrides` : ''}
                 </p>
               </div>
               <Button onClick={() => navigate('/bookings')} className="bg-orange-600 hover:bg-orange-700">
@@ -159,7 +159,7 @@ const PEDashboard = () => {
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/bookings')}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -204,6 +204,23 @@ const PEDashboard = () => {
                 <p className="text-3xl font-bold text-purple-600">{data.pending_actions.rp_approvals}</p>
               </div>
               <Briefcase className="w-10 h-10 text-purple-200" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* BP Overrides Widget */}
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-shadow border-2 border-blue-200 bg-blue-50/50" 
+          onClick={() => navigate('/bookings?tab=bp-overrides')}
+          data-testid="bp-overrides-widget"
+        >
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 font-medium">BP Overrides</p>
+                <p className="text-3xl font-bold text-blue-700">{data.pending_actions.bp_overrides || 0}</p>
+              </div>
+              <IndianRupee className="w-10 h-10 text-blue-300" />
             </div>
           </CardContent>
         </Card>
