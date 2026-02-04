@@ -251,6 +251,7 @@ const RoleManagement = () => {
       database: { icon: '💾', label: 'Database', color: 'bg-slate-100 text-slate-800' },
       bulk_upload: { icon: '📤', label: 'Bulk Upload', color: 'bg-zinc-100 text-zinc-800' },
       research: { icon: '🔬', label: 'Research', color: 'bg-neutral-100 text-neutral-800' },
+      license: { icon: '🔑', label: 'License', color: 'bg-amber-100 text-amber-800' },
     };
     
     if (hasAll) {
