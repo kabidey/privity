@@ -198,8 +198,17 @@ const Login = () => {
     
     // Validate PAN for registration (not required for superadmin)
     if (!isLogin && !isSuperAdmin && !validatePAN(formData.pan_number)) {
-      toast.error('PAN number must be exactly 10 characters');
+      toast.error('Identification (PAN) must be exactly 10 characters');
       return;
+    }
+    
+    // Validate mobile for registration (not required for superadmin)
+    if (!isLogin && !isSuperAdmin) {
+      const cleanMobile = formData.mobile_number.replace(/\D/g, '');
+      if (cleanMobile.length !== 10) {
+        toast.error('Mobile number must be exactly 10 digits');
+        return;
+      }
     }
     
     // Validate CAPTCHA if required
@@ -231,6 +240,13 @@ const Login = () => {
         setCaptchaToken('');
         setCaptchaQuestion('');
         setCaptchaAnswer('');
+        
+        // Check if mobile number is required for existing users
+        if (response.data.mobile_required) {
+          setMobileRequired(true);
+          toast.info('Please update your mobile number for SMS/WhatsApp notifications');
+          return; // Don't navigate, show modal
+        }
         
         toast.success('Logged in successfully');
         navigate('/');
