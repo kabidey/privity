@@ -49,25 +49,44 @@ async def register(user_data: UserCreate, request: Request = None):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Superadmin check - pe@smifs.com doesn't need PAN
+    # Superadmin check - pe@smifs.com doesn't need PAN or mobile
     is_superadmin = user_data.email.lower() == "pe@smifs.com"
+    
+    # Validate mobile number (required for non-superadmin)
+    mobile_number = None
+    if not is_superadmin:
+        if not user_data.mobile_number:
+            raise HTTPException(status_code=400, detail="Mobile number is required for SMS/WhatsApp notifications")
+        
+        # Clean and validate mobile number (10 digits)
+        mobile_number = ''.join(filter(str.isdigit, user_data.mobile_number))
+        if len(mobile_number) != 10:
+            raise HTTPException(status_code=400, detail="Mobile number must be exactly 10 digits")
+        
+        # Check for duplicate mobile among users
+        existing_mobile_user = await db.users.find_one({"mobile_number": mobile_number}, {"_id": 0, "name": 1, "email": 1})
+        if existing_mobile_user:
+            raise HTTPException(
+                status_code=400, 
+                detail="Mobile number already registered with another employee account"
+            )
     
     pan_number = None
     if not is_superadmin:
         # PAN is required for non-superadmin users
         if not user_data.pan_number:
-            raise HTTPException(status_code=400, detail="PAN number is required for employee registration")
+            raise HTTPException(status_code=400, detail="Identification (PAN) is required for employee registration")
         
         pan_number = user_data.pan_number.upper().strip()
         if len(pan_number) != 10:
-            raise HTTPException(status_code=400, detail="PAN number must be exactly 10 characters")
+            raise HTTPException(status_code=400, detail="Identification (PAN) must be exactly 10 characters")
         
         # Check for duplicate PAN among users
         existing_pan_user = await db.users.find_one({"pan_number": pan_number}, {"_id": 0, "name": 1, "email": 1})
         if existing_pan_user:
             raise HTTPException(
                 status_code=400, 
-                detail="PAN number already registered with another employee account"
+                detail="Identification (PAN) already registered with another employee account"
             )
         
         # STRICT RULE: Employee cannot be an RP - Check by PAN
@@ -108,6 +127,7 @@ async def register(user_data: UserCreate, request: Request = None):
         "password": hashed_pw,
         "name": user_data.name,
         "pan_number": pan_number,
+        "mobile_number": mobile_number,
         "role": user_role,
         "must_change_password": True,  # Force password change on first login
         "created_at": datetime.now(timezone.utc).isoformat()
