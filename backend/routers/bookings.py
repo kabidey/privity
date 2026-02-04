@@ -418,6 +418,9 @@ async def create_booking(
     is_bp_booking = is_business_partner and bp_info is not None
     bp_revenue_share = bp_info.get("revenue_share_percent", 0) if bp_info else 0
     
+    # Use override if provided, otherwise use default BP share
+    effective_bp_share = bp_revenue_override if bp_revenue_override is not None else bp_revenue_share
+    
     # Create booking document
     booking_doc = {
         "id": booking_id,
@@ -440,8 +443,15 @@ async def create_booking(
         # Business Partner fields (takes precedence over RP)
         "business_partner_id": bp_info.get("id") if is_bp_booking else None,
         "bp_name": bp_info.get("name") if is_bp_booking else None,
-        "bp_revenue_share_percent": bp_revenue_share if is_bp_booking else None,
+        "bp_revenue_share_percent": effective_bp_share if is_bp_booking else None,
         "is_bp_booking": is_bp_booking,
+        # BP Revenue Share Override tracking
+        "bp_revenue_share_override": bp_revenue_override,
+        "bp_original_revenue_share": bp_revenue_share if bp_revenue_override is not None else None,
+        "bp_override_approval_status": "pending" if bp_override_requires_approval else "not_required",
+        "bp_override_approved_by": None,
+        "bp_override_approved_at": None,
+        "bp_override_rejection_reason": None,
         # Referral Partner fields (may be zeroed if client=RP or if BP booking)
         "referral_partner_id": None if is_bp_booking else (booking_data.referral_partner_id if not rp_share_auto_zeroed else None),
         "rp_code": None if is_bp_booking else (rp_code if not rp_share_auto_zeroed else None),
@@ -450,7 +460,7 @@ async def create_booking(
         "rp_share_auto_zeroed": rp_share_auto_zeroed,  # Flag for audit trail
         # Employee Revenue Share - calculated based on RP/BP allocation
         "base_employee_share_percent": 100.0,  # Full share before deduction
-        "employee_revenue_share_percent": 100.0 - bp_revenue_share if is_bp_booking else (100.0 if rp_share_auto_zeroed else 100.0 - (booking_data.rp_revenue_share_percent or 0)),
+        "employee_revenue_share_percent": 100.0 - effective_bp_share if is_bp_booking else (100.0 if rp_share_auto_zeroed else 100.0 - (booking_data.rp_revenue_share_percent or 0)),
         "employee_commission_amount": None,  # Calculated when stock transfer confirmed
         "employee_commission_status": "pending",
         # Client confirmation
