@@ -16,6 +16,7 @@ from services.permission_service import (
     check_permission as check_dynamic_permission,
     require_permission
 )
+from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -43,6 +44,9 @@ async def get_analytics_summary(
             query["created_at"]["$lte"] = end_date
         else:
             query["created_at"] = {"$lte": end_date}
+    
+    # CRITICAL: Add demo data isolation filter
+    query = add_demo_filter(query, current_user)
     
     bookings = await db.bookings.find(query, {"_id": 0}).to_list(10000)
     
