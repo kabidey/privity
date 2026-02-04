@@ -255,7 +255,8 @@ const Login = () => {
         const payload = {
           email: formData.email,
           name: formData.name,
-          pan_number: isSuperAdmin ? null : formData.pan_number
+          pan_number: isSuperAdmin ? null : formData.pan_number,
+          mobile_number: isSuperAdmin ? null : formData.mobile_number.replace(/\D/g, '')
         };
         
         const response = await api.post('/auth/register', payload);
