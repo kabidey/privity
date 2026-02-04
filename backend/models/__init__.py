@@ -101,7 +101,8 @@ class ClientDocument(BaseModel):
     original_filename: Optional[str] = None
     file_path: Optional[str] = None
     file_url: Optional[str] = None
-    gridfs_id: Optional[str] = None
+    file_id: Optional[str] = None  # GridFS file ID
+    gridfs_id: Optional[str] = None  # Deprecated - use file_id
     upload_date: Optional[str] = None
     uploaded_at: Optional[str] = None
     uploaded_by: Optional[str] = None
