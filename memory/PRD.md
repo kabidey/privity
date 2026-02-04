@@ -37,6 +37,39 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 05, 2026)
 
+#### ✅ RBAC Endpoint Audit - Phase 1 Implemented (Feb 05, 2026)
+**Task**: Audit other endpoints for additional permission controls
+
+**New Permissions Added to System**:
+- `security.view_threats` - View security threat logs and blocked IPs
+- `security.manage_threats` - Clear/manage threat records  
+- `files.view` - View and download uploaded files
+- `files.view_stats` - View storage statistics
+- `files.upload` - Upload new files to the system
+- `files.delete` - Delete uploaded files
+- `files.scan` - Scan for missing files and re-upload
+
+**Endpoints Updated with Permission Checks**:
+| Router | Endpoint | Permission |
+|--------|----------|-----------|
+| `inventory.py` | `GET /inventory` | `inventory.view` |
+| `inventory.py` | `GET /inventory/{stock_id}` | `inventory.view` |
+| `inventory.py` | `GET /inventory/{stock_id}/landing-price` | `inventory.view` |
+| `purchases.py` | `GET /purchases` | `purchases.view` |
+| `purchases.py` | `GET /purchases/{id}/payments` | `purchases.view` |
+| `purchases.py` | `GET /purchases/{id}/tcs-preview` | `purchases.view` |
+| `contract_notes.py` | `GET /download/{id}` | `contract_notes.download` |
+| `contract_notes.py` | `POST /preview/{id}` | `contract_notes.view` |
+| `contract_notes.py` | `POST /send-email/{id}` | `contract_notes.send` |
+| `contract_notes.py` | `GET /by-booking/{id}` | `contract_notes.view` |
+| `contract_notes.py` | `POST /regenerate/{id}` | `contract_notes.generate` |
+
+**Total Permission Categories**: 26 (was 25)
+
+**Audit Report**: See `/app/docs/RBAC_AUDIT_REPORT.md` for full details
+
+---
+
 #### ✅ Role Management Page - VERIFIED WORKING (Feb 05, 2026)
 **Issue Reported**: Role Management page stuck in loading state ("Checking...")
 **Investigation Result**: The page is **FULLY FUNCTIONAL** at `/roles` URL
