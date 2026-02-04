@@ -203,7 +203,11 @@ class Stock(BaseModel):
     sector: Optional[str] = None
     product: Optional[str] = None
     face_value: Optional[float] = None
+    is_active: bool = True
     created_at: str
+    created_by: Optional[str] = None
+    # Demo mode flag
+    is_demo: Optional[bool] = None  # True if this is demo data
 
 
 # ============== Corporate Actions Models ==============
