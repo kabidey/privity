@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, BookOpen, Play, RotateCcw, LogOut, HelpCircle } from 'lucide-react';
+import { X, BookOpen, Play, RotateCcw, LogOut, HelpCircle, Trophy, Star } from 'lucide-react';
 import { useDemo, DEMO_TOURS, FEATURE_SHOWCASES } from '../../contexts/DemoContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import DemoProgressTracker from './DemoProgressTracker';
 
 export default function DemoModeBar() {
   const { 
@@ -15,6 +16,10 @@ export default function DemoModeBar() {
   } = useDemo();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showProgressTracker, setShowProgressTracker] = useState(false);
+
+  // Calculate total points (10 for starting + 25 per tour)
+  const totalPoints = 10 + (completedTours.length * 25);
 
   if (!isDemoMode) return null;
 
