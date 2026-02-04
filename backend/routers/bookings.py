@@ -481,6 +481,9 @@ async def create_booking(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
+    # Mark as demo data if created by demo user
+    booking_doc = mark_as_demo(booking_doc, current_user)
+    
     # Insert booking
     await db.bookings.insert_one(booking_doc)
     
@@ -911,6 +914,10 @@ async def get_bookings(
         query["client_id"] = client_id
     if stock_id:
         query["stock_id"] = stock_id
+    
+    # CRITICAL: Add demo data isolation filter
+    # Demo users only see demo data, live users don't see demo data
+    query = add_demo_filter(query, current_user)
     
     bookings = await db.bookings.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     
