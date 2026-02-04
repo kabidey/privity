@@ -489,6 +489,8 @@ class BookingWithDetails(BaseModel):
     bp_override_approved_at: Optional[str] = None
     bp_override_rejection_reason: Optional[str] = None
     bp_original_revenue_share: Optional[float] = None  # Original BP revenue share before override
+    # Demo mode flag
+    is_demo: Optional[bool] = None  # True if this is demo data
 
 
 # ============== DP Transfer Report Model ==============
