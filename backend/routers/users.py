@@ -30,7 +30,7 @@ async def is_valid_role(role_id: int) -> bool:
         return True
     
     # Check if it's a custom role in the database
-    custom_role = await db.custom_roles.find_one({"id": role_id})
+    custom_role = await db.roles.find_one({"id": role_id})
     return custom_role is not None
 
 
@@ -41,7 +41,7 @@ async def get_role_name(role_id: int) -> str:
         return ROLES[role_id]
     
     # Check custom roles
-    custom_role = await db.custom_roles.find_one({"id": role_id}, {"_id": 0, "name": 1})
+    custom_role = await db.roles.find_one({"id": role_id}, {"_id": 0, "name": 1})
     if custom_role:
         return custom_role.get("name", f"Custom Role {role_id}")
     
