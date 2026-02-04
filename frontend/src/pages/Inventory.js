@@ -585,6 +585,130 @@ const Inventory = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* LP History Dialog */}
+      <Dialog open={lpHistoryDialogOpen} onOpenChange={setLpHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LineChart className="h-5 w-5 text-blue-600" />
+              LP History - {selectedStockForHistory?.stock_symbol}
+            </DialogTitle>
+            <DialogDescription>
+              Landing Price changes over time
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 overflow-y-auto max-h-[50vh]">
+            {loadingHistory ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-blue-600" />
+                <span className="ml-2 text-muted-foreground">Loading history...</span>
+              </div>
+            ) : lpHistory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <LineChart className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <p>No LP change history available.</p>
+                <p className="text-xs mt-1">History will be recorded when LP is updated.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Simple Chart Visualization */}
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold mb-3">LP Trend</h4>
+                  <div className="flex items-end gap-1 h-32">
+                    {lpHistory.slice(0, 20).reverse().map((entry, idx) => {
+                      const maxPrice = Math.max(...lpHistory.map(e => e.new_price));
+                      const minPrice = Math.min(...lpHistory.map(e => e.new_price));
+                      const range = maxPrice - minPrice || 1;
+                      const height = ((entry.new_price - minPrice) / range) * 100;
+                      const isUp = entry.change >= 0;
+                      
+                      return (
+                        <div
+                          key={idx}
+                          className="flex-1 flex flex-col items-center group relative"
+                        >
+                          <div
+                            className={`w-full rounded-t ${isUp ? 'bg-green-500' : 'bg-red-500'} transition-all hover:opacity-80`}
+                            style={{ height: `${Math.max(height, 5)}%` }}
+                            title={`₹${entry.new_price} on ${new Date(entry.updated_at).toLocaleDateString()}`}
+                          />
+                          {/* Tooltip on hover */}
+                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                            ₹{entry.new_price.toLocaleString('en-IN')}
+                            <br />
+                            {new Date(entry.updated_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                    <span>Oldest</span>
+                    <span>Latest</span>
+                  </div>
+                </div>
+
+                {/* History Table */}
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 dark:bg-gray-800">
+                        <TableHead className="text-xs">Date & Time</TableHead>
+                        <TableHead className="text-xs">Old LP</TableHead>
+                        <TableHead className="text-xs">New LP</TableHead>
+                        <TableHead className="text-xs">Change</TableHead>
+                        <TableHead className="text-xs">Updated By</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {lpHistory.map((entry, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell className="text-xs">
+                            {new Date(entry.updated_at).toLocaleString('en-IN', {
+                              dateStyle: 'medium',
+                              timeStyle: 'short'
+                            })}
+                          </TableCell>
+                          <TableCell className="mono text-sm">
+                            {formatCurrency(entry.old_price)}
+                          </TableCell>
+                          <TableCell className="mono text-sm font-semibold">
+                            {formatCurrency(entry.new_price)}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                              entry.change > 0 
+                                ? 'bg-green-100 text-green-700' 
+                                : entry.change < 0 
+                                  ? 'bg-red-100 text-red-700' 
+                                  : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {entry.change > 0 ? <ArrowUp className="h-3 w-3" /> : entry.change < 0 ? <ArrowDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
+                              {entry.change > 0 ? '+' : ''}{formatCurrency(entry.change)}
+                              <span className="text-[10px] opacity-70">
+                                ({entry.change_percent > 0 ? '+' : ''}{entry.change_percent}%)
+                              </span>
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {entry.updated_by_name}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLpHistoryDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
