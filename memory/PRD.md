@@ -35,7 +35,27 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## What's Been Implemented
 
-### Latest Updates (Feb 03, 2026)
+### Latest Updates (Feb 04, 2026)
+
+#### ✅ Remove Change Password Button from User Menu - COMPLETED (Feb 04, 2026)
+**Request**: Remove the "Change Password" option beside the logout screen as password change is now handled by Account Security menu.
+
+**Changes Made**:
+1. Removed state variables: `showChangePassword`, `changingPassword`, `passwordData`
+2. Removed `handleChangePassword` function
+3. Removed the Change Password button (Key icon) from desktop sidebar
+4. Removed the "Password" button from mobile sidebar footer
+5. Removed the Change Password dialog component
+6. Cleaned up unused imports: `Button`, `Input`, `Label`, `Dialog` components, `Key` icon
+
+**Files Modified**:
+- `frontend/src/components/Layout.js` - Removed ~80 lines of code
+
+**Testing**: Screenshot verification confirmed Change Password button removed, Logout button retained ✅
+
+---
+
+### Previous Updates (Feb 03, 2026)
 
 #### ✅ Selective Database Clear Feature - COMPLETED (Feb 03, 2026)
 
