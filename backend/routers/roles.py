@@ -315,7 +315,7 @@ DEFAULT_ROLES = [
         "description": "Business partner management",
         "is_system": True,
         "permissions": [
-            "dashboard.view", "bookings.view", "bookings.create",
+            "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "business_partners.*",
             "referral_partners.view"
         ],
@@ -327,7 +327,7 @@ DEFAULT_ROLES = [
         "description": "External partner with limited access",
         "is_system": True,
         "permissions": [
-            "dashboard.view", "bookings.view", "bookings.create",
+            "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create"
         ],
         "color": "bg-orange-100 text-orange-800"
@@ -338,7 +338,7 @@ DEFAULT_ROLES = [
         "description": "Standard employee access",
         "is_system": True,
         "permissions": [
-            "dashboard.view", "bookings.view", "bookings.create",
+            "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "clients.edit",
             "stocks.view", "inventory.view"
         ],
