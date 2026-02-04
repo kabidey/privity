@@ -33,6 +33,7 @@ AVAILABLE_PERMISSIONS = {
         "permissions": [
             {"key": "dashboard.view", "name": "View Dashboard", "description": "Access main dashboard"},
             {"key": "dashboard.pe_view", "name": "View PE Dashboard", "description": "Access PE-level dashboard"},
+            {"key": "dashboard.my_view", "name": "View My Dashboard", "description": "Access My Dashboard (Employee/Partner view)"},
         ]
     },
     "bookings": {
