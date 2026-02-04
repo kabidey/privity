@@ -44,16 +44,24 @@ Build a Share Booking System for managing client share bookings, inventory track
 - **6 Report Types**: Bookings, Clients, Revenue, Inventory, Payments, P&L Analysis
 - Excel export (.xlsx) with summary statistics
 - Save report templates for reuse
-- Permission-based access: `reports.bi_builder`
+- **Granular Permissions** (8 total):
+  - `reports.bi_bookings` - Generate booking reports
+  - `reports.bi_clients` - Generate client reports
+  - `reports.bi_revenue` - Generate revenue reports
+  - `reports.bi_inventory` - Generate inventory reports
+  - `reports.bi_payments` - Generate payment reports
+  - `reports.bi_pnl` - Generate P&L reports
+  - `reports.bi_export` - Export reports to Excel
+  - `reports.bi_save_templates` - Save/manage report templates
 
 **API Endpoints**:
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/bi-reports/config` | GET | Get report types and configurations |
-| `/api/bi-reports/generate` | POST | Generate custom report |
-| `/api/bi-reports/export` | POST | Export report to Excel |
-| `/api/bi-reports/saved` | GET | Get saved report templates |
-| `/api/bi-reports/save` | POST | Save report configuration as template |
+| `/api/bi-reports/config` | GET | Get report types (filtered by permission), includes can_export/can_save flags |
+| `/api/bi-reports/generate` | POST | Generate custom report (checks specific report type permission) |
+| `/api/bi-reports/export` | POST | Export report to Excel (requires bi_export) |
+| `/api/bi-reports/saved` | GET | Get saved templates (requires bi_save_templates) |
+| `/api/bi-reports/save` | POST | Save configuration (requires bi_save_templates) |
 
 **2. WhatsApp Notification System**
 - Self-hosted QR-based WhatsApp Web connection (simulated)
@@ -61,18 +69,25 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Custom template creation
 - Send individual and bulk messages
 - Message history and statistics
-- Permission-based access: `notifications.whatsapp`
+- **Granular Permissions** (6 total):
+  - `notifications.whatsapp_view` - View WhatsApp settings and stats
+  - `notifications.whatsapp_connect` - Connect/disconnect via QR code
+  - `notifications.whatsapp_templates` - Manage message templates
+  - `notifications.whatsapp_send` - Send individual messages
+  - `notifications.whatsapp_bulk` - Send bulk messages
+  - `notifications.whatsapp_history` - View message history
 
 **API Endpoints**:
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/whatsapp/config` | GET/POST | Get/update WhatsApp configuration |
-| `/api/whatsapp/qr-code` | GET | Generate QR code for connection |
-| `/api/whatsapp/templates` | GET/POST | Get/create message templates |
-| `/api/whatsapp/send` | POST | Send individual message |
-| `/api/whatsapp/send-bulk` | POST | Send bulk messages |
-| `/api/whatsapp/messages` | GET | Get message history |
-| `/api/whatsapp/stats` | GET | Get messaging statistics |
+| Endpoint | Method | Permission |
+|----------|--------|------------|
+| `/api/whatsapp/config` | GET | `whatsapp_view` |
+| `/api/whatsapp/config` | POST | `whatsapp_connect` |
+| `/api/whatsapp/qr-code` | GET | `whatsapp_connect` |
+| `/api/whatsapp/templates` | GET/POST/PUT/DELETE | `whatsapp_templates` |
+| `/api/whatsapp/send` | POST | `whatsapp_send` |
+| `/api/whatsapp/send-bulk` | POST | `whatsapp_bulk` |
+| `/api/whatsapp/messages` | GET | `whatsapp_history` |
+| `/api/whatsapp/stats` | GET | `whatsapp_view` |
 
 **3. PE Dashboard BP Overrides Widget**
 - New widget showing pending BP revenue override count
