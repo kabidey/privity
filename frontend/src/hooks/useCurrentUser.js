@@ -94,6 +94,21 @@ export function useCurrentUser() {
   const canManageBusinessPartners = checkCanManageBusinessPartners(role);
   const canViewAllBookings = checkCanViewAllBookings(role);
   
+  // Check if user has a specific permission
+  const hasPermission = (permission) => {
+    const permissions = user?.permissions || [];
+    if (permissions.includes('*')) return true;
+    
+    const [category] = permission.split('.');
+    if (permissions.includes(`${category}.*`)) return true;
+    
+    return permissions.includes(permission);
+  };
+  
+  // Specific permission checks for new features
+  const canViewLPChange = hasPermission('inventory.view_lp_change');
+  const canViewLPHistory = hasPermission('inventory.view_lp_history');
+  
   // Legacy compatibility
   const canManageVendors = isPEDesk || isPEManager;
   const canDeleteVendors = isPEDesk;
