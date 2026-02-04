@@ -195,6 +195,9 @@ async def create_purchase(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
+    # Mark as demo data if created by demo user
+    purchase_doc = mark_as_demo(purchase_doc, current_user)
+    
     await db.purchases.insert_one(purchase_doc)
     
     await create_audit_log(
