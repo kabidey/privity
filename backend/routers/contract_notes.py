@@ -252,15 +252,12 @@ async def preview_contract_note(
 async def send_contract_note_email(
     note_id: str,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.send", "send contract note"))
 ):
     """
-    Send contract note to client via email (PE Level only)
+    Send contract note to client via email
     """
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Access denied")
     
     note = await db.contract_notes.find_one({"id": note_id}, {"_id": 0})
     if not note:
