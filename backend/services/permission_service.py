@@ -183,18 +183,8 @@ async def has_permission(user: dict, permission: str) -> bool:
     if role_id == 1:
         return True
     
-    # Check for user-level permissions (e.g., demo user with "*")
-    user_permissions = user.get("permissions", [])
-    if "*" in user_permissions:
-        return True
-    
-    # Check user's direct permissions
-    if permission in user_permissions:
-        return True
-    
-    # Check for category wildcard in user permissions
-    category = permission.split(".")[0]
-    if f"{category}.*" in user_permissions:
+    # Demo user has full permissions for demo experience
+    if user.get("is_demo") == True or user.get("id") == "demo_user_privity":
         return True
     
     # Get role-level permissions
@@ -205,6 +195,7 @@ async def has_permission(user: dict, permission: str) -> bool:
         return True
     
     # Check for category wildcard
+    category = permission.split(".")[0]
     if f"{category}.*" in raw_permissions:
         return True
     
