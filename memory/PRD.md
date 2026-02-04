@@ -37,6 +37,49 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 04, 2026)
 
+#### ✅ Mobile Number Registration & Activity Alerts - COMPLETED
+
+**1. User Registration Updates**
+- Added 10-digit mobile number field (required for non-superadmin users)
+- Changed PAN label to "Identification (PAN)"
+- Mobile validation: exactly 10 digits, no duplicates
+- Helper text: "For SMS/WhatsApp notifications"
+
+**2. Force Mobile Entry for Existing Users**
+- Login response includes `mobile_required` flag
+- Modal popup if user has no mobile number
+- Cannot proceed until valid mobile entered
+- Endpoint: `POST /api/auth/update-mobile`
+
+**3. Activity Alerts (WhatsApp)**
+- Booking created → Alert to client, RP, BP
+- Booking approved → Alert to client
+- Booking rejected → Alert to client with reason
+- Payment received → Alert to client
+- DP transfer complete → Alert to client
+- Client approved/rejected → Alert to client
+- All alerts logged in `whatsapp_messages` collection
+
+**4. Day-End Revenue Reports (6 PM IST)**
+- Individual user revenue summary
+- Manager: Consolidated team report (full hierarchy)
+- Metrics: Bookings count, value, revenue earned, collections, pending
+- Delivery: Email + WhatsApp
+- Endpoint: `GET /api/dashboard/revenue-report`
+- Manual trigger: `POST /api/dashboard/send-day-end-reports`
+
+**Files Created/Modified**:
+- `backend/services/activity_alerts.py` (NEW) - WhatsApp activity notifications
+- `backend/services/day_end_reports.py` (NEW) - Revenue report generation
+- `backend/routers/auth.py` - Mobile validation, update-mobile endpoint
+- `backend/routers/dashboard.py` - Revenue report endpoints
+- `backend/models/__init__.py` - Added mobile_number to User, mobile_required to TokenResponse
+- `frontend/src/pages/Login.js` - Mobile field in registration, mobile update modal
+
+**Testing**: 13/13 backend tests passed, 100% frontend verification ✅
+
+---
+
 #### ✅ Version 6.2.4.7 - Business Intelligence & WhatsApp Integration - COMPLETED
 
 **1. Business Intelligence Report Builder**
