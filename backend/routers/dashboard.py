@@ -70,9 +70,10 @@ async def get_dashboard_stats(
     inventory_items = await db.inventory.find(inventory_query, {"_id": 0, "total_value": 1}).to_list(10000)
     total_inventory_value = sum(item.get("total_value", 0) for item in inventory_items)
     
-    # Calculate revenue and profit
+    # Calculate revenue and profit with demo isolation
+    profit_query = add_demo_filter({**base_query, "status": {"$ne": "cancelled"}, "is_voided": {"$ne": True}}, current_user)
     bookings = await db.bookings.find(
-        {**base_query, "status": {"$ne": "cancelled"}, "is_voided": {"$ne": True}},
+        profit_query,
         {"_id": 0, "quantity": 1, "buying_price": 1, "selling_price": 1}
     ).to_list(10000)
     
@@ -108,6 +109,9 @@ async def get_dashboard_analytics(
     base_query = {}
     if not is_pe_level(user_role):
         base_query["created_by"] = user_id
+    
+    # Add demo isolation filter
+    base_query = add_demo_filter(base_query, current_user)
     
     # Get booking status distribution
     status_pipeline = [
