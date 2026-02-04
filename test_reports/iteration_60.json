@@ -1,0 +1,106 @@
+{
+  "summary": "Comprehensive testing of granular BI Reports and WhatsApp permissions completed. All 25 backend API tests passed (100%). The implementation correctly exposes 8 granular BI permissions (bi_bookings, bi_clients, bi_revenue, bi_inventory, bi_payments, bi_pnl, bi_export, bi_save_templates) and 6 granular WhatsApp permissions (whatsapp_view, whatsapp_connect, whatsapp_templates, whatsapp_send, whatsapp_bulk, whatsapp_history).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_granular_bi_whatsapp_permissions.py",
+    "/app/test_reports/pytest/granular_bi_whatsapp_permissions_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "BI Reports permission implementation is correct - /api/bi-reports/config returns only report types user has permission for",
+    "BI Reports config correctly returns can_export and can_save_templates flags based on user permissions",
+    "Each BI report type generation checks specific permission (reports.bi_bookings, reports.bi_clients, etc.)",
+    "BI export endpoint correctly checks reports.bi_export permission",
+    "WhatsApp config endpoint correctly checks notifications.whatsapp_view permission",
+    "WhatsApp QR code endpoint correctly checks notifications.whatsapp_connect permission",
+    "WhatsApp templates endpoint correctly checks notifications.whatsapp_templates permission",
+    "WhatsApp send endpoint correctly checks notifications.whatsapp_send permission",
+    "WhatsApp message history endpoint correctly checks notifications.whatsapp_history permission",
+    "All endpoints properly reject unauthenticated requests (401/403)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_granular_bi_whatsapp_permissions.py"
+  ],
+  "success_rate": {
+    "backend": "100% (25/25 tests passed)",
+    "frontend": "N/A - Backend only testing"
+  },
+  "test_credentials": {
+    "PE Desk Super Admin": "pe@smifs.com / Kutta@123"
+  },
+  "seed_data_creation": "No seed data created - existing data used for testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Granular BI and WhatsApp permissions fully tested. All permissions are properly exposed in GET /api/roles/permissions and correctly enforced in respective endpoints. PE Desk (role 1) has all permissions via wildcard '*'. Implementation verified: bi_reports/config returns filtered report types and capability flags, bi_reports/generate checks specific report type permissions, whatsapp endpoints check their respective granular permissions.",
+  "features_tested": {
+    "granular_bi_permissions": {
+      "GET_roles_permissions_bi": "PASS - Returns all 8 BI permissions (bi_bookings, bi_clients, bi_revenue, bi_inventory, bi_payments, bi_pnl, bi_export, bi_save_templates)",
+      "GET_bi_config_report_types": "PASS - Returns 6 report types with permission keys",
+      "GET_bi_config_capability_flags": "PASS - Returns can_export and can_save_templates flags",
+      "POST_bi_generate_bookings": "PASS - Checks reports.bi_bookings permission",
+      "POST_bi_generate_clients": "PASS - Checks reports.bi_clients permission",
+      "POST_bi_generate_revenue": "PASS - Checks reports.bi_revenue permission",
+      "POST_bi_generate_inventory": "PASS - Checks reports.bi_inventory permission",
+      "POST_bi_generate_payments": "PASS - Checks reports.bi_payments permission",
+      "POST_bi_generate_pnl": "PASS - Checks reports.bi_pnl permission",
+      "POST_bi_export": "PASS - Checks reports.bi_export permission"
+    },
+    "granular_whatsapp_permissions": {
+      "GET_roles_permissions_whatsapp": "PASS - Returns all 6 WhatsApp permissions (whatsapp_view, whatsapp_connect, whatsapp_templates, whatsapp_send, whatsapp_bulk, whatsapp_history)",
+      "GET_whatsapp_config": "PASS - Checks notifications.whatsapp_view permission",
+      "GET_whatsapp_qr_code": "PASS - Checks notifications.whatsapp_connect permission",
+      "GET_whatsapp_templates": "PASS - Checks notifications.whatsapp_templates permission",
+      "POST_whatsapp_send": "PASS - Checks notifications.whatsapp_send permission",
+      "GET_whatsapp_messages": "PASS - Checks notifications.whatsapp_history permission"
+    },
+    "authentication_enforcement": {
+      "bi_config_no_auth": "PASS - Returns 401/403",
+      "bi_generate_no_auth": "PASS - Returns 401/403",
+      "bi_export_no_auth": "PASS - Returns 401/403",
+      "whatsapp_config_no_auth": "PASS - Returns 401/403",
+      "whatsapp_qr_no_auth": "PASS - Returns 401/403",
+      "whatsapp_templates_no_auth": "PASS - Returns 401/403",
+      "whatsapp_send_no_auth": "PASS - Returns 401/403",
+      "whatsapp_messages_no_auth": "PASS - Returns 401/403"
+    }
+  },
+  "api_endpoints_tested": [
+    "GET /api/roles/permissions - Verified granular BI permissions (8) and WhatsApp permissions (6)",
+    "GET /api/bi-reports/config - Returns filtered report types based on permissions, includes can_export and can_save_templates flags",
+    "POST /api/bi-reports/generate - Checks specific report type permission (bi_bookings, bi_clients, bi_revenue, bi_inventory, bi_payments, bi_pnl)",
+    "POST /api/bi-reports/export - Requires reports.bi_export permission",
+    "GET /api/whatsapp/config - Requires notifications.whatsapp_view permission",
+    "GET /api/whatsapp/qr-code - Requires notifications.whatsapp_connect permission",
+    "GET /api/whatsapp/templates - Requires notifications.whatsapp_templates permission",
+    "POST /api/whatsapp/send - Requires notifications.whatsapp_send permission",
+    "GET /api/whatsapp/messages - Requires notifications.whatsapp_history permission"
+  ],
+  "permission_mapping": {
+    "bi_reports": {
+      "bookings": "reports.bi_bookings",
+      "clients": "reports.bi_clients",
+      "revenue": "reports.bi_revenue",
+      "inventory": "reports.bi_inventory",
+      "payments": "reports.bi_payments",
+      "pnl": "reports.bi_pnl",
+      "export": "reports.bi_export",
+      "save_templates": "reports.bi_save_templates"
+    },
+    "whatsapp": {
+      "view": "notifications.whatsapp_view",
+      "connect": "notifications.whatsapp_connect",
+      "templates": "notifications.whatsapp_templates",
+      "send": "notifications.whatsapp_send",
+      "bulk": "notifications.whatsapp_bulk",
+      "history": "notifications.whatsapp_history"
+    }
+  }
+}
