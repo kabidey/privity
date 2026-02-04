@@ -290,13 +290,17 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: ShieldCheck, label: 'Security Dashboard', path: '/security' });
   }
   
-  // BI Reports - based on permission
-  if (hasPermission('reports.bi_builder') || isPELevel) {
+  // BI Reports - based on any BI report permission
+  const biPermissions = ['reports.bi_bookings', 'reports.bi_clients', 'reports.bi_revenue', 
+                        'reports.bi_inventory', 'reports.bi_payments', 'reports.bi_pnl'];
+  if (isPELevel || biPermissions.some(p => hasPermission(p))) {
     menuItems.push({ icon: BarChart3, label: 'BI Reports', path: '/bi-reports' });
   }
   
-  // WhatsApp Notifications - based on permission
-  if (hasPermission('notifications.whatsapp') || isPEDesk) {
+  // WhatsApp Notifications - based on any WhatsApp permission
+  const waPermissions = ['notifications.whatsapp_view', 'notifications.whatsapp_connect', 
+                        'notifications.whatsapp_templates', 'notifications.whatsapp_send'];
+  if (isPEDesk || waPermissions.some(p => hasPermission(p))) {
     menuItems.push({ icon: MessageCircle, label: 'WhatsApp', path: '/whatsapp' });
   }
   
