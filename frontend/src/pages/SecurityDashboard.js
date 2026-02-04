@@ -36,6 +36,7 @@ const useSecurityData = () => {
   const [securityStatus, setSecurityStatus] = useState(null);
   const [loginLocations, setLoginLocations] = useState([]);
   const [mapData, setMapData] = useState([]);
+  const [threatData, setThreatData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -44,10 +45,11 @@ const useSecurityData = () => {
       setLoading(true);
       setError(null);
       
-      const [statusRes, locationsRes, mapRes] = await Promise.all([
+      const [statusRes, locationsRes, mapRes, threatsRes] = await Promise.all([
         api.get('/dashboard/security-status'),
         api.get('/dashboard/login-locations?hours=168'), // Last 7 days
-        api.get('/dashboard/login-locations/map-data')
+        api.get('/dashboard/login-locations/map-data'),
+        api.get('/security/threats').catch(() => ({ data: null }))  // Gracefully handle if endpoint doesn't exist yet
       ]);
 
       if (statusRes.data.error) {
@@ -58,6 +60,7 @@ const useSecurityData = () => {
       setSecurityStatus(statusRes.data);
       setLoginLocations(locationsRes.data.locations || []);
       setMapData(mapRes.data.markers || []);
+      setThreatData(threatsRes.data);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to load security data');
       toast.error('Failed to load security dashboard');
@@ -70,7 +73,7 @@ const useSecurityData = () => {
     fetchData();
   }, []);
 
-  return { securityStatus, loginLocations, mapData, loading, error, refetch: fetchData };
+  return { securityStatus, loginLocations, mapData, threatData, loading, error, refetch: fetchData };
 };
 
 // Risk level colors
