@@ -1887,7 +1887,7 @@ const Clients = () => {
                           onClick={() => handleDownloadDocument(
                             selectedClientDocs.id, 
                             doc.filename || doc.original_filename || doc.doc_type,
-                            doc.gridfs_id
+                            doc.file_id || doc.gridfs_id
                           )}
                           className="text-blue-600 hover:text-blue-700"
                         >
