@@ -139,6 +139,16 @@ const Bookings = () => {
           console.error('Failed to fetch pending bookings');
         }
       }
+      
+      // Fetch pending BP overrides if user has approval permission
+      if (canApproveRevenueOverride) {
+        try {
+          const bpOverridesRes = await api.get('/bookings/pending-bp-overrides');
+          setPendingBpOverrides(bpOverridesRes.data || []);
+        } catch (e) {
+          console.error('Failed to fetch pending BP overrides');
+        }
+      }
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
