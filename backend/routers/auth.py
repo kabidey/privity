@@ -321,14 +321,26 @@ async def login(
         entity_name=user["name"]
     )
     
+    # Get role name (check custom roles first)
+    role_id = user.get("role", 5)
+    role_name = ROLES.get(role_id)
+    if not role_name:
+        # Check custom roles
+        custom_role = await db.roles.find_one({"id": role_id}, {"_id": 0, "name": 1})
+        role_name = custom_role.get("name") if custom_role else "Unknown Role"
+    
+    # Get permissions for the user's role
+    permissions = await get_role_permissions(role_id)
+    
     token = create_token(user["id"], user["email"])
     user_response = User(
         id=user["id"],
         email=user["email"],
         name=user["name"],
         pan_number=user.get("pan_number"),
-        role=user.get("role", 5),
-        role_name=ROLES.get(user.get("role", 5), "Viewer"),
+        role=role_id,
+        role_name=role_name,
+        permissions=permissions,
         created_at=user["created_at"],
         agreement_accepted=user.get("agreement_accepted", False),
         agreement_accepted_at=user.get("agreement_accepted_at")
