@@ -373,7 +373,7 @@ async def send_contract_note_email(
             entity_id=note_id,
             user_id=current_user["id"],
             user_name=current_user["name"],
-            user_role=user_role,
+            user_role=current_user.get("role", 6),
             entity_name=note.get("contract_note_number"),
             details={"client_email": client.get("email")}
         )
