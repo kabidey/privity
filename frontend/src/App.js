@@ -161,6 +161,9 @@ const AgreementChecker = ({ children }) => {
 
 function App() {
   return (
+    <DemoProvider>
+    <ThemeProvider>
+  return (
     <ThemeProvider>
       <div className="App">
         <BrowserRouter>
