@@ -108,7 +108,7 @@ async def update_whatsapp_config(
 @router.get("/qr-code")
 async def get_qr_code(
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "connect WhatsApp"))
+    _: None = Depends(require_permission("notifications.whatsapp_connect", "connect WhatsApp"))
 ):
     """Generate QR code for WhatsApp Web connection"""
     # Generate a unique session ID
@@ -157,7 +157,7 @@ async def simulate_whatsapp_connect(
     session_id: str = Query(...),
     phone_number: str = Query(...),
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "connect WhatsApp"))
+    _: None = Depends(require_permission("notifications.whatsapp_connect", "connect WhatsApp"))
 ):
     """Simulate WhatsApp connection (for demo/testing)"""
     # Update session status
