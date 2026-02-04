@@ -111,7 +111,7 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
     """
     # All available permissions in the system
     ALL_PERMISSIONS = {
-        "dashboard": ["view", "pe_view"],
+        "dashboard": ["view", "pe_view", "my_view"],
         "bookings": ["view", "view_all", "create", "edit", "delete", "approve", 
                      "record_payment", "delete_payment", "export"],
         "clients": ["view", "create", "edit", "delete", "map", "upload_docs", "view_docs", "suspend"],
