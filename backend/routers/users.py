@@ -232,7 +232,8 @@ async def update_user(
     if user_data.name is not None:
         update_data["name"] = user_data.name
     if user_data.role is not None:
-        if user_data.role not in ROLES:
+        # Validate role (system or custom)
+        if not await is_valid_role(user_data.role):
             raise HTTPException(status_code=400, detail="Invalid role")
         # PE Manager cannot promote to PE Desk or PE Manager
         if current_user.get("role") == 2 and user_data.role in [1, 2]:
