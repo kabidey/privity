@@ -49,10 +49,24 @@ const WhatsAppNotifications = () => {
     recipient_types: []
   });
 
-  const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
-    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('notifications.whatsapp'),
-    deniedMessage: 'Access denied. You need WhatsApp Management permission.'
+  // Check for any WhatsApp permission to access the page
+  const { isLoading, isAuthorized, hasPermission: checkPerm } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => {
+      if (isPELevel) return true;
+      const waPermissions = ['notifications.whatsapp_view', 'notifications.whatsapp_connect', 
+                            'notifications.whatsapp_templates', 'notifications.whatsapp_send',
+                            'notifications.whatsapp_bulk', 'notifications.whatsapp_history'];
+      return waPermissions.some(p => hasPermission(p));
+    },
+    deniedMessage: 'Access denied. You need WhatsApp permissions.'
   });
+  
+  // Individual permission checks
+  const canConnect = checkPerm('notifications.whatsapp_connect');
+  const canManageTemplates = checkPerm('notifications.whatsapp_templates');
+  const canSend = checkPerm('notifications.whatsapp_send');
+  const canBulkSend = checkPerm('notifications.whatsapp_bulk');
+  const canViewHistory = checkPerm('notifications.whatsapp_history');
 
   useEffect(() => {
     if (!isAuthorized) return;
