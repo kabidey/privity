@@ -344,7 +344,8 @@ async def get_tcs_preview(
     purchase_id: str,
     amount: float,
     payment_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("purchases.view", "preview TCS calculation"))
 ):
     """Get TCS calculation preview for a payment amount"""
     purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
