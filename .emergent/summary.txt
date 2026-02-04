@@ -1,259 +1,163 @@
-<analysis>**original_problem_statement:**
-The user's initial problem statement focused on fixing a critical bug where client documents were not visible to certain user roles. Throughout the session, the user added several new feature requests and bug fixes, including:
-1.  **Forgot Password Flow:** Improve the Forgot Password page to notify users if their email address is not found in the system.
-2.  **Client Page UI:**
-    *   Fix the Mapped To column, which was hidden on some screen sizes.
-    *   Add a refresh button to manually update the client list and their associated data.
-3.  **Team Chat:** Fix incorrect user role names being displayed in the chat interface.
-4.  **Client Creation/OCR:**
-    *   Investigate why documents uploaded for OCR during client creation are not being saved or displayed.
-    *   Fix incorrect extraction of DP ID and Client ID from CML documents.
-    *   Handle two different CML formats (CDSL and NSDL) to correctly capture bank account details.
-5.  **Inventory Management:**
-    *   Add the ability to sort the inventory table by various columns.
-    *   Visually indicate Landing Price (LP) changes with green (increase) and red (decrease) boxes.
-    *   Add a popup chart to display the historical changes of a stock's LP over time.
-6.  **RBAC & Permissions:**
-    *   Add missing permissions for newly implemented features (like viewing LP history) to the Role Management UI.
-    *   Fix a bug that prevented custom-created roles from being assigned to users.
-    *   Fix a major inconsistency where permission changes made in Role Management did not apply to users until they logged out and back in.
-7.  **UI Cleanup:** Remove the Change Password option from the main user menu, as it's now handled under Account Security.
+<analysis>**original_problem_statement**: The user has requested a series of new features and modifications to an existing application.
+
+**PRODUCT REQUIREMENTS**:
+1.  **BP Revenue Override**: Implement a complete feature for Business Partners (BP) and Partners Desk users to override revenue shares, with an approval workflow.
+2.  **Version & Changelog**: Increment the application version to  and update the changelog with all recent developments.
+3.  **PE Dashboard**: Add a widget to the PE Desk dashboard that shows a count of pending BP revenue overrides.
+4.  **Business Intelligence (BI)**:
+    *   Create a BI report builder menu for generating custom reports (Bookings, Clients, Revenue, etc.) with an Excel export option.
+    *   Implement granular, role-based permissions to control access to each specific report type within the BI module.
+5.  **WhatsApp Notifications**:
+    *   Create a WhatsApp notifications menu with a self-hosted QR code solution for API connection.
+    *   Implement granular, role-based permissions for managing WhatsApp features (e.g., view, manage templates, send messages).
+    *   Send activity alerts (e.g., booking creation/approval) to clients/users/BPs/RPs.
+    *   Send day-end revenue reports via WhatsApp to users and their managers, following the organizational hierarchy.
+6.  **User Management & Registration**:
+    *   Add a mandatory Mobile Number field to the user registration form for notifications.
+    *   Change the PAN field label to Identification.
+    *   Force existing users who log in without a mobile number to provide one via a modal.
+    *   During registration, send the temporary verification code to the user's email ONLY (not WhatsApp).
+7.  **Scheduler/Cron Job**:
+    *   Set up a scheduler to automatically trigger the day-end revenue reports at 6 PM IST.
+    *   Ensure the server time/scheduler operates in the IST timezone.
+    *   Provide a UI on the dashboard to view the scheduler's status and manually trigger it.
+8.  **Permissions UI**: Ensure all new permissions are visible and manageable in the Role Management UI.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack financial platform with React, FastAPI, and MongoDB. The agent has successfully implemented a wide range of features and fixes in this session:
--   **Enhanced Inventory Page:** The page now features comprehensive sorting capabilities, visual indicators for Landing Price (LP) changes (green/red boxes), and a popup modal with a chart and table detailing the LP history for each stock. The backend now logs every LP update.
--   **Robust RBAC System:** The Role-Based Access Control system is now consistent. Permissions are dynamically loaded from the database at login and can be refreshed in the frontend without requiring a re-login. A bug preventing the assignment of custom roles has been fixed. New permissions for inventory and license features are now visible and assignable in the Role Management UI.
--   **Improved OCR Service:** The OCR service can now handle both CDSL and NSDL CML document formats. It correctly extracts DP ID, Client ID, and bank account information after a missing system dependency () was installed.
--   **UI/UX Fixes:**
-    -   The Forgot Password flow now correctly informs users if their account doesn't exist.
-    -   The Mapped To column on the Clients page is now always visible.
-    -   A Refresh button has been added to the Clients page, which successfully re-fetches all data, including documents.
-    -   User roles are now displayed correctly in the Team Chat.
--   **Client Document Bug:** The initial bug report (documents not visible) was investigated and could not be reproduced; the feature was found to be working. The agent proactively improved the reliability of the document download handlers.
+The application is a full-stack web app using FastAPI (Python) for the backend and React for the frontend. The session successfully implemented a wide range of features, including the BP Revenue Override system, a new BI reporting module, a WhatsApp notification framework, and a scheduled job for day-end reports. All backend logic, API endpoints, and new frontend pages for these features have been created. Granular permissions for the new modules have been defined and integrated into the backend.
 
 **Last working item**:
--   Last item agent was working: The user requested to Remove the password change option beside the logout screen, password change is now being handled by Account Security menu. The agent had just received the request and was about to begin investigation.
--   Status: NOT STARTED
--   Agent Testing Done: N
--   Which testing method agent to use? screenshot tool
--   User Testing Done: N
+*   **Last item agent was working**: The agent was trying to resolve a critical bug where the **Role Management page () is not displaying the permission matrix**. The page is stuck in a loading state (Checking...), which prevents the user from assigning the newly created granular permissions for the BI and WhatsApp modules.
+*   **Status**: BLOCKED
+*   **Agent Testing Done**: Y (Agent confirmed the backend API  returns the correct data.)
+*   **Which testing method agent to use?**: Frontend testing agent
+*   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Remove Change Password Option from User Menu (P0)**
-    -   Description: The user dropdown menu next to the logout button contains a Change Password option. This is now redundant because the functionality exists in the Account Security menu. This option needs to be removed to avoid confusion.
-    -   Next debug checklist:
-        1.  Identify the frontend component that renders the main application layout or header containing the user dropdown menu (e.g., a , , or  component).
-        2.  Locate the specific  or link for Change Password.
-        3.  Remove the line of code that renders this item.
-        4.  Use the screenshot tool to verify that the option is no longer visible in the dropdown.
-    -   Why fix this issue and what will be achieved with the fix? This will declutter the UI and prevent user confusion by removing a duplicate navigation path.
-    -   Status: NOT STARTED
-    -   Is recurring issue? N
-    -   Should Test frontend/backend/both after fix? Frontend
-    -   Blocked on other issue: None
+*   **Issue 1**: Role Management UI Fails to Load/Display Permissions (Priority: P0)
+
+**Issues Detail**:
+*   **Issue 1**:
+    *   **Attempted fixes**: The agent verified that the backend API () correctly returns the full list of permissions. The agent inspected the frontend code in  and suspects the issue is a race condition or a faulty loading state check ().
+    *   **Next debug checklist**:
+        1.  Examine the  hooks and state management within .
+        2.  Use browser developer tools to analyze network calls and component state (React DevTools).
+        3.  Refactor the component's loading logic to be more robust, ensuring all necessary data (user, roles, permissions) is fetched before attempting to render the matrix.
+    *   **Why fix this issue and what will be achieved with the fix?**: This is a critical blocker. Fixing it will make the newly implemented granular permission system for BI and WhatsApp modules usable by administrators, fulfilling a core user requirement.
+    *   **Status**: BLOCKED
+    *   **Is recurring issue?**: Y (This page has shown instability in previous steps).
+    *   **Should Test frontend/backend/both after fix?**: Frontend
+    *   **Blocked on other issue**: None
 
 **In progress Task List**:
--   None.
+There are no in-progress tasks. All work is blocked by the pending issue above.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks**:
-    -   There are no immediate upcoming tasks besides the one listed in the Last working item.
--   **Future Tasks**:
-    -   (P1) Enforce 2FA for Admin Roles.
-    -   (P2) Create a dedicated dashboard for Referral Partners (RPs).
-    -   (P2) Implement a feature to close multiple bookings at once.
-    -   (P2) Add settings for auto-approving loss-making bookings.
-    -   (P2) Refactor security state management to a persistent store like Redis.
-    -   (P3) Automatically generate backend API documentation (Swagger/OpenAPI).
-    -   (Enhancement) Implement a recurring scheduled task (cron job) for automated license expiry checks.
+*   **Upcoming Tasks**:
+    *   **Task 1 (P0)**: Fix the Role Management UI bug as detailed in the 'Pending Issue list'.
+*   **Future Tasks**:
+    *   **Task 1 (P2)**: Audit existing application endpoints and features to identify other areas that could be controlled by the role-based permission system to improve security and configurability.
 
 **Completed work in this session**
--   **Feature: Inventory Page Overhaul:** Implemented sorting, LP change indicators (green/red), and a popup history chart.
--   **Bug Fix: RBAC Permission Consistency:** Fixed the core logic so that permission changes in Role Management apply to users immediately without requiring a re-login.
--   **Bug Fix: Custom Role Assignment:** Resolved the issue preventing custom-created roles from being assigned to users.
--   **Bug Fix: OCR for CML Documents:** Improved the OCR service to handle both CDSL and NSDL formats and fixed extraction errors by installing the  dependency.
--   **Feature: Client Page Refresh Button:** Added a button to manually refresh the client list, which correctly fetches updated document information.
--   **UI Fix: Forgot Password Flow:** Now correctly notifies the user if the provided email does not exist.
--   **UI Fix: Mapped To Column:** The column is now permanently visible on the Clients page.
--   **UI Fix: Team Chat Roles:** Corrected the display of user role names.
--   **Bug Investigation:** The initial client document visibility bug was not reproducible, but the agent made the download handlers more robust.
--   **Permission Management:** Added all new permissions for inventory and license features to the Role Management UI.
+*   **BP Revenue Share Override**: Fully implemented with backend endpoints, frontend UI, and permissions. (DONE)
+*   **Version and Changelog Update**: Version incremented to  and changelog updated. (DONE)
+*   **PE Dashboard Widgets**: Added Pending BP Overrides count and a Scheduler Status card. (DONE)
+*   **Business Intelligence Module**: Created the report builder with Excel export and granular backend permissions. (DONE)
+*   **WhatsApp Notification Module**: Created the management UI with a self-hosted QR solution and granular backend permissions. (DONE)
+*   **User Registration & Mobile Enforcement**: Updated registration form, changed PAN label, and implemented a modal to force mobile number updates for existing users. (DONE)
+*   **Activity & Revenue Alerts**: Created backend services for activity alerts and day-end revenue reports. (DONE)
+*   **Scheduler for Day-End Reports**: Implemented and configured a scheduler to run at 6 PM IST. (DONE)
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+*   **Issue 1**: The Role Management page () has a recurring loading issue that was identified but not resolved. This is the main blocker for the next agent.
 
 **Known issue recurrence from previous fork**
--   None.
+There was no previous fork summary provided, but the Role Management page has been unstable throughout this session, indicating it's likely a pre-existing issue.
 
 **Code Architecture**
-file_idpermissions
+
 
 **Key Technical Concepts**
--   **Dynamic RBAC:** The system now loads a user's permissions from the database upon login. A refresh mechanism was implemented in the frontend to pull updated permissions when a role is modified, ensuring changes apply immediately without requiring a re-login.
--   **Data History & Visualization:** Implemented backend logic to log historical data (LP changes) in a new MongoDB collection (). A frontend component was built to fetch this data and visualize it using a bar chart () and a detailed table.
--   **Backend-Driven UI:** The visibility of certain UI elements, like the LP change indicator, is now controlled by specific user permissions fetched from the backend, not just by a hardcoded role check.
--   **System Dependency Management:** The agent identified and installed a missing system-level dependency () that was preventing the backend OCR service from processing PDF files.
--   **OCR Prompt Engineering:** The AI prompt for the OCR service was refined to handle variations in document formats (CDSL vs. NSDL CMLs), leading to more accurate data extraction for fields like DP ID and bank account details.
--   **State & Cache Management:** Corrected caching logic to use and clear  appropriately, preventing stale data from being displayed after updates.
+*   **Backend**: FastAPI, Pydantic, SQLAlchemy, JWT Authentication
+*   **Frontend**: React, Material-UI (MUI)
+*   **Database**: PostgreSQL
+*   **Asynchronous Tasks**:  for cron jobs, configured with  for IST timezone.
+*   **Permissions**: Custom Role-Based Access Control (RBAC) system.
 
 **key DB schema**
--   **inventory:** Added a  field to enable comparison for the green/red indicator.
--   **lp_history (New Collection):**  - Logs every change to a stock's landing price.
--   **roles:** Used to validate custom roles during user assignment. Custom roles have .
+*   **users**: {..., **mobile_number** (new), ...}
+*   **bookings**: {..., **bp_revenue_share_override**, **bp_override_approval_status**, ...}
 
 **changes in tech stack**
--   **System Dependency:**  was installed via apt 2.6.1 (arm64)
-Usage: apt-get [options] command
-       apt-get [options] install|remove pkg1 [pkg2 ...]
-       apt-get [options] source pkg1 [pkg2 ...]
-
-apt-get is a command line interface for retrieval of packages
-and information about them from authenticated sources and
-for installation, upgrade and removal of packages together
-with their dependencies.
-
-Most used commands:
-  update - Retrieve new lists of packages
-  upgrade - Perform an upgrade
-  install - Install new packages (pkg is libc6 not libc6.deb)
-  reinstall - Reinstall packages (pkg is libc6 not libc6.deb)
-  remove - Remove packages
-  purge - Remove packages and config files
-  autoremove - Remove automatically all unused packages
-  dist-upgrade - Distribution upgrade, see apt-get(8)
-  dselect-upgrade - Follow dselect selections
-  build-dep - Configure build-dependencies for source packages
-  satisfy - Satisfy dependency strings
-  clean - Erase downloaded archive files
-  autoclean - Erase old downloaded archive files
-  check - Verify that there are no broken dependencies
-  source - Download source archives
-  download - Download the binary package into the current directory
-  changelog - Download and display the changelog for the given package
-
-See apt-get(8) for more information about the available commands.
-Configuration options and syntax is detailed in apt.conf(5).
-Information about how to configure sources can be found in sources.list(5).
-Package and version choices can be expressed via apt_preferences(5).
-Security details are available in apt-secure(8).
-                                        This APT has Super Cow Powers. to enable PDF processing for the OCR service in the backend.
+*   **Added**: , , , , .
 
 **All files of reference**
--   **Backend Modified:**
-    -   
-    -   
-    -   
-    -   
-    -   
-    -   
-    -   
--   **Frontend Modified:**
-    -   
-    -   
-    -   
-    -   
-    -   
+*   **Created**:
+    *   : Backend for BI reports.
+    *   : Backend for WhatsApp features.
+    *   , : Logic for sending alerts.
+    *   : Manages cron jobs.
+    *   , : New frontend pages.
+*   **Updated**:
+    *   : To initialize the scheduler.
+    *   : To add numerous granular permissions.
+    *   : For mobile number handling.
+    *   : For mobile number collection UI.
+    *   : To add new widgets.
+    *   , : To add new menu items and routes.
 
 **Areas that need refactoring**:
--   The frontend race condition fix (patched across ~15 pages in a previous session) remains a candidate for a centralized custom hook to improve maintainability.
+*   : This component is unstable and requires a refactor of its data loading and state management logic to fix the persistent loading bug.
 
 **key api endpoints**
--   **New:**
-    -   : Fetches the landing price history for a specific stock.
--   **Modified:**
-    -    & : Now include the user's  list in the response.
-    -    & : Validation updated to accept custom role IDs from the database.
-    -   : Backend logic improved to handle CDSL/NSDL CML formats.
-    -   : Now returns both system and custom roles.
-    -   : Now includes new permissions for inventory and license features.
-    -   : Now logs the change to the  collection.
+*   : Returns all available permissions.
+*   : Endpoint for users to add their mobile number.
+*   : Returns accessible BI report types based on user permissions.
+*   : Returns accessible WhatsApp features based on user permissions.
+*   : Returns the status of scheduled jobs.
 
 **Critical Info for New Agent**
-1.  **Immediate Task:** Your first task is to remove the Change Password link from the main user dropdown menu. This is a simple UI change in a layout or header component.
-2.  **RBAC is now Dynamic:** User permissions are loaded at login and stored in . The  hook reads from this. When a role's permissions are changed in the UI, a function  is called to fetch the latest user data from  and update , ensuring changes are reflected immediately.
-3.  **Inventory Page is Complex:** The inventory page has new features for sorting, displaying LP changes, and showing a history chart. The state is managed within . Be aware of the  state and the various fetch/handler functions.
-4.  **OCR Dependency:** The OCR service for CML documents relies on the  system package. If the environment is ever reset, this may need to be re-installed (Reading package lists...
-Building dependency tree...
-Reading state information...
-The following additional packages will be installed:
-  liblcms2-2 libopenjp2-7 libpoppler126 poppler-data
-Suggested packages:
-  liblcms2-utils ghostscript fonts-japanese-mincho | fonts-ipafont-mincho
-  fonts-arphic-ukai fonts-arphic-uming fonts-nanum
-The following NEW packages will be installed:
-  liblcms2-2 libopenjp2-7 libpoppler126 poppler-data poppler-utils
-0 upgraded, 5 newly installed, 0 to remove and 0 not upgraded.
-Need to get 3850 kB of archives.
-After this operation, 20.1 MB of additional disk space will be used.
-Get:1 http://deb.debian.org/debian bookworm/main arm64 poppler-data all 0.4.12-1 [1601 kB]
-Get:2 http://deb.debian.org/debian bookworm/main arm64 liblcms2-2 arm64 2.14-2 [143 kB]
-Get:3 http://deb.debian.org/debian bookworm/main arm64 libopenjp2-7 arm64 2.5.0-2+deb12u2 [176 kB]
-Get:4 http://deb.debian.org/debian bookworm/main arm64 libpoppler126 arm64 22.12.0-2+deb12u1 [1753 kB]
-Get:5 http://deb.debian.org/debian bookworm/main arm64 poppler-utils arm64 22.12.0-2+deb12u1 [177 kB]
-Fetched 3850 kB in 0s (18.0 MB/s)
-Selecting previously unselected package poppler-data.
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 37768 files and directories currently installed.)
-Preparing to unpack .../poppler-data_0.4.12-1_all.deb ...
-Unpacking poppler-data (0.4.12-1) ...
-Selecting previously unselected package liblcms2-2:arm64.
-Preparing to unpack .../liblcms2-2_2.14-2_arm64.deb ...
-Unpacking liblcms2-2:arm64 (2.14-2) ...
-Selecting previously unselected package libopenjp2-7:arm64.
-Preparing to unpack .../libopenjp2-7_2.5.0-2+deb12u2_arm64.deb ...
-Unpacking libopenjp2-7:arm64 (2.5.0-2+deb12u2) ...
-Selecting previously unselected package libpoppler126:arm64.
-Preparing to unpack .../libpoppler126_22.12.0-2+deb12u1_arm64.deb ...
-Unpacking libpoppler126:arm64 (22.12.0-2+deb12u1) ...
-Selecting previously unselected package poppler-utils.
-Preparing to unpack .../poppler-utils_22.12.0-2+deb12u1_arm64.deb ...
-Unpacking poppler-utils (22.12.0-2+deb12u1) ...
-Setting up liblcms2-2:arm64 (2.14-2) ...
-Setting up poppler-data (0.4.12-1) ...
-Setting up libopenjp2-7:arm64 (2.5.0-2+deb12u2) ...
-Setting up libpoppler126:arm64 (22.12.0-2+deb12u1) ...
-Setting up poppler-utils (22.12.0-2+deb12u1) ...
-Processing triggers for libc-bin (2.36-9+deb12u13) ...
-Processing triggers for fontconfig (2.14.1-4) ...).
+*   **Your primary task is to fix the Role Management page.** All backend work for permissions is complete, but the feature is unusable without the UI fix. The bug is in .
+*   The scheduler for day-end reports is configured for the **IST timezone ()** using  and .
+*   WhatsApp and Email services are currently mocked to print to logs. No live integration has been set up.
 
 **documents and test reports created in this job**
--    (Client document functionality test report)
--    (Updated with investigation notes and feature completions)
+*    was updated to reflect completed features.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  : User reported that permission changes were not applying to users. **COMPLETED**.
-2.  : User requested OCR to handle both CML types for bank account extraction. **COMPLETED**.
-3.  : User requested a UI cleanup. **PENDING / NOT STARTED**.
-4.  : User reported a bug with custom role assignment. **COMPLETED**.
-5.  : User reported a missing permission category in the UI. **COMPLETED**.
-6.  : User requested the LP change indicator be controlled by a permission. **COMPLETED**.
-7.  : User reported missing permissions in Role Management. **COMPLETED**.
-8.  : User reported an OCR extraction bug. **COMPLETED**.
-9.  : User requested major enhancements to the Inventory page. **COMPLETED**.
-10. : User reported an issue with document uploads during client creation. **COMPLETED**.
+1.  **User (Msg 617):** Visual permission and permission matrix is not updated - **Status: IN PROGRESS / BLOCKED**. This is the current active issue.
+2.  **User (Msg 570):** Request to set up a cron job for 6 PM IST. - **Status: COMPLETED**.
+3.  **User (Msg 454):** Clarifications on OTP, alerts, and report timing. - **Status: COMPLETED**.
+4.  **User (Msg 452):** Request for mobile number on registration, alerts, and revenue reports. - **Status: COMPLETED**.
+5.  **User (Msg 327):** Request for granular BI permissions and report of missing WhatsApp permissions in UI. - **Status: Partially Completed** (Backend done, UI blocked).
+6.  **User (Msg 188):** Confirmation to proceed with implementation. - **Status: COMPLETED**.
+7.  **User (Msg 185):** Initial request for version update, widgets, BI, and WhatsApp features. - **Status: COMPLETED**.
+8.  **User (Msg 4):** Proceed. - **Status: N/A**.
+9.  **User (Msg 1):** Please use ask_human tool and confirm your plan now.. - **Status: N/A**.
 
 **Project Health Check:**
--   **Broken**: No core features are currently broken.
--   **Mocked**: The AI news service (from a previous session) uses fallback data for test stocks but is otherwise functional.
+*   **Broken**:
+    *   : The page content fails to load, preventing adminisitrators from assigning permissions.
+*   **Mocked**:
+    *   Email and WhatsApp notification services currently log to the console instead of using a live provider.
 
 **3rd Party Integrations**
--   : Used via  for AI news summarization. (Uses Emergent LLM Key)
--   : Used via direct web requests.
--   : Used for the new LP History chart on the Inventory page.
--   
--   
--    & 
+*   **APScheduler**: For scheduling background jobs.
+*   **pytz**: For timezone management (IST).
+*   **pandas, openpyxl**: For Excel report generation in the BI module.
+*   **qrcode**: For generating QR codes for WhatsApp setup.
+*   None of these integrations require user-provided API keys.
 
 **Testing status**
--   Testing agent used after significant changes: YES (for the initial client document bug investigation).
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None in this session.
--   Known regressions: None.
+*   **Testing agent used after significant changes**: YES
+*   **Troubleshoot agent used after agent stuck in loop**: NO
+*   **Test files created**: None
+*   **Known regressions**: The Role Management page is non-functional, which is a major regression or a newly surfaced critical bug.
 
 **Credentials to test flow:**
--   **PE Desk Super Admin**:  / 
--   **Business Partner**: 
+Use the standard admin credentials for login. Testing the new permissions will require fixing the Role Management page first.
 
 **What agent forgot to execute**
--   The agent successfully implemented all user requests from this session.</analysis>
+The agent implemented all functional requirements but failed to fix the critical bug on the Role Management page, leaving the entire permissions feature unusable from the UI.</analysis>
