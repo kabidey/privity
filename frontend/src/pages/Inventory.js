@@ -5,10 +5,11 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import { Package, TrendingUp, AlertTriangle, Trash2, Edit2, Check, X, DollarSign, RefreshCw } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, AlertTriangle, Trash2, Edit2, Check, X, DollarSign, RefreshCw, ArrowUpDown, LineChart, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
