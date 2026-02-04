@@ -364,11 +364,22 @@ const Vendors = () => {
     setDocumentsDialogOpen(true);
   };
 
-  const handleDownloadDocument = async (vendorId, filename) => {
+  const handleDownloadDocument = async (vendorId, filename, fileId = null) => {
     try {
-      const response = await api.get(`/clients/${vendorId}/documents/${filename}`, {
-        responseType: 'blob'
-      });
+      let response;
+      
+      // If we have a file ID, use the files endpoint directly
+      if (fileId) {
+        response = await api.get(`/files/${fileId}`, {
+          responseType: 'blob'
+        });
+      } else {
+        // Fall back to client document endpoint
+        response = await api.get(`/clients/${vendorId}/documents/${encodeURIComponent(filename)}`, {
+          responseType: 'blob'
+        });
+      }
+      
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -379,6 +390,7 @@ const Vendors = () => {
       window.URL.revokeObjectURL(url);
       toast.success('Document downloaded');
     } catch (error) {
+      console.error('Download error:', error);
       toast.error('Failed to download document');
     }
   };
