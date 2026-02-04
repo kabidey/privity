@@ -27,6 +27,7 @@ from services.permission_service import (
     is_pe_level_dynamic,
     require_permission
 )
+from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(tags=["Clients"])
 
