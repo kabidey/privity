@@ -134,7 +134,11 @@ async def get_inventory(
 
 
 @router.get("/{stock_id}", response_model=InventoryModel)
-async def get_inventory_item(stock_id: str, current_user: dict = Depends(get_current_user)):
+async def get_inventory_item(
+    stock_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.view", "view inventory details"))
+):
     """Get inventory for a specific stock"""
     user_role = current_user.get("role", 6)
     is_pe = is_pe_level(user_role)
