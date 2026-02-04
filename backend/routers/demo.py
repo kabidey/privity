@@ -25,7 +25,7 @@ DEMO_USER = {
     "id": "demo_user_privity",
     "email": "demo@privity.com",
     "name": "Demo Employee",
-    "role": 5,  # Employee role for realistic demo
+    "role": 7,  # Employee role (Role 7 in PRIVITY)
     "role_name": "Employee (Demo)",
     "is_active": True,
     "is_demo": True,
