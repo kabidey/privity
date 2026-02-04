@@ -1394,6 +1394,20 @@ const Bookings = () => {
                                 </Button>
                               </>
                             )}
+                            {/* BP Override approval buttons */}
+                            {canApproveRevenueOverride && booking.is_bp_booking && booking.bp_override_approval_status === 'pending' && (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleOpenBpOverrideDialog(booking)}
+                                className="text-blue-600 border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950"
+                                title="Review BP Override"
+                                data-testid="review-bp-override-button"
+                              >
+                                <IndianRupee className="h-4 w-4 mr-1" />
+                                Review
+                              </Button>
+                            )}
                             {/* Regular booking approval buttons */}
                             {isPELevel && booking.approval_status === 'pending' && (
                               <>
