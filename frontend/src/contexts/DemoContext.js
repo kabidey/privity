@@ -266,12 +266,15 @@ export function DemoProvider({ children }) {
     completedTours,
     showWelcome,
     setShowWelcome,
+    exploredFeatures,
+    demoStartTime,
     enterDemoMode,
     exitDemoMode,
     startTour,
     completeTour,
     skipTour,
     resetDemoProgress,
+    trackFeatureExploration,
     tourSteps: currentTour ? TOUR_STEPS[currentTour] || [] : [],
   };
 
