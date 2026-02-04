@@ -534,7 +534,7 @@ const Login = () => {
                   </div>
                   {!isSuperAdmin && (
                     <div className="space-y-2">
-                      <Label htmlFor="pan_number">PAN Number <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="pan_number">Identification (PAN) <span className="text-red-500">*</span></Label>
                       <Input
                         id="pan_number"
                         data-testid="pan-input"
@@ -545,6 +545,21 @@ const Login = () => {
                         required={!isLogin && !isSuperAdmin}
                       />
                       <p className="text-xs text-muted-foreground">Required for identity verification</p>
+                    </div>
+                  )}
+                  {!isSuperAdmin && (
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile_number">Mobile Number <span className="text-red-500">*</span></Label>
+                      <Input
+                        id="mobile_number"
+                        data-testid="mobile-input"
+                        placeholder="9876543210"
+                        maxLength={10}
+                        value={formData.mobile_number}
+                        onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value.replace(/\D/g, '') })}
+                        required={!isLogin && !isSuperAdmin}
+                      />
+                      <p className="text-xs text-muted-foreground">For SMS/WhatsApp notifications</p>
                     </div>
                   )}
                 </>
