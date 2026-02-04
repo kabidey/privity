@@ -244,6 +244,15 @@ const Purchases = () => {
     }
   };
 
+  // Show loading while checking permissions
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="purchases-page">
       <div className="flex justify-between items-center mb-8">
