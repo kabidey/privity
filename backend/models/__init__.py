@@ -46,6 +46,7 @@ class User(BaseModel):
     pan_number: Optional[str] = None  # PAN number for conflict checks
     role: int
     role_name: str
+    permissions: List[str] = []  # User's effective permissions from their role
     created_at: str
     agreement_accepted: Optional[bool] = False
     agreement_accepted_at: Optional[str] = None
