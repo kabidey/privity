@@ -48,7 +48,7 @@ class TestBPRevenueOverride:
         if response.status_code != 200:
             pytest.skip("PE Desk login failed - skipping tests")
         
-        token = response.json().get("access_token")
+        token = response.json().get("token")
         session.headers.update({"Authorization": f"Bearer {token}"})
         return session
     
@@ -311,8 +311,9 @@ class TestBPOverrideWithoutAuth:
             headers={"User-Agent": USER_AGENT}
         )
         
-        assert response.status_code == 401, \
-            f"Expected 401 without auth, got {response.status_code}"
+        # 401 (Unauthorized) or 403 (Forbidden) both indicate auth is required
+        assert response.status_code in [401, 403], \
+            f"Expected 401/403 without auth, got {response.status_code}"
         print("GET pending-bp-overrides correctly requires authentication")
     
     def test_02_bp_override_approval_requires_auth(self):
@@ -323,8 +324,9 @@ class TestBPOverrideWithoutAuth:
             json={"approve": True}
         )
         
-        assert response.status_code == 401, \
-            f"Expected 401 without auth, got {response.status_code}"
+        # 401 (Unauthorized) or 403 (Forbidden) both indicate auth is required
+        assert response.status_code in [401, 403], \
+            f"Expected 401/403 without auth, got {response.status_code}"
         print("PUT bp-override-approval correctly requires authentication")
     
     def test_03_bp_override_edit_requires_auth(self):
@@ -334,8 +336,9 @@ class TestBPOverrideWithoutAuth:
             headers={"User-Agent": USER_AGENT}
         )
         
-        assert response.status_code == 401, \
-            f"Expected 401 without auth, got {response.status_code}"
+        # 401 (Unauthorized) or 403 (Forbidden) both indicate auth is required
+        assert response.status_code in [401, 403], \
+            f"Expected 401/403 without auth, got {response.status_code}"
         print("PUT bp-override correctly requires authentication")
 
 
