@@ -224,16 +224,13 @@ async def download_contract_note(
 @router.post("/preview/{booking_id}")
 async def preview_contract_note(
     booking_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.view", "preview contract note"))
 ):
     """
-    Preview contract note PDF without saving (PE Level only)
+    Preview contract note PDF without saving
     Returns PDF as stream
     """
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Access denied")
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
