@@ -72,16 +72,14 @@ async def get_file_stats(
 
 
 @router.get("/scan-missing")
-async def scan_missing_files(
-    current_user: dict = Depends(get_current_user)
+async def scan_missing_files_legacy(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("files.scan", "scan for missing files"))
 ):
     """
-    Scan database for references to files that are not in GridFS (PE Desk/Manager only).
+    Scan database for references to files that are not in GridFS (requires files.scan permission).
     Returns a list of entities with missing files that need re-upload.
     """
-    user_role = current_user.get("role", 6)
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Only PE Desk or PE Manager can scan for missing files")
     
     missing_files = []
     
