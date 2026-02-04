@@ -191,7 +191,12 @@ async def seed_admin_user():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    """Close database connection on shutdown"""
+    """Close database connection and scheduler on shutdown"""
+    # Shutdown scheduler
+    from services.scheduler_service import shutdown_scheduler
+    shutdown_scheduler()
+    
+    # Close database connection
     client.close()
 
 
