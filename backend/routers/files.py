@@ -319,10 +319,11 @@ async def delete_file(
 async def list_files(
     category: str,
     entity_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("files.view", "list files"))
 ):
     """
-    List all files in a category
+    List all files in a category (requires files.view permission)
     """
     files = await list_files_by_category(category, entity_id)
     return {"files": files, "count": len(files)}
