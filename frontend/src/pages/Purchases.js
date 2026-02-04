@@ -51,11 +51,11 @@ const Purchases = () => {
   const [paymentsDialog, setPaymentsDialog] = useState({ open: false, purchase: null, payments: [] });
   const [paymentsLoading, setPaymentsLoading] = useState(false);
 
-  const { isLoading, isAuthorized, isPEDesk, isPELevel, isFinance, canDelete, hasFinanceAccess } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk and PE Manager can access Purchases.'
+  const { isLoading, isAuthorized, isPEDesk, isPELevel, isFinance, canDelete, hasFinanceAccess, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('purchases.view'),
+    deniedMessage: 'Access denied. You need Purchases permission to access this page.'
   });
-  const canPay = isPELevel || isFinance; // PE Desk, PE Manager, and Finance can pay
+  const canPay = isPELevel || isFinance || hasPermission('purchases.record_payment'); // PE Desk, PE Manager, Finance, or users with record_payment permission
 
   // Fetch payments for a purchase
   const fetchPayments = async (purchase) => {

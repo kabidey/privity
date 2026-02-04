@@ -18,9 +18,9 @@ const PEDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [clearingCache, setClearingCache] = useState(false);
 
-  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk or PE Manager can view this dashboard.'
+  const { isLoading, isAuthorized, isPEDesk, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('dashboard.pe_view'),
+    deniedMessage: 'Access denied. You need PE Dashboard permission to view this page.'
   });
 
   useEffect(() => {

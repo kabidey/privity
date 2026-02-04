@@ -53,10 +53,15 @@ const Vendors = () => {
     bank_declaration: null,  // Required if proprietor with name mismatch
   });
 
-  const { isLoading, isAuthorized, isPEDesk, isPEManager, isPELevel } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk and PE Manager can manage vendors.'
+  const { isLoading, isAuthorized, isPEDesk, isPEManager, isPELevel, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('vendors.view'),
+    deniedMessage: 'Access denied. You need Vendors permission to access this page.'
   });
+  
+  // Permission-based action controls
+  const canCreateVendor = isPELevel || hasPermission('vendors.create');
+  const canEditVendor = isPELevel || hasPermission('vendors.edit');
+  const canDeleteVendor = isPELevel || hasPermission('vendors.delete');
 
   useEffect(() => {
     if (!isAuthorized) return;
