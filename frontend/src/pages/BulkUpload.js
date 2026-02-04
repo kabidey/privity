@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   Upload, 
   Download, 
@@ -24,7 +23,6 @@ import {
 } from 'lucide-react';
 
 const BulkUpload = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [stats, setStats] = useState({});
@@ -32,7 +30,10 @@ const BulkUpload = () => {
   const [activeTab, setActiveTab] = useState('clients');
   const fileInputRef = useRef(null);
 
-  const { user, isPEDesk } = useCurrentUser();
+  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
+    allowIf: ({ isPEDesk }) => isPEDesk,
+    deniedMessage: 'Access denied. Only PE Desk can access bulk upload.'
+  });
 
   const entityConfig = {
     clients: {
@@ -83,15 +84,9 @@ const BulkUpload = () => {
   };
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPEDesk) {
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchStats();
-  }, [user, isPEDesk]);
+  }, [isAuthorized]);
 
   const fetchStats = async () => {
     try {
