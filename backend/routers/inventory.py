@@ -273,7 +273,7 @@ async def update_landing_price(
 async def get_lp_history(
     stock_id: str,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("inventory.view", "view LP history"))
+    _: None = Depends(require_permission("inventory.view_lp_history", "view LP history"))
 ):
     """Get landing price history for a stock"""
     # Get LP history from dedicated collection
