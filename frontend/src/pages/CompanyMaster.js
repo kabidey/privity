@@ -68,19 +68,15 @@ const CompanyMaster = () => {
     pan_card: useRef(null)
   };
 
-  const { user, isPEDesk } = useCurrentUser();
+  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
+    allowIf: ({ isPEDesk }) => isPEDesk,
+    deniedMessage: 'Access denied. Only PE Desk can access Company Master settings.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPEDesk) {
-      toast.error('Access denied. Only PE Desk can access Company Master settings.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchCompanyMaster();
-  }, [user, isPEDesk, navigate]);
+  }, [isAuthorized]);
 
   const fetchCompanyMaster = async () => {
     try {
