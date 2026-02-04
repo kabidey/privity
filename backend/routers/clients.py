@@ -339,7 +339,10 @@ async def get_pending_clients(
     _: None = Depends(require_permission("client_approval.view", "view pending clients"))
 ):
     """Get clients pending approval (requires client_approval.view permission)."""
-    clients = await db.clients.find({"approval_status": "pending"}, {"_id": 0}).to_list(1000)
+    query = {"approval_status": "pending"}
+    # Add demo isolation filter
+    query = add_demo_filter(query, current_user)
+    clients = await db.clients.find(query, {"_id": 0}).to_list(1000)
     return [Client(**c) for c in clients]
 
 
@@ -353,6 +356,10 @@ async def get_client(
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Verify demo data access
+    require_demo_access(client, current_user)
+    
     return Client(**client)
 
 
