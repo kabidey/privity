@@ -80,40 +80,56 @@ Return ONLY a JSON object with keys: account_number, ifsc_code, bank_name, branc
 If any field is not visible, use null."""
 
         elif doc_type == "cml_copy":
-            prompt = """Extract the following information from this CML (Client Master List) copy:
+            prompt = """Extract the following information from this CML (Client Master List) copy.
 
-IMPORTANT FIELD IDENTIFICATION:
-- DP ID: This is the Depository Participant ID. Look for fields labeled "DP ID", "DP Id", "Depository Participant ID". It can be in formats like:
-  * Numeric only: 12024200
-  * With prefix: IN301629
-  * Combined: IN301629-10242225
-  
-- Client ID: This is the client-specific ID assigned by the DP. Look for fields labeled "Client ID", "Client Id", "CL ID". It's usually an 8-digit number like: 01126561
+STEP 1 - IDENTIFY CML TYPE:
+First, determine if this is a CDSL or NSDL CML:
+- **CDSL CML**: Will have "CDSL" logo/text, BO ID format like "1234567890123456" (16 digits), DP ID format like "12024200"
+- **NSDL CML**: Will have "NSDL" logo/text, DP ID format like "IN301629", Client ID format like "10242225"
 
-- BO ID: This is the Beneficiary Owner ID. It may look like: DLK7801. DO NOT confuse this with DP ID.
+STEP 2 - EXTRACT FIELDS BASED ON CML TYPE:
+
+For CDSL CML:
+- DP ID: Look for "DP ID" field (e.g., 12024200)
+- Client ID: Look for "Client ID" or "CL ID" field (e.g., 01126561)
+- BO ID: Look for "BO ID" - this is the 16-digit Beneficiary Owner ID
+
+For NSDL CML:
+- DP ID: Look for "DP ID" with "IN" prefix (e.g., IN301629)
+- Client ID: Look for "Client ID" (e.g., 10242225)
+- Full DP Client ID: Combined format like IN301629-10242225
+
+BANK ACCOUNT EXTRACTION (CRITICAL):
+CML documents may have MULTIPLE bank accounts listed. Extract the PRIMARY/DEFAULT bank account:
+- Look for "Default Bank Account", "Primary Bank", or the FIRST bank account listed
+- For CDSL: Bank details are usually in a table format with columns like "Bank Name", "Account No", "IFSC"
+- For NSDL: Look for "Bank Account Details" section
 
 Fields to extract:
-1. DP ID - The Depository Participant ID (NOT the BO ID)
-2. Client ID - The client-specific number (usually 8 digits)
-3. Full DP Client ID - Combination of DP ID + Client ID (e.g., 12024200-01126561)
-4. Client Name - IMPORTANT: This is the PRIMARY ACCOUNT HOLDER'S NAME (look for "First Holder Name", "Name", "Client Name"). Do NOT use "Father's Name" or "Guardian Name".
-5. PAN Number - 10 character alphanumeric (e.g., ARSPN7228G)
-6. Email Address
-7. Mobile Number
-8. Address (full address including city, state)
-9. Pin Code
-10. Bank Name
-11. Bank Account Number
-12. IFSC Code
-13. Branch Name
+1. cml_type - Either "CDSL" or "NSDL"
+2. dp_id - The Depository Participant ID
+3. client_id - The client-specific number
+4. bo_id - Beneficiary Owner ID (mainly for CDSL)
+5. full_dp_client_id - Combination of DP ID + Client ID
+6. client_name - PRIMARY ACCOUNT HOLDER'S NAME (NOT Father's/Guardian's name)
+7. pan_number - 10 character alphanumeric (e.g., ARSPN7228G)
+8. email - Email address
+9. mobile - Mobile number
+10. address - Full address including city, state
+11. pin_code - PIN code
+12. bank_name - Primary bank name
+13. account_number - Primary bank account number
+14. ifsc_code - IFSC code of the bank branch
+15. branch_name - Bank branch name
 
 CRITICAL RULES:
-- For dp_id: Extract ONLY the Depository Participant ID, NOT the BO ID
-- For client_id: Extract the client-specific ID (usually 8 digits starting with 0)
+- Identify CML type first (CDSL or NSDL)
 - For client_name: Use PRIMARY ACCOUNT HOLDER'S name, NOT father's/guardian's name
+- For bank details: Extract the PRIMARY/DEFAULT bank account, not secondary accounts
+- DO NOT confuse BO ID with DP ID or Client ID
 
-Return ONLY a JSON object with keys: dp_id, client_id, full_dp_client_id, client_name, pan_number, email, mobile, address, pin_code, bank_name, account_number, ifsc_code, branch_name
-If any field is not visible, use null. For full_dp_client_id, combine dp_id and client_id with a hyphen if they appear separately."""
+Return ONLY a JSON object with keys: cml_type, dp_id, client_id, bo_id, full_dp_client_id, client_name, pan_number, email, mobile, address, pin_code, bank_name, account_number, ifsc_code, branch_name
+If any field is not visible, use null."""
         else:
             prompt = "Extract all text and relevant information from this document. Return as JSON."
 
