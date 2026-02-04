@@ -113,7 +113,8 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
     ALL_PERMISSIONS = {
         "dashboard": ["view", "pe_view", "my_view"],
         "bookings": ["view", "view_all", "create", "edit", "delete", "approve", 
-                     "record_payment", "delete_payment", "export"],
+                     "record_payment", "delete_payment", "export",
+                     "override_revenue_share", "approve_revenue_override", "edit_revenue_override"],
         "clients": ["view", "create", "edit", "delete", "map", "upload_docs", "view_docs", "suspend"],
         "stocks": ["view", "create", "edit", "delete", "corporate_actions"],
         "inventory": ["view", "view_lp_change", "view_lp_history", "edit_landing_price", "recalculate", "delete"],
