@@ -314,6 +314,48 @@ const PEDashboard = () => {
         </CardContent>
       </Card>
 
+      {/* Scheduled Jobs */}
+      {scheduledJobs && (
+        <Card className="border-blue-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center justify-between text-lg">
+              <span className="flex items-center gap-2">
+                <CalendarClock className="w-5 h-5 text-blue-600" />
+                Scheduled Jobs
+              </span>
+              <Badge variant="outline" className="text-blue-600">
+                {scheduledJobs.timezone}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground mb-3">
+              Current time: {scheduledJobs.current_time_ist}
+            </p>
+            {scheduledJobs.jobs?.map((job) => (
+              <div key={job.id} className="flex items-center justify-between p-3 bg-blue-50/50 rounded-lg">
+                <div>
+                  <p className="font-medium">{job.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Next run: {new Date(job.next_run_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleTriggerJob(job.id)}
+                  disabled={triggeringJob}
+                  data-testid="trigger-job-btn"
+                >
+                  {triggeringJob ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 mr-1" />}
+                  Run Now
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Recent Pending Items */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Pending Bookings */}
