@@ -178,23 +178,48 @@ async def initialize_demo():
         await db.vendors.delete_many({"is_demo": True})
         await db.business_partners.delete_many({"is_demo": True})
         
-        # Generate and insert demo data
+        # Generate demo data
         clients = generate_demo_clients()
         stocks = generate_demo_stocks()
         bookings = generate_demo_bookings(clients, stocks)
         vendors = generate_demo_vendors()
         partners = generate_demo_business_partners()
         
-        if clients:
-            await db.clients.insert_many(clients)
-        if stocks:
-            await db.stocks.insert_many(stocks)
-        if bookings:
-            await db.bookings.insert_many(bookings)
-        if vendors:
-            await db.vendors.insert_many(vendors)
-        if partners:
-            await db.business_partners.insert_many(partners)
+        # Insert or update demo data using upsert to avoid duplicate key errors
+        for client in clients:
+            await db.clients.update_one(
+                {"id": client["id"]},
+                {"$set": client},
+                upsert=True
+            )
+        
+        for stock in stocks:
+            await db.stocks.update_one(
+                {"id": stock["id"]},
+                {"$set": stock},
+                upsert=True
+            )
+            
+        for booking in bookings:
+            await db.bookings.update_one(
+                {"id": booking["id"]},
+                {"$set": booking},
+                upsert=True
+            )
+            
+        for vendor in vendors:
+            await db.vendors.update_one(
+                {"id": vendor["id"]},
+                {"$set": vendor},
+                upsert=True
+            )
+            
+        for partner in partners:
+            await db.business_partners.update_one(
+                {"id": partner["id"]},
+                {"$set": partner},
+                upsert=True
+            )
         
         # Create access token for demo user
         token = create_token(
