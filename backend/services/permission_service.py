@@ -50,7 +50,7 @@ DEFAULT_ROLES = {
     5: {  # Partners Desk
         "name": "Partners Desk",
         "permissions": [
-            "dashboard.view", "bookings.view", "bookings.create",
+            "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "business_partners.*",
             "referral_partners.view", "revenue.rp_view"
         ]
@@ -58,14 +58,14 @@ DEFAULT_ROLES = {
     6: {  # Business Partner
         "name": "Business Partner",
         "permissions": [
-            "dashboard.view", "bookings.view", "bookings.create",
+            "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create"
         ]
     },
     7: {  # Employee
         "name": "Employee",
         "permissions": [
-            "dashboard.view", "bookings.view", "bookings.create",
+            "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "clients.edit",
             "stocks.view", "inventory.view", "revenue.rp_view",
             "revenue.employee_view", "revenue.team_view", "research.view"
