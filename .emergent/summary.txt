@@ -1,163 +1,135 @@
-<analysis>**original_problem_statement**: The user has requested a series of new features and modifications to an existing application.
+<analysis>**original_problem_statement**: The user wants to add a Demo Mode to the application. This mode is intended to be a learning tool for potential users, showcasing the platform's capabilities.
 
 **PRODUCT REQUIREMENTS**:
-1.  **BP Revenue Override**: Implement a complete feature for Business Partners (BP) and Partners Desk users to override revenue shares, with an approval workflow.
-2.  **Version & Changelog**: Increment the application version to  and update the changelog with all recent developments.
-3.  **PE Dashboard**: Add a widget to the PE Desk dashboard that shows a count of pending BP revenue overrides.
-4.  **Business Intelligence (BI)**:
-    *   Create a BI report builder menu for generating custom reports (Bookings, Clients, Revenue, etc.) with an Excel export option.
-    *   Implement granular, role-based permissions to control access to each specific report type within the BI module.
-5.  **WhatsApp Notifications**:
-    *   Create a WhatsApp notifications menu with a self-hosted QR code solution for API connection.
-    *   Implement granular, role-based permissions for managing WhatsApp features (e.g., view, manage templates, send messages).
-    *   Send activity alerts (e.g., booking creation/approval) to clients/users/BPs/RPs.
-    *   Send day-end revenue reports via WhatsApp to users and their managers, following the organizational hierarchy.
-6.  **User Management & Registration**:
-    *   Add a mandatory Mobile Number field to the user registration form for notifications.
-    *   Change the PAN field label to Identification.
-    *   Force existing users who log in without a mobile number to provide one via a modal.
-    *   During registration, send the temporary verification code to the user's email ONLY (not WhatsApp).
-7.  **Scheduler/Cron Job**:
-    *   Set up a scheduler to automatically trigger the day-end revenue reports at 6 PM IST.
-    *   Ensure the server time/scheduler operates in the IST timezone.
-    *   Provide a UI on the dashboard to view the scheduler's status and manually trigger it.
-8.  **Permissions UI**: Ensure all new permissions are visible and manageable in the Role Management UI.
+- A prominent Public Demo button on the login page with the slogan PRIVITY Demo - Run it to Learn it.
+- The demo should feature guided tours, video showcases for key workflows, and operate on fresh, demo-specific data.
+- The demo environment must be completely isolated from live production data and operations.
+- A Demo Progress Tracker should be implemented to gamify the experience, showing users which features they've explored and rewarding them with badges.
+- Upon exiting, all demo-related data should be cleaned up.
+- **Critical Bug**: It was discovered that the demo mode is incorrectly accessing and displaying live production data. This must be fixed immediately.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack web app using FastAPI (Python) for the backend and React for the frontend. The session successfully implemented a wide range of features, including the BP Revenue Override system, a new BI reporting module, a WhatsApp notification framework, and a scheduled job for day-end reports. All backend logic, API endpoints, and new frontend pages for these features have been created. Granular permissions for the new modules have been defined and integrated into the backend.
+A Demo Mode feature has been substantially implemented. It includes a Try PRIVITY Demo button on the login page which, when clicked, logs in a temporary Demo user. The demo environment features a custom tour component, a progress tracker with badges, a floating progress widget, and video animations for workflows. The backend has dedicated API endpoints () for initializing the demo session with seeded data, verifying data isolation, and cleaning up data upon exit.
+
+Previously, a significant effort was made to harden the application's security by auditing and applying granular Role-Based Access Control (RBAC) to numerous backend endpoints.
 
 **Last working item**:
-*   **Last item agent was working**: The agent was trying to resolve a critical bug where the **Role Management page () is not displaying the permission matrix**. The page is stuck in a loading state (Checking...), which prevents the user from assigning the newly created granular permissions for the BI and WhatsApp modules.
-*   **Status**: BLOCKED
-*   **Agent Testing Done**: Y (Agent confirmed the backend API  returns the correct data.)
-*   **Which testing method agent to use?**: Frontend testing agent
-*   **User Testing Done**: N
+-   **Last item agent was working**: Fixing a critical security flaw where the Demo Mode was accessing and displaying live production data. The agent began implementing a data isolation filter () and started applying it to the  and  API routers to segregate demo data from live data.
+-   **Status**: IN PROGRESS
+-   **Agent Testing Done**: N
+-   **Which testing method agent to use?**: backend testing agent. The agent must verify that API endpoints (e.g., , , ) return ONLY data marked with  when authenticated as a demo user. Conversely, it must also test that regular users cannot see any demo data.
+-   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
-*   **Issue 1**: Role Management UI Fails to Load/Display Permissions (Priority: P0)
+-   **Issue 1 (P0)**: Demo Mode is leaking live production data.
 
-**Issues Detail**:
-*   **Issue 1**:
-    *   **Attempted fixes**: The agent verified that the backend API () correctly returns the full list of permissions. The agent inspected the frontend code in  and suspects the issue is a race condition or a faulty loading state check ().
-    *   **Next debug checklist**:
-        1.  Examine the  hooks and state management within .
-        2.  Use browser developer tools to analyze network calls and component state (React DevTools).
-        3.  Refactor the component's loading logic to be more robust, ensuring all necessary data (user, roles, permissions) is fetched before attempting to render the matrix.
-    *   **Why fix this issue and what will be achieved with the fix?**: This is a critical blocker. Fixing it will make the newly implemented granular permission system for BI and WhatsApp modules usable by administrators, fulfilling a core user requirement.
-    *   **Status**: BLOCKED
-    *   **Is recurring issue?**: Y (This page has shown instability in previous steps).
-    *   **Should Test frontend/backend/both after fix?**: Frontend
-    *   **Blocked on other issue**: None
+    **Issues Detail**:
+    -   **Issue 1**: Demo Mode Data Leak
+        -   **Attempted fixes**: A  function was created in . The agent started applying this filter as a dependency to the  endpoints in the  and  routers. The logic to mark newly created client data with an  flag was also added.
+        -   **Next debug checklist**:
+            1.  Continue applying the  to **all** remaining data-retrieval endpoints across all relevant routers (, , , , , etc.).
+            2.  Ensure that endpoints for creating or modifying data (POST, PUT, PATCH) correctly add the  flag if the request is from a demo user.
+            3.  Implement the inverse logic to ensure regular users do not see data where .
+        -   **Why fix this issue and what will be achieved with the fix?**: This is a critical security and data privacy vulnerability. Fixing it will ensure complete separation between the demo environment and live production data, protecting sensitive user information.
+        -   **Status**: IN PROGRESS
+        -   **Is recurring issue?**: N
+        -   **Should Test frontend/backend/both after fix?**: both
+        -   **Blocked on other issue**: None
 
 **In progress Task List**:
-There are no in-progress tasks. All work is blocked by the pending issue above.
+-   **Task 1**: Complete Backend Data Isolation
+    -   **Where to resume**: The agent needs to audit all routers in  and apply the  from  to every endpoint that fetches lists or individual items of data. The agent just finished  and  and should proceed to other routers like , , etc.
+    -   **What will be achieved with this?**: This will plug the critical data leak and ensure the demo mode is securely isolated from production data.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
-*   **Upcoming Tasks**:
-    *   **Task 1 (P0)**: Fix the Role Management UI bug as detailed in the 'Pending Issue list'.
-*   **Future Tasks**:
-    *   **Task 1 (P2)**: Audit existing application endpoints and features to identify other areas that could be controlled by the role-based permission system to improve security and configurability.
+-   **Upcoming Tasks**:
+    -   **P0: Test Data Isolation**: After applying the filter everywhere, perform rigorous testing. Use the backend testing agent to create two test suites: one for a demo user (asserting only demo data is returned) and one for a regular user (asserting no demo data is returned).
+-   **Future Tasks**:
+    -   None. All user requirements for the demo mode will be met once the data isolation is fixed and verified.
 
 **Completed work in this session**
-*   **BP Revenue Share Override**: Fully implemented with backend endpoints, frontend UI, and permissions. (DONE)
-*   **Version and Changelog Update**: Version incremented to  and changelog updated. (DONE)
-*   **PE Dashboard Widgets**: Added Pending BP Overrides count and a Scheduler Status card. (DONE)
-*   **Business Intelligence Module**: Created the report builder with Excel export and granular backend permissions. (DONE)
-*   **WhatsApp Notification Module**: Created the management UI with a self-hosted QR solution and granular backend permissions. (DONE)
-*   **User Registration & Mobile Enforcement**: Updated registration form, changed PAN label, and implemented a modal to force mobile number updates for existing users. (DONE)
-*   **Activity & Revenue Alerts**: Created backend services for activity alerts and day-end revenue reports. (DONE)
-*   **Scheduler for Day-End Reports**: Implemented and configured a scheduler to run at 6 PM IST. (DONE)
+-   **RBAC Security Hardening**: Audited and applied granular permission checks () across a wide range of backend endpoints, including , , , , , , and partner management routes.
+-   **Role Management Page Verified**: Confirmed the Role Management page at  is fully functional. The initial bug report was due to using an incorrect URL. The UI for visual permissions was updated to show new permission categories.
+-   **Demo Mode Scaffolding**:
+    -   Implemented the core backend logic for demo session creation, data seeding, and data cleanup ().
+    -   Added the Try PRIVITY Demo button and its handler to the login page ().
+    -   Developed a suite of frontend components for the demo experience, including a top bar, progress tracker, floating widget, and video showcases ().
+    -   Created a  () to manage the demo state globally.
+    -   Modified the application to bypass the user agreement modal for demo users.
 
 **Earlier issues found/mentioned but not fixed**
-*   **Issue 1**: The Role Management page () has a recurring loading issue that was identified but not resolved. This is the main blocker for the next agent.
+-   None. The current critical issue is being actively addressed.
 
 **Known issue recurrence from previous fork**
-There was no previous fork summary provided, but the Role Management page has been unstable throughout this session, indicating it's likely a pre-existing issue.
+-   None. The Role Management page not loading issue from the previous handoff was investigated and determined to be a non-issue (user error).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-*   **Backend**: FastAPI, Pydantic, SQLAlchemy, JWT Authentication
-*   **Frontend**: React, Material-UI (MUI)
-*   **Database**: PostgreSQL
-*   **Asynchronous Tasks**:  for cron jobs, configured with  for IST timezone.
-*   **Permissions**: Custom Role-Based Access Control (RBAC) system.
+-   **Backend**: FastAPI with MongoDB (motor).
+-   **Frontend**: React 19, Vite, Tailwind CSS.
+-   **Authorization**: Custom Role-Based Access Control (RBAC) via FastAPI dependencies.
+-   **Demo Mode Isolation**: The strategy is to add an  flag to all relevant database documents. API calls are filtered based on this flag and the user's demo status.
 
 **key DB schema**
-*   **users**: {..., **mobile_number** (new), ...}
-*   **bookings**: {..., **bp_revenue_share_override**, **bp_override_approval_status**, ...}
+-   **clients**: 
+-   **bookings**: 
+-   **stocks**: 
+-   *(This pattern must be enforced on all data collections accessible in the demo)*
 
 **changes in tech stack**
-*   **Added**: , , , , .
+-   The  library was removed due to React 19 incompatibility and replaced with a custom-built tour component.
 
 **All files of reference**
-*   **Created**:
-    *   : Backend for BI reports.
-    *   : Backend for WhatsApp features.
-    *   , : Logic for sending alerts.
-    *   : Manages cron jobs.
-    *   , : New frontend pages.
-*   **Updated**:
-    *   : To initialize the scheduler.
-    *   : To add numerous granular permissions.
-    *   : For mobile number handling.
-    *   : For mobile number collection UI.
-    *   : To add new widgets.
-    *   , : To add new menu items and routes.
-
-**Areas that need refactoring**:
-*   : This component is unstable and requires a refactor of its data loading and state management logic to fix the persistent loading bug.
-
-**key api endpoints**
-*   : Returns all available permissions.
-*   : Endpoint for users to add their mobile number.
-*   : Returns accessible BI report types based on user permissions.
-*   : Returns accessible WhatsApp features based on user permissions.
-*   : Returns the status of scheduled jobs.
+-   : Contains the crucial  function that needs to be implemented across the backend.
+-   : Handles all backend logic for the demo mode lifecycle.
+-   , , , etc.: These files need to be modified to use the isolation filter.
+-   : Manages the frontend state for the demo.
+-   : Contains the entry point for the demo mode.
+-   : This new directory holds all the UI components specific to the demo feature.
 
 **Critical Info for New Agent**
-*   **Your primary task is to fix the Role Management page.** All backend work for permissions is complete, but the feature is unusable without the UI fix. The bug is in .
-*   The scheduler for day-end reports is configured for the **IST timezone ()** using  and .
-*   WhatsApp and Email services are currently mocked to print to logs. No live integration has been set up.
+-   Your immediate and highest priority task is to fix the critical security vulnerability where the demo mode leaks live data.
+-   The strategy is already defined: use the  from . You must systematically apply this filter to **every single API endpoint that retrieves data**.
+-   You also must ensure that any endpoint that **creates or updates** data correctly applies the  flag if the action is performed by a demo user.
+-   Do not waste time re-investigating the Role Management page; it has been thoroughly verified and is working correctly at the  URL.
 
 **documents and test reports created in this job**
-*    was updated to reflect completed features.
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (Msg 617):** Visual permission and permission matrix is not updated - **Status: IN PROGRESS / BLOCKED**. This is the current active issue.
-2.  **User (Msg 570):** Request to set up a cron job for 6 PM IST. - **Status: COMPLETED**.
-3.  **User (Msg 454):** Clarifications on OTP, alerts, and report timing. - **Status: COMPLETED**.
-4.  **User (Msg 452):** Request for mobile number on registration, alerts, and revenue reports. - **Status: COMPLETED**.
-5.  **User (Msg 327):** Request for granular BI permissions and report of missing WhatsApp permissions in UI. - **Status: Partially Completed** (Backend done, UI blocked).
-6.  **User (Msg 188):** Confirmation to proceed with implementation. - **Status: COMPLETED**.
-7.  **User (Msg 185):** Initial request for version update, widgets, BI, and WhatsApp features. - **Status: COMPLETED**.
-8.  **User (Msg 4):** Proceed. - **Status: N/A**.
-9.  **User (Msg 1):** Please use ask_human tool and confirm your plan now.. - **Status: N/A**.
+1.  : Create a Demo mode... - Initial feature request. (Completed)
+2.  : 1 Public demo button... - Provided specific design requirements. (Completed)
+3.  : Audit other endpoints... - Request to harden security. (Completed)
+4.  : Visual permission and permission matrix needs updation... - UI update request. (Completed)
+5.  : Create a Demo mode... - Re-initiated demo work. (Completed)
+6.  : 1 Public demo button... - Re-confirmed demo requirements. (Completed)
+7.  : Consider adding video animations... - Requested feature enhancement. (Completed)
+8.  : Demo Progress Tracker... - Requested gamification feature. (Completed)
+9.  : Demo is using live data from the live app, it should not use live data from the live app - **CRITICAL BUG REPORTED. This is the pending and active request.** (In Progress)
 
 **Project Health Check:**
-*   **Broken**:
-    *   : The page content fails to load, preventing adminisitrators from assigning permissions.
-*   **Mocked**:
-    *   Email and WhatsApp notification services currently log to the console instead of using a live provider.
+-   **Broken**: The data isolation for the demo mode is critically broken, creating a severe data leak risk.
 
 **3rd Party Integrations**
-*   **APScheduler**: For scheduling background jobs.
-*   **pytz**: For timezone management (IST).
-*   **pandas, openpyxl**: For Excel report generation in the BI module.
-*   **qrcode**: For generating QR codes for WhatsApp setup.
-*   None of these integrations require user-provided API keys.
+-   None added during this session.
 
 **Testing status**
-*   **Testing agent used after significant changes**: YES
-*   **Troubleshoot agent used after agent stuck in loop**: NO
-*   **Test files created**: None
-*   **Known regressions**: The Role Management page is non-functional, which is a major regression or a newly surfaced critical bug.
+-   **Testing agent used after significant changes**: NO
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: None
+-   **Known regressions**: The demo mode exposes live production data.
 
 **Credentials to test flow:**
-Use the standard admin credentials for login. Testing the new permissions will require fixing the Role Management page first.
+-   **Demo User**: Navigate to the login page and click the Try PRIVITY Demo button.
+-   **Standard User**: Use credentials like  /  to log in as a regular user with permissions.
 
 **What agent forgot to execute**
-The agent implemented all functional requirements but failed to fix the critical bug on the Role Management page, leaving the entire permissions feature unusable from the UI.</analysis>
+-   The agent correctly identified the critical data leak but only began the fix. The  must be applied comprehensively to **all** data-fetching and data-creation endpoints, not just the initial ones (, ). This complete rollout was not finished.</analysis>
