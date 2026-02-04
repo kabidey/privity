@@ -295,15 +295,43 @@ const Inventory = () => {
             <span><strong>WAP</strong> = Weighted Average Price (actual cost)</span>
             <span><strong>LP</strong> = Landing Price (shown to users, used for booking)</span>
             <span className="text-amber-700"><strong>HIT</strong> = (LP - WAP) × Qty (PE margin)</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-4 h-4 bg-green-100 border border-green-300 rounded"></span> LP Increased</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-4 h-4 bg-red-100 border border-red-300 rounded"></span> LP Decreased</span>
           </div>
         </div>
       )}
 
       <Card className="border shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <span>Stock Inventory</span>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Sort Controls */}
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[160px] h-9">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="stock_symbol">Stock Name</SelectItem>
+                    <SelectItem value="available_quantity">Quantity</SelectItem>
+                    <SelectItem value="has_inventory">Has Inventory</SelectItem>
+                    <SelectItem value="landing_price">Landing Price</SelectItem>
+                    <SelectItem value="lp_change">LP Change</SelectItem>
+                    <SelectItem value="total_value">Total Value</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  className="h-9 px-2"
+                >
+                  {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
+                </Button>
+              </div>
+              
               {isPEDesk && (
                 <Button
                   onClick={handleRecalculateInventory}
