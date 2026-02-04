@@ -387,13 +387,10 @@ async def send_contract_note_email(
 @router.get("/by-booking/{booking_id}")
 async def get_contract_note_by_booking(
     booking_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.view", "view contract note by booking"))
 ):
     """Get contract note for a specific booking"""
-    user_role = current_user.get("role", 6)
-    
-    if not is_pe_level(user_role):
-        raise HTTPException(status_code=403, detail="Access denied")
     
     note = await db.contract_notes.find_one({"booking_id": booking_id}, {"_id": 0})
     
