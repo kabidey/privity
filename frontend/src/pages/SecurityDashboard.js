@@ -497,7 +497,7 @@ const SecurityDashboard = () => {
         <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
         <p className="text-gray-500">{error}</p>
-        <Button className="mt-4" onClick={() => navigate('/')}>Go to Dashboard</Button>
+        <Button className="mt-4" onClick={() => window.location.href = '/'}>Go to Dashboard</Button>
       </div>
     );
   }
