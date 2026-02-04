@@ -230,7 +230,7 @@ const RoleManagement = () => {
     const perms = role.permissions || [];
     const hasAll = perms.includes('*');
     
-    // Map categories to their display info
+    // Map categories to their display info - includes all permission categories from backend
     const categoryInfo = {
       dashboard: { icon: '📊', label: 'Dashboard', color: 'bg-blue-100 text-blue-800' },
       bookings: { icon: '📝', label: 'Bookings', color: 'bg-green-100 text-green-800' },
@@ -247,7 +247,7 @@ const RoleManagement = () => {
       roles: { icon: '🔐', label: 'Roles', color: 'bg-amber-100 text-amber-800' },
       business_partners: { icon: '🤝', label: 'Business Partners', color: 'bg-lime-100 text-lime-800' },
       referral_partners: { icon: '🔗', label: 'Referral Partners', color: 'bg-sky-100 text-sky-800' },
-      reports: { icon: '📊', label: 'Reports', color: 'bg-fuchsia-100 text-fuchsia-800' },
+      reports: { icon: '📊', label: 'Reports & BI', color: 'bg-fuchsia-100 text-fuchsia-800' },
       dp: { icon: '🏦', label: 'DP Operations', color: 'bg-stone-100 text-stone-800' },
       email: { icon: '📧', label: 'Email', color: 'bg-red-100 text-red-800' },
       company: { icon: '🏢', label: 'Company Master', color: 'bg-blue-100 text-blue-800' },
@@ -256,6 +256,9 @@ const RoleManagement = () => {
       bulk_upload: { icon: '📤', label: 'Bulk Upload', color: 'bg-zinc-100 text-zinc-800' },
       research: { icon: '🔬', label: 'Research', color: 'bg-neutral-100 text-neutral-800' },
       license: { icon: '🔑', label: 'License', color: 'bg-amber-100 text-amber-800' },
+      // New categories added for RBAC audit
+      files: { icon: '📁', label: 'File Management', color: 'bg-orange-100 text-orange-800' },
+      notifications: { icon: '🔔', label: 'Notifications & WhatsApp', color: 'bg-green-100 text-green-800' },
     };
     
     if (hasAll) {
