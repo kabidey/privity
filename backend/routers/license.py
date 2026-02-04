@@ -142,3 +142,24 @@ async def revoke_active_license(
         raise HTTPException(status_code=400, detail=result["message"])
     
     return result
+
+
+@router.post("/check-expiry", dependencies=[Depends(require_permission("security.manage_license", "manage license notifications"))])
+async def trigger_license_expiry_check(current_user: dict = Depends(get_current_user)):
+    """
+    Manually trigger license expiry check and send notifications if needed.
+    PE Desk only.
+    """
+    if current_user.get("role") != 1:
+        raise HTTPException(status_code=403, detail="Only PE Desk can trigger license checks")
+    
+    from services.license_service import send_license_expiry_notifications
+    result = await send_license_expiry_notifications()
+    
+    return {
+        "success": True,
+        "notifications_sent": result.get("sent", 0),
+        "days_remaining": result.get("days_remaining"),
+        "status": result.get("status"),
+        "message": f"Check complete. {result.get('sent', 0)} notification(s) sent."
+    }
