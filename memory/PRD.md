@@ -37,6 +37,51 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 04, 2026)
 
+#### ✅ BP Revenue Share Override Feature - COMPLETED (Feb 04, 2026)
+**Request**: Allow Business Partners and Partners Desk users to request a lower revenue share percentage when creating bookings. These overrides require approval from PE Desk.
+
+**Implementation**:
+
+**Backend API Endpoints**:
+| Endpoint | Method | Permission | Description |
+|----------|--------|------------|-------------|
+| `/api/bookings/pending-bp-overrides` | GET | `bookings.approve_revenue_override` | List all bookings with pending BP overrides |
+| `/api/bookings/{id}/bp-override-approval` | PUT | `bookings.approve_revenue_override` | Approve or reject a BP override |
+| `/api/bookings/{id}/bp-override` | PUT | `bookings.edit_revenue_override` | Edit BP override percentage |
+
+**New Permissions Added**:
+- `bookings.override_revenue_share` - Allows BP/Partners Desk to request overrides (default: Business Partner, Partners Desk)
+- `bookings.approve_revenue_override` - Allows PE Desk to approve/reject overrides (default: PE Desk)
+- `bookings.edit_revenue_override` - Allows editing of overrides (default: PE Desk)
+
+**Database Schema Updates** (`bookings` collection):
+```javascript
+{
+  bp_revenue_share_override: Number,        // Requested override percentage
+  bp_original_revenue_share: Number,        // Original BP share for reference
+  bp_override_approval_status: String,      // "pending", "approved", "rejected", "not_required"
+  bp_override_approved_by: String,          // User ID who approved/rejected
+  bp_override_approved_at: Date,            // Timestamp of approval/rejection
+  bp_override_rejection_reason: String      // Reason if rejected
+}
+```
+
+**Frontend Changes**:
+- **BP Override Input**: Added input field in booking form for BP/Partners Desk users with `bookings.override_revenue_share` permission
+- **BP Overrides Tab**: New tab in Bookings page (visible when user has `bookings.approve_revenue_override` permission and pending overrides exist)
+- **Approval Dialog**: Modal dialog showing booking details, original vs requested share, approve/reject buttons
+- **Status Badges**: Visual indicators in booking table showing override status (Pending/Approved/Rejected)
+
+**Files Modified**:
+- `backend/routers/bookings.py` - Added 3 new endpoints
+- `backend/routers/roles.py` - Added permissions to DEFAULT_ROLES
+- `backend/services/permission_service.py` - Added to ALL_PERMISSIONS
+- `frontend/src/pages/Bookings.js` - Added override input, tab, dialog, badges
+
+**Testing**: 16/16 backend tests passed, 100% frontend verification ✅
+
+---
+
 #### ✅ Permission-Based Page Access Control - COMPLETED (Feb 04, 2026)
 **Issue**: Pages were checking only for `isPELevel` or `isPEDesk` roles, preventing users with specific permissions from accessing features they should have access to.
 
