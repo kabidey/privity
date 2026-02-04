@@ -759,17 +759,17 @@ const Login = () => {
                   <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   <div className="text-left">
                     <div className="flex items-center gap-2">
-                      <span>Try PRIVITY Demo</span>
+                      <span>Try Employee Demo</span>
                       <Sparkles className="w-4 h-4" />
                     </div>
-                    <p className="text-xs font-normal opacity-90">Run it to Learn it</p>
+                    <p className="text-xs font-normal opacity-90">Experience the Employee workflow</p>
                   </div>
                 </>
               )}
             </button>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-2">
-            No login required • Explore all features with sample data
+            No login required • Explore features with sample data
           </p>
         </div>
       </div>
