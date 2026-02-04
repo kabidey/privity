@@ -270,10 +270,18 @@ class TestRoleManagementSystem:
     
     def test_11_login_as_test_user_and_verify_permissions(self):
         """Login as test user and verify permissions in token response"""
+        global _token_cache
         if not hasattr(self.__class__, 'test_user_email'):
             self.test_08_create_test_user()
             self.test_09_assign_custom_role_to_user()
         
+        # Check if we already have the token cached
+        if 'test_user_token' in _token_cache:
+            self.__class__.test_user_token = _token_cache['test_user_token']
+            print("✓ Using cached test user token")
+            return
+        
+        time.sleep(2)  # Delay to avoid rate limiting
         response = self.session.post(f"{BASE_URL}/api/auth/login", json={
             "email": self.__class__.test_user_email,
             "password": self.__class__.test_user_password
@@ -289,6 +297,7 @@ class TestRoleManagementSystem:
         assert "bookings.view" in permissions, "Login should return bookings.view permission"
         
         self.__class__.test_user_token = data["token"]
+        _token_cache['test_user_token'] = data["token"]
         print(f"✓ Test user logged in with permissions: {permissions}")
     
     def test_12_auth_me_returns_fresh_permissions(self):
