@@ -1339,6 +1339,25 @@ const Bookings = () => {
                             {getClientConfirmationBadge(booking)}
                             {booking.client_confirmation_status === 'accepted' && getApprovalBadge(booking.approval_status)}
                             {getLossApprovalBadge(booking)}
+                            {/* BP Override Status Badge */}
+                            {booking.is_bp_booking && booking.bp_override_approval_status === 'pending' && (
+                              <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                <IndianRupee className="h-3 w-3 mr-1" />
+                                Override: {booking.bp_revenue_share_override}% (Pending)
+                              </Badge>
+                            )}
+                            {booking.is_bp_booking && booking.bp_override_approval_status === 'approved' && booking.bp_revenue_share_override !== null && (
+                              <Badge className="bg-emerald-100 text-emerald-800 text-xs">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Override: {booking.bp_revenue_share_override}% (Approved)
+                              </Badge>
+                            )}
+                            {booking.is_bp_booking && booking.bp_override_approval_status === 'rejected' && (
+                              <Badge className="bg-red-100 text-red-800 text-xs" title={booking.bp_override_rejection_reason}>
+                                <XCircle className="h-3 w-3 mr-1" />
+                                Override Rejected
+                              </Badge>
+                            )}
                             {booking.client_confirmation_status === 'denied' && booking.client_denial_reason && (
                               <span className="text-xs text-red-600" title={booking.client_denial_reason}>
                                 Reason: {booking.client_denial_reason.substring(0, 20)}...
