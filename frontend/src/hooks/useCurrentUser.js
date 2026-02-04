@@ -65,8 +65,24 @@ export function useCurrentUser() {
       }
     };
     
+    // Listen for custom event to refresh user permissions
+    const handlePermissionsRefresh = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch (e) {
+          console.error('Failed to parse user data');
+        }
+      }
+    };
+    
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('permissionsRefresh', handlePermissionsRefresh);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('permissionsRefresh', handlePermissionsRefresh);
+    };
   }, []);
   
   const role = user?.role || 7; // Default to Employee
