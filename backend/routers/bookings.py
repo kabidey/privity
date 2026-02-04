@@ -732,6 +732,31 @@ async def void_booking(
                 }
             )
     
+    # Send voided booking notification email to client
+    client = await db.clients.find_one({"id": booking["client_id"]}, {"_id": 0})
+    stock = await db.stocks.find_one({"id": booking["stock_id"]}, {"_id": 0})
+    
+    if client and client.get("email"):
+        try:
+            await send_templated_email(
+                "booking_voided",
+                client["email"],
+                {
+                    "client_name": client.get("name", "Valued Customer"),
+                    "booking_number": booking.get("booking_number", booking_id),
+                    "stock_symbol": stock.get("symbol", "Unknown") if stock else "Unknown",
+                    "stock_name": stock.get("name", "") if stock else "",
+                    "quantity": str(booking.get("quantity", 0)),
+                    "booking_date": booking.get("created_at", "")[:10] if booking.get("created_at") else "",
+                    "voided_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                    "voided_by": current_user.get("name", "PE Desk"),
+                    "void_reason": reason
+                }
+            )
+        except Exception as e:
+            import logging
+            logging.error(f"Failed to send voided booking email: {e}")
+    
     # Create audit log
     await create_audit_log(
         action="BOOKING_VOID",
