@@ -56,15 +56,30 @@ def generate_demo_clients():
     for i, (name, pan, email, mobile) in enumerate(client_names):
         clients.append({
             "id": f"demo_client_{i+1}",
+            "otc_ucc": f"DEMO-OTC{i+1:04d}",
             "name": name,
-            "pan": pan,
+            "pan_number": pan,  # Correct field name
             "email": email,
             "mobile": mobile,
-            "status": "approved",
+            "phone": mobile,
+            "dp_id": f"IN30001{i+1:05d}",
+            "dp_type": "NSDL",
+            "address": f"{random.randint(1, 500)}, Demo Street, Mumbai, MH",
+            "pin_code": f"40000{i+1}",
+            "is_vendor": False,
+            "is_active": True,
+            "is_suspended": False,
+            "bank_accounts": [],
+            "documents": [],
             "approval_status": "approved",
+            "approved_by": DEMO_USER["id"],
+            "approved_at": datetime.utcnow().isoformat(),
             "kyc_status": "verified",
             "client_type": random.choice(["individual", "corporate"]),
-            "created_at": datetime.utcnow() - timedelta(days=random.randint(30, 365)),
+            "mapped_employee_id": DEMO_USER["id"],
+            "mapped_employee_name": DEMO_USER["name"],
+            "created_by": DEMO_USER["id"],
+            "created_at": (datetime.utcnow() - timedelta(days=random.randint(30, 365))).isoformat(),
             "is_demo": True,
         })
     return clients
