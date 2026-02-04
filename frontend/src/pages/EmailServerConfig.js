@@ -38,9 +38,9 @@ const EmailServerConfig = () => {
     last_test_result: null
   });
 
-  const { isLoading, isAuthorized, isPELevel } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Level users can configure email settings.'
+  const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('email.server_config'),
+    deniedMessage: 'Access denied. You need Email Server Configuration permission to access this page.'
   });
 
   useEffect(() => {

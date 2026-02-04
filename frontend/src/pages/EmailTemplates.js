@@ -26,9 +26,9 @@ const EmailTemplates = () => {
   });
   const [previewVariables, setPreviewVariables] = useState({});
 
-  const { isLoading, isAuthorized } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk or PE Manager can manage email templates.'
+  const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('email.view_templates'),
+    deniedMessage: 'Access denied. You need Email Templates permission to access this page.'
   });
 
   useEffect(() => {
