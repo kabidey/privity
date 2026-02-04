@@ -1083,9 +1083,10 @@ async def download_backup(
 async def restore_from_file(
     file: UploadFile = File(...),
     restore_files: bool = True,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.restore", "restore database from file"))
 ):
-    """Restore database from an uploaded ZIP backup file (PE Desk only - restore restricted)
+    """Restore database from an uploaded ZIP backup file (requires database_backup.restore permission)
     
     Args:
         file: The ZIP backup file to restore from
@@ -1093,8 +1094,6 @@ async def restore_from_file(
     
     WARNING: This will replace existing data in the selected collections and uploaded files!
     """
-    if not is_pe_desk_only(current_user.get("role", 6)):
-        raise HTTPException(status_code=403, detail="Only PE Desk can restore database")
     
     # Validate file type
     if not file.filename.endswith('.zip'):
