@@ -241,8 +241,20 @@ AVAILABLE_PERMISSIONS = {
         "permissions": [
             {"key": "security.view_dashboard", "name": "View Security Dashboard", "description": "View security events and alerts"},
             {"key": "security.view_audit", "name": "View Audit Trail", "description": "View audit logs"},
+            {"key": "security.view_threats", "name": "View Threats", "description": "View security threat logs and blocked IPs"},
+            {"key": "security.manage_threats", "name": "Manage Threats", "description": "Clear/manage threat records"},
             {"key": "security.manage_2fa", "name": "Manage 2FA", "description": "Manage two-factor authentication"},
             {"key": "security.kill_switch", "name": "Kill Switch", "description": "Emergency system freeze"},
+        ]
+    },
+    "files": {
+        "name": "File Management",
+        "permissions": [
+            {"key": "files.view", "name": "View Files", "description": "View and download uploaded files"},
+            {"key": "files.view_stats", "name": "View File Stats", "description": "View storage statistics"},
+            {"key": "files.upload", "name": "Upload Files", "description": "Upload new files to the system"},
+            {"key": "files.delete", "name": "Delete Files", "description": "Delete uploaded files"},
+            {"key": "files.scan", "name": "Scan Files", "description": "Scan for missing files and re-upload"},
         ]
     },
     "database": {
