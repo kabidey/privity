@@ -61,7 +61,13 @@ const Bookings = () => {
     booking_type: 'client',  // client, team, own
     referral_partner_id: '',
     rp_revenue_share_percent: '',
+    bp_revenue_share_override: '',  // BP revenue share override (for BP/Partners Desk)
   });
+  const [pendingBpOverrides, setPendingBpOverrides] = useState([]); // Bookings with pending BP overrides
+  const [bpOverrideDialogOpen, setBpOverrideDialogOpen] = useState(false);
+  const [selectedBpOverrideBooking, setSelectedBpOverrideBooking] = useState(null);
+  const [bpOverrideRejectionReason, setBpOverrideRejectionReason] = useState('');
+  const [processingBpOverride, setProcessingBpOverride] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     payment_date: new Date().toISOString().split('T')[0],
