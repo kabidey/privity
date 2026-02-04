@@ -183,10 +183,6 @@ async def has_permission(user: dict, permission: str) -> bool:
     if role_id == 1:
         return True
     
-    # Demo user has full permissions for demo experience
-    if user.get("is_demo") == True or user.get("id") == "demo_user_privity":
-        return True
-    
     # Get role-level permissions
     raw_permissions = await get_role_permissions(role_id)
     
