@@ -29,7 +29,13 @@ const Login = () => {
     password: '',
     name: '',
     pan_number: '',
+    mobile_number: '',
   });
+  
+  // Mobile number required modal state
+  const [mobileRequired, setMobileRequired] = useState(false);
+  const [mobileUpdateNumber, setMobileUpdateNumber] = useState('');
+  const [updatingMobile, setUpdatingMobile] = useState(false);
   
   // CAPTCHA state
   const [captchaRequired, setCaptchaRequired] = useState(false);
