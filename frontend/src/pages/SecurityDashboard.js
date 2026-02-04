@@ -733,6 +733,11 @@ const SecurityDashboard = () => {
           </Card>
         </TabsContent>
 
+        {/* License Tab */}
+        <TabsContent value="license" className="space-y-4">
+          <LicenseManagement />
+        </TabsContent>
+
         {/* Management Tab */}
         <TabsContent value="management" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
