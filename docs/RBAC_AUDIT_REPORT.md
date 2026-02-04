@@ -8,7 +8,7 @@ Audited all 35 backend routers for permission control gaps. Identified 65+ endpo
 
 ## Implementation Status
 
-### ✅ IMPLEMENTED (Phase 1 - Feb 05, 2026)
+### ✅ IMPLEMENTED (Phase 1-3 - Feb 05, 2026)
 
 | Router | Endpoint | Permission Added |
 |--------|----------|-----------------|
@@ -23,6 +23,14 @@ Audited all 35 backend routers for permission control gaps. Identified 65+ endpo
 | `contract_notes.py` | `POST /contract-notes/send-email/{id}` | `contract_notes.send` |
 | `contract_notes.py` | `GET /contract-notes/by-booking/{id}` | `contract_notes.view` |
 | `contract_notes.py` | `POST /contract-notes/regenerate/{id}` | `contract_notes.generate` |
+| `database_backup.py` | `POST /restore-from-file` | `database_backup.restore` |
+| `files.py` | `GET /scan-missing` | `files.scan` |
+| `files.py` | `POST /upload` | `files.upload` |
+| `files.py` | `DELETE /{file_id}` | `files.delete` |
+| `files.py` | `GET /list/{category}` | `files.view` |
+| `files.py` | `GET /scan/missing` | `files.scan` |
+| `referral_partners.py` | `GET /referral-partners-approved` | `referral_partners.view` |
+| `dashboard.py` | `POST /unblock-ip` | `security.manage_threats` |
 
 ### ✅ NEW PERMISSIONS ADDED TO SYSTEM
 
