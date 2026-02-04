@@ -310,7 +310,7 @@ const WhatsAppNotifications = () => {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              {isConnected && (
+              {isConnected && canConnect && (
                 <div className="flex items-center gap-2">
                   <Label>Notifications</Label>
                   <Switch
@@ -319,16 +319,18 @@ const WhatsAppNotifications = () => {
                   />
                 </div>
               )}
-              {isConnected ? (
-                <Button variant="destructive" onClick={handleDisconnect}>
-                  <Unlink className="w-4 h-4 mr-2" />
-                  Disconnect
-                </Button>
-              ) : (
-                <Button onClick={handleGenerateQR} disabled={connecting} className="bg-green-600 hover:bg-green-700">
-                  {connecting ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <QrCode className="w-4 h-4 mr-2" />}
-                  Connect WhatsApp
-                </Button>
+              {canConnect && (
+                isConnected ? (
+                  <Button variant="destructive" onClick={handleDisconnect}>
+                    <Unlink className="w-4 h-4 mr-2" />
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button onClick={handleGenerateQR} disabled={connecting} className="bg-green-600 hover:bg-green-700">
+                    {connecting ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <QrCode className="w-4 h-4 mr-2" />}
+                    Connect WhatsApp
+                  </Button>
+                )
               )}
             </div>
           </div>
