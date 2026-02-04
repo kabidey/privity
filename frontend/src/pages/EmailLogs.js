@@ -33,10 +33,13 @@ const EmailLogs = () => {
   });
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
 
-  const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
+  const { isLoading, isAuthorized, hasPermission, isPEDesk } = useProtectedPage({
     allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('email.view_logs'),
     deniedMessage: 'Access denied. You need Email Logs permission to view this page.'
   });
+  
+  // Permission check for cleanup (destructive action)
+  const canCleanupLogs = isPEDesk;
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -194,7 +197,7 @@ const EmailLogs = () => {
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          {isPEDesk && (
+          {canCleanupLogs && (
             <Button variant="destructive" onClick={handleCleanup}>
               <Trash2 className="w-4 h-4 mr-2" />
               Cleanup Old Logs

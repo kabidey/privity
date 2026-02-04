@@ -40,10 +40,14 @@ const ContractNotes = () => {
   });
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
 
-  const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
+  const { isLoading, isAuthorized, hasPermission, isPEDesk } = useProtectedPage({
     allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('contract_notes.view'),
     deniedMessage: 'Access denied. You need Contract Notes permission to view this page.'
   });
+  
+  // Permission-based action controls
+  const canSendNotes = isPEDesk || hasPermission('contract_notes.send');
+  const canRegenerateNotes = isPEDesk || hasPermission('contract_notes.generate');
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -384,7 +388,7 @@ const ContractNotes = () => {
                               <Mail className="w-4 h-4" />
                             </Button>
                           )}
-                          {isPEDesk && (
+                          {canRegenerateNotes && (
                             <Button
                               variant="ghost"
                               size="sm"
