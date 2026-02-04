@@ -277,14 +277,18 @@ const BIReports = () => {
         <div className="flex gap-2">
           {reportData && (
             <>
-              <Button variant="outline" onClick={() => setSaveDialogOpen(true)}>
-                <Save className="w-4 h-4 mr-2" />
-                Save Template
-              </Button>
-              <Button onClick={handleExport} disabled={exporting} className="bg-green-600 hover:bg-green-700">
-                {exporting ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-                Export Excel
-              </Button>
+              {canSaveTemplates && (
+                <Button variant="outline" onClick={() => setSaveDialogOpen(true)}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Template
+                </Button>
+              )}
+              {canExport && (
+                <Button onClick={handleExport} disabled={exporting} className="bg-green-600 hover:bg-green-700">
+                  {exporting ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                  Export Excel
+                </Button>
+              )}
             </>
           )}
         </div>
