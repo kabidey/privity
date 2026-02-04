@@ -1547,6 +1547,9 @@ async def get_booking(
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
+    # Verify demo data access
+    require_demo_access(booking, current_user)
+    
     # Employee can only view their own bookings
     user_role = current_user.get("role", 5)
     if user_role == 4 and booking.get("created_by") != current_user["id"]:
