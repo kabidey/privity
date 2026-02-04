@@ -228,13 +228,8 @@ async def initialize_demo():
         
         # Create access token for demo user
         token = create_token(
-            data={
-                "sub": DEMO_USER["email"],
-                "user_id": DEMO_USER["id"],
-                "role": DEMO_USER["role"],
-                "name": DEMO_USER["name"],
-                "is_demo": True,
-            }
+            user_id=DEMO_USER["id"],
+            email=DEMO_USER["email"]
         )
         
         return {
