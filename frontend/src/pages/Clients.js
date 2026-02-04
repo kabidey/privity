@@ -1593,7 +1593,7 @@ const Clients = () => {
                     <TableHead className="text-xs uppercase hidden md:table-cell">DP Type</TableHead>
                     <TableHead className="text-xs uppercase hidden lg:table-cell">Mobile</TableHead>
                     <TableHead className="text-xs uppercase">Status</TableHead>
-                    <TableHead className="text-xs uppercase hidden lg:table-cell">Mapped To</TableHead>
+                    <TableHead className="text-xs uppercase">Mapped To</TableHead>
                     <TableHead className="text-xs uppercase">Can Book</TableHead>
                     <TableHead className="text-xs uppercase hidden md:table-cell">Banks</TableHead>
                     <TableHead className="text-xs uppercase hidden md:table-cell">Docs</TableHead>
