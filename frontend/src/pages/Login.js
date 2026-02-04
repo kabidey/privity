@@ -330,6 +330,31 @@ const Login = () => {
     }
   };
 
+  // Handle Demo Mode
+  const handleStartDemo = async () => {
+    setDemoLoading(true);
+    try {
+      const response = await api.post('/demo/init');
+      if (response.data.success) {
+        // Store demo token
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('demo_token', 'true');
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Enter demo mode context
+        enterDemoMode();
+        
+        toast.success('Demo mode activated! Explore PRIVITY features.');
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Demo init error:', error);
+      toast.error('Failed to start demo mode. Please try again.');
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left Side - Image (hidden on mobile) */}
