@@ -92,6 +92,287 @@ const RISK_BG = {
 // Chart color palette
 const CHART_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+// License Management Component
+const LicenseManagement = () => {
+  const [licenseStatus, setLicenseStatus] = useState(null);
+  const [licenseHistory, setLicenseHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [activating, setActivating] = useState(false);
+  const [newLicenseKey, setNewLicenseKey] = useState('');
+  const [generatedLicense, setGeneratedLicense] = useState(null);
+  const [durationDays, setDurationDays] = useState('365');
+
+  useEffect(() => {
+    fetchLicenseData();
+  }, []);
+
+  const fetchLicenseData = async () => {
+    try {
+      setLoading(true);
+      const [statusRes, historyRes] = await Promise.all([
+        api.get('/license/status'),
+        api.get('/license/history').catch(() => ({ data: { licenses: [] } }))
+      ]);
+      setLicenseStatus(statusRes.data);
+      setLicenseHistory(historyRes.data.licenses || []);
+    } catch (error) {
+      console.error('Failed to fetch license data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateLicense = async () => {
+    try {
+      setGenerating(true);
+      const response = await api.post('/license/generate', {
+        duration_days: parseInt(durationDays),
+        company_name: 'SMIFS'
+      });
+      setGeneratedLicense(response.data.license);
+      toast.success('License key generated successfully!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to generate license');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleActivateLicense = async () => {
+    if (!newLicenseKey.trim()) {
+      toast.error('Please enter a license key');
+      return;
+    }
+    try {
+      setActivating(true);
+      await api.post('/license/activate', {
+        license_key: newLicenseKey.trim().toUpperCase(),
+        duration_days: parseInt(durationDays)
+      });
+      toast.success('License activated successfully!');
+      setNewLicenseKey('');
+      fetchLicenseData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to activate license');
+    } finally {
+      setActivating(false);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-8 flex items-center justify-center">
+          <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Current License Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="w-5 h-5 text-emerald-600" />
+            Current License Status
+          </CardTitle>
+          <CardDescription>Application license information and validity</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className={`p-4 rounded-lg border ${
+            licenseStatus?.is_valid 
+              ? 'bg-green-50 border-green-200' 
+              : 'bg-red-50 border-red-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {licenseStatus?.is_valid ? (
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                ) : (
+                  <XCircle className="w-8 h-8 text-red-600" />
+                )}
+                <div>
+                  <h3 className={`font-semibold text-lg ${
+                    licenseStatus?.is_valid ? 'text-green-800' : 'text-red-800'
+                  }`}>
+                    {licenseStatus?.status === 'active' && 'License Active'}
+                    {licenseStatus?.status === 'expiring_soon' && 'License Expiring Soon'}
+                    {licenseStatus?.status === 'expired' && 'License Expired'}
+                    {licenseStatus?.status === 'no_license' && 'No License'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{licenseStatus?.message}</p>
+                </div>
+              </div>
+              {licenseStatus?.is_valid && (
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-green-600">{licenseStatus?.days_remaining}</p>
+                  <p className="text-xs text-muted-foreground">days remaining</p>
+                </div>
+              )}
+            </div>
+            {licenseStatus?.expires_at && (
+              <div className="mt-3 pt-3 border-t border-green-200 grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-muted-foreground">License Key:</span>
+                  <p className="font-mono">{licenseStatus?.license_key || 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Expires:</span>
+                  <p className="font-medium">{new Date(licenseStatus.expires_at).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Duration:</span>
+                  <p className="font-medium">{licenseStatus?.duration_days || 365} days</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Generate New License */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Generate New License Key
+            </CardTitle>
+            <CardDescription>Create a new license key for distribution</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Duration</label>
+              <select 
+                value={durationDays} 
+                onChange={(e) => setDurationDays(e.target.value)}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="30">30 Days (1 Month)</option>
+                <option value="90">90 Days (3 Months)</option>
+                <option value="180">180 Days (6 Months)</option>
+                <option value="365">365 Days (1 Year)</option>
+                <option value="730">730 Days (2 Years)</option>
+                <option value="1095">1095 Days (3 Years)</option>
+              </select>
+            </div>
+            <Button onClick={handleGenerateLicense} disabled={generating} className="w-full">
+              {generating ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Key className="w-4 h-4 mr-2" />}
+              Generate License Key
+            </Button>
+            
+            {generatedLicense && (
+              <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Generated Key:</span>
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => copyToClipboard(generatedLicense.license_key)}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="font-mono text-lg mt-1 break-all">{generatedLicense.license_key}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Valid for {generatedLicense.duration_days} days (until {new Date(generatedLicense.expires_at).toLocaleDateString()})
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Activate License */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="w-5 h-5" />
+              Activate License Key
+            </CardTitle>
+            <CardDescription>Enter a license key to activate or renew</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">License Key</label>
+              <input
+                type="text"
+                placeholder="PRIV-XXXX-XXXX-XXXX-XXXX"
+                value={newLicenseKey}
+                onChange={(e) => setNewLicenseKey(e.target.value.toUpperCase())}
+                className="w-full p-2 border rounded-md font-mono text-center tracking-wider"
+              />
+            </div>
+            <Button onClick={handleActivateLicense} disabled={activating || !newLicenseKey.trim()} className="w-full">
+              {activating ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+              Activate License
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* License History */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            License History
+          </CardTitle>
+          <CardDescription>Previous license activations and renewals</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {licenseHistory.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>License Key</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Activated</TableHead>
+                  <TableHead>Expires</TableHead>
+                  <TableHead>Activated By</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {licenseHistory.map((lic, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-mono text-sm">{lic.license_key}</TableCell>
+                    <TableCell>
+                      <Badge variant={lic.is_active ? 'default' : 'secondary'} className={
+                        lic.status === 'active' ? 'bg-green-100 text-green-800' :
+                        lic.status === 'expired' ? 'bg-red-100 text-red-800' :
+                        lic.status === 'revoked' ? 'bg-gray-100 text-gray-800' : ''
+                      }>
+                        {lic.status || (lic.is_active ? 'Active' : 'Inactive')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{lic.duration_days} days</TableCell>
+                    <TableCell>{lic.activated_at ? new Date(lic.activated_at).toLocaleDateString() : '-'}</TableCell>
+                    <TableCell>{lic.expires_at ? new Date(lic.expires_at).toLocaleDateString() : '-'}</TableCell>
+                    <TableCell>{lic.activated_by || '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Key className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>No license history available</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 const SecurityDashboard = () => {
   const navigate = useNavigate();
   const { securityStatus, loginLocations, mapData, loading, error, refetch } = useSecurityData();
