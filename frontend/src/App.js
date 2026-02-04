@@ -214,19 +214,20 @@ function App() {
                           <Route path="/account-security" element={<AccountSecurity />} />
                           <Route path="/2fa-setup" element={<TwoFactorSetupPage />} />
                         </Routes>
-                      </Layout>
-                      {/* Notification Permission Banner */}
-                      <NotificationPermissionBanner />
-                      {/* Floating Notifications at bottom right */}
-                      <FloatingNotifications />
-                      {/* Dialog for important notifications */}
-                      <NotificationDialog />
-                      {/* Team Group Chat */}
-                      <GroupChat />
-                      {/* PWA Install Prompt */}
-                      <InstallPWA />
-                    </AgreementChecker>
-                    </ProxyWrapper>
+                        </Layout>
+                        {/* Notification Permission Banner */}
+                        <NotificationPermissionBanner />
+                        {/* Floating Notifications at bottom right */}
+                        <FloatingNotifications />
+                        {/* Dialog for important notifications */}
+                        <NotificationDialog />
+                        {/* Team Group Chat */}
+                        <GroupChat />
+                        {/* PWA Install Prompt */}
+                        <InstallPWA />
+                      </AgreementChecker>
+                      </ProxyWrapper>
+                    </LicenseProvider>
                   </NotificationProvider>
                 </PrivateRoute>
               }
