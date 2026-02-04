@@ -25,6 +25,7 @@ from services.permission_service import (
     check_permission as check_dynamic_permission,
     require_permission
 )
+from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 
@@ -57,6 +58,9 @@ async def get_pnl_report(
         query["stock_id"] = stock_id
     if client_id:
         query["client_id"] = client_id
+    
+    # CRITICAL: Add demo data isolation filter
+    query = add_demo_filter(query, current_user)
     
     bookings = await db.bookings.find(query, {"_id": 0}).to_list(10000)
     
