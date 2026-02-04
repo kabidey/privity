@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   Users, 
   Plus, 
@@ -33,7 +32,6 @@ import {
 } from 'lucide-react';
 
 const BusinessPartners = () => {
-  const navigate = useNavigate();
   const [partners, setPartners] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,8 +50,10 @@ const BusinessPartners = () => {
     cancelled_cheque: useRef(null)
   };
 
-  const { user, isPELevel, isPEDesk, isPartnersDesk, canManageBusinessPartners, canDelete } = useCurrentUser();
-  const canAccessBP = canManageBusinessPartners;
+  const { isLoading, isAuthorized, isPELevel, isPEDesk, isPartnersDesk, canManageBusinessPartners, canDelete } = useProtectedPage({
+    allowIf: ({ canManageBusinessPartners, isPELevel }) => canManageBusinessPartners || isPELevel,
+    deniedMessage: 'Access denied. You do not have permission to manage business partners.'
+  });
   const canDeleteBP = canDelete;
 
   const [formData, setFormData] = useState({
@@ -70,13 +70,7 @@ const BusinessPartners = () => {
   });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!canAccessBP && !isPELevel) {
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchData();
   }, [user, canAccessBP, isPELevel, navigate]);
 
