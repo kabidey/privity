@@ -1093,7 +1093,8 @@ const Clients = () => {
                         )}
                         {ocrResults.cml_copy && (
                           <p className="text-xs text-green-600">
-                            ✓ Extracted: {ocrResults.cml_copy.extracted_data?.client_name ? 'Name, ' : ''}{ocrResults.cml_copy.extracted_data?.email ? 'Email, ' : ''}{ocrResults.cml_copy.extracted_data?.dp_id ? 'DP ID' : ''}
+                            ✓ {ocrResults.cml_copy.extracted_data?.cml_type ? `${ocrResults.cml_copy.extracted_data.cml_type} CML - ` : ''}
+                            Extracted: {ocrResults.cml_copy.extracted_data?.client_name ? 'Name, ' : ''}{ocrResults.cml_copy.extracted_data?.email ? 'Email, ' : ''}{ocrResults.cml_copy.extracted_data?.dp_id ? 'DP ID, ' : ''}{ocrResults.cml_copy.extracted_data?.account_number ? 'Bank A/C' : ''}
                           </p>
                         )}
                       </div>
