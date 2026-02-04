@@ -33,10 +33,13 @@ const DPTransfer = () => {
   const [selectedDPType, setSelectedDPType] = useState('');
   const [transferring, setTransferring] = useState(false);
 
-  const { isLoading, isAuthorized, isPELevel } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk and PE Manager can access this page.'
+  const { isLoading, isAuthorized, isPELevel, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('dp.transfer') || hasPermission('dp.view_transfers'),
+    deniedMessage: 'Access denied. You need DP Transfer permission to access this page.'
   });
+
+  // Check if user can perform transfers (needs dp.transfer permission)
+  const canTransfer = isPELevel || hasPermission('dp.transfer');
 
   useEffect(() => {
     if (!isAuthorized) return;

@@ -33,10 +33,13 @@ const DPReceivables = () => {
   const [selectedDPType, setSelectedDPType] = useState('');
   const [confirming, setConfirming] = useState(false);
 
-  const { isLoading, isAuthorized, isPELevel } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk and PE Manager can access this page.'
+  const { isLoading, isAuthorized, isPELevel, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('dp.view_receivables'),
+    deniedMessage: 'Access denied. You need DP Receivables permission to access this page.'
   });
+
+  // Check if user can confirm receipt (needs dp.confirm_receipt permission)
+  const canConfirmReceipt = isPELevel || hasPermission('dp.confirm_receipt');
 
   useEffect(() => {
     if (!isAuthorized) return;
