@@ -319,6 +319,7 @@ DEFAULT_ROLES = [
         "is_system": True,
         "permissions": [
             "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
+            "bookings.override_revenue_share",
             "clients.view", "clients.create", "business_partners.*",
             "referral_partners.view"
         ],
@@ -331,6 +332,7 @@ DEFAULT_ROLES = [
         "is_system": True,
         "permissions": [
             "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
+            "bookings.override_revenue_share",
             "clients.view", "clients.create"
         ],
         "color": "bg-orange-100 text-orange-800"
