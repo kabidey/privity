@@ -62,6 +62,7 @@ class User(BaseModel):
 class TokenResponse(BaseModel):
     token: str
     user: User
+    mobile_required: bool = False  # Flag to indicate if user needs to update mobile number
 
 
 # ============== Password Reset Models ==============
