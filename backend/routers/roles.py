@@ -441,10 +441,18 @@ async def get_roles(
 @router.get("/{role_id}")
 async def get_role(
     role_id: int,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("roles.view", "view role details"))
+    current_user: dict = Depends(get_current_user)
 ):
-    """Get a specific role by ID"""
+    """Get a specific role by ID - users can always view their own role"""
+    user_role_id = current_user.get("role", 7)
+    
+    # Allow users to view their own role without permission
+    # For other roles, require roles.view permission
+    if role_id != user_role_id:
+        has_perm = await has_permission(current_user, "roles.view")
+        if not has_perm:
+            raise HTTPException(status_code=403, detail="Permission denied")
+    
     # Check database first
     role = await db.roles.find_one({"id": role_id}, {"_id": 0})
     
