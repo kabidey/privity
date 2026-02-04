@@ -26,6 +26,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     name: str
     pan_number: Optional[str] = None  # Required for non-superadmin users
+    mobile_number: Optional[str] = None  # 10-digit mobile for SMS/WhatsApp notifications
 
 
 class UserLogin(BaseModel):
