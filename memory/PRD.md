@@ -141,6 +141,31 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 **Test Results**: 30/30 menu pages accessible to PE Desk ✅
 
+#### ✅ Client Document Visibility Bug - INVESTIGATED (Feb 04, 2026)
+**Reported Issue**: PE Desk/Manager roles cannot view uploaded client documents
+
+**Investigation Results**:
+- Bug could NOT be reproduced - document viewing functionality is working correctly
+- Documents dialog opens correctly showing document details (type, filename, upload date)
+- Download functionality works with "Document downloaded" success notification
+- Test verified: PE Desk can view and download documents for "PE Desk Test Proprietor" client
+
+**Code Improvements Made**:
+- Updated `Clients.js` download handler to use `doc.file_id || doc.gridfs_id` for better field compatibility
+- Updated `Vendors.js` download handler to support both `file_id` and `gridfs_id` parameters
+- Added fallback to filename-based endpoint when GridFS ID not available
+
+**Files Modified**:
+- `frontend/src/pages/Clients.js` - Line 1890: Added file_id support
+- `frontend/src/pages/Vendors.js` - Lines 367-393: Enhanced download handler with file_id support
+
+**Testing Results**: 5/5 frontend tests passed
+- Client document viewing - PASS
+- Client document download - PASS  
+- Client list document count - PASS
+- Vendor document viewing - PASS
+- Vendor document download - PASS
+
 #### ✅ Full Backend RBAC Audit - COMPLETED (Feb 04, 2026)
 **Objective**: Complete coverage of RBAC enforcement on ALL backend API endpoints
 
