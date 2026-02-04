@@ -326,6 +326,8 @@ class BookingCreate(BaseModel):
     # Employee Revenue Share (reduced by RP share)
     employee_revenue_share_percent: Optional[float] = None  # Employee's share after RP deduction
     base_employee_share_percent: float = 100.0  # Default employee share before RP deduction
+    # BP Revenue Share Override (for Partners Desk / BP users)
+    bp_revenue_share_override: Optional[float] = None  # Override percentage (must be <= BP's default)
 
 
 class Booking(BaseModel):
