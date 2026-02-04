@@ -89,9 +89,26 @@ Build a Share Booking System for managing client share bookings, inventory track
    - `/api/demo/status` - Check demo status with isolation info
    - `/api/demo/verify-isolation` - Verify complete separation
 
-**Demo Data Isolation** (VERIFIED):
+**Demo Data Isolation** (CRITICAL SECURITY FIX - Feb 05, 2026):
+- **Problem**: Demo mode was leaking live production data - users in demo could see real client, stock, and booking data
+- **Solution**: Implemented `add_demo_filter()` function in `utils/demo_isolation.py` applied to ALL data-fetching endpoints
 - All demo IDs prefixed with `demo_`
 - All demo data flagged with `is_demo: true`
+- Demo user detection: checks `user.is_demo`, `user.id == 'demo_user_privity'`, or `user.email == 'demo@privity.com'`
+- **Routers Updated with Demo Isolation**:
+  - `clients.py` - GET /clients, GET /clients/{id}, GET /clients/pending-approval
+  - `stocks.py` - GET /stocks, GET /stocks/{id}
+  - `bookings.py` - GET /bookings, GET /bookings/{id}, GET /bookings/pending-approval, GET /bookings/dp-ready, GET /bookings/dp-transferred
+  - `dashboard.py` - GET /dashboard/stats, GET /dashboard/analytics
+  - `inventory.py` - GET /inventory
+  - `purchases.py` - GET /purchases
+  - `referral_partners.py` - GET /referral-partners
+  - `business_partners.py` - GET /business-partners
+  - `analytics.py` - GET /analytics/summary
+  - `reports.py` - GET /reports/pnl
+  - `finance.py` - All payment related endpoints
+- **Models Updated**: Added `is_demo: Optional[bool]` field to Client, Stock, Booking, BookingWithDetails
+- **Testing**: 17/17 backend tests passed (100% success rate)
 - Cleanup verified: 37 demo records removed, live data unchanged
 
 **Branding**: "PRIVITY Demo - Run it to Learn it"
