@@ -311,7 +311,6 @@ export default function DemoProgressTracker({ isOpen, onClose }) {
     if (savedProgress) {
       const parsed = JSON.parse(savedProgress);
       setUnlockedBadges(parsed.unlockedBadges || ['explorer']);
-      setExploredFeatures(parsed.exploredFeatures || []);
       setTotalPoints(parsed.totalPoints || 10);
     }
   }, []);
