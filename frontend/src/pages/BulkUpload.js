@@ -169,7 +169,14 @@ const BulkUpload = () => {
     }
   };
 
-  if (!isPEDesk) return null;
+  // Show loading while checking permissions
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="ios-spinner"></div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
