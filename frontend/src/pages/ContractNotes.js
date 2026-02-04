@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   FileText, 
   Search, 
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react';
 
 const ContractNotes = () => {
-  const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -42,19 +40,15 @@ const ContractNotes = () => {
   });
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
 
-  const { user, isPELevel, isPEDesk } = useCurrentUser();
+  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk or PE Manager can view confirmation notes.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPELevel) {
-      toast.error('Access denied. Only PE Desk or PE Manager can view contract notes.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchNotes();
-  }, [user, isPELevel, navigate]);
+  }, [isAuthorized]);
 
   const fetchNotes = async () => {
     try {

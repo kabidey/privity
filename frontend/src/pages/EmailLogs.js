@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { Mail, Search, Filter, Eye, RefreshCw, Trash2, CheckCircle, XCircle, AlertCircle, BarChart3, Send } from 'lucide-react';
 
 const EmailLogs = () => {
-  const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,20 +33,16 @@ const EmailLogs = () => {
   });
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
 
-  const { user, isPELevel, isPEDesk } = useCurrentUser();
+  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk or PE Manager can view email logs.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPELevel) {
-      toast.error('Access denied. Only PE Desk or PE Manager can view email logs.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchLogs();
     fetchStats();
-  }, [user, isPELevel, navigate]);
+  }, [isAuthorized]);
 
   const fetchLogs = async () => {
     try {

@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart
@@ -18,7 +17,6 @@ import {
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
 const Analytics = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState('30');
   const [summary, setSummary] = useState(null);
@@ -27,19 +25,15 @@ const Analytics = () => {
   const [dailyTrend, setDailyTrend] = useState([]);
   const [sectorDistribution, setSectorDistribution] = useState([]);
 
-  const { user, isPELevel } = useCurrentUser();
+  const { isLoading, isAuthorized } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk or PE Manager can access analytics.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPELevel) {
-      toast.error('Access denied. Only PE Desk or PE Manager can access analytics.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchAnalytics();
-  }, [days, user, isPELevel, navigate]);
+  }, [days, isAuthorized]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
