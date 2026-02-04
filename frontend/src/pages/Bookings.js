@@ -1936,6 +1936,126 @@ const Bookings = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* BP Revenue Override Approval Dialog */}
+      <Dialog open={bpOverrideDialogOpen} onOpenChange={setBpOverrideDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <IndianRupee className="h-5 w-5 text-blue-600" />
+              BP Revenue Share Override Review
+            </DialogTitle>
+            <DialogDescription>
+              Review and approve or reject this Business Partner revenue share override request.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedBpOverrideBooking && (
+            <div className="space-y-4">
+              {/* Booking Information */}
+              <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-muted/50">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Booking</Label>
+                  <p className="font-mono font-semibold">{selectedBpOverrideBooking.booking_number}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Created By</Label>
+                  <p className="font-medium">{selectedBpOverrideBooking.created_by_name}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Client</Label>
+                  <p className="font-medium">{selectedBpOverrideBooking.client_name}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Stock</Label>
+                  <p className="font-medium">{selectedBpOverrideBooking.stock_symbol}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Business Partner</Label>
+                  <p className="font-medium">{selectedBpOverrideBooking.bp_name}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Quantity</Label>
+                  <p className="font-medium">{selectedBpOverrideBooking.quantity}</p>
+                </div>
+              </div>
+              
+              {/* Revenue Share Override Details */}
+              <div className="p-4 rounded-lg border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+                <h4 className="font-semibold text-blue-700 dark:text-blue-400 mb-3">Revenue Share Change Request</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 rounded bg-white dark:bg-gray-800">
+                    <p className="text-xs text-muted-foreground mb-1">Original Share</p>
+                    <p className="text-2xl font-bold text-gray-600">{selectedBpOverrideBooking.bp_original_revenue_share || 0}%</p>
+                  </div>
+                  <div className="text-center p-3 rounded bg-blue-100 dark:bg-blue-900">
+                    <p className="text-xs text-muted-foreground mb-1">Requested Override</p>
+                    <p className="text-2xl font-bold text-blue-600">{selectedBpOverrideBooking.bp_revenue_share_override}%</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Difference: <span className="font-semibold text-green-600">
+                      -{((selectedBpOverrideBooking.bp_original_revenue_share || 0) - (selectedBpOverrideBooking.bp_revenue_share_override || 0)).toFixed(1)}%
+                    </span> (More retained by company)
+                  </p>
+                </div>
+              </div>
+              
+              {/* Rejection Reason Input */}
+              <div className="space-y-2">
+                <Label>Rejection Reason (required if rejecting)</Label>
+                <Textarea
+                  value={bpOverrideRejectionReason}
+                  onChange={(e) => setBpOverrideRejectionReason(e.target.value)}
+                  placeholder="Provide a reason if you're rejecting this override request..."
+                  className="min-h-[80px]"
+                  data-testid="bp-override-rejection-reason"
+                />
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setBpOverrideDialogOpen(false);
+                setSelectedBpOverrideBooking(null);
+                setBpOverrideRejectionReason('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => handleBpOverrideAction(false)}
+              disabled={processingBpOverride}
+              data-testid="reject-bp-override-btn"
+            >
+              {processingBpOverride ? 'Processing...' : (
+                <>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Reject Override
+                </>
+              )}
+            </Button>
+            <Button 
+              onClick={() => handleBpOverrideAction(true)}
+              disabled={processingBpOverride}
+              className="bg-green-600 hover:bg-green-700"
+              data-testid="approve-bp-override-btn"
+            >
+              {processingBpOverride ? 'Processing...' : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve Override
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
