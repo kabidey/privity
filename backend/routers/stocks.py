@@ -138,6 +138,10 @@ async def get_stock(
     stock = await db.stocks.find_one({"id": stock_id}, {"_id": 0})
     if not stock:
         raise HTTPException(status_code=404, detail="Stock not found")
+    
+    # Verify demo data access
+    require_demo_access(stock, current_user)
+    
     return Stock(**stock)
 
 
