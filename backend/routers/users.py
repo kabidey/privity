@@ -22,6 +22,32 @@ from services.permission_service import (
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
+# Helper function to check if a role is valid (system or custom)
+async def is_valid_role(role_id: int) -> bool:
+    """Check if role is valid (either system role or custom role from database)."""
+    # Check if it's a system role
+    if role_id in ROLES:
+        return True
+    
+    # Check if it's a custom role in the database
+    custom_role = await db.custom_roles.find_one({"id": role_id})
+    return custom_role is not None
+
+
+# Helper function to get role name (system or custom)
+async def get_role_name(role_id: int) -> str:
+    """Get role name for either system or custom role."""
+    if role_id in ROLES:
+        return ROLES[role_id]
+    
+    # Check custom roles
+    custom_role = await db.custom_roles.find_one({"id": role_id}, {"_id": 0, "name": 1})
+    if custom_role:
+        return custom_role.get("name", f"Custom Role {role_id}")
+    
+    return "Unknown Role"
+
+
 # Helper functions for backward compatibility
 def is_pe_level(role: int) -> bool:
     """Check if role is PE level (PE Desk or PE Manager)."""
