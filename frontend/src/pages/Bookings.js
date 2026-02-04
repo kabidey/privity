@@ -483,6 +483,41 @@ const Bookings = () => {
     }
   };
 
+  // Handle BP override approval/rejection
+  const handleBpOverrideAction = async (approve) => {
+    if (!selectedBpOverrideBooking) return;
+    
+    if (!approve && !bpOverrideRejectionReason.trim()) {
+      toast.error('Please provide a reason for rejection');
+      return;
+    }
+    
+    setProcessingBpOverride(true);
+    try {
+      await api.put(`/bookings/${selectedBpOverrideBooking.id}/bp-override-approval`, {
+        approve,
+        rejection_reason: approve ? null : bpOverrideRejectionReason
+      });
+      
+      toast.success(`BP revenue override ${approve ? 'approved' : 'rejected'} successfully`);
+      setBpOverrideDialogOpen(false);
+      setSelectedBpOverrideBooking(null);
+      setBpOverrideRejectionReason('');
+      await fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || `Failed to ${approve ? 'approve' : 'reject'} override`);
+    } finally {
+      setProcessingBpOverride(false);
+    }
+  };
+
+  // Open BP override approval dialog
+  const handleOpenBpOverrideDialog = (booking) => {
+    setSelectedBpOverrideBooking(booking);
+    setBpOverrideRejectionReason('');
+    setBpOverrideDialogOpen(true);
+  };
+
   const handleOpenPaymentDialog = (booking) => {
     setSelectedBooking(booking);
     setPaymentForm({
