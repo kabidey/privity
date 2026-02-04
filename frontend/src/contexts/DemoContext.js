@@ -198,13 +198,24 @@ export function DemoProvider({ children }) {
     setShowWelcome(true);
   }, []);
 
-  const exitDemoMode = useCallback(() => {
+  const exitDemoMode = useCallback(async () => {
+    // Clean up demo data on the server
+    try {
+      await api.post('/demo/cleanup');
+      console.log('Demo data cleaned up successfully');
+    } catch (error) {
+      console.error('Failed to cleanup demo data:', error);
+    }
+    
+    // Clear local state
     setIsDemoMode(false);
     setShowFeatureShowcase(false);
     setCurrentTour(null);
     setTourStepIndex(0);
     localStorage.removeItem('privity_demo_state');
     localStorage.removeItem('demo_token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }, []);
 
   const startTour = useCallback((tourId) => {
