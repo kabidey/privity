@@ -743,7 +743,7 @@ async def clear_system_cache(
         entity_id="cache",
         user_id=current_user["id"],
         user_name=current_user["name"],
-        user_role=user_role,
+        user_role=current_user.get("role", 6),
         entity_name="System Cache",
         details=cleanup_results
     )
