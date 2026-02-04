@@ -37,7 +37,7 @@ const Inventory = () => {
     lowStockCount: 0,
   });
   
-  const { isPEDesk, isPEManager, isPELevel } = useCurrentUser();
+  const { isPEDesk, isPEManager, isPELevel, canViewLPChange, canViewLPHistory } = useCurrentUser();
 
   useEffect(() => {
     fetchInventory();
