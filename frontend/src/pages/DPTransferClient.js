@@ -408,7 +408,7 @@ const DPTransfer = () => {
               Transfer Stock to Client
             </DialogTitle>
             <DialogDescription>
-              Transfer shares to the client's demat account
+              Transfer shares to the client&apos;s demat account
             </DialogDescription>
           </DialogHeader>
 
