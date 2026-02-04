@@ -615,7 +615,6 @@ const Clients = () => {
       }
       
       const hasDocuments = Object.values(docFiles).some(f => f !== null);
-      console.log('hasDocuments:', hasDocuments, 'clientId:', clientId, 'docFiles:', docFiles);
       if (hasDocuments && clientId) {
         await uploadDocuments(clientId);
       }
