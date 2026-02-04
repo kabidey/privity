@@ -803,3 +803,42 @@ async def get_stock_news(
             "fetched_at": datetime.now(timezone.utc).isoformat()
         }
 
+
+
+# ============== Day-End Revenue Reports ==============
+
+@router.get("/revenue-report")
+async def get_revenue_report(
+    date: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get revenue report for current user
+    Managers get consolidated team report
+    """
+    from services.day_end_reports import trigger_manual_report
+    
+    report = await trigger_manual_report(current_user["id"], date)
+    if not report:
+        return {"error": "Failed to generate report"}
+    
+    return report
+
+
+@router.post("/send-day-end-reports")
+async def send_day_end_reports(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.export", "send day-end reports"))
+):
+    """
+    Manually trigger day-end reports for all users
+    Typically called by scheduler at 6 PM IST
+    """
+    from services.day_end_reports import send_day_end_reports as send_reports
+    
+    result = await send_reports()
+    return {
+        "message": "Day-end reports sent successfully",
+        **result
+    }
+
