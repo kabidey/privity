@@ -513,10 +513,11 @@ async def get_pending_referral_partners(
 
 @router.get("/referral-partners-approved", response_model=List[ReferralPartner])
 async def get_approved_referral_partners(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("referral_partners.view", "view approved referral partners"))
 ):
     """
-    Get all approved and active referral partners for booking form.
+    Get all approved and active referral partners for booking form (requires referral_partners.view).
     Returns only RPs that can be used in bookings.
     """
     rps = await db.referral_partners.find(
