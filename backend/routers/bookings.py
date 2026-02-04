@@ -678,6 +678,15 @@ async def approve_booking(
                 f"Your booking {booking_number} for '{stock['symbol'] if stock else 'N/A'}' has been approved.",
                 {"booking_id": booking_id, "stock_symbol": stock['symbol'] if stock else None}
             )
+        
+        # Send WhatsApp activity alert for approval
+        try:
+            from services.activity_alerts import notify_booking_approved
+            if client and client.get("id"):
+                await notify_booking_approved(booking, client["id"])
+        except Exception as e:
+            print(f"Activity alert error (non-critical): {e}")
+            
     else:
         # Rejection - create audit log
         await create_audit_log(
@@ -699,6 +708,14 @@ async def approve_booking(
                 f"Your booking for '{stock['symbol'] if stock else 'N/A'}' has been rejected",
                 {"booking_id": booking_id, "stock_symbol": stock['symbol'] if stock else None}
             )
+        
+        # Send WhatsApp activity alert for rejection
+        try:
+            from services.activity_alerts import notify_booking_rejected
+            if client and client.get("id"):
+                await notify_booking_rejected(booking, client["id"], "Booking did not meet approval criteria")
+        except Exception as e:
+            print(f"Activity alert error (non-critical): {e}")
     
     return {"message": f"Booking {'approved' if approve else 'rejected'} successfully"}
 
