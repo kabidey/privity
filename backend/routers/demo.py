@@ -166,10 +166,22 @@ def generate_demo_vendors():
         {"id": "demo_vendor_3", "name": "PQR Investments", "contact": "vendor3@pqr.com", "type": "dealer"},
     ]
     
-    for vendor in vendors:
+    for i, vendor in enumerate(vendors):
         vendor["is_demo"] = True
         vendor["is_active"] = True
-        vendor["created_at"] = datetime.utcnow() - timedelta(days=random.randint(90, 365))
+        vendor["is_vendor"] = True
+        vendor["otc_ucc"] = f"DEMO-VDR{i+1:04d}"
+        vendor["pan_number"] = f"VENDPAN{i+1:03d}V"
+        vendor["email"] = vendor.pop("contact")
+        vendor["phone"] = f"98765432{i}0"
+        vendor["mobile"] = f"98765432{i}0"
+        vendor["dp_id"] = f"IN30002{i+1:05d}"
+        vendor["dp_type"] = "NSDL"
+        vendor["bank_accounts"] = []
+        vendor["documents"] = []
+        vendor["approval_status"] = "approved"
+        vendor["created_by"] = DEMO_USER["id"]
+        vendor["created_at"] = (datetime.utcnow() - timedelta(days=random.randint(90, 365))).isoformat()
     
     return vendors
 
