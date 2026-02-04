@@ -1061,7 +1061,11 @@ const Vendors = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleDownloadDocument(selectedVendorDocs.id, doc.filename)}
+                          onClick={() => handleDownloadDocument(
+                            selectedVendorDocs.id, 
+                            doc.filename || doc.original_filename || doc.doc_type,
+                            doc.file_id || doc.gridfs_id
+                          )}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <Download className="h-4 w-4 mr-1" />
