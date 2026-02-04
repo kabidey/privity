@@ -171,6 +171,8 @@ export function DemoProvider({ children }) {
   const [tourStepIndex, setTourStepIndex] = useState(0);
   const [completedTours, setCompletedTours] = useState([]);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [exploredFeatures, setExploredFeatures] = useState([]);
+  const [demoStartTime, setDemoStartTime] = useState(null);
 
   // Load demo state from localStorage
   useEffect(() => {
