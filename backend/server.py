@@ -383,6 +383,12 @@ from routers.license import router as license_router
 # Security Threats
 from routers.security import router as security_router
 
+# Business Intelligence
+from routers.bi_reports import router as bi_reports_router
+
+# WhatsApp Notifications
+from routers.whatsapp import router as whatsapp_router
+
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
