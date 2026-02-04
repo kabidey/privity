@@ -470,8 +470,10 @@ class BotProtectionMiddleware(BaseHTTPMiddleware):
             )
             return self._blocked_response("Invalid request")
         
-        # SSRF in URL
-        is_attack, details = AttackDetector.detect_ssrf(full_url)
+        # SSRF in URL - only check query parameters, not the host
+        # The host is under our control, SSRF check is for query params that might contain URLs
+        query_string = str(request.query_params) if request.query_params else ""
+        is_attack, details = AttackDetector.detect_ssrf(query_string)
         if is_attack:
             await threat_db.record_blocked_request(
                 ip_address=client_ip,
