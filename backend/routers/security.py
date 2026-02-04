@@ -6,12 +6,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timezone, timedelta
 from database import db
 from utils.auth import get_current_user
-from services.permission_service import PermissionService
+from services.permission_service import has_permission
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/security", tags=["Security"])
+
+
+async def user_has_security_permission(user: dict) -> bool:
+    """Check if user can access security dashboard"""
+    if user.get("role") in [1, 2]:  # PE Desk or PE Manager
+        return True
+    return await has_permission(user, "security.view_dashboard")
 
 
 @router.get("/threats")
@@ -21,9 +28,8 @@ async def get_threats(current_user: dict = Depends(get_current_user)):
     Requires security.view_dashboard permission
     """
     # Check permission
-    if not PermissionService.user_has_permission(current_user, "security.view_dashboard"):
-        if current_user.get("role") not in [1, 2]:  # PE Desk or PE Manager
-            raise HTTPException(status_code=403, detail="Permission denied")
+    if not await user_has_security_permission(current_user):
+        raise HTTPException(status_code=403, detail="Permission denied")
     
     try:
         from middleware.bot_protection import get_threat_statistics
@@ -44,9 +50,8 @@ async def get_recent_threats(
     Get recent blocked threats with optional filtering
     """
     # Check permission
-    if not PermissionService.user_has_permission(current_user, "security.view_dashboard"):
-        if current_user.get("role") not in [1, 2]:
-            raise HTTPException(status_code=403, detail="Permission denied")
+    if not await user_has_security_permission(current_user):
+        raise HTTPException(status_code=403, detail="Permission denied")
     
     try:
         query = {}
@@ -81,9 +86,8 @@ async def get_threats_by_ip(
     Get all threats from a specific IP address
     """
     # Check permission
-    if not PermissionService.user_has_permission(current_user, "security.view_dashboard"):
-        if current_user.get("role") not in [1, 2]:
-            raise HTTPException(status_code=403, detail="Permission denied")
+    if not await user_has_security_permission(current_user):
+        raise HTTPException(status_code=403, detail="Permission denied")
     
     try:
         threats = await db.blocked_threats.find(
@@ -123,9 +127,8 @@ async def get_threat_summary(
     Get threat summary for the specified number of days
     """
     # Check permission
-    if not PermissionService.user_has_permission(current_user, "security.view_dashboard"):
-        if current_user.get("role") not in [1, 2]:
-            raise HTTPException(status_code=403, detail="Permission denied")
+    if not await user_has_security_permission(current_user):
+        raise HTTPException(status_code=403, detail="Permission denied")
     
     try:
         start_date = datetime.now(timezone.utc) - timedelta(days=days)
