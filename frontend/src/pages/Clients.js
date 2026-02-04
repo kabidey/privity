@@ -633,25 +633,25 @@ const Clients = () => {
 
   const uploadDocuments = async (clientId) => {
     setUploading(true);
-    console.log('uploadDocuments called for client:', clientId);
-    console.log('docFiles:', docFiles);
+    let uploadedCount = 0;
     try {
       for (const [docType, file] of Object.entries(docFiles)) {
         if (file) {
-          console.log(`Uploading ${docType}:`, file.name);
           const fd = new FormData();
           fd.append('file', file);
           fd.append('doc_type', docType);
-          const response = await api.post(`/clients/${clientId}/documents`, fd, {
+          await api.post(`/clients/${clientId}/documents`, fd, {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
-          console.log(`Upload response for ${docType}:`, response.data);
+          uploadedCount++;
         }
       }
-      toast.success('Documents uploaded successfully');
+      if (uploadedCount > 0) {
+        toast.success(`${uploadedCount} document(s) uploaded successfully`);
+      }
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload some documents');
+      console.error('Document upload error:', error);
+      toast.error(`Failed to upload documents: ${error.response?.data?.detail || error.message}`);
     } finally {
       setUploading(false);
     }
