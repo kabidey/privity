@@ -30,9 +30,9 @@ const BulkUpload = () => {
   const [activeTab, setActiveTab] = useState('clients');
   const fileInputRef = useRef(null);
 
-  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
-    allowIf: ({ isPEDesk }) => isPEDesk,
-    deniedMessage: 'Access denied. Only PE Desk can access bulk upload.'
+  const { isLoading, isAuthorized, isPEDesk, hasPermission } = useProtectedPage({
+    allowIf: ({ isPEDesk, hasPermission }) => isPEDesk || hasPermission('bulk_upload.clients') || hasPermission('bulk_upload.stocks') || hasPermission('bulk_upload.purchases') || hasPermission('bulk_upload.bookings'),
+    deniedMessage: 'Access denied. You need Bulk Upload permission to access this page.'
   });
 
   const entityConfig = {

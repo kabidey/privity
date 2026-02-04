@@ -379,9 +379,9 @@ const SecurityDashboard = () => {
   const [timeRange, setTimeRange] = useState('24h');
   const [activeTab, setActiveTab] = useState('overview');
 
-  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
-    allowIf: ({ isPEDesk }) => isPEDesk,
-    deniedMessage: 'Access denied. Only PE Desk can view Security Dashboard.'
+  const { isLoading, isAuthorized, isPEDesk, hasPermission } = useProtectedPage({
+    allowIf: ({ isPEDesk, hasPermission }) => isPEDesk || hasPermission('security.view_dashboard'),
+    deniedMessage: 'Access denied. You need Security Dashboard permission to view this page.'
   });
 
   // Process chart data

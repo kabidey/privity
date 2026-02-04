@@ -68,10 +68,15 @@ const CompanyMaster = () => {
     pan_card: useRef(null)
   };
 
-  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
-    allowIf: ({ isPEDesk }) => isPEDesk,
-    deniedMessage: 'Access denied. Only PE Desk can access Company Master settings.'
+  const { isLoading, isAuthorized, isPEDesk, hasPermission } = useProtectedPage({
+    allowIf: ({ isPEDesk, hasPermission }) => isPEDesk || hasPermission('company.view'),
+    deniedMessage: 'Access denied. You need Company Master permission to access this page.'
   });
+  
+  // Permission-based action controls
+  const canEditCompany = isPEDesk || hasPermission('company.edit');
+  const canUploadDocs = isPEDesk || hasPermission('company.upload_docs');
+  const canManageBank = isPEDesk || hasPermission('company.manage_bank');
 
   useEffect(() => {
     if (!isAuthorized) return;
