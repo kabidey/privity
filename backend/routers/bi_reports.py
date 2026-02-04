@@ -228,8 +228,6 @@ async def generate_report(
     current_user: dict = Depends(get_current_user)
 ):
     """Generate a custom report based on specified parameters"""
-    from services.permission_service import has_permission
-    
     if request.report_type not in REPORT_CONFIGS:
         raise HTTPException(status_code=400, detail=f"Invalid report type: {request.report_type}")
     
@@ -237,7 +235,9 @@ async def generate_report(
     required_perm = REPORT_TYPE_PERMISSIONS.get(request.report_type)
     if required_perm:
         user_permissions = current_user.get("permissions", [])
-        if not has_permission(user_permissions, required_perm):
+        is_pe_desk = current_user.get("role") == 1
+        
+        if not is_pe_desk and not check_permission_sync(user_permissions, required_perm):
             raise HTTPException(
                 status_code=403, 
                 detail=f"Permission denied. You need '{required_perm}' permission for {request.report_type} reports"
