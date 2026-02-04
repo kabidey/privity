@@ -19,6 +19,17 @@ const Inventory = () => {
   const [newLP, setNewLP] = useState('');
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [stockToEdit, setStockToEdit] = useState(null);
+  
+  // Sorting state
+  const [sortBy, setSortBy] = useState('stock_symbol'); // default sort by stock name
+  const [sortOrder, setSortOrder] = useState('asc');
+  
+  // LP History state
+  const [lpHistoryDialogOpen, setLpHistoryDialogOpen] = useState(false);
+  const [selectedStockForHistory, setSelectedStockForHistory] = useState(null);
+  const [lpHistory, setLpHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  
   const [stats, setStats] = useState({
     totalStocks: 0,
     totalValue: 0,
