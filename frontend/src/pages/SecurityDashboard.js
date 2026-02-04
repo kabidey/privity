@@ -184,7 +184,9 @@ const LicenseManagement = () => {
             <Key className="w-5 h-5 text-emerald-600" />
             Current License Status
           </CardTitle>
-          <CardDescription>Application license information and validity</CardDescription>
+          <CardDescription>
+            License required for Business Partners only. SMIFS employees (@smifs.com) are exempt.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className={`p-4 rounded-lg border ${
