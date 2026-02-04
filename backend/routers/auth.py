@@ -351,14 +351,26 @@ async def login(
 
 @router.get("/me", response_model=User)
 async def get_me(current_user: dict = Depends(get_current_user)):
-    """Get current user info"""
+    """Get current user info with fresh permissions"""
+    role_id = current_user.get("role", 5)
+    
+    # Get role name (check custom roles first)
+    role_name = ROLES.get(role_id)
+    if not role_name:
+        custom_role = await db.roles.find_one({"id": role_id}, {"_id": 0, "name": 1})
+        role_name = custom_role.get("name") if custom_role else "Unknown Role"
+    
+    # Get fresh permissions for the user's role
+    permissions = await get_role_permissions(role_id)
+    
     return User(
         id=current_user["id"],
         email=current_user["email"],
         name=current_user["name"],
         pan_number=current_user.get("pan_number"),
-        role=current_user.get("role", 5),
-        role_name=ROLES.get(current_user.get("role", 5), "Viewer"),
+        role=role_id,
+        role_name=role_name,
+        permissions=permissions,
         created_at=current_user["created_at"]
     )
 
