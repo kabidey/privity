@@ -298,19 +298,16 @@ async def upload_file(
 @router.delete("/{file_id}")
 async def delete_file(
     file_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("files.delete", "delete files"))
 ):
     """
-    Delete a file from GridFS (requires authentication)
+    Delete a file from GridFS (requires files.delete permission)
     """
-    # Check if user has permission (PE Desk or file owner)
+    # Check if file exists
     metadata = await get_file_metadata(file_id)
     if not metadata:
         raise HTTPException(status_code=404, detail="File not found")
-    
-    # Only PE Desk (role 1-2) or the uploader can delete
-    if current_user.get("role") > 2 and metadata.get("uploaded_by") != current_user.get("id"):
-        raise HTTPException(status_code=403, detail="Permission denied")
     
     success = await delete_file_from_gridfs(file_id)
     if success:
