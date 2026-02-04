@@ -245,6 +245,9 @@ async def get_referral_partners(
             {"phone": search_regex}
         ]
     
+    # CRITICAL: Add demo data isolation filter
+    query = add_demo_filter(query, current_user)
+    
     rps = await db.referral_partners.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     return [ReferralPartner(**rp) for rp in rps]
 

@@ -242,6 +242,9 @@ async def get_business_partners(
     if linked_employee_id:
         query["linked_employee_id"] = linked_employee_id
     
+    # CRITICAL: Add demo data isolation filter
+    query = add_demo_filter(query, current_user)
+    
     bps = await db.business_partners.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     return [BusinessPartnerResponse(**bp) for bp in bps]
 
