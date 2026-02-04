@@ -78,8 +78,8 @@ const BADGES = {
   },
   privityMaster: {
     id: 'privityMaster',
-    name: 'PRIVITY Master',
-    description: 'Achieved 100% demo completion',
+    name: 'Employee Pro',
+    description: 'Mastered the Employee workflow',
     icon: Crown,
     color: 'from-gradient-to-r from-yellow-300 via-amber-400 to-orange-500',
     requirement: 'Complete everything',
@@ -87,15 +87,12 @@ const BADGES = {
   },
 };
 
-// Feature exploration tracking
+// Feature exploration tracking - Employee focused features only
 const FEATURES_TO_EXPLORE = [
   { id: 'dashboard', name: 'Dashboard', icon: Target, path: '/dashboard' },
   { id: 'bookings', name: 'Bookings', icon: BookOpen, path: '/bookings' },
   { id: 'clients', name: 'Clients', icon: Users, path: '/clients' },
   { id: 'inventory', name: 'Inventory', icon: ShoppingCart, path: '/inventory' },
-  { id: 'reports', name: 'Reports', icon: BarChart3, path: '/reports' },
-  { id: 'roles', name: 'Role Management', icon: Shield, path: '/roles' },
-  { id: 'partners', name: 'Partners', icon: Handshake, path: '/business-partners' },
 ];
 
 // Badge unlock celebration component
