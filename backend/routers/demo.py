@@ -197,7 +197,7 @@ async def initialize_demo():
             await db.business_partners.insert_many(partners)
         
         # Create access token for demo user
-        token = create_access_token(
+        token = create_token(
             data={
                 "sub": DEMO_USER["email"],
                 "user_id": DEMO_USER["id"],
