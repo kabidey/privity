@@ -215,7 +215,7 @@ const PEDashboard = () => {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              Today's Bookings
+              Today&apos;s Bookings
             </CardTitle>
           </CardHeader>
           <CardContent>
