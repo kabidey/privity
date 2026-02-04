@@ -205,9 +205,6 @@ def generate_demo_business_partners():
         partner["created_at"] = (datetime.utcnow() - timedelta(days=random.randint(30, 180))).isoformat()
     
     return partners
-        partner["created_at"] = datetime.utcnow() - timedelta(days=random.randint(60, 180))
-    
-    return partners
 
 @router.post("/init")
 async def initialize_demo():
