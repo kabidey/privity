@@ -44,6 +44,32 @@ const PEDashboard = () => {
     }
   };
 
+  const fetchScheduledJobs = async () => {
+    try {
+      const response = await api.get('/dashboard/scheduled-jobs');
+      setScheduledJobs(response.data);
+    } catch (error) {
+      console.error('Failed to fetch scheduled jobs:', error);
+    }
+  };
+
+  const handleTriggerJob = async (jobId) => {
+    if (!window.confirm('Are you sure you want to trigger this job now? This will send day-end reports to all users.')) {
+      return;
+    }
+    
+    setTriggeringJob(true);
+    try {
+      await api.post(`/dashboard/trigger-job/${jobId}`);
+      toast.success('Job triggered successfully. Reports are being sent.');
+      fetchScheduledJobs();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to trigger job');
+    } finally {
+      setTriggeringJob(false);
+    }
+  };
+
   const handleClearCache = async () => {
     if (!window.confirm('This will clear system cache, recalculate inventory averages, and clean up orphaned records. Continue?')) {
       return;
