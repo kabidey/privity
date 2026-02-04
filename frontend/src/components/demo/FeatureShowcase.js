@@ -204,6 +204,7 @@ export default function FeatureShowcase() {
   } = useDemo();
   const navigate = useNavigate();
   const [showWelcomeAnim, setShowWelcomeAnim] = useState(showWelcome);
+  const [activeWorkflow, setActiveWorkflow] = useState(null);
 
   const handleExplore = (featureId) => {
     // Map feature to tour and route
@@ -224,6 +225,10 @@ export default function FeatureShowcase() {
         setTimeout(() => startTour(config.tour), 500);
       }
     }
+  };
+
+  const handleWatchAnimation = (workflowId) => {
+    setActiveWorkflow(workflowId);
   };
 
   const handleWelcomeComplete = () => {
