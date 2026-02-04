@@ -378,6 +378,8 @@ class BotProtectionMiddleware(BaseHTTPMiddleware):
         "/api/demo/cleanup",  # Demo mode cleanup
         "/api/demo/status",  # Demo status check
         "/api/demo/verify-isolation",  # Demo isolation verification
+        "/api/auth/login",  # Allow login from curl/scripts
+        "/api/auth/register",  # Allow registration
     ]
     
     async def dispatch(self, request: Request, call_next):
