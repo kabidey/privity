@@ -464,7 +464,7 @@ async def regenerate_contract_note(
             entity_id=note_id,
             user_id=current_user["id"],
             user_name=current_user["name"],
-            user_role=user_role,
+            user_role=current_user.get("role", 6),
             entity_name=cn_number,
             details={"booking_id": booking_id}
         )
