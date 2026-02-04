@@ -37,6 +37,39 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 04, 2026)
 
+#### ✅ Permission-Based Page Access Control - COMPLETED (Feb 04, 2026)
+**Issue**: Pages were checking only for `isPELevel` or `isPEDesk` roles, preventing users with specific permissions from accessing features they should have access to.
+
+**Fix**: Updated all 14 protected pages to check for specific permissions in addition to role-based checks:
+
+| Page | Permission Required |
+|------|---------------------|
+| Analytics.js | `analytics.view` |
+| AuditTrail.js | `security.view_audit` |
+| BulkUpload.js | `bulk_upload.*` |
+| CompanyMaster.js | `company.view` |
+| ContractNotes.js | `contract_notes.view` |
+| DPReceivables.js | `dp.view_receivables` |
+| DPTransferClient.js | `dp.transfer` or `dp.view_transfers` |
+| EmailLogs.js | `email.view_logs` |
+| EmailServerConfig.js | `email.server_config` |
+| EmailTemplates.js | `email.view_templates` |
+| PEDashboard.js | `dashboard.pe_view` |
+| Purchases.js | `purchases.view` |
+| SecurityDashboard.js | `security.view_dashboard` |
+| Vendors.js | `vendors.view` |
+
+**Pattern Used**:
+```javascript
+allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('specific.permission')
+```
+
+**Additional Improvements**:
+- Added permission-based action controls (e.g., `canConfirmReceipt`, `canTransfer`, `canCreateVendor`)
+- Users with specific permissions can now access pages without needing PE-level roles
+
+---
+
 #### ✅ Centralize Race Condition Fix into Custom Hook - COMPLETED (Feb 04, 2026)
 **Task**: Centralize the race condition fix (duplicate `if (user === null) return;` code across 15 pages) into a reusable custom hook.
 
