@@ -244,6 +244,16 @@ export default function FeatureShowcase() {
         {showWelcomeAnim && <WelcomeAnimation onComplete={handleWelcomeComplete} />}
       </AnimatePresence>
 
+      {/* Workflow Animation Modal */}
+      <AnimatePresence>
+        {activeWorkflow && (
+          <WorkflowAnimation
+            workflowId={activeWorkflow}
+            onClose={() => setActiveWorkflow(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {!showWelcomeAnim && (
         <motion.div
           initial={{ opacity: 0 }}
