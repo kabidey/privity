@@ -72,7 +72,7 @@ const BusinessPartners = () => {
   useEffect(() => {
     if (!isAuthorized) return;
     fetchData();
-  }, [user, canAccessBP, isPELevel, navigate]);
+  }, [isAuthorized]);
 
   const fetchData = async () => {
     try {
