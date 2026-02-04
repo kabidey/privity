@@ -125,7 +125,9 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "roles": ["view", "create", "edit", "delete"],
         "business_partners": ["view", "create", "edit", "delete", "approve"],
         "referral_partners": ["view", "create", "edit", "approve", "view_payouts"],
-        "reports": ["view", "pnl", "export", "pe_hit", "bi_builder"],
+        "reports": ["view", "pnl", "export", "pe_hit", 
+                   "bi_bookings", "bi_clients", "bi_revenue", "bi_inventory", "bi_payments", "bi_pnl", 
+                   "bi_export", "bi_save_templates"],
         "analytics": ["view", "revenue", "performance", "export"],
         "dp": ["view_receivables", "confirm_receipt", "transfer", "view_transfers"],
         "email": ["view_templates", "edit_templates", "view_logs", "server_config"],
@@ -139,7 +141,8 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "revenue": ["rp_view", "employee_view", "team_view"],
         "system": ["kill_switch"],
         "license": ["view", "generate", "activate", "revoke"],
-        "notifications": ["whatsapp"]
+        "notifications": ["whatsapp_view", "whatsapp_connect", "whatsapp_templates", 
+                         "whatsapp_send", "whatsapp_bulk", "whatsapp_history"]
     }
     
     expanded = set()
