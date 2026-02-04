@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   Send, 
   CheckCircle2, 
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react';
 
 const DPTransfer = () => {
-  const navigate = useNavigate();
   const [ready, setReady] = useState([]);
   const [transferred, setTransferred] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,20 +33,15 @@ const DPTransfer = () => {
   const [selectedDPType, setSelectedDPType] = useState('');
   const [transferring, setTransferring] = useState(false);
 
-  const { user, isPELevel } = useCurrentUser();
-  const canAccess = isPELevel;
+  const { isLoading, isAuthorized, isPELevel } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk and PE Manager can access this page.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!canAccess) {
-      toast.error('Access denied. Only PE Desk and PE Manager can access this page.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchData();
-  }, [user, canAccess, navigate]);
+  }, [isAuthorized]);
 
   const fetchData = async () => {
     try {
