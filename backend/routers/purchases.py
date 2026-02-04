@@ -323,7 +323,8 @@ async def get_purchases(
 @router.get("/{purchase_id}/payments")
 async def get_purchase_payments(
     purchase_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("purchases.view", "view purchase payments"))
 ):
     """Get payment tranches for a purchase"""
     purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0})
