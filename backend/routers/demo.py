@@ -114,14 +114,16 @@ def generate_demo_stocks():
 def generate_demo_bookings(clients, stocks):
     """Generate demo booking data"""
     bookings = []
-    statuses = ["pending", "approved", "completed", "partially_sold"]
+    statuses = ["open", "closed"]
+    approval_statuses = ["approved", "pending"]
     
     for i in range(15):
         client = random.choice(clients)
         stock = random.choice(stocks)
         quantity = random.randint(10, 100)
         buy_price = stock["landing_price"] * random.uniform(0.98, 1.02)
-        sell_price = buy_price * random.uniform(0.95, 1.15) if random.random() > 0.3 else None
+        sell_price = buy_price * random.uniform(0.95, 1.15)
+        status = random.choice(statuses)
         
         # Generate unique booking number
         booking_num = f"DEMO-BK-{i+1:05d}"
@@ -135,23 +137,22 @@ def generate_demo_bookings(clients, stocks):
             "stock_name": stock["name"],
             "stock_symbol": stock["symbol"],
             "quantity": quantity,
-            "buy_price": round(buy_price, 2),
-            "sell_price": round(sell_price, 2) if sell_price else None,
-            "status": random.choice(statuses),
-            "booking_type": random.choice(["buy", "sell"]),
-            "created_at": datetime.utcnow() - timedelta(days=random.randint(1, 60)),
+            "buying_price": round(buy_price, 2),
+            "selling_price": round(sell_price, 2),
+            "status": status,
+            "approval_status": "approved",
+            "booking_date": (datetime.utcnow() - timedelta(days=random.randint(1, 60))).strftime("%Y-%m-%d"),
+            "created_at": (datetime.utcnow() - timedelta(days=random.randint(1, 60))).isoformat(),
             "created_by": DEMO_USER["id"],
             "created_by_name": DEMO_USER["name"],
             "is_demo": True,
+            "is_voided": False,
+            "is_loss_booking": False,
         }
         
-        # Calculate P&L if sell price exists
-        if booking["sell_price"]:
-            booking["profit_loss"] = round((booking["sell_price"] - booking["buy_price"]) * quantity, 2)
-            booking["profit_loss_percentage"] = round(((booking["sell_price"] - booking["buy_price"]) / booking["buy_price"]) * 100, 2)
-        else:
-            booking["profit_loss"] = 0
-            booking["profit_loss_percentage"] = 0
+        # Calculate P&L
+        booking["profit_loss"] = round((booking["selling_price"] - booking["buying_price"]) * quantity, 2)
+        booking["profit_loss_percentage"] = round(((booking["selling_price"] - booking["buying_price"]) / booking["buying_price"]) * 100, 2)
             
         bookings.append(booking)
     
