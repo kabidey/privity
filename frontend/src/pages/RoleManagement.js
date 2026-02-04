@@ -127,6 +127,10 @@ const RoleManagement = () => {
       }
       setDialogOpen(false);
       fetchData();
+      
+      // Refresh current user's permissions in case their role was updated
+      await refreshUserPermissions();
+      toast.info('Permissions have been refreshed');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save role');
     } finally {
