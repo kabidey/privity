@@ -35,6 +35,7 @@ from services.inventory_service import (
     release_inventory_reservation,
     check_stock_availability
 )
+from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(tags=["Bookings"])
 
