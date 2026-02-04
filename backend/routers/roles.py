@@ -247,6 +247,15 @@ AVAILABLE_PERMISSIONS = {
             {"key": "research.ai_analysis", "name": "AI Analysis", "description": "Use AI stock analysis"},
         ]
     },
+    "license": {
+        "name": "License Management",
+        "permissions": [
+            {"key": "license.view", "name": "View Licenses", "description": "View license status and list"},
+            {"key": "license.generate", "name": "Generate License Keys", "description": "Generate new license keys"},
+            {"key": "license.activate", "name": "Activate Licenses", "description": "Activate license keys"},
+            {"key": "license.revoke", "name": "Revoke Licenses", "description": "Revoke active licenses"},
+        ]
+    },
 }
 
 # Default system roles with their permissions
