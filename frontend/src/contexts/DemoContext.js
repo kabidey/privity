@@ -198,6 +198,7 @@ export function DemoProvider({ children }) {
     setIsDemoMode(true);
     setShowFeatureShowcase(true);
     setShowWelcome(true);
+    setDemoStartTime(Date.now());
   }, []);
 
   const exitDemoMode = useCallback(async () => {
@@ -214,10 +215,22 @@ export function DemoProvider({ children }) {
     setShowFeatureShowcase(false);
     setCurrentTour(null);
     setTourStepIndex(0);
+    setExploredFeatures([]);
+    setDemoStartTime(null);
     localStorage.removeItem('privity_demo_state');
+    localStorage.removeItem('privity_demo_progress');
     localStorage.removeItem('demo_token');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+  }, []);
+
+  const trackFeatureExploration = useCallback((featureId) => {
+    setExploredFeatures(prev => {
+      if (!prev.includes(featureId)) {
+        return [...prev, featureId];
+      }
+      return prev;
+    });
   }, []);
 
   const startTour = useCallback((tourId) => {
