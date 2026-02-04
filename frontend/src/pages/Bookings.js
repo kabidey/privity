@@ -675,7 +675,9 @@ const Bookings = () => {
     }).format(value || 0);
   };
 
-  const displayedBookings = activeTab === 'pending' ? pendingBookings : (activeTab === 'loss' ? pendingLossBookings : bookings);
+  const displayedBookings = activeTab === 'pending' ? pendingBookings : 
+    (activeTab === 'loss' ? pendingLossBookings : 
+    (activeTab === 'bp-overrides' ? pendingBpOverrides : bookings));
 
   // Calculate payment progress
   const getPaymentProgress = (booking) => {
