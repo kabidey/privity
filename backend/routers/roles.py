@@ -188,13 +188,25 @@ AVAILABLE_PERMISSIONS = {
             {"key": "reports.view", "name": "View Reports", "description": "Access reports section"},
             {"key": "reports.pnl", "name": "View P&L Reports", "description": "View profit and loss reports"},
             {"key": "reports.export", "name": "Export Reports", "description": "Export report data"},
-            {"key": "reports.bi_builder", "name": "BI Report Builder", "description": "Access Business Intelligence report builder"},
+            {"key": "reports.bi_bookings", "name": "BI: Bookings Report", "description": "Generate booking reports in BI builder"},
+            {"key": "reports.bi_clients", "name": "BI: Clients Report", "description": "Generate client reports in BI builder"},
+            {"key": "reports.bi_revenue", "name": "BI: Revenue Report", "description": "Generate revenue reports in BI builder"},
+            {"key": "reports.bi_inventory", "name": "BI: Inventory Report", "description": "Generate inventory reports in BI builder"},
+            {"key": "reports.bi_payments", "name": "BI: Payments Report", "description": "Generate payment reports in BI builder"},
+            {"key": "reports.bi_pnl", "name": "BI: P&L Analysis", "description": "Generate P&L analysis reports in BI builder"},
+            {"key": "reports.bi_export", "name": "BI: Export to Excel", "description": "Export BI reports to Excel"},
+            {"key": "reports.bi_save_templates", "name": "BI: Save Templates", "description": "Save and manage BI report templates"},
         ]
     },
     "notifications": {
         "name": "Notifications",
         "permissions": [
-            {"key": "notifications.whatsapp", "name": "WhatsApp Management", "description": "Manage WhatsApp notifications, templates, and send messages"},
+            {"key": "notifications.whatsapp_view", "name": "WhatsApp: View Settings", "description": "View WhatsApp configuration and templates"},
+            {"key": "notifications.whatsapp_connect", "name": "WhatsApp: Connect/Disconnect", "description": "Manage WhatsApp connection via QR code"},
+            {"key": "notifications.whatsapp_templates", "name": "WhatsApp: Manage Templates", "description": "Create, edit, and delete message templates"},
+            {"key": "notifications.whatsapp_send", "name": "WhatsApp: Send Messages", "description": "Send individual WhatsApp messages"},
+            {"key": "notifications.whatsapp_bulk", "name": "WhatsApp: Bulk Send", "description": "Send bulk WhatsApp messages"},
+            {"key": "notifications.whatsapp_history", "name": "WhatsApp: View History", "description": "View message sending history"},
         ]
     },
     "dp_operations": {
