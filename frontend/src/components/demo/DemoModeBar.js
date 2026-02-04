@@ -63,10 +63,10 @@ export default function DemoModeBar() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
                 <BookOpen className="w-4 h-4" />
-                <span className="font-semibold text-sm">DEMO MODE</span>
+                <span className="font-semibold text-sm">EMPLOYEE DEMO</span>
               </div>
               <span className="text-white/90 text-sm hidden md:inline">
-                Run it to Learn it
+                Experience the Employee workflow
               </span>
             </div>
 
