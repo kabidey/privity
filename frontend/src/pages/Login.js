@@ -424,7 +424,7 @@ const Login = () => {
                   onClick={() => {
                     setRegistrationSuccess(false);
                     setIsLogin(true);
-                    setFormData({ email: registeredEmail, password: '', name: '', pan_number: '' });
+                    setFormData({ email: registeredEmail, password: '', name: '', pan_number: '', mobile_number: '' });
                   }}
                 >
                   Go to Login
