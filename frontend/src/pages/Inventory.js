@@ -67,6 +67,79 @@ const Inventory = () => {
     }
   };
 
+  // Fetch LP history for a stock
+  const fetchLPHistory = async (stockId, stockSymbol) => {
+    setLoadingHistory(true);
+    setSelectedStockForHistory({ stock_id: stockId, stock_symbol: stockSymbol });
+    setLpHistoryDialogOpen(true);
+    
+    try {
+      const response = await api.get(`/inventory/${stockId}/lp-history`);
+      setLpHistory(response.data.history || []);
+    } catch (error) {
+      toast.error('Failed to load LP history');
+      setLpHistory([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  // Sorting function
+  const sortedInventory = [...inventory].sort((a, b) => {
+    let aVal, bVal;
+    
+    switch (sortBy) {
+      case 'stock_symbol':
+        aVal = a.stock_symbol || '';
+        bVal = b.stock_symbol || '';
+        break;
+      case 'available_quantity':
+        aVal = a.available_quantity || 0;
+        bVal = b.available_quantity || 0;
+        break;
+      case 'landing_price':
+        aVal = a.landing_price || 0;
+        bVal = b.landing_price || 0;
+        break;
+      case 'lp_change':
+        aVal = (a.landing_price || 0) - (a.previous_landing_price || a.landing_price || 0);
+        bVal = (b.landing_price || 0) - (b.previous_landing_price || b.landing_price || 0);
+        break;
+      case 'total_value':
+        aVal = a.total_value || 0;
+        bVal = b.total_value || 0;
+        break;
+      case 'has_inventory':
+        aVal = a.available_quantity > 0 ? 1 : 0;
+        bVal = b.available_quantity > 0 ? 1 : 0;
+        break;
+      default:
+        aVal = a.stock_symbol || '';
+        bVal = b.stock_symbol || '';
+    }
+    
+    if (typeof aVal === 'string') {
+      return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    }
+    return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+  });
+
+  // Get LP change indicator
+  const getLPChangeIndicator = (item) => {
+    const currentLP = item.landing_price || 0;
+    const previousLP = item.previous_landing_price;
+    
+    if (previousLP === undefined || previousLP === null || previousLP === currentLP) {
+      return { type: 'neutral', color: 'bg-gray-100 text-gray-600', icon: Minus };
+    }
+    
+    if (currentLP > previousLP) {
+      return { type: 'up', color: 'bg-green-100 text-green-700 border-green-300', icon: ArrowUp };
+    }
+    
+    return { type: 'down', color: 'bg-red-100 text-red-700 border-red-300', icon: ArrowDown };
+  };
+
   const handleDeleteInventory = async (stockId, stockSymbol) => {
     if (!window.confirm(`Are you sure you want to delete inventory for ${stockSymbol}? This will remove all inventory records for this stock.`)) {
       return;
