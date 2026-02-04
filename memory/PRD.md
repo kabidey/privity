@@ -37,6 +37,50 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 04, 2026)
 
+#### ✅ Centralize Race Condition Fix into Custom Hook - COMPLETED (Feb 04, 2026)
+**Task**: Centralize the race condition fix (duplicate `if (user === null) return;` code across 15 pages) into a reusable custom hook.
+
+**Solution**: Created `useProtectedPage` hook that:
+- Handles loading state while user data loads from localStorage
+- Performs permission/role validation via customizable `allowIf` function
+- Automatically redirects unauthorized users with error toast
+- Returns `{ isLoading, isAuthorized, ...currentUser }` for UI rendering
+
+**New Hook** (`/app/frontend/src/hooks/useProtectedPage.js`):
+```javascript
+const { isLoading, isAuthorized, isPELevel } = useProtectedPage({
+  allowIf: ({ isPELevel }) => isPELevel,
+  deniedMessage: 'Access denied. Only PE Level users can access this page.'
+});
+```
+
+**Pages Updated (15)**:
+1. `AuditTrail.js` - PE Level protection
+2. `EmailServerConfig.js` - PE Level protection
+3. `Analytics.js` - PE Level protection
+4. `ContractNotes.js` - PE Level protection
+5. `EmailLogs.js` - PE Level protection
+6. `EmailTemplates.js` - PE Level protection
+7. `PEDashboard.js` - PE Level protection
+8. `Purchases.js` - PE Level protection
+9. `BulkUpload.js` - PE Desk protection
+10. `CompanyMaster.js` - PE Desk protection
+11. `SecurityDashboard.js` - PE Desk protection
+12. `BusinessPartners.js` - canManageBusinessPartners OR isPELevel protection
+13. `DPReceivables.js` - PE Level protection
+14. `DPTransferClient.js` - PE Level protection
+15. `Vendors.js` - PE Level protection
+
+**Benefits**:
+- Eliminated ~150 lines of duplicate code
+- Consistent permission handling across all protected pages
+- Single point of maintenance for access control logic
+- Clean separation of concerns
+
+**Testing**: Screenshot verification confirmed protected pages load correctly ✅
+
+---
+
 #### ✅ Remove Change Password Button from User Menu - COMPLETED (Feb 04, 2026)
 **Request**: Remove the "Change Password" option beside the logout screen as password change is now handled by Account Security menu.
 
