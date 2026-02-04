@@ -15,6 +15,9 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 PE_DESK_EMAIL = "pe@smifs.com"
 PE_DESK_PASSWORD = "Kutta@123"
 
+# Global token cache to avoid rate limiting
+_token_cache = {}
+
 
 class TestRoleManagementSystem:
     """Comprehensive tests for Role Management functionality"""
