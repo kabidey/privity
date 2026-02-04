@@ -348,6 +348,10 @@ const SecurityDashboard = () => {
             <AlertTriangle className="w-4 h-4 mr-2" />
             Events
           </TabsTrigger>
+          <TabsTrigger value="license" data-testid="tab-license">
+            <Key className="w-4 h-4 mr-2" />
+            License
+          </TabsTrigger>
           <TabsTrigger value="management" data-testid="tab-management">
             <Lock className="w-4 h-4 mr-2" />
             Management
