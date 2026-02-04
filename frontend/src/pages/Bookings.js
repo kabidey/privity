@@ -1005,6 +1005,36 @@ const Bookings = () => {
                     <p className="text-xs text-muted-foreground mt-2">
                       Referral Partner selection is disabled for Business Partners.
                     </p>
+                    
+                    {/* BP Revenue Share Override */}
+                    {canOverrideRevenueShare && (
+                      <div className="mt-4 pt-4 border-t border-emerald-200 dark:border-emerald-700">
+                        <Label className="text-emerald-700 dark:text-emerald-400">Revenue Share Override (Optional)</Label>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          You can request a lower revenue share. This will require approval from PE Desk.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            max={currentUser.revenue_share_percent || 100}
+                            step="0.1"
+                            data-testid="bp-override-input"
+                            value={formData.bp_revenue_share_override}
+                            onChange={(e) => {
+                              let val = parseFloat(e.target.value);
+                              const maxShare = currentUser.revenue_share_percent || 100;
+                              if (val > maxShare) val = maxShare;
+                              if (val < 0) val = 0;
+                              setFormData({ ...formData, bp_revenue_share_override: isNaN(val) ? '' : val.toString() });
+                            }}
+                            placeholder={`Max ${currentUser.revenue_share_percent || 0}%`}
+                            className="w-32"
+                          />
+                          <span className="text-sm text-muted-foreground">% (requires approval)</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : clientIsRpWarning ? (
                   /* Client is RP - RP Selection Disabled */
