@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { LicenseProvider } from './contexts/LicenseContext';
 import FloatingNotifications from './components/FloatingNotifications';
 import NotificationDialog from './components/NotificationDialog';
 import NotificationPermissionBanner from './components/NotificationPermissionBanner';
