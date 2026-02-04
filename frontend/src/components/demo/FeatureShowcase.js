@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, ChevronRight, ChevronLeft, Sparkles, BookOpen, ArrowRight } from 'lucide-react';
-import { useDemo, FEATURE_SHOWCASES, DEMO_TOURS } from '../contexts/DemoContext';
+import { useDemo, FEATURE_SHOWCASES, DEMO_TOURS } from '../../contexts/DemoContext';
 import { useNavigate } from 'react-router-dom';
 
 const FeatureCard = ({ feature, index, onExplore }) => {
