@@ -2207,49 +2207,6 @@ class BPOverrideApprovalRequest(BaseModel):
     rejection_reason: Optional[str] = None
 
 
-@router.get("/bookings/pending-bp-overrides")
-async def get_pending_bp_overrides(
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("bookings.approve_revenue_override", "view pending BP overrides"))
-):
-    """
-    Get all bookings with pending BP revenue share overrides.
-    Only users with 'bookings.approve_revenue_override' permission can view these.
-    """
-    bookings_list = await db.bookings.find(
-        {"bp_override_approval_status": "pending"},
-        {"_id": 0}
-    ).sort("created_at", -1).to_list(1000)
-    
-    # Enrich with client and stock details
-    for booking in bookings_list:
-        client = await db.clients.find_one(
-            {"id": booking.get("client_id")},
-            {"_id": 0, "name": 1, "otc_ucc": 1}
-        )
-        if client:
-            booking["client_name"] = client.get("name")
-            booking["client_otc_ucc"] = client.get("otc_ucc")
-        
-        stock = await db.stocks.find_one(
-            {"id": booking.get("stock_id")},
-            {"_id": 0, "name": 1, "symbol": 1}
-        )
-        if stock:
-            booking["stock_name"] = stock.get("name")
-            booking["stock_symbol"] = stock.get("symbol")
-        
-        # Get creator details
-        creator = await db.users.find_one(
-            {"id": booking.get("created_by")},
-            {"_id": 0, "name": 1}
-        )
-        if creator:
-            booking["created_by_name"] = creator.get("name")
-    
-    return bookings_list
-
-
 @router.put("/bookings/{booking_id}/bp-override-approval")
 async def approve_bp_revenue_override(
     booking_id: str,
