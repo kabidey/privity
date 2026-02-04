@@ -455,9 +455,13 @@ const Inventory = () => {
                                 </div>
                               ) : (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-emerald-600 font-semibold">
-                                    {formatCurrency(item.landing_price)}
-                                  </span>
+                                  {/* LP Change Indicator Box */}
+                                  <div className={`flex items-center gap-1 px-2 py-1 rounded border ${lpChange.color}`}>
+                                    <LPIcon className="h-3 w-3" />
+                                    <span className="font-semibold">
+                                      {formatCurrency(item.landing_price)}
+                                    </span>
+                                  </div>
                                   {isPEDesk && (
                                     <Button
                                       size="sm"
