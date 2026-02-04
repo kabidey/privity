@@ -520,6 +520,28 @@ async def create_booking(
             cc_email=current_user.get("email")
         )
     
+    # Send WhatsApp activity alerts
+    try:
+        from services.activity_alerts import notify_booking_created
+        
+        # Get RP and BP info for alerts
+        rp_info = None
+        if booking_doc.get("referral_partner_id"):
+            rp_info = await db.referral_partners.find_one({"id": booking_doc["referral_partner_id"]}, {"_id": 0})
+        
+        bp_data = None
+        if is_bp_booking:
+            bp_data = await db.business_partners.find_one({"id": bp_info.get("id")}, {"_id": 0})
+        
+        await notify_booking_created(
+            booking_doc,
+            client,
+            rp=rp_info,
+            bp=bp_data
+        )
+    except Exception as e:
+        print(f"Activity alert error (non-critical): {e}")
+    
     # Real-time notification to PE Desk
     await notify_roles(
         [1],
