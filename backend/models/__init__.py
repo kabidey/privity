@@ -471,6 +471,13 @@ class BookingWithDetails(BaseModel):
     stock_transferred: bool = False
     stock_transferred_at: Optional[str] = None
     stock_transferred_by: Optional[str] = None
+    # BP Revenue Share Override (for Partners Desk / BP bookings)
+    bp_revenue_share_override: Optional[float] = None  # Override percentage
+    bp_override_approval_status: str = "not_required"  # not_required, pending, approved, rejected
+    bp_override_approved_by: Optional[str] = None
+    bp_override_approved_at: Optional[str] = None
+    bp_override_rejection_reason: Optional[str] = None
+    bp_original_revenue_share: Optional[float] = None  # Original BP revenue share before override
 
 
 # ============== DP Transfer Report Model ==============
