@@ -462,8 +462,11 @@ async def forgot_password(data: PasswordResetRequest):
     """Request password reset OTP"""
     user = await db.users.find_one({"email": data.email.lower()})
     if not user:
-        # Don't reveal if email exists
-        return {"message": "If the email exists, an OTP has been sent"}
+        # User doesn't exist - tell them to create an account
+        raise HTTPException(
+            status_code=404, 
+            detail="No account found with this email. Please create an account first."
+        )
     
     # Check rate limiting
     recent_otps = await db.password_resets.count_documents({
@@ -491,7 +494,7 @@ async def forgot_password(data: PasswordResetRequest):
     # Send email
     await send_otp_email(data.email, otp, user["name"])
     
-    return {"message": "If the email exists, an OTP has been sent"}
+    return {"message": "OTP has been sent to your email"}
 
 
 @router.post("/reset-password")
