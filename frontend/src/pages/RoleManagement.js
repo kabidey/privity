@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import api from '../utils/api';
+import api, { refreshUserPermissions } from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Shield, Plus, Pencil, Trash2, Users, Lock, Unlock, 
