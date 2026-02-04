@@ -588,7 +588,7 @@ async def approve_referral_partner(
             entity_id=rp_id,
             user_id=current_user["id"],
             user_name=current_user["name"],
-            user_role=user_role,
+            user_role=current_user.get("role", 6),
             entity_name=f"{rp['name']} ({rp['rp_code']})",
             details={"action": "approved", "email_sent": bool(rp.get("email"))}
         )
