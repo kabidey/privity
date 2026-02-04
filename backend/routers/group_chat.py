@@ -121,16 +121,15 @@ async def send_chat_message(
     if len(message.content) > 1000:
         raise HTTPException(status_code=400, detail="Message too long (max 1000 characters)")
     
-    # Get role name
+    # Get role name - must match ROLES in config.py
     role_names = {
         1: "PE Desk",
         2: "PE Manager",
         3: "Finance",
-        4: "Manager",
-        5: "Employee",
-        6: "Intern",
-        7: "Referral Partner",
-        8: "Business Partner"
+        4: "Viewer",
+        5: "Partners Desk",
+        6: "Business Partner",
+        7: "Employee"
     }
     
     message_doc = {
