@@ -457,11 +457,35 @@ app.add_middleware(RateLimitMiddleware)
 app.add_middleware(RequestValidationMiddleware)
 
 # ====================
+# Bot Protection Middleware
+# ====================
+
+from middleware.bot_protection import (
+    BotProtectionMiddleware,
+    ROBOTS_TXT_CONTENT,
+    get_threat_statistics
+)
+
+# Block bots, crawlers, and various attacks
+app.add_middleware(BotProtectionMiddleware)
+
+# ====================
 # Kill Switch Middleware
 # ====================
 
 from middleware.kill_switch import KillSwitchMiddleware
 app.add_middleware(KillSwitchMiddleware)
+
+
+# ====================
+# Robots.txt Endpoint (Block all crawlers)
+# ====================
+
+@app.get("/robots.txt")
+async def robots_txt():
+    """Return robots.txt that blocks all crawlers"""
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(ROBOTS_TXT_CONTENT, media_type="text/plain")
 
 
 # ====================
