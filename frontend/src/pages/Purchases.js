@@ -51,7 +51,10 @@ const Purchases = () => {
   const [paymentsDialog, setPaymentsDialog] = useState({ open: false, purchase: null, payments: [] });
   const [paymentsLoading, setPaymentsLoading] = useState(false);
 
-  const { user, isPEDesk, isPELevel, isFinance, canDelete, hasFinanceAccess } = useCurrentUser();
+  const { isLoading, isAuthorized, isPEDesk, isPELevel, isFinance, canDelete, hasFinanceAccess } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk and PE Manager can access Purchases.'
+  });
   const canPay = isPELevel || isFinance; // PE Desk, PE Manager, and Finance can pay
 
   // Fetch payments for a purchase
@@ -91,17 +94,9 @@ const Purchases = () => {
   };
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    // Only PE Desk and PE Manager can access Purchases
-    if (!isPELevel) {
-      toast.error('Access denied. Only PE Desk and PE Manager can access Purchases.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchData();
-  }, [user, isPELevel]);
+  }, [isAuthorized]);
 
   const fetchData = async () => {
     try {
