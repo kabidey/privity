@@ -44,10 +44,23 @@ const BIReports = () => {
   const [saveName, setSaveName] = useState('');
   const [saveDescription, setSaveDescription] = useState('');
   
+  // Check for any BI report permission to access the page
   const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
-    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('reports.bi_builder'),
-    deniedMessage: 'Access denied. You need BI Report Builder permission.'
+    allowIf: ({ isPELevel, hasPermission }) => {
+      if (isPELevel) return true;
+      // Allow access if user has any of the BI report permissions
+      const biPermissions = [
+        'reports.bi_bookings', 'reports.bi_clients', 'reports.bi_revenue',
+        'reports.bi_inventory', 'reports.bi_payments', 'reports.bi_pnl'
+      ];
+      return biPermissions.some(p => hasPermission(p));
+    },
+    deniedMessage: 'Access denied. You need at least one BI Report permission.'
   });
+  
+  // Store permission info from config
+  const [canExport, setCanExport] = useState(false);
+  const [canSaveTemplates, setCanSaveTemplates] = useState(false);
 
   useEffect(() => {
     if (!isAuthorized) return;
