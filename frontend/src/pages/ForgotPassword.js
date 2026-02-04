@@ -30,11 +30,18 @@ const ForgotPassword = () => {
       toast.success('OTP sent to your email');
       setStep(2);
     } catch (error) {
-      if (error.response?.status === 429) {
+      if (error.response?.status === 404) {
+        toast.error('No account found with this email. Please create an account first.', {
+          duration: 5000,
+          action: {
+            label: 'Register',
+            onClick: () => navigate('/login?tab=register')
+          }
+        });
+      } else if (error.response?.status === 429) {
         toast.error('Too many requests. Please try again later.');
       } else {
-        toast.success('If the email exists, an OTP has been sent');
-        setStep(2);
+        toast.error(error.response?.data?.detail || 'Failed to send OTP. Please try again.');
       }
     } finally {
       setLoading(false);
