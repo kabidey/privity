@@ -137,7 +137,12 @@ class BotDetector:
         r"bot", r"crawler", r"spider", r"scraper", r"fetcher",
         r"archiver", r"indexer", r"mediapartners",
         
-        # Headless Browsers (often used for scraping)
+        # Note: Headless browsers (puppeteer, playwright, selenium) are NOT blocked
+        # to allow legitimate automated testing. Security scanners are blocked above.
+    ]
+    
+    # Patterns to monitor but not block (for awareness in dashboard)
+    MONITORED_USER_AGENTS = [
         r"headless", r"phantom", r"puppeteer", r"playwright", r"selenium",
         r"webdriver", r"chromedriver", r"geckodriver",
     ]
