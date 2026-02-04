@@ -79,6 +79,12 @@ async def create_indexes():
         await db.email_logs.create_index("to_email")
         await db.email_logs.create_index([("related_entity_type", 1), ("related_entity_id", 1)], sparse=True)
         
+        # Blocked threats collection indexes
+        await db.blocked_threats.create_index([("timestamp", -1)])
+        await db.blocked_threats.create_index("ip_address")
+        await db.blocked_threats.create_index("threat_type")
+        await db.blocked_threats.create_index([("ip_address", 1), ("timestamp", -1)])
+        
         print("Database indexes created successfully")
     except Exception as e:
         print(f"Error creating indexes: {e}")
