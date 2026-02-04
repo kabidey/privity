@@ -409,16 +409,13 @@ async def get_contract_note_by_booking(
 @router.post("/regenerate/{note_id}")
 async def regenerate_contract_note(
     note_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.generate", "regenerate contract note"))
 ):
     """
-    Regenerate an existing contract note PDF (PE Desk only)
+    Regenerate an existing contract note PDF
     Useful when client/stock details have been updated
     """
-    user_role = current_user.get("role", 6)
-    
-    if user_role != 1:  # Only PE Desk
-        raise HTTPException(status_code=403, detail="Only PE Desk can regenerate contract notes")
     
     note = await db.contract_notes.find_one({"id": note_id}, {"_id": 0})
     if not note:
