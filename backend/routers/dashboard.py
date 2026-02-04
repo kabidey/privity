@@ -5,6 +5,7 @@ Handles dashboard stats and overview endpoints
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends
+import pytz
 
 from database import db
 from config import ROLES
@@ -15,6 +16,9 @@ from services.permission_service import (
     check_permission as check_dynamic_permission,
     require_permission
 )
+
+# IST timezone
+IST = pytz.timezone('Asia/Kolkata')
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
