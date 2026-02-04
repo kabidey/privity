@@ -319,7 +319,8 @@ async def create_template(
     template_dict["created_by"] = current_user["id"]
     
     await db.whatsapp_templates.insert_one(template_dict)
-    del template_dict["_id"] if "_id" in template_dict else None
+    if "_id" in template_dict:
+        del template_dict["_id"]
     
     return {"message": "Template created successfully", "template": template_dict}
 
