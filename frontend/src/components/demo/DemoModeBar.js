@@ -46,76 +46,89 @@ export default function DemoModeBar() {
   });
 
   return (
-    <motion.div
-      initial={{ y: -50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
-    >
-      <div className="max-w-full mx-auto px-4 py-2">
-        <div className="flex items-center justify-between">
-          {/* Left: Demo Badge */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
-              <BookOpen className="w-4 h-4" />
-              <span className="font-semibold text-sm">DEMO MODE</span>
-            </div>
-            <span className="text-white/90 text-sm hidden md:inline">
-              Run it to Learn it
-            </span>
-          </div>
-
-          {/* Center: Progress & Actions */}
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 text-sm">
-              <span className="text-white/80">Progress:</span>
-              <span className="font-semibold">
-                {completedTours.length}/{Object.keys(DEMO_TOURS).length} tours
+    <>
+      <DemoProgressTracker 
+        isOpen={showProgressTracker} 
+        onClose={() => setShowProgressTracker(false)} 
+      />
+      
+      <motion.div
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
+      >
+        <div className="max-w-full mx-auto px-4 py-2">
+          <div className="flex items-center justify-between">
+            {/* Left: Demo Badge */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
+                <BookOpen className="w-4 h-4" />
+                <span className="font-semibold text-sm">DEMO MODE</span>
+              </div>
+              <span className="text-white/90 text-sm hidden md:inline">
+                Run it to Learn it
               </span>
             </div>
 
-            {currentTourId && (
+            {/* Center: Progress & Actions */}
+            <div className="flex items-center gap-4">
+              {/* Points & Progress Button */}
               <button
-                onClick={() => startTour(currentTourId)}
-                className="flex items-center gap-1 bg-white/20 hover:bg-white/30 rounded-lg px-3 py-1.5 text-sm transition-colors"
+                onClick={() => setShowProgressTracker(true)}
+                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 rounded-lg px-3 py-1.5 text-sm transition-colors"
               >
-                <Play className="w-4 h-4" />
+                <Trophy className="w-4 h-4 text-yellow-200" />
+                <span className="font-semibold">{totalPoints} pts</span>
+                <span className="hidden sm:inline text-white/80">•</span>
                 <span className="hidden sm:inline">
-                  Tour {currentFeature?.title || 'this page'}
+                  {completedTours.length}/{Object.keys(DEMO_TOURS).length} tours
                 </span>
               </button>
-            )}
 
-            <button
-              onClick={() => setShowFeatureShowcase(true)}
-              className="flex items-center gap-1 bg-white/20 hover:bg-white/30 rounded-lg px-3 py-1.5 text-sm transition-colors"
-            >
-              <HelpCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Feature Guide</span>
-            </button>
-          </div>
+              {currentTourId && (
+                <button
+                  onClick={() => startTour(currentTourId)}
+                  className="flex items-center gap-1 bg-white/20 hover:bg-white/30 rounded-lg px-3 py-1.5 text-sm transition-colors"
+                >
+                  <Play className="w-4 h-4" />
+                  <span className="hidden sm:inline">
+                    Tour {currentFeature?.title || 'this page'}
+                  </span>
+                </button>
+              )}
 
-          {/* Right: Controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={resetDemoProgress}
-              className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-              title="Reset Progress"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => {
-                exitDemoMode();
-                navigate('/login');
-              }}
-              className="flex items-center gap-1 bg-white text-orange-600 hover:bg-orange-50 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Exit Demo</span>
-            </button>
+              <button
+                onClick={() => setShowFeatureShowcase(true)}
+                className="flex items-center gap-1 bg-white/20 hover:bg-white/30 rounded-lg px-3 py-1.5 text-sm transition-colors"
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Feature Guide</span>
+              </button>
+            </div>
+
+            {/* Right: Controls */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={resetDemoProgress}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                title="Reset Progress"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  exitDemoMode();
+                  navigate('/login');
+                }}
+                className="flex items-center gap-1 bg-white text-orange-600 hover:bg-orange-50 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Exit Demo</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
