@@ -842,3 +842,63 @@ async def send_day_end_reports(
         **result
     }
 
+
+
+
+# ============== Scheduler Management ==============
+
+@router.get("/scheduled-jobs")
+async def get_scheduled_jobs(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.export", "view scheduled jobs"))
+):
+    """
+    Get list of all scheduled jobs with their next run times
+    """
+    from services.scheduler_service import get_scheduled_jobs, IST
+    
+    jobs = get_scheduled_jobs()
+    
+    return {
+        "timezone": "Asia/Kolkata (IST)",
+        "current_time_ist": datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S %Z"),
+        "jobs": jobs
+    }
+
+
+@router.post("/trigger-job/{job_id}")
+async def trigger_scheduled_job(
+    job_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.export", "trigger scheduled job"))
+):
+    """
+    Manually trigger a scheduled job immediately
+    """
+    from services.scheduler_service import trigger_job_now
+    
+    result = trigger_job_now(job_id)
+    return result
+
+
+@router.get("/job-history")
+async def get_job_history(
+    job_name: str = None,
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("analytics.export", "view job history"))
+):
+    """
+    Get history of scheduled job executions
+    """
+    query = {}
+    if job_name:
+        query["job_name"] = job_name
+    
+    history = await db.scheduled_job_runs.find(
+        query,
+        {"_id": 0}
+    ).sort("executed_at", -1).limit(limit).to_list(limit)
+    
+    return history
+
