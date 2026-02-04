@@ -795,6 +795,281 @@ const SecurityDashboard = () => {
           </div>
         </TabsContent>
 
+        {/* Threat Monitor Tab */}
+        <TabsContent value="threats" className="space-y-6">
+          {/* Threat Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border-red-200 bg-red-50/50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Total Blocked</p>
+                    <p className="text-3xl font-bold text-red-600">
+                      {threatData?.total_blocked || 0}
+                    </p>
+                  </div>
+                  <Ban className="w-10 h-10 text-red-400" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-orange-200 bg-orange-50/50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Blocked Today</p>
+                    <p className="text-3xl font-bold text-orange-600">
+                      {threatData?.blocked_today || 0}
+                    </p>
+                  </div>
+                  <AlertTriangle className="w-10 h-10 text-orange-400" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-purple-200 bg-purple-50/50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Blocked IPs</p>
+                    <p className="text-3xl font-bold text-purple-600">
+                      {threatData?.blocked_ips?.length || 0}
+                    </p>
+                  </div>
+                  <Server className="w-10 h-10 text-purple-400" />
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Threat Types</p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {Object.keys(threatData?.by_threat_type || {}).length}
+                    </p>
+                  </div>
+                  <Shield className="w-10 h-10 text-blue-400" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Threats by Type */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-red-600" />
+                  Blocked by Threat Type
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={Object.entries(threatData?.by_threat_type || {}).map(([name, value]) => ({
+                          name: name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                          value
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        dataKey="value"
+                        label={({ name, value }) => `${name}: ${value}`}
+                      >
+                        {Object.entries(threatData?.by_threat_type || {}).map((_, index) => (
+                          <Cell key={index} fill={['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6366f1'][index % 8]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                  Hourly Trend (24h)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={threatData?.hourly_trend || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="hour" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={60} />
+                      <YAxis />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="count" stroke="#ef4444" fill="#fecaca" name="Blocked Requests" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Top Blocked IPs */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ban className="w-5 h-5 text-red-600" />
+                Top Blocked IP Addresses
+              </CardTitle>
+              <CardDescription>
+                IP addresses with multiple security violations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>IP Address</TableHead>
+                    <TableHead>Violations</TableHead>
+                    <TableHead>Threat Types</TableHead>
+                    <TableHead>Last Seen</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(threatData?.blocked_ips || []).slice(0, 10).map((ip, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-mono text-sm">{ip.ip_address}</TableCell>
+                      <TableCell>
+                        <Badge variant="destructive">{ip.violation_count}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {(ip.threat_types || []).slice(0, 3).map((type, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">
+                              {type.replace(/_/g, ' ')}
+                            </Badge>
+                          ))}
+                          {(ip.threat_types || []).length > 3 && (
+                            <Badge variant="outline" className="text-xs">+{ip.threat_types.length - 3}</Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {ip.last_seen ? new Date(ip.last_seen).toLocaleString() : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {(!threatData?.blocked_ips || threatData.blocked_ips.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                        <Shield className="w-12 h-12 mx-auto mb-2 text-green-500" />
+                        No blocked IPs recorded yet
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Recent Blocked Requests */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+                Recent Blocked Requests
+              </CardTitle>
+              <CardDescription>
+                Latest security threats blocked by the system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>IP Address</TableHead>
+                    <TableHead>Threat Type</TableHead>
+                    <TableHead>Path</TableHead>
+                    <TableHead>Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(threatData?.recent_threats || []).slice(0, 20).map((threat, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="text-sm text-gray-500 whitespace-nowrap">
+                        {threat.timestamp ? new Date(threat.timestamp).toLocaleString() : 'N/A'}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{threat.ip_address}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={threat.threat_type?.includes('scanner') || threat.threat_type?.includes('injection') ? 'destructive' : 'secondary'}
+                          className="whitespace-nowrap"
+                        >
+                          {(threat.threat_type || 'unknown').replace(/_/g, ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs max-w-[200px] truncate" title={threat.path}>
+                        {threat.path}
+                      </TableCell>
+                      <TableCell className="text-xs text-gray-500 max-w-[200px] truncate" title={threat.details}>
+                        {threat.details || '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {(!threatData?.recent_threats || threatData.recent_threats.length === 0) && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                        <CheckCircle2 className="w-12 h-12 mx-auto mb-2 text-green-500" />
+                        No threats blocked recently - System is secure
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Threat Types Legend */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-blue-600" />
+                Protected Against
+              </CardTitle>
+              <CardDescription>
+                Types of attacks and threats being blocked
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[
+                  { type: 'Search Engine Crawlers', desc: 'Google, Bing, Yahoo bots', icon: '🔍' },
+                  { type: 'Social Media Crawlers', desc: 'Facebook, Twitter, LinkedIn bots', icon: '📱' },
+                  { type: 'SEO Tools', desc: 'SEMrush, Ahrefs, Moz bots', icon: '📊' },
+                  { type: 'Security Scanners', desc: 'Nikto, Nmap, SQLMap', icon: '🛡️' },
+                  { type: 'Web Scrapers', desc: 'Scrapy, wget, curl bots', icon: '🕷️' },
+                  { type: 'Headless Browsers', desc: 'Puppeteer, Selenium, Phantom', icon: '👻' },
+                  { type: 'Path Traversal', desc: '../ directory attacks', icon: '📁' },
+                  { type: 'Directory Enumeration', desc: '.git, .env, config files', icon: '📂' },
+                  { type: 'Command Injection', desc: 'Shell command attacks', icon: '💻' },
+                  { type: 'File Inclusion', desc: 'LFI/RFI attacks', icon: '📄' },
+                  { type: 'SSRF Attempts', desc: 'Server-side request forgery', icon: '🌐' },
+                  { type: 'Suspicious User Agents', desc: 'Empty or malformed UAs', icon: '🤖' },
+                ].map((item, index) => (
+                  <div key={index} className="p-3 rounded-lg bg-gray-50 border">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">{item.icon}</span>
+                      <span className="font-medium text-sm">{item.type}</span>
+                    </div>
+                    <p className="text-xs text-gray-500">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Map Tab */}
         <TabsContent value="map" className="space-y-4">
           <Card>
