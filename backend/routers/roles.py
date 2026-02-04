@@ -84,6 +84,7 @@ AVAILABLE_PERMISSIONS = {
         "name": "Inventory",
         "permissions": [
             {"key": "inventory.view", "name": "View Inventory", "description": "View inventory levels"},
+            {"key": "inventory.view_lp_change", "name": "View LP Change Indicator", "description": "View green/red LP price change indicators"},
             {"key": "inventory.view_lp_history", "name": "View LP History", "description": "View landing price change history"},
             {"key": "inventory.edit_landing_price", "name": "Edit Landing Price", "description": "Modify landing prices"},
             {"key": "inventory.recalculate", "name": "Recalculate Inventory", "description": "Trigger inventory recalculation for all stocks"},
