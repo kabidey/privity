@@ -26,6 +26,7 @@ from utils.auth import (
 )
 from services.email_service import generate_otp, send_otp_email, send_email
 from services.audit_service import create_audit_log
+from services.permission_service import get_role_permissions
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
