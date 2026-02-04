@@ -686,7 +686,7 @@ const Login = () => {
                 data-testid="toggle-auth-mode"
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  setFormData({ email: '', password: '', name: '', pan_number: '' });
+                  setFormData({ email: '', password: '', name: '', pan_number: '', mobile_number: '' });
                 }}
                 className="text-primary hover:underline"
               >
