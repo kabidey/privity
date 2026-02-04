@@ -158,19 +158,36 @@ REPORT_TYPE_PERMISSIONS = {
 }
 
 
+def check_permission_sync(user_permissions: list, permission: str) -> bool:
+    """
+    Synchronous permission check against a list of user permissions.
+    """
+    if "*" in user_permissions:
+        return True
+    
+    category = permission.split(".")[0]
+    if f"{category}.*" in user_permissions:
+        return True
+    
+    return permission in user_permissions
+
+
 @router.get("/config")
 async def get_report_config(
     current_user: dict = Depends(get_current_user)
 ):
     """Get available report configurations based on user permissions"""
-    from services.permission_service import has_permission
-    
     user_permissions = current_user.get("permissions", [])
+    is_pe_desk = current_user.get("role") == 1
+    
+    # PE Desk has access to all reports
+    if is_pe_desk:
+        user_permissions = ["*"]
     
     # Filter report types based on user permissions
     available_types = []
     for report_type, perm_key in REPORT_TYPE_PERMISSIONS.items():
-        if has_permission(user_permissions, perm_key):
+        if check_permission_sync(user_permissions, perm_key):
             label_map = {
                 "bookings": "Bookings Report",
                 "clients": "Clients Report", 
@@ -200,8 +217,8 @@ async def get_report_config(
     return {
         "report_types": available_types,
         "configs": available_configs,
-        "can_export": has_permission(user_permissions, "reports.bi_export"),
-        "can_save_templates": has_permission(user_permissions, "reports.bi_save_templates")
+        "can_export": check_permission_sync(user_permissions, "reports.bi_export"),
+        "can_save_templates": check_permission_sync(user_permissions, "reports.bi_save_templates")
     }
 
 
