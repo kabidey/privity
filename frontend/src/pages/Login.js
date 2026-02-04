@@ -738,6 +738,40 @@ const Login = () => {
             </span>
           </p>
         </div>
+
+        {/* Demo Mode Button */}
+        <div className="mt-6 w-full max-w-md">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 rounded-lg blur opacity-25"></div>
+            <button
+              onClick={handleStartDemo}
+              disabled={demoLoading}
+              className="relative w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group"
+              data-testid="demo-mode-btn"
+            >
+              {demoLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Initializing Demo...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <div className="text-left">
+                    <div className="flex items-center gap-2">
+                      <span>Try PRIVITY Demo</span>
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <p className="text-xs font-normal opacity-90">Run it to Learn it</p>
+                  </div>
+                </>
+              )}
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            No login required • Explore all features with sample data
+          </p>
+        </div>
       </div>
 
       {/* Mobile Number Required Modal */}
