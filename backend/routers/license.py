@@ -33,12 +33,26 @@ class GenerateLicenseRequest(BaseModel):
 # ============== Public Endpoints (for license check) ==============
 
 @router.get("/status")
-async def get_license_status():
+async def get_license_status(email: Optional[str] = None):
     """
     Check current license status.
     This endpoint is public so the app can check license before login.
+    
+    SMIFS employees (@smifs.com) are exempt from license requirements.
+    Only Business Partners need a valid license.
     """
-    status = await check_license_status()
+    status = await check_license_status(user_email=email)
+    return status
+
+
+@router.get("/status/me")
+async def get_my_license_status(current_user: dict = Depends(get_current_user)):
+    """
+    Check license status for the logged-in user.
+    SMIFS employees are automatically exempt.
+    """
+    user_email = current_user.get("email", "")
+    status = await check_license_status(user_email=user_email)
     return status
 
 
