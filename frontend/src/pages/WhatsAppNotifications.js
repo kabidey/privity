@@ -379,20 +379,22 @@ const WhatsAppNotifications = () => {
       <Tabs defaultValue="templates">
         <TabsList>
           <TabsTrigger value="templates">Message Templates</TabsTrigger>
-          <TabsTrigger value="history">Message History</TabsTrigger>
+          {canViewHistory && <TabsTrigger value="history">Message History</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="templates" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Message Templates</h3>
-            <Button onClick={() => {
-              setEditingTemplate(null);
-              setTemplateForm({ name: '', category: 'custom', message_template: '', variables: [], recipient_types: [] });
-              setTemplateDialogOpen(true);
-            }}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Template
-            </Button>
+            {canManageTemplates && (
+              <Button onClick={() => {
+                setEditingTemplate(null);
+                setTemplateForm({ name: '', category: 'custom', message_template: '', variables: [], recipient_types: [] });
+                setTemplateDialogOpen(true);
+              }}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Template
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -406,7 +408,7 @@ const WhatsAppNotifications = () => {
                         {template.category}
                       </Badge>
                     </div>
-                    {!template.is_system && (
+                    {!template.is_system && canManageTemplates && (
                       <div className="flex gap-1">
                         <Button variant="ghost" size="icon" onClick={() => openEditTemplate(template)}>
                           <Edit className="w-4 h-4" />
