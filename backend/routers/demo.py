@@ -1,6 +1,12 @@
 """
 Demo Mode Router
 Handles demo user creation and demo data initialization
+
+ISOLATION RULES:
+- All demo data is marked with is_demo=True
+- Demo users can only see/modify data where is_demo=True
+- Live operations filter out demo data with is_demo!=True
+- Demo data is completely isolated from production data
 """
 from fastapi import APIRouter, HTTPException
 from datetime import datetime, timedelta
@@ -10,6 +16,9 @@ from database import db
 from utils.auth import hash_password, create_token
 
 router = APIRouter(prefix="/demo", tags=["Demo"])
+
+# Demo data prefix for easy identification
+DEMO_PREFIX = "demo_"
 
 # Demo user credentials
 DEMO_USER = {
@@ -24,6 +33,10 @@ DEMO_USER = {
     "hierarchy_level": 1,
     "hierarchy_level_name": "Head",
 }
+
+def is_demo_id(entity_id: str) -> bool:
+    """Check if an ID belongs to demo data"""
+    return entity_id and entity_id.startswith(DEMO_PREFIX)
 
 # Sample data generators
 def generate_demo_clients():
