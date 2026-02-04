@@ -49,6 +49,8 @@ import HelpTutorial from './pages/HelpTutorial';
 import AccountSecurity from './pages/AccountSecurity';
 import TwoFactorSetupPage from './pages/TwoFactorSetupPage';
 import RoleManagement from './pages/RoleManagement';
+import BIReports from './pages/BIReports';
+import WhatsAppNotifications from './pages/WhatsAppNotifications';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
