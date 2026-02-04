@@ -45,6 +45,7 @@ class User(BaseModel):
     email: str
     name: str
     pan_number: Optional[str] = None  # PAN number for conflict checks
+    mobile_number: Optional[str] = None  # 10-digit mobile for SMS/WhatsApp
     role: int
     role_name: str
     permissions: List[str] = []  # User's effective permissions from their role
