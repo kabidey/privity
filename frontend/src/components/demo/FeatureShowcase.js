@@ -316,8 +316,36 @@ export default function FeatureShowcase() {
                   feature={feature}
                   index={index}
                   onExplore={handleExplore}
+                  onWatchAnimation={handleWatchAnimation}
                 />
               ))}
+            </div>
+
+            {/* Video Animations Section */}
+            <div className="mt-12 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Film className="w-6 h-6 text-purple-600" />
+                <h3 className="text-xl font-semibold text-gray-800">Video Walkthroughs</h3>
+              </div>
+              <p className="text-gray-600 mb-4">Watch animated demonstrations of key workflows</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.entries(WORKFLOW_ANIMATIONS).map(([id, workflow]) => (
+                  <button
+                    key={id}
+                    onClick={() => handleWatchAnimation(id)}
+                    className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow text-left"
+                  >
+                    <div className="text-2xl mb-2">
+                      {id === 'booking' ? '📝' : id === 'client' ? '👤' : id === 'approval' ? '✅' : '📊'}
+                    </div>
+                    <div className="font-medium text-gray-800 text-sm">{workflow.title}</div>
+                    <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <Play className="w-3 h-3" />
+                      {Math.round(workflow.duration / 1000)}s
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Quick Actions */}
