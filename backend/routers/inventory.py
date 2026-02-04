@@ -87,7 +87,11 @@ async def get_inventory(
     user_role = current_user.get("role", 6)
     is_pe = is_pe_level(user_role)
     
-    inventory = await db.inventory.find({}, {"_id": 0}).to_list(10000)
+    # Build query with demo isolation filter
+    query = {}
+    query = add_demo_filter(query, current_user)
+    
+    inventory = await db.inventory.find(query, {"_id": 0}).to_list(10000)
     
     # Enrich with stock details
     stock_ids = list(set(item.get("stock_id") for item in inventory if item.get("stock_id")))
