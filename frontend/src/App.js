@@ -119,6 +119,14 @@ const AgreementChecker = ({ children }) => {
     const timer = setTimeout(() => {
       try {
         const userStr = localStorage.getItem('user');
+        const isDemoMode = localStorage.getItem('demo_token') === 'true';
+        
+        // Skip agreement check for demo users
+        if (isDemoMode) {
+          setChecking(false);
+          return;
+        }
+        
         if (userStr) {
           const user = JSON.parse(userStr);
           // Show agreement if user exists and hasn't accepted it yet
