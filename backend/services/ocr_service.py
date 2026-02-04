@@ -81,11 +81,23 @@ If any field is not visible, use null."""
 
         elif doc_type == "cml_copy":
             prompt = """Extract the following information from this CML (Client Master List) copy:
-1. DP ID (Depository Participant ID - usually starts with IN followed by numbers, e.g., IN301629)
-2. Client ID (the client-specific ID number that follows the DP ID)
-3. Full DP Client ID (combination of DP ID + Client ID, e.g., IN301629-10242225 or the complete identifier shown)
-4. Client Name - IMPORTANT: This is the PRIMARY ACCOUNT HOLDER'S NAME, NOT the Father's/Husband's/Guardian's name. Look for fields labeled "Name", "Account Holder Name", "Client Name", "Name of First Holder", or "Holder Name". Do NOT use the name from "Father's Name", "Father/Husband Name", "Guardian Name" or similar fields.
-5. PAN Number
+
+IMPORTANT FIELD IDENTIFICATION:
+- DP ID: This is the Depository Participant ID. Look for fields labeled "DP ID", "DP Id", "Depository Participant ID". It can be in formats like:
+  * Numeric only: 12024200
+  * With prefix: IN301629
+  * Combined: IN301629-10242225
+  
+- Client ID: This is the client-specific ID assigned by the DP. Look for fields labeled "Client ID", "Client Id", "CL ID". It's usually an 8-digit number like: 01126561
+
+- BO ID: This is the Beneficiary Owner ID. It may look like: DLK7801. DO NOT confuse this with DP ID.
+
+Fields to extract:
+1. DP ID - The Depository Participant ID (NOT the BO ID)
+2. Client ID - The client-specific number (usually 8 digits)
+3. Full DP Client ID - Combination of DP ID + Client ID (e.g., 12024200-01126561)
+4. Client Name - IMPORTANT: This is the PRIMARY ACCOUNT HOLDER'S NAME (look for "First Holder Name", "Name", "Client Name"). Do NOT use "Father's Name" or "Guardian Name".
+5. PAN Number - 10 character alphanumeric (e.g., ARSPN7228G)
 6. Email Address
 7. Mobile Number
 8. Address (full address including city, state)
@@ -95,10 +107,13 @@ If any field is not visible, use null."""
 12. IFSC Code
 13. Branch Name
 
-CRITICAL: The client_name field must contain the PRIMARY ACCOUNT HOLDER'S name only. CML documents have multiple name fields - you must extract the main client/holder name, NOT the father's name or guardian's name.
+CRITICAL RULES:
+- For dp_id: Extract ONLY the Depository Participant ID, NOT the BO ID
+- For client_id: Extract the client-specific ID (usually 8 digits starting with 0)
+- For client_name: Use PRIMARY ACCOUNT HOLDER'S name, NOT father's/guardian's name
 
 Return ONLY a JSON object with keys: dp_id, client_id, full_dp_client_id, client_name, pan_number, email, mobile, address, pin_code, bank_name, account_number, ifsc_code, branch_name
-If any field is not visible, use null. For full_dp_client_id, combine dp_id and client_id if they appear separately."""
+If any field is not visible, use null. For full_dp_client_id, combine dp_id and client_id with a hyphen if they appear separately."""
         else:
             prompt = "Extract all text and relevant information from this document. Return as JSON."
 
