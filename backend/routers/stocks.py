@@ -102,6 +102,9 @@ async def create_stock(
         "created_by": current_user["id"]
     }
     
+    # Mark as demo data if created by demo user
+    stock_doc = mark_as_demo(stock_doc, current_user)
+    
     await db.stocks.insert_one(stock_doc)
     await update_inventory(stock_id)
     
@@ -116,6 +119,11 @@ async def get_stocks(
 ):
     """Get all stocks"""
     query = {"is_active": True} if active_only else {}
+    
+    # CRITICAL: Add demo data isolation filter
+    # Demo users only see demo data, live users don't see demo data
+    query = add_demo_filter(query, current_user)
+    
     stocks = await db.stocks.find(query, {"_id": 0}).to_list(10000)
     return [Stock(**s) for s in stocks]
 
