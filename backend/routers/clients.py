@@ -174,6 +174,9 @@ async def create_client(
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
+    # Mark as demo data if created by demo user
+    client_doc = mark_as_demo(client_doc, current_user)
+    
     await db.clients.insert_one(client_doc)
     
     # Create audit log
