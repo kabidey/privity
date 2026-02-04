@@ -1,6 +1,6 @@
 import React from 'react';
 import Joyride, { STATUS, ACTIONS, EVENTS } from 'react-joyride';
-import { useDemo } from '../contexts/DemoContext';
+import { useDemo } from '../../contexts/DemoContext';
 
 const tourStyles = {
   options: {
