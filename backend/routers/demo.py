@@ -89,8 +89,12 @@ def generate_demo_bookings(clients, stocks):
         buy_price = stock["landing_price"] * random.uniform(0.98, 1.02)
         sell_price = buy_price * random.uniform(0.95, 1.15) if random.random() > 0.3 else None
         
+        # Generate unique booking number
+        booking_num = f"DEMO-BK-{i+1:05d}"
+        
         booking = {
             "id": f"demo_booking_{i+1}",
+            "booking_number": booking_num,
             "client_id": client["id"],
             "client_name": client["name"],
             "stock_id": stock["id"],
