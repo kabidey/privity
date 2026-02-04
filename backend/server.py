@@ -399,6 +399,9 @@ from routers.bi_reports import router as bi_reports_router
 # WhatsApp Notifications
 from routers.whatsapp import router as whatsapp_router
 
+# Demo Mode
+from routers.demo import router as demo_router
+
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
