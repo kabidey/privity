@@ -174,6 +174,16 @@ If any field is not visible, use null."""
             
             extracted_data = json.loads(cleaned)
             logging.info(f"OCR extracted data: {extracted_data}")
+            
+            # Post-processing for CML documents
+            if doc_type == "cml_copy":
+                # Construct full_dp_client_id if null but dp_id and client_id exist
+                if not extracted_data.get("full_dp_client_id"):
+                    dp_id = extracted_data.get("dp_id")
+                    client_id = extracted_data.get("client_id")
+                    if dp_id and client_id:
+                        extracted_data["full_dp_client_id"] = f"{dp_id}-{client_id}"
+                
         except json.JSONDecodeError as e:
             logging.warning(f"Failed to parse OCR JSON response: {e}. Raw: {response[:200]}")
             extracted_data = {"raw_text": response, "parse_error": str(e)}
