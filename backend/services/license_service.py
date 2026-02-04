@@ -194,13 +194,26 @@ async def activate_license_with_duration(license_key: str, duration_days: int, a
     }
 
 
-async def check_license_status() -> Dict:
+async def check_license_status(user_email: str = None) -> Dict:
     """
     Check current license status
+    
+    Args:
+        user_email: Optional user email to check exemption
     
     Returns:
         Dict with is_valid, days_remaining, expires_at, etc.
     """
+    # SMIFS employees are exempt from license requirements
+    if user_email and user_email.lower().endswith('@smifs.com'):
+        return {
+            "is_valid": True,
+            "status": "exempt",
+            "message": "SMIFS employees are exempt from license requirements.",
+            "exempt": True,
+            "days_remaining": 999
+        }
+    
     license_doc = await get_current_license()
     
     if not license_doc:
@@ -208,7 +221,8 @@ async def check_license_status() -> Dict:
             "is_valid": False,
             "status": "no_license",
             "message": "No active license found. Please activate a license to use the application.",
-            "days_remaining": 0
+            "days_remaining": 0,
+            "exempt": False
         }
     
     expires_at = datetime.fromisoformat(license_doc["expires_at"].replace("Z", "+00:00"))
@@ -226,7 +240,8 @@ async def check_license_status() -> Dict:
             "message": "License has expired. Please renew with a new license key.",
             "expires_at": license_doc["expires_at"],
             "expired_on": license_doc["expires_at"],
-            "days_remaining": 0
+            "days_remaining": 0,
+            "exempt": False
         }
     
     days_remaining = (expires_at - now).days
@@ -247,7 +262,8 @@ async def check_license_status() -> Dict:
         "activated_at": license_doc.get("activated_at"),
         "expires_at": license_doc["expires_at"],
         "days_remaining": days_remaining,
-        "duration_days": license_doc.get("duration_days", 365)
+        "duration_days": license_doc.get("duration_days", 365),
+        "exempt": False
     }
 
 
