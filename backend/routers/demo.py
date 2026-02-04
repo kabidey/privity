@@ -222,10 +222,10 @@ async def initialize_demo():
             demo_user_doc = {
                 **DEMO_USER,
                 "password": hash_password("demo123"),
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.utcnow().isoformat(),
                 "permissions": ["*"],  # Full access for demo
                 "agreement_accepted": True,  # Auto-accept agreement for demo
-                "agreement_accepted_at": datetime.utcnow(),
+                "agreement_accepted_at": datetime.utcnow().isoformat(),
             }
             await db.users.insert_one(demo_user_doc)
         else:
@@ -234,7 +234,7 @@ async def initialize_demo():
                 {"id": DEMO_USER["id"]},
                 {"$set": {
                     "agreement_accepted": True,
-                    "agreement_accepted_at": datetime.utcnow()
+                    "agreement_accepted_at": datetime.utcnow().isoformat()
                 }}
             )
         
