@@ -275,13 +275,12 @@ const GroupChat = () => {
       1: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', // PE Desk
       2: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', // PE Manager
       3: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', // Finance
-      4: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300', // Manager
-      5: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300', // Employee
-      6: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300', // Intern
-      7: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300', // RP
-      8: 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300', // BP
+      4: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300', // Viewer
+      5: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300', // Partners Desk
+      6: 'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300', // Business Partner
+      7: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300', // Employee
     };
-    return colors[role] || colors[5];
+    return colors[role] || colors[7];
   };
 
   // Reset position when closing
