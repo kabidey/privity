@@ -1592,6 +1592,7 @@ const Clients = () => {
           </DialogContent>
         </Dialog>
         )}
+        </div>
       </div>
 
       {canMapClients && pendingClients.length > 0 && (
