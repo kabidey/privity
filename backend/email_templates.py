@@ -1082,5 +1082,185 @@ DEFAULT_EMAIL_TEMPLATES = {
         """,
         "variables": ["vendor_name", "purchase_number", "stock_symbol", "stock_name", "isin_number", "quantity", "dp_type", "received_date", "total_amount"],
         "is_active": True
+    },
+    "booking_voided": {
+        "key": "booking_voided",
+        "name": "Booking Voided Notification",
+        "subject": "Booking Voided - {{booking_number}} | {{stock_symbol}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 30px; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ Booking Voided</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">This booking has been cancelled/voided</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                <p style="color: #374151; font-size: 16px; line-height: 1.6;">Dear {{client_name}},</p>
+                
+                <p style="color: #374151; line-height: 1.7;">
+                    We regret to inform you that your booking has been <strong style="color: #dc2626;">VOIDED</strong>.
+                </p>
+                
+                <div style="background: #fef2f2; border-radius: 12px; padding: 20px; margin: 25px 0; border: 1px solid #fecaca;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="background: #fee2e2; margin: 5px 0;">
+                            <td style="padding: 10px; color: #991b1b; border-radius: 6px 0 0 6px; font-weight: 600;">Booking ID:</td>
+                            <td style="padding: 10px; color: #991b1b; font-weight: 700; border-radius: 0 6px 6px 0;">{{booking_number}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Stock:</td>
+                            <td style="padding: 10px 0; color: #111827; font-weight: 600;">{{stock_symbol}} - {{stock_name}}</td>
+                        </tr>
+                        <tr style="background: #fef2f2; margin: 5px 0;">
+                            <td style="padding: 10px; color: #6b7280; border-radius: 6px 0 0 6px;">Quantity:</td>
+                            <td style="padding: 10px; color: #111827; font-weight: 600; border-radius: 0 6px 6px 0;">{{quantity}} shares</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Booking Date:</td>
+                            <td style="padding: 10px 0; color: #111827;">{{booking_date}}</td>
+                        </tr>
+                        <tr style="background: #fef2f2; margin: 5px 0;">
+                            <td style="padding: 10px; color: #6b7280; border-radius: 6px 0 0 6px;">Voided On:</td>
+                            <td style="padding: 10px; color: #dc2626; font-weight: 600; border-radius: 0 6px 6px 0;">{{voided_date}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Voided By:</td>
+                            <td style="padding: 10px 0; color: #111827;">{{voided_by}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                    <p style="color: #92400e; margin: 0; font-size: 14px;">
+                        <strong>Reason for Voiding:</strong><br>
+                        {{void_reason}}
+                    </p>
+                </div>
+                
+                <div style="background: #f3f4f6; border-radius: 8px; padding: 15px; margin: 25px 0;">
+                    <p style="color: #4b5563; margin: 0; font-size: 14px;">
+                        <strong>What happens next?</strong><br>
+                        • Any payments made will be processed for refund<br>
+                        • The reserved shares have been released back to inventory<br>
+                        • You may place a new booking if interested
+                    </p>
+                </div>
+                
+                <p style="color: #374151; line-height: 1.7;">
+                    If you have any questions about this cancellation, please contact our team.
+                </p>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity Team</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["client_name", "booking_number", "stock_symbol", "stock_name", "quantity", "booking_date", "voided_date", "voided_by", "void_reason"],
+        "is_active": True
+    },
+    "license_expiry_warning": {
+        "key": "license_expiry_warning",
+        "name": "License Expiry Warning",
+        "subject": "⚠️ License Expiring Soon - Action Required",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">⚠️ License Expiring Soon</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Your Privity license requires renewal</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                <p style="color: #374151; font-size: 16px; line-height: 1.6;">Dear {{user_name}},</p>
+                
+                <p style="color: #374151; line-height: 1.7;">
+                    Your Privity application license is expiring soon. Please renew to continue using the platform without interruption.
+                </p>
+                
+                <div style="background: #fef3c7; border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; border: 2px solid #fbbf24;">
+                    <p style="color: #92400e; margin: 0; font-size: 48px; font-weight: 700;">{{days_remaining}}</p>
+                    <p style="color: #92400e; margin: 5px 0 0 0; font-size: 16px; font-weight: 600;">Days Remaining</p>
+                </div>
+                
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 25px 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">License Key:</td>
+                            <td style="padding: 10px 0; color: #111827; font-family: monospace;">{{license_key}}</td>
+                        </tr>
+                        <tr style="background: #f3f4f6; margin: 5px 0;">
+                            <td style="padding: 10px; color: #6b7280; border-radius: 6px 0 0 6px;">Expiry Date:</td>
+                            <td style="padding: 10px; color: #dc2626; font-weight: 600; border-radius: 0 6px 6px 0;">{{expiry_date}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Organization:</td>
+                            <td style="padding: 10px 0; color: #111827;">{{organization_name}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+                    <p style="color: #991b1b; margin: 0; font-size: 14px;">
+                        <strong>Important:</strong> Once the license expires, Business Partner users will be unable to access the application until a new license is activated.
+                    </p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">Contact your administrator to renew the license:</p>
+                    <a href="mailto:support@smifs.com?subject=License%20Renewal%20Request" style="display: inline-block; background-color: #10b981; color: white; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Request License Renewal</a>
+                </div>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity Team</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["user_name", "days_remaining", "license_key", "expiry_date", "organization_name"],
+        "is_active": True
+    },
+    "license_expired": {
+        "key": "license_expired",
+        "name": "License Expired Notification",
+        "subject": "🚫 License Expired - Immediate Action Required",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">🚫 License Expired</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">Your Privity license has expired</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                <p style="color: #374151; font-size: 16px; line-height: 1.6;">Dear {{user_name}},</p>
+                
+                <p style="color: #374151; line-height: 1.7;">
+                    Your Privity application license has <strong style="color: #dc2626;">EXPIRED</strong>. Business Partner users are now unable to access the application.
+                </p>
+                
+                <div style="background: #fef2f2; border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center; border: 2px solid #fecaca;">
+                    <p style="color: #dc2626; margin: 0; font-size: 20px; font-weight: 700;">LICENSE EXPIRED</p>
+                    <p style="color: #991b1b; margin: 10px 0 0 0; font-size: 14px;">Expired on: {{expiry_date}}</p>
+                </div>
+                
+                <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin: 25px 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Previous License:</td>
+                            <td style="padding: 10px 0; color: #111827; font-family: monospace;">{{license_key}}</td>
+                        </tr>
+                        <tr style="background: #fee2e2; margin: 5px 0;">
+                            <td style="padding: 10px; color: #6b7280; border-radius: 6px 0 0 6px;">Status:</td>
+                            <td style="padding: 10px; color: #dc2626; font-weight: 700; border-radius: 0 6px 6px 0;">EXPIRED</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">To restore access, please contact:</p>
+                    <a href="mailto:support@smifs.com?subject=Urgent%20License%20Renewal" style="display: inline-block; background-color: #dc2626; color: white; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Contact Support Immediately</a>
+                </div>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity Team</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["user_name", "license_key", "expiry_date"],
+        "is_active": True
     }
 }
