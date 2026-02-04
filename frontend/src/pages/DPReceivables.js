@@ -122,6 +122,15 @@ const DPReceivables = () => {
     }).format(amount || 0);
   };
 
+  // Show loading while checking permissions
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
