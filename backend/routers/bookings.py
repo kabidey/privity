@@ -964,11 +964,12 @@ async def get_dp_ready_bookings(
     """Get all bookings with DP ready status (fully paid, ready to transfer)"""
     user_role = current_user.get("role", 6)
     
+    # Build query with demo isolation
+    query = {"dp_status": "ready", "approval_status": "approved"}
+    query = add_demo_filter(query, current_user)
+    
     # Get bookings with dp_status = "ready"
-    bookings_list = await db.bookings.find(
-        {"dp_status": "ready", "approval_status": "approved"},
-        {"_id": 0}
-    ).sort("dp_ready_at", -1).to_list(1000)
+    bookings_list = await db.bookings.find(query, {"_id": 0}).sort("dp_ready_at", -1).to_list(1000)
     
     # Enrich with client and stock details
     for booking in bookings_list:
@@ -1006,11 +1007,12 @@ async def get_dp_transferred_bookings(
     """Get all bookings where stock has been transferred"""
     user_role = current_user.get("role", 6)
     
+    # Build query with demo isolation
+    query = {"dp_status": "transferred"}
+    query = add_demo_filter(query, current_user)
+    
     # Get bookings with dp_status = "transferred"
-    bookings_list = await db.bookings.find(
-        {"dp_status": "transferred"},
-        {"_id": 0}
-    ).sort("dp_transferred_at", -1).to_list(1000)
+    bookings_list = await db.bookings.find(query, {"_id": 0}).sort("dp_transferred_at", -1).to_list(1000)
     
     # Enrich with client and stock details
     for booking in bookings_list:
