@@ -197,6 +197,14 @@ def generate_demo_business_partners():
         partner["is_demo"] = True
         partner["status"] = "active"
         partner["is_active"] = True
+        partner["phone"] = "9876543200"
+        partner["mobile"] = "9876543200"
+        partner["linked_employee_id"] = DEMO_USER["id"]
+        partner["linked_employee_name"] = DEMO_USER["name"]
+        partner["created_by"] = DEMO_USER["id"]
+        partner["created_at"] = (datetime.utcnow() - timedelta(days=random.randint(30, 180))).isoformat()
+    
+    return partners
         partner["created_at"] = datetime.utcnow() - timedelta(days=random.randint(60, 180))
     
     return partners
