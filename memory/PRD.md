@@ -37,6 +37,50 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 05, 2026)
 
+#### ✅ Demo Mode Feature - IMPLEMENTED (Feb 05, 2026)
+**Feature**: Public Demo mode to teach potential users the platform capabilities
+
+**Components Created**:
+1. **DemoContext.js** (`/app/frontend/src/contexts/DemoContext.js`)
+   - Demo mode state management
+   - Tour progress tracking
+   - Feature showcase data
+   
+2. **FeatureShowcase.js** (`/app/frontend/src/components/demo/FeatureShowcase.js`)
+   - Animated welcome screen with "Welcome to PRIVITY - Run it to Learn it"
+   - Feature cards for 6 major features
+   - Quick action buttons
+
+3. **DemoTour.js** (`/app/frontend/src/components/demo/DemoTour.js`)
+   - Custom spotlight tour component
+   - Step-by-step guided tours for each section
+   
+4. **DemoModeBar.js** (`/app/frontend/src/components/demo/DemoModeBar.js`)
+   - Orange banner at top showing "DEMO MODE"
+   - Tour controls, progress, exit button
+
+5. **demo.py** (`/app/backend/routers/demo.py`)
+   - `/api/demo/init` - Initialize demo with sample data
+   - `/api/demo/cleanup` - Remove demo data
+   - `/api/demo/status` - Check demo status
+
+**Demo Data Generated**:
+- 8 sample clients
+- 8 sample stocks (with real symbols like RELIANCE, TCS, HDFC)
+- 15 sample bookings
+- 3 sample vendors
+- 3 sample business partners
+
+**UI Features**:
+- "Try PRIVITY Demo" button on login page with gradient styling
+- Tagline: "Run it to Learn it"
+- No login required - one-click demo access
+- Agreement modal bypassed for demo users
+
+**Branding**: "PRIVITY Demo - Run it to Learn it"
+
+---
+
 #### ✅ RBAC Endpoint Audit - Phase 1, 2, 3 COMPLETE (Feb 05, 2026)
 **Task**: Audit other endpoints for additional permission controls
 
