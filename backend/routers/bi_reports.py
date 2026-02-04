@@ -148,34 +148,83 @@ REPORT_CONFIGS = {
 }
 
 
+REPORT_TYPE_PERMISSIONS = {
+    "bookings": "reports.bi_bookings",
+    "clients": "reports.bi_clients",
+    "revenue": "reports.bi_revenue",
+    "inventory": "reports.bi_inventory",
+    "payments": "reports.bi_payments",
+    "pnl": "reports.bi_pnl"
+}
+
+
 @router.get("/config")
 async def get_report_config(
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("reports.bi_builder", "access BI report builder"))
+    current_user: dict = Depends(get_current_user)
 ):
-    """Get available report configurations"""
+    """Get available report configurations based on user permissions"""
+    from services.permission_service import has_permission
+    
+    user_permissions = current_user.get("permissions", [])
+    
+    # Filter report types based on user permissions
+    available_types = []
+    for report_type, perm_key in REPORT_TYPE_PERMISSIONS.items():
+        if has_permission(user_permissions, perm_key):
+            label_map = {
+                "bookings": "Bookings Report",
+                "clients": "Clients Report", 
+                "revenue": "Revenue Report",
+                "inventory": "Inventory Report",
+                "payments": "Payments Report",
+                "pnl": "P&L Report"
+            }
+            desc_map = {
+                "bookings": "Analyze booking data by various dimensions",
+                "clients": "Client analysis and segmentation",
+                "revenue": "Revenue breakdown by partners and employees",
+                "inventory": "Stock inventory analysis",
+                "payments": "Payment status and collection analysis",
+                "pnl": "Profit and loss analysis"
+            }
+            available_types.append({
+                "key": report_type,
+                "label": label_map[report_type],
+                "description": desc_map[report_type],
+                "permission": perm_key
+            })
+    
+    # Filter configs to only include available types
+    available_configs = {k: v for k, v in REPORT_CONFIGS.items() if k in [t["key"] for t in available_types]}
+    
     return {
-        "report_types": [
-            {"key": "bookings", "label": "Bookings Report", "description": "Analyze booking data by various dimensions"},
-            {"key": "clients", "label": "Clients Report", "description": "Client analysis and segmentation"},
-            {"key": "revenue", "label": "Revenue Report", "description": "Revenue breakdown by partners and employees"},
-            {"key": "inventory", "label": "Inventory Report", "description": "Stock inventory analysis"},
-            {"key": "payments", "label": "Payments Report", "description": "Payment status and collection analysis"},
-            {"key": "pnl", "label": "P&L Report", "description": "Profit and loss analysis"},
-        ],
-        "configs": REPORT_CONFIGS
+        "report_types": available_types,
+        "configs": available_configs,
+        "can_export": has_permission(user_permissions, "reports.bi_export"),
+        "can_save_templates": has_permission(user_permissions, "reports.bi_save_templates")
     }
 
 
 @router.post("/generate")
 async def generate_report(
     request: ReportRequest,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("reports.bi_builder", "generate BI report"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Generate a custom report based on specified parameters"""
+    from services.permission_service import has_permission
+    
     if request.report_type not in REPORT_CONFIGS:
         raise HTTPException(status_code=400, detail=f"Invalid report type: {request.report_type}")
+    
+    # Check permission for specific report type
+    required_perm = REPORT_TYPE_PERMISSIONS.get(request.report_type)
+    if required_perm:
+        user_permissions = current_user.get("permissions", [])
+        if not has_permission(user_permissions, required_perm):
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Permission denied. You need '{required_perm}' permission for {request.report_type} reports"
+            )
     
     config = REPORT_CONFIGS[request.report_type]
     collection = getattr(db, config["collection"])
