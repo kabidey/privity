@@ -469,13 +469,12 @@ async def get_security_status(
 
 
 @router.post("/unblock-ip")
-async def unblock_ip(ip_address: str, current_user: dict = Depends(get_current_user)):
-    """Unblock an IP address (PE Desk only)"""
-    user_role = current_user.get("role", 6)
-    
-    if user_role != 1:
-        return {"error": "Access denied"}
-    
+async def unblock_ip(
+    ip_address: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("security.manage_threats", "unblock IP addresses"))
+):
+    """Unblock an IP address (requires security.manage_threats permission)"""
     from middleware.security import rate_limiter
     
     if ip_address in rate_limiter.blocked_ips:
