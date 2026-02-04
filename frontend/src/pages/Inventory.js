@@ -287,14 +287,18 @@ const Inventory = () => {
         </Card>
       </div>
 
-      {/* Legend for PE Level */}
-      {isPELevel && (
+      {/* Legend for PE Level or users with LP change permission */}
+      {(isPELevel || canViewLPChange) && (
         <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
           <div className="flex items-center gap-4 flex-wrap">
             <span className="font-semibold text-amber-800">Legend:</span>
-            <span><strong>WAP</strong> = Weighted Average Price (actual cost)</span>
-            <span><strong>LP</strong> = Landing Price (shown to users, used for booking)</span>
-            <span className="text-amber-700"><strong>HIT</strong> = (LP - WAP) × Qty (PE margin)</span>
+            {isPELevel && (
+              <>
+                <span><strong>WAP</strong> = Weighted Average Price (actual cost)</span>
+                <span><strong>LP</strong> = Landing Price (shown to users, used for booking)</span>
+                <span className="text-amber-700"><strong>HIT</strong> = (LP - WAP) × Qty (PE margin)</span>
+              </>
+            )}
             <span className="flex items-center gap-1"><span className="inline-block w-4 h-4 bg-green-100 border border-green-300 rounded"></span> LP Increased</span>
             <span className="flex items-center gap-1"><span className="inline-block w-4 h-4 bg-red-100 border border-red-300 rounded"></span> LP Decreased</span>
           </div>
