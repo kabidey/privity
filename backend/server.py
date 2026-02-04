@@ -422,6 +422,8 @@ app.include_router(two_factor_router, prefix="/api")
 app.include_router(roles_router, prefix="/api")
 app.include_router(license_router, prefix="/api")
 app.include_router(security_router)
+app.include_router(bi_reports_router, prefix="/api")
+app.include_router(whatsapp_router, prefix="/api")
 
 
 # ====================
