@@ -23,6 +23,7 @@ const Clients = () => {
   const [selectedClientDocs, setSelectedClientDocs] = useState(null);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [cloning, setCloning] = useState(false);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
