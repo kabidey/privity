@@ -25,9 +25,9 @@ const Analytics = () => {
   const [dailyTrend, setDailyTrend] = useState([]);
   const [sectorDistribution, setSectorDistribution] = useState([]);
 
-  const { isLoading, isAuthorized } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk or PE Manager can access analytics.'
+  const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('analytics.view'),
+    deniedMessage: 'Access denied. You need Analytics permission to access this page.'
   });
 
   useEffect(() => {

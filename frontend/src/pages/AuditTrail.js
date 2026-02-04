@@ -37,9 +37,9 @@ const AuditTrail = () => {
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
   const [statsDays, setStatsDays] = useState(7);
 
-  const { isLoading, isAuthorized, isPELevel } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk or PE Manager can view audit trail.'
+  const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('security.view_audit'),
+    deniedMessage: 'Access denied. You need Audit Trail permission to view this page.'
   });
 
   useEffect(() => {

@@ -40,9 +40,9 @@ const ContractNotes = () => {
   });
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
 
-  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
-    allowIf: ({ isPELevel }) => isPELevel,
-    deniedMessage: 'Access denied. Only PE Desk or PE Manager can view confirmation notes.'
+  const { isLoading, isAuthorized, hasPermission } = useProtectedPage({
+    allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('contract_notes.view'),
+    deniedMessage: 'Access denied. You need Contract Notes permission to view this page.'
   });
 
   useEffect(() => {
