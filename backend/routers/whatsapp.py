@@ -194,7 +194,7 @@ async def simulate_whatsapp_connect(
 @router.post("/disconnect")
 async def disconnect_whatsapp(
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "disconnect WhatsApp"))
+    _: None = Depends(require_permission("notifications.whatsapp_connect", "disconnect WhatsApp"))
 ):
     """Disconnect WhatsApp session"""
     config = await db.system_config.find_one({"config_type": "whatsapp"})
@@ -290,7 +290,7 @@ DEFAULT_TEMPLATES = [
 @router.get("/templates")
 async def get_templates(
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "view WhatsApp templates"))
+    _: None = Depends(require_permission("notifications.whatsapp_templates", "view WhatsApp templates"))
 ):
     """Get all message templates"""
     templates = await db.whatsapp_templates.find({}, {"_id": 0}).to_list(100)
@@ -309,7 +309,7 @@ async def get_templates(
 async def create_template(
     template: WhatsAppTemplate,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "create WhatsApp template"))
+    _: None = Depends(require_permission("notifications.whatsapp_templates", "create WhatsApp template"))
 ):
     """Create a custom message template"""
     template_dict = template.dict()
@@ -330,7 +330,7 @@ async def update_template(
     template_id: str,
     template: WhatsAppTemplate,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "edit WhatsApp template"))
+    _: None = Depends(require_permission("notifications.whatsapp_templates", "edit WhatsApp template"))
 ):
     """Update a message template"""
     existing = await db.whatsapp_templates.find_one({"id": template_id})
@@ -356,7 +356,7 @@ async def update_template(
 async def delete_template(
     template_id: str,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "delete WhatsApp template"))
+    _: None = Depends(require_permission("notifications.whatsapp_templates", "delete WhatsApp template"))
 ):
     """Delete a custom message template"""
     existing = await db.whatsapp_templates.find_one({"id": template_id})
@@ -377,7 +377,7 @@ async def delete_template(
 async def send_message(
     request: SendMessageRequest,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "send WhatsApp message"))
+    _: None = Depends(require_permission("notifications.whatsapp_send", "send WhatsApp message"))
 ):
     """Send a WhatsApp message"""
     # Check if WhatsApp is connected
@@ -417,7 +417,7 @@ async def send_bulk_messages(
     recipient_type: str = Query(...),  # client, user, bp, rp
     recipient_ids: List[str] = Query(None),  # If None, send to all of that type
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "send bulk WhatsApp"))
+    _: None = Depends(require_permission("notifications.whatsapp_bulk", "send bulk WhatsApp"))
 ):
     """Send bulk WhatsApp messages using a template"""
     # Check if WhatsApp is connected
@@ -494,7 +494,7 @@ async def send_bulk_messages(
 async def get_message_logs(
     limit: int = Query(50),
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "view WhatsApp logs"))
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view WhatsApp logs"))
 ):
     """Get message sending history"""
     messages = await db.whatsapp_messages.find(
@@ -508,7 +508,7 @@ async def get_message_logs(
 @router.get("/stats")
 async def get_whatsapp_stats(
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp", "view WhatsApp stats"))
+    _: None = Depends(require_permission("notifications.whatsapp_view", "view WhatsApp stats"))
 ):
     """Get WhatsApp messaging statistics"""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
