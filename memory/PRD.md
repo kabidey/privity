@@ -166,6 +166,27 @@ Build a Share Booking System for managing client share bookings, inventory track
 - Vendor document viewing - PASS
 - Vendor document download - PASS
 
+#### ✅ Forgot Password User Check - COMPLETED (Feb 04, 2026)
+**Request**: When user clicks Forgot Password, check if user exists. If not found, tell them to create an account.
+
+**Changes Made**:
+1. **Backend** (`auth.py`): Changed `/forgot-password` endpoint to return 404 with message "No account found with this email. Please create an account first." instead of generic success message
+2. **Frontend** (`ForgotPassword.js`): Updated error handling to show clear error toast with "Register" action button when 404 is returned
+
+**Files Modified**:
+- `backend/routers/auth.py` - Lines 460-494
+- `frontend/src/pages/ForgotPassword.js` - Lines 20-42
+
+#### ✅ Client Mapping Column Visibility Fix - COMPLETED (Feb 04, 2026)
+**Issue**: "Mapped To" column was not visible to user
+
+**Root Cause**: Column had `hidden lg:table-cell` class, hiding it on screens < 1024px
+
+**Fix**: Removed responsive hiding - "Mapped To" column now always visible
+
+**Files Modified**:
+- `frontend/src/pages/Clients.js` - Lines 1596, 1680-1688
+
 #### ✅ Full Backend RBAC Audit - COMPLETED (Feb 04, 2026)
 **Objective**: Complete coverage of RBAC enforcement on ALL backend API endpoints
 
