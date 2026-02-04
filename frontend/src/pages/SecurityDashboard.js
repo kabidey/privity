@@ -625,6 +625,10 @@ const SecurityDashboard = () => {
             <Activity className="w-4 h-4 mr-2" />
             Overview
           </TabsTrigger>
+          <TabsTrigger value="threats" data-testid="tab-threats">
+            <Ban className="w-4 h-4 mr-2" />
+            Threat Monitor
+          </TabsTrigger>
           <TabsTrigger value="map" data-testid="tab-map">
             <Globe className="w-4 h-4 mr-2" />
             Login Map
