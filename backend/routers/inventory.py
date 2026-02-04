@@ -73,7 +73,10 @@ async def calculate_weighted_avg_for_stock(stock_id: str) -> dict:
 
 
 @router.get("")
-async def get_inventory(current_user: dict = Depends(get_current_user)):
+async def get_inventory(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.view", "view inventory"))
+):
     """
     Get all inventory items with dynamically calculated weighted average pricing.
     
