@@ -44,17 +44,30 @@ async def get_dashboard_stats(
     if not is_pe_level(user_role):
         base_query["created_by"] = user_id
     
-    # Count totals
-    total_clients = await db.clients.count_documents({"is_active": True, "is_vendor": False})
-    total_vendors = await db.clients.count_documents({"is_active": True, "is_vendor": True})
-    total_stocks = await db.stocks.count_documents({"is_active": True})
-    total_bookings = await db.bookings.count_documents({**base_query, "status": {"$ne": "cancelled"}})
-    open_bookings = await db.bookings.count_documents({**base_query, "status": "open", "is_voided": {"$ne": True}})
-    closed_bookings = await db.bookings.count_documents({**base_query, "status": "closed", "is_voided": {"$ne": True}})
-    total_purchases = await db.purchases.count_documents({})
+    # CRITICAL: Add demo data isolation filter to all dashboard queries
+    # Demo users only see demo data stats, live users don't see demo data stats
+    demo_filter = add_demo_filter({}, current_user)
     
-    # Calculate inventory value
-    inventory_items = await db.inventory.find({}, {"_id": 0, "total_value": 1}).to_list(10000)
+    # Count totals with demo isolation
+    client_query = add_demo_filter({"is_active": True, "is_vendor": False}, current_user)
+    vendor_query = add_demo_filter({"is_active": True, "is_vendor": True}, current_user)
+    stock_query = add_demo_filter({"is_active": True}, current_user)
+    booking_base_query = add_demo_filter({**base_query, "status": {"$ne": "cancelled"}}, current_user)
+    booking_open_query = add_demo_filter({**base_query, "status": "open", "is_voided": {"$ne": True}}, current_user)
+    booking_closed_query = add_demo_filter({**base_query, "status": "closed", "is_voided": {"$ne": True}}, current_user)
+    purchase_query = add_demo_filter({}, current_user)
+    
+    total_clients = await db.clients.count_documents(client_query)
+    total_vendors = await db.clients.count_documents(vendor_query)
+    total_stocks = await db.stocks.count_documents(stock_query)
+    total_bookings = await db.bookings.count_documents(booking_base_query)
+    open_bookings = await db.bookings.count_documents(booking_open_query)
+    closed_bookings = await db.bookings.count_documents(booking_closed_query)
+    total_purchases = await db.purchases.count_documents(purchase_query)
+    
+    # Calculate inventory value with demo isolation
+    inventory_query = add_demo_filter({}, current_user)
+    inventory_items = await db.inventory.find(inventory_query, {"_id": 0, "total_value": 1}).to_list(10000)
     total_inventory_value = sum(item.get("total_value", 0) for item in inventory_items)
     
     # Calculate revenue and profit
