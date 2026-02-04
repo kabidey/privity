@@ -11,6 +11,7 @@ import ProxyBanner from './components/ProxyBanner';
 import FeatureShowcase from './components/demo/FeatureShowcase';
 import DemoTour from './components/demo/DemoTour';
 import DemoModeBar from './components/demo/DemoModeBar';
+import FloatingProgressWidget from './components/demo/FloatingProgressWidget';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import BookingConfirm from './pages/BookingConfirm';
