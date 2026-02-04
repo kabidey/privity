@@ -130,6 +130,7 @@ async def get_pe_dashboard(
     pending_loss_approval = await db.bookings.count_documents({"approval_status": "pending_loss_approval"})
     pending_clients = await db.clients.count_documents({"approval_status": "pending"})
     pending_rp_approval = await db.referral_partners.count_documents({"approval_status": "pending"})
+    pending_bp_overrides = await db.bookings.count_documents({"bp_override_approval_status": "pending"})
     
     # Today's activity
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -171,7 +172,8 @@ async def get_pe_dashboard(
             "loss_approvals": pending_loss_approval,
             "clients": pending_clients,
             "rp_approvals": pending_rp_approval,
-            "total": pending_bookings + pending_loss_approval + pending_clients + pending_rp_approval
+            "bp_overrides": pending_bp_overrides,
+            "total": pending_bookings + pending_loss_approval + pending_clients + pending_rp_approval + pending_bp_overrides
         },
         "today_activity": {
             "bookings_created": today_bookings,
