@@ -213,11 +213,29 @@ async def update_landing_price(
     # Get stock info for audit
     stock = await db.stocks.find_one({"id": stock_id}, {"_id": 0, "symbol": 1, "name": 1})
     
-    # Update landing price
+    old_lp = inventory.get("landing_price", 0)
+    new_lp = round(data.landing_price, 2)
+    
+    # Store LP history entry
+    lp_history_entry = {
+        "stock_id": stock_id,
+        "stock_symbol": stock.get("symbol") if stock else None,
+        "old_price": old_lp,
+        "new_price": new_lp,
+        "change": round(new_lp - old_lp, 2) if old_lp else 0,
+        "change_percent": round(((new_lp - old_lp) / old_lp) * 100, 2) if old_lp and old_lp > 0 else 0,
+        "updated_by": current_user["id"],
+        "updated_by_name": current_user["name"],
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.lp_history.insert_one(lp_history_entry)
+    
+    # Update landing price with previous LP reference
     result = await db.inventory.update_one(
         {"stock_id": stock_id},
         {"$set": {
-            "landing_price": round(data.landing_price, 2),
+            "landing_price": new_lp,
+            "previous_landing_price": old_lp,
             "landing_price_updated_at": datetime.now(timezone.utc).isoformat(),
             "landing_price_updated_by": current_user["id"],
             "landing_price_updated_by_name": current_user["name"]
@@ -237,15 +255,42 @@ async def update_landing_price(
         details={
             "stock_symbol": stock.get("symbol") if stock else None,
             "stock_name": stock.get("name") if stock else None,
-            "new_landing_price": data.landing_price,
-            "old_landing_price": inventory.get("landing_price")
+            "new_landing_price": new_lp,
+            "old_landing_price": old_lp
         }
     )
     
     return {
         "message": "Landing price updated successfully",
         "stock_id": stock_id,
-        "landing_price": round(data.landing_price, 2)
+        "landing_price": new_lp,
+        "previous_landing_price": old_lp,
+        "change": round(new_lp - old_lp, 2) if old_lp else 0
+    }
+
+
+@router.get("/{stock_id}/lp-history")
+async def get_lp_history(
+    stock_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.view", "view LP history"))
+):
+    """Get landing price history for a stock"""
+    # Get LP history from dedicated collection
+    history = await db.lp_history.find(
+        {"stock_id": stock_id},
+        {"_id": 0}
+    ).sort("updated_at", -1).to_list(100)
+    
+    # Also get current inventory data
+    inventory = await db.inventory.find_one({"stock_id": stock_id}, {"_id": 0})
+    
+    return {
+        "stock_id": stock_id,
+        "stock_symbol": inventory.get("stock_symbol") if inventory else None,
+        "current_lp": inventory.get("landing_price") if inventory else None,
+        "previous_lp": inventory.get("previous_landing_price") if inventory else None,
+        "history": history
     }
 
 
