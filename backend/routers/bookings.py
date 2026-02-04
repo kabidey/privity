@@ -2155,3 +2155,230 @@ async def mark_dp_transferred(
         "transferred_at": transfer_time.isoformat()
     }
 
+
+
+# ============== BP REVENUE OVERRIDE ENDPOINTS ==============
+
+class BPOverrideApprovalRequest(BaseModel):
+    approve: bool
+    rejection_reason: Optional[str] = None
+
+
+@router.get("/bookings/pending-bp-overrides")
+async def get_pending_bp_overrides(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.approve_revenue_override", "view pending BP overrides"))
+):
+    """
+    Get all bookings with pending BP revenue share overrides.
+    Only users with 'bookings.approve_revenue_override' permission can view these.
+    """
+    bookings_list = await db.bookings.find(
+        {"bp_override_approval_status": "pending"},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    # Enrich with client and stock details
+    for booking in bookings_list:
+        client = await db.clients.find_one(
+            {"id": booking.get("client_id")},
+            {"_id": 0, "name": 1, "otc_ucc": 1}
+        )
+        if client:
+            booking["client_name"] = client.get("name")
+            booking["client_otc_ucc"] = client.get("otc_ucc")
+        
+        stock = await db.stocks.find_one(
+            {"id": booking.get("stock_id")},
+            {"_id": 0, "name": 1, "symbol": 1}
+        )
+        if stock:
+            booking["stock_name"] = stock.get("name")
+            booking["stock_symbol"] = stock.get("symbol")
+        
+        # Get creator details
+        creator = await db.users.find_one(
+            {"id": booking.get("created_by")},
+            {"_id": 0, "name": 1}
+        )
+        if creator:
+            booking["created_by_name"] = creator.get("name")
+    
+    return bookings_list
+
+
+@router.put("/bookings/{booking_id}/bp-override-approval")
+async def approve_bp_revenue_override(
+    booking_id: str,
+    request: BPOverrideApprovalRequest,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.approve_revenue_override", "approve BP revenue override"))
+):
+    """
+    Approve or reject a BP revenue share override.
+    
+    - If approved: The override percentage becomes effective
+    - If rejected: The original BP revenue share is restored
+    
+    Only users with 'bookings.approve_revenue_override' permission can perform this action.
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("bp_override_approval_status") != "pending":
+        raise HTTPException(
+            status_code=400, 
+            detail=f"BP override is not pending approval. Current status: {booking.get('bp_override_approval_status')}"
+        )
+    
+    if not booking.get("is_bp_booking"):
+        raise HTTPException(status_code=400, detail="This is not a BP booking")
+    
+    if not request.approve and not request.rejection_reason:
+        raise HTTPException(status_code=400, detail="Rejection reason is required when rejecting an override")
+    
+    update_data = {
+        "bp_override_approval_status": "approved" if request.approve else "rejected",
+        "bp_override_approved_by": current_user["id"],
+        "bp_override_approved_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if request.approve:
+        # Keep the override percentage - it's already in bp_revenue_share_percent
+        pass
+    else:
+        # Rejected - restore original BP revenue share
+        original_share = booking.get("bp_original_revenue_share", 0)
+        update_data["bp_revenue_share_percent"] = original_share
+        update_data["bp_override_rejection_reason"] = request.rejection_reason
+        # Recalculate employee share based on restored BP share
+        update_data["employee_revenue_share_percent"] = 100.0 - original_share
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(
+        action="BP_OVERRIDE_APPROVAL" if request.approve else "BP_OVERRIDE_REJECTION",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 6),
+        entity_name=booking.get("booking_number"),
+        details={
+            "approved": request.approve,
+            "override_percent": booking.get("bp_revenue_share_override"),
+            "original_percent": booking.get("bp_original_revenue_share"),
+            "rejection_reason": request.rejection_reason if not request.approve else None,
+            "bp_name": booking.get("bp_name")
+        }
+    )
+    
+    # Notify the booking creator
+    if booking.get("created_by"):
+        stock = await db.stocks.find_one({"id": booking.get("stock_id")}, {"_id": 0, "symbol": 1})
+        await create_notification(
+            booking["created_by"],
+            "bp_override_approved" if request.approve else "bp_override_rejected",
+            f"BP Override {'Approved' if request.approve else 'Rejected'}",
+            f"Your BP revenue share override for booking {booking.get('booking_number')} ({stock.get('symbol', 'N/A')}) has been {'approved' if request.approve else 'rejected'}. " +
+            (f"Override of {booking.get('bp_revenue_share_override')}% is now effective." if request.approve else f"Reason: {request.rejection_reason}"),
+            {"booking_id": booking_id, "booking_number": booking.get("booking_number")}
+        )
+    
+    return {
+        "message": f"BP revenue override {'approved' if request.approve else 'rejected'} successfully",
+        "booking_id": booking_id,
+        "override_status": "approved" if request.approve else "rejected",
+        "effective_bp_share": booking.get("bp_revenue_share_percent") if request.approve else booking.get("bp_original_revenue_share", 0)
+    }
+
+
+@router.put("/bookings/{booking_id}/bp-override")
+async def update_bp_revenue_override(
+    booking_id: str,
+    override_percent: float = Query(..., ge=0, le=100, description="New override percentage"),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("bookings.edit_revenue_override", "edit BP revenue override"))
+):
+    """
+    Edit the BP revenue share override for a booking.
+    
+    - Can be used to modify the override before approval
+    - Override must be <= the BP's default revenue share
+    - Resets approval status to 'pending' if already approved
+    
+    Only users with 'bookings.edit_revenue_override' permission can perform this action.
+    """
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if not booking.get("is_bp_booking"):
+        raise HTTPException(status_code=400, detail="This is not a BP booking")
+    
+    if booking.get("stock_transferred"):
+        raise HTTPException(status_code=400, detail="Cannot modify override after stock has been transferred")
+    
+    # Get the original BP revenue share to validate
+    original_share = booking.get("bp_original_revenue_share")
+    if original_share is None:
+        # If no original stored, get from BP profile
+        bp_info = await db.business_partners.find_one(
+            {"id": booking.get("business_partner_id")},
+            {"_id": 0, "revenue_share_percent": 1}
+        )
+        original_share = bp_info.get("revenue_share_percent", 0) if bp_info else 0
+    
+    if override_percent > original_share:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Override ({override_percent}%) cannot be higher than the BP's default share ({original_share}%)"
+        )
+    
+    # Determine if this needs re-approval
+    needs_approval = override_percent != original_share
+    
+    update_data = {
+        "bp_revenue_share_override": override_percent,
+        "bp_revenue_share_percent": override_percent,
+        "bp_original_revenue_share": original_share,
+        "employee_revenue_share_percent": 100.0 - override_percent,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if needs_approval:
+        update_data["bp_override_approval_status"] = "pending"
+        update_data["bp_override_approved_by"] = None
+        update_data["bp_override_approved_at"] = None
+        update_data["bp_override_rejection_reason"] = None
+    else:
+        update_data["bp_override_approval_status"] = "not_required"
+    
+    await db.bookings.update_one({"id": booking_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(
+        action="BP_OVERRIDE_EDIT",
+        entity_type="booking",
+        entity_id=booking_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 6),
+        entity_name=booking.get("booking_number"),
+        details={
+            "old_override": booking.get("bp_revenue_share_override"),
+            "new_override": override_percent,
+            "original_share": original_share,
+            "needs_approval": needs_approval
+        }
+    )
+    
+    return {
+        "message": "BP revenue override updated successfully",
+        "override_percent": override_percent,
+        "needs_approval": needs_approval,
+        "approval_status": "pending" if needs_approval else "not_required"
+    }
+
