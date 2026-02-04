@@ -20,18 +20,18 @@ router = APIRouter(prefix="/demo", tags=["Demo"])
 # Demo data prefix for easy identification
 DEMO_PREFIX = "demo_"
 
-# Demo user credentials
+# Demo user credentials - Employee Role for realistic demo experience
 DEMO_USER = {
     "id": "demo_user_privity",
     "email": "demo@privity.com",
-    "name": "Demo User",
-    "role": 1,  # PE Desk for full access
-    "role_name": "PE Desk (Demo)",
+    "name": "Demo Employee",
+    "role": 5,  # Employee role for realistic demo
+    "role_name": "Employee (Demo)",
     "is_active": True,
     "is_demo": True,
     "mobile_number": "9999999999",
-    "hierarchy_level": 1,
-    "hierarchy_level_name": "Head",
+    "hierarchy_level": 3,  # Employee level
+    "hierarchy_level_name": "Employee",
 }
 
 def is_demo_id(entity_id: str) -> bool:
