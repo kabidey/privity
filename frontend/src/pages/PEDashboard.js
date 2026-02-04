@@ -9,7 +9,8 @@ import api from '../utils/api';
 import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   Shield, Clock, Users, AlertTriangle, FileText, CheckCircle, 
-  TrendingUp, Activity, RefreshCw, ArrowRight, UserCheck, Briefcase, IndianRupee
+  TrendingUp, Activity, RefreshCw, ArrowRight, UserCheck, Briefcase, IndianRupee,
+  CalendarClock, Play
 } from 'lucide-react';
 
 const PEDashboard = () => {
@@ -17,6 +18,8 @@ const PEDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [clearingCache, setClearingCache] = useState(false);
+  const [scheduledJobs, setScheduledJobs] = useState(null);
+  const [triggeringJob, setTriggeringJob] = useState(false);
 
   const { isLoading, isAuthorized, isPEDesk, hasPermission } = useProtectedPage({
     allowIf: ({ isPELevel, hasPermission }) => isPELevel || hasPermission('dashboard.pe_view'),
@@ -26,6 +29,7 @@ const PEDashboard = () => {
   useEffect(() => {
     if (!isAuthorized) return;
     fetchData();
+    fetchScheduledJobs();
   }, [isAuthorized]);
 
   const fetchData = async () => {
