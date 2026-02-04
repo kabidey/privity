@@ -67,13 +67,6 @@ const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showChangePassword, setShowChangePassword] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    current_password: '',
-    new_password: '',
-    confirm_password: ''
-  });
   const [peStatus, setPeStatus] = useState({ pe_online: false, message: 'Checking...', online_users: [] });
   
   // Use centralized role utility hook
@@ -165,32 +158,6 @@ const Layout = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
-  };
-
-  const handleChangePassword = async () => {
-    if (passwordData.new_password !== passwordData.confirm_password) {
-      toast.error('New passwords do not match');
-      return;
-    }
-    if (passwordData.new_password.length < 8) {
-      toast.error('New password must be at least 8 characters');
-      return;
-    }
-
-    setChangingPassword(true);
-    try {
-      await api.post('/auth/change-password', {
-        current_password: passwordData.current_password,
-        new_password: passwordData.new_password
-      });
-      toast.success('Password changed successfully');
-      setShowChangePassword(false);
-      setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to change password');
-    } finally {
-      setChangingPassword(false);
-    }
   };
 
   // Build menu items based on user role AND permissions
@@ -499,9 +466,6 @@ const Layout = ({ children }) => {
               <NotificationBell />
               <button onClick={toggleTheme} className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" title="Toggle theme">
                 {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-              </button>
-              <button onClick={() => navigate('/change-password')} className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" title="Change Password">
-                <Key className="h-4 w-4" />
               </button>
               <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600" title="Logout">
                 <LogOut className="h-4 w-4" />
