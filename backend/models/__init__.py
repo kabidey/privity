@@ -178,6 +178,8 @@ class Client(BaseModel):
     cloned_from_type: Optional[str] = None  # "client" or "vendor"
     # Booking permission (computed field)
     can_book: bool = True  # Whether current user can create bookings for this client
+    # Demo mode flag
+    is_demo: Optional[bool] = None  # True if this is demo data
 
 
 # ============== Stock Models ==============
