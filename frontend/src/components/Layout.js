@@ -475,61 +475,6 @@ const Layout = ({ children }) => {
         </div>
       </aside>
 
-      {/* Change Password Dialog */}
-      <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Change Password</DialogTitle>
-            <DialogDescription>
-              Enter your current password and a new password to update your credentials.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="current_password">Current Password</Label>
-              <Input
-                id="current_password"
-                type="password"
-                value={passwordData.current_password}
-                onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                placeholder="Enter current password"
-                className="rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new_password">New Password</Label>
-              <Input
-                id="new_password"
-                type="password"
-                value={passwordData.new_password}
-                onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                placeholder="Min 8 characters"
-                className="rounded-xl"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm_password">Confirm New Password</Label>
-              <Input
-                id="confirm_password"
-                type="password"
-                value={passwordData.confirm_password}
-                onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                placeholder="Confirm new password"
-                className="rounded-xl"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowChangePassword(false)} className="rounded-xl">
-              Cancel
-            </Button>
-            <Button onClick={handleChangePassword} disabled={changingPassword} className="rounded-xl bg-emerald-500 hover:bg-emerald-600">
-              {changingPassword ? 'Changing...' : 'Change Password'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* iOS-style Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50">
         <div className="h-14 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-4 safe-area-inset-top">
