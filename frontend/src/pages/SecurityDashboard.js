@@ -376,23 +376,14 @@ const LicenseManagement = () => {
 };
 
 const SecurityDashboard = () => {
-  const navigate = useNavigate();
   const { securityStatus, loginLocations, mapData, loading, error, refetch } = useSecurityData();
   const [timeRange, setTimeRange] = useState('24h');
   const [activeTab, setActiveTab] = useState('overview');
 
-  const { user, isPEDesk } = useCurrentUser();
-
-  // Redirect non-PE users
-  useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPEDesk) {
-      toast.error('Access denied. Only PE Desk can view Security Dashboard.');
-      navigate('/');
-    }
-  }, [user, isPEDesk, navigate]);
+  const { isLoading, isAuthorized, isPEDesk } = useProtectedPage({
+    allowIf: ({ isPEDesk }) => isPEDesk,
+    deniedMessage: 'Access denied. Only PE Desk can view Security Dashboard.'
+  });
 
   // Process chart data
   const chartData = useMemo(() => {
