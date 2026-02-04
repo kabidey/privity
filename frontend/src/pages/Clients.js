@@ -1003,15 +1003,28 @@ const Clients = () => {
             {isEmployee ? 'Manage your clients' : 'Manage clients with documents and employee mapping'}
           </p>
         </div>
-        {/* Add Client button - hidden for Viewers */}
-        {!isViewer && (
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="rounded-sm w-full sm:w-auto" data-testid="add-client-button">
-              <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
-              Add Client
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2 w-full sm:w-auto">
+          {/* Refresh button */}
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="rounded-sm"
+            data-testid="refresh-clients-btn"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} strokeWidth={1.5} />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+          
+          {/* Add Client button - hidden for Viewers */}
+          {!isViewer && (
+          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="rounded-sm flex-1 sm:flex-none" data-testid="add-client-button">
+                <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                Add Client
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:max-w-[95vw] md:max-w-4xl" aria-describedby="client-dialog-desc">
             <DialogHeader>
               <DialogTitle>{editingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
