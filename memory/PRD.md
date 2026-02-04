@@ -37,7 +37,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 05, 2026)
 
-#### ✅ RBAC Endpoint Audit - Phase 1 Implemented (Feb 05, 2026)
+#### ✅ RBAC Endpoint Audit - Phase 1, 2, 3 COMPLETE (Feb 05, 2026)
 **Task**: Audit other endpoints for additional permission controls
 
 **New Permissions Added to System**:
@@ -49,7 +49,7 @@ Build a Share Booking System for managing client share bookings, inventory track
 - `files.delete` - Delete uploaded files
 - `files.scan` - Scan for missing files and re-upload
 
-**Endpoints Updated with Permission Checks**:
+**Endpoints Updated with Permission Checks (Phase 1-3)**:
 | Router | Endpoint | Permission |
 |--------|----------|-----------|
 | `inventory.py` | `GET /inventory` | `inventory.view` |
@@ -63,10 +63,31 @@ Build a Share Booking System for managing client share bookings, inventory track
 | `contract_notes.py` | `POST /send-email/{id}` | `contract_notes.send` |
 | `contract_notes.py` | `GET /by-booking/{id}` | `contract_notes.view` |
 | `contract_notes.py` | `POST /regenerate/{id}` | `contract_notes.generate` |
+| `database_backup.py` | `POST /restore-from-file` | `database_backup.restore` |
+| `files.py` | `GET /scan-missing` | `files.scan` |
+| `files.py` | `POST /upload` | `files.upload` |
+| `files.py` | `DELETE /{file_id}` | `files.delete` |
+| `files.py` | `GET /list/{category}` | `files.view` |
+| `files.py` | `GET /scan/missing` | `files.scan` |
+| `referral_partners.py` | `GET /referral-partners-approved` | `referral_partners.view` |
+| `dashboard.py` | `POST /unblock-ip` | `security.manage_threats` |
 
-**Total Permission Categories**: 26 (was 25)
+**Frontend Updates**:
+- Updated `RoleManagement.js` categoryInfo to include `files` and `notifications` categories
+- Visual Permissions tab now shows 26 permission categories with icons
+
+**Total Permission Categories**: 26
 
 **Audit Report**: See `/app/docs/RBAC_AUDIT_REPORT.md` for full details
+
+**Testing**:
+- ✅ Tested with PE Desk (full access) - all endpoints accessible
+- ✅ Tested with Viewer role - restricted endpoints properly denied
+  - `/api/files/storage-stats` - DENIED (lacks files.view_stats)
+  - `/api/database/stats` - DENIED (lacks database_backup.view)  
+  - `/api/inventory` - ALLOWED (has inventory.view)
+  - `/api/purchases` - ALLOWED (has purchases.view)
+  - `/api/dashboard/unblock-ip` - DENIED (lacks security.manage_threats)
 
 ---
 
