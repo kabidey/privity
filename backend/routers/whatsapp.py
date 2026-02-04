@@ -15,7 +15,7 @@ import base64
 import json
 
 from database import db
-from auth import get_current_user
+from utils.auth import get_current_user
 from services.permission_service import require_permission
 from services.audit_service import create_audit_log
 
