@@ -599,7 +599,7 @@ async def approve_booking(
         
         if client and primary_email:
             confirmation_token = booking.get("client_confirmation_token")
-            frontend_url = os.environ.get('FRONTEND_URL', 'https://finstack-app-4.preview.emergentagent.com')
+            frontend_url = os.environ.get('FRONTEND_URL', 'https://revenue-override.preview.emergentagent.com')
             
             if is_loss_pending:
                 await send_templated_email(
