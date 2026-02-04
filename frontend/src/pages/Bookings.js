@@ -91,7 +91,12 @@ const Bookings = () => {
     canEditLandingPrice,
     canDelete,
     canModify,
+    hasPermission,
   } = useCurrentUser();
+  
+  // Permission checks for BP override feature
+  const canOverrideRevenueShare = hasPermission('bookings.override_revenue_share');
+  const canApproveRevenueOverride = hasPermission('bookings.approve_revenue_override');
 
   useEffect(() => {
     fetchData();
