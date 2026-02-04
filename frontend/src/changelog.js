@@ -15,6 +15,51 @@ export const getCurrentBuildInfo = () => {
 
 const CHANGELOG = [
   {
+    version: 'v6.2.4.7',
+    date: '2026-02-04',
+    title: 'Business Intelligence & WhatsApp Integration',
+    changes: [
+      { type: 'feature', description: 'Business Intelligence Report Builder - Generate custom reports with multiple dimensions and filters' },
+      { type: 'feature', description: 'BI Report Types - Bookings, Clients, Revenue, Inventory, Payments, P&L analysis with Excel export' },
+      { type: 'feature', description: 'WhatsApp Notification System - Self-hosted QR-based WhatsApp integration for alerts' },
+      { type: 'feature', description: 'WhatsApp Templates - Customizable message templates for bookings, payments, DP transfers' },
+      { type: 'feature', description: 'WhatsApp Recipient Types - Send to clients, users, Business Partners, Referral Partners' },
+      { type: 'feature', description: 'BP Override Dashboard Widget - PE Dashboard shows pending BP revenue override count' },
+      { type: 'feature', description: 'New Permissions - reports.bi_builder, notifications.whatsapp added to Role Management' },
+      { type: 'security', description: 'Permission-based WhatsApp access - Only authorized roles can manage WhatsApp settings' },
+    ]
+  },
+  {
+    version: 'v6.2.4',
+    date: '2026-02-04',
+    title: 'BP Revenue Share Override & Security Hardening',
+    changes: [
+      { type: 'feature', description: 'BP Revenue Share Override - Business Partners can request lower revenue share with approval workflow' },
+      { type: 'feature', description: 'BP Override Approval - PE Desk can approve/reject BP revenue overrides from Bookings page' },
+      { type: 'feature', description: 'Override Tracking - Visual badges showing pending/approved/rejected override status' },
+      { type: 'security', description: 'Bot Protection Middleware - Blocks crawlers, scanners, and common attack vectors' },
+      { type: 'feature', description: 'Threat Monitor Dashboard - Real-time visualization of blocked threats in Security page' },
+      { type: 'feature', description: 'Centralized Page Protection - useProtectedPage hook for consistent auth/permission handling' },
+      { type: 'fix', description: 'Permission-Based Access - Replaced hardcoded role checks with granular permissions across 14 pages' },
+      { type: 'fix', description: 'DP Permission Access - Fixed access for users with dp.* permissions' },
+      { type: 'improvement', description: 'Removed Change Password from main menu - Now only in Account Security' },
+    ]
+  },
+  {
+    version: 'v6.2.3',
+    date: '2026-02-03',
+    title: 'Database Management & Selective Clear',
+    changes: [
+      { type: 'feature', description: 'Selective Database Clear - Choose specific collections or categories to clear' },
+      { type: 'feature', description: 'Preview Mode - See exactly what will be deleted before clearing' },
+      { type: 'feature', description: 'Exclude Records - Protect specific records from deletion' },
+      { type: 'feature', description: 'Clear Files Only - Remove uploaded files without touching database' },
+      { type: 'feature', description: 'Refresh Booking Status - Manually recalculate payment and approval status' },
+      { type: 'feature', description: 'RP Mapping Update - Edit Referral Partner assignment on existing bookings' },
+      { type: 'improvement', description: 'Enhanced Client Employee Mapping - Fixed race condition in dropdown loading' },
+    ]
+  },
+  {
     version: 'v4.1.0',
     date: '2026-02-02',
     title: 'Two-Factor Authentication (TOTP)',
