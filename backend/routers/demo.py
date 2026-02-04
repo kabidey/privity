@@ -172,8 +172,19 @@ async def initialize_demo():
                 "password": hash_password("demo123"),
                 "created_at": datetime.utcnow(),
                 "permissions": ["*"],  # Full access for demo
+                "agreement_accepted": True,  # Auto-accept agreement for demo
+                "agreement_accepted_at": datetime.utcnow(),
             }
             await db.users.insert_one(demo_user_doc)
+        else:
+            # Update existing demo user to have agreement accepted
+            await db.users.update_one(
+                {"id": DEMO_USER["id"]},
+                {"$set": {
+                    "agreement_accepted": True,
+                    "agreement_accepted_at": datetime.utcnow()
+                }}
+            )
         
         # Clear previous demo data
         await db.clients.delete_many({"is_demo": True})
