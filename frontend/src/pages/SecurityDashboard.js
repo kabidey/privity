@@ -12,7 +12,7 @@ import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Shield, AlertTriangle, MapPin, Lock, Unlock, Ban, CheckCircle2,
   Activity, Globe, Server, Users, Clock, TrendingUp, RefreshCw,
-  XCircle, Eye, ChevronRight, Wifi, WifiOff
+  XCircle, Eye, ChevronRight, Wifi, WifiOff, Key, Copy, Plus
 } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
