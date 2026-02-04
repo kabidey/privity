@@ -27,4 +27,26 @@ api.interceptors.response.use(
   }
 );
 
+// Function to refresh user permissions from the server
+export const refreshUserPermissions = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    const response = await api.get('/auth/me');
+    const userData = response.data;
+    
+    // Update localStorage with fresh user data including permissions
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+    // Dispatch event to notify components
+    window.dispatchEvent(new Event('permissionsRefresh'));
+    
+    return userData;
+  } catch (error) {
+    console.error('Failed to refresh user permissions:', error);
+    return null;
+  }
+};
+
 export default api;
