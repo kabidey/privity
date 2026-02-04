@@ -11,14 +11,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   History, Search, Filter, Eye, RefreshCw, User, Calendar, 
   Activity, FileText, Users, BarChart3, Clock, Shield
 } from 'lucide-react';
 
 const AuditTrail = () => {
-  const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,22 +38,18 @@ const AuditTrail = () => {
   const [pagination, setPagination] = useState({ limit: 50, skip: 0 });
   const [statsDays, setStatsDays] = useState(7);
 
-  const { user, isPELevel } = useCurrentUser();
+  const { isLoading, isAuthorized, isPELevel } = useProtectedPage({
+    allowIf: ({ isPELevel }) => isPELevel,
+    deniedMessage: 'Access denied. Only PE Desk or PE Manager can view audit trail.'
+  });
 
   useEffect(() => {
-    // Wait for user to load before checking permissions
-    if (user === null) return;
-    
-    if (!isPELevel) {
-      toast.error('Access denied. Only PE Desk or PE Manager can view audit trail.');
-      navigate('/');
-      return;
-    }
+    if (!isAuthorized) return;
     fetchLogs();
     fetchStats();
     fetchEntityTypes();
     fetchActions();
-  }, [user, isPELevel, navigate]);
+  }, [isAuthorized]);
 
   const fetchLogs = async () => {
     try {
