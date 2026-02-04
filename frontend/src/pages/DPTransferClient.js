@@ -281,15 +281,17 @@ const DPTransfer = () => {
                             {formatCurrency(booking.total_paid || booking.total_amount)}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Button
-                              size="sm"
-                              onClick={() => setConfirmDialog({ open: true, booking })}
-                              className="bg-blue-600 hover:bg-blue-700"
-                              data-testid={`transfer-btn-${booking.id}`}
-                            >
-                              <Send className="h-4 w-4 mr-1" />
-                              Transfer
-                            </Button>
+                            {canTransfer && (
+                              <Button
+                                size="sm"
+                                onClick={() => setConfirmDialog({ open: true, booking })}
+                                className="bg-blue-600 hover:bg-blue-700"
+                                data-testid={`transfer-btn-${booking.id}`}
+                              >
+                                <Send className="h-4 w-4 mr-1" />
+                                Transfer
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
