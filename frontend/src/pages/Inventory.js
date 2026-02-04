@@ -386,16 +386,32 @@ const Inventory = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {inventory.map((item) => {
+                  {sortedInventory.map((item) => {
                     const level = getStockLevel(item.available_quantity);
                     const isEditing = editingLP === item.stock_id;
+                    const lpChange = getLPChangeIndicator(item);
+                    const LPIcon = lpChange.icon;
                     
                     return (
                       <TableRow key={item.stock_id} className="table-row" data-testid="inventory-row">
                         <TableCell>
-                          <div>
-                            <span className="font-bold mono text-lg">{item.stock_symbol}</span>
-                            <span className="text-xs text-muted-foreground block">{item.stock_name}</span>
+                          <div className="flex items-center gap-2">
+                            <div>
+                              <span className="font-bold mono text-lg">{item.stock_symbol}</span>
+                              <span className="text-xs text-muted-foreground block">{item.stock_name}</span>
+                            </div>
+                            {/* LP History Chart Button */}
+                            {isPELevel && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => fetchLPHistory(item.stock_id, item.stock_symbol)}
+                                className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600"
+                                title="View LP History"
+                              >
+                                <LineChart className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="mono text-lg">{item.available_quantity.toLocaleString('en-IN')}</TableCell>
@@ -408,7 +424,7 @@ const Inventory = () => {
                               {formatCurrency(item.weighted_avg_price)}
                             </TableCell>
                             
-                            {/* LP - Editable for PE Desk */}
+                            {/* LP - Editable for PE Desk with change indicator */}
                             <TableCell className="mono">
                               {isEditing ? (
                                 <div className="flex items-center gap-1">
