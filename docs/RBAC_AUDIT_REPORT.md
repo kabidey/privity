@@ -1,9 +1,40 @@
 # RBAC Endpoint Audit Report
 **Generated**: Feb 05, 2026  
-**Auditor**: E1 Agent
+**Auditor**: E1 Agent  
+**Status**: PARTIALLY IMPLEMENTED
 
 ## Executive Summary
 Audited all 35 backend routers for permission control gaps. Identified 65+ endpoints that could benefit from granular permission controls.
+
+## Implementation Status
+
+### ✅ IMPLEMENTED (Phase 1 - Feb 05, 2026)
+
+| Router | Endpoint | Permission Added |
+|--------|----------|-----------------|
+| `inventory.py` | `GET /inventory` | `inventory.view` |
+| `inventory.py` | `GET /inventory/{stock_id}` | `inventory.view` |
+| `inventory.py` | `GET /inventory/{stock_id}/landing-price` | `inventory.view` |
+| `purchases.py` | `GET /purchases` | `purchases.view` |
+| `purchases.py` | `GET /purchases/{id}/payments` | `purchases.view` |
+| `purchases.py` | `GET /purchases/{id}/tcs-preview` | `purchases.view` |
+| `contract_notes.py` | `GET /contract-notes/download/{id}` | `contract_notes.download` |
+| `contract_notes.py` | `POST /contract-notes/preview/{id}` | `contract_notes.view` |
+| `contract_notes.py` | `POST /contract-notes/send-email/{id}` | `contract_notes.send` |
+| `contract_notes.py` | `GET /contract-notes/by-booking/{id}` | `contract_notes.view` |
+| `contract_notes.py` | `POST /contract-notes/regenerate/{id}` | `contract_notes.generate` |
+
+### ✅ NEW PERMISSIONS ADDED TO SYSTEM
+
+```
+security.view_threats     - View security threat logs and blocked IPs
+security.manage_threats   - Clear/manage threat records  
+files.view               - View and download uploaded files
+files.view_stats         - View storage statistics
+files.upload             - Upload new files to the system
+files.delete             - Delete uploaded files
+files.scan               - Scan for missing files and re-upload
+```
 
 ## Priority Classification
 
