@@ -342,7 +342,7 @@ const Vendors = () => {
       const response = await api.post(`/clients/${vendor.id}/clone?target_type=client`);
       toast.success(response.data.message);
       if (window.confirm('Clone successful! Do you want to view the new client?')) {
-        navigate('/clients');
+        window.location.href = '/clients';
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to clone vendor as client');
