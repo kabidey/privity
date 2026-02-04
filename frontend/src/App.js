@@ -162,26 +162,28 @@ const AgreementChecker = ({ children }) => {
 function App() {
   return (
     <DemoProvider>
-    <ThemeProvider>
-  return (
-    <ThemeProvider>
-      <div className="App">
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            {/* Public route for client booking confirmation */}
-            <Route path="/booking-confirm/:bookingId/:token/:action" element={<BookingConfirm />} />
-            <Route
-              path="/*"
-              element={
-                <PrivateRoute>
-                  <NotificationProvider>
-                    <LicenseProvider>
-                      <ProxyWrapper>
-                        <AgreementChecker>
-                          <Layout>
-                        <Routes>
+      <ThemeProvider>
+        <div className="App">
+          <BrowserRouter>
+            {/* Demo Mode Components */}
+            <DemoModeBar />
+            <FeatureShowcase />
+            <DemoTour />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              {/* Public route for client booking confirmation */}
+              <Route path="/booking-confirm/:bookingId/:token/:action" element={<BookingConfirm />} />
+              <Route
+                path="/*"
+                element={
+                  <PrivateRoute>
+                    <NotificationProvider>
+                      <LicenseProvider>
+                        <ProxyWrapper>
+                          <AgreementChecker>
+                            <Layout>
+                              <Routes>
                           <Route path="/" element={<Dashboard />} />
                           <Route path="/clients" element={<Clients />} />
                           <Route path="/clients/:clientId/portfolio" element={<ClientPortfolio />} />
