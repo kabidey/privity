@@ -264,6 +264,7 @@ const Bookings = () => {
         buying_price: parseFloat(formData.buying_price),
         selling_price: parseFloat(formData.selling_price),
         rp_revenue_share_percent: formData.rp_revenue_share_percent ? parseFloat(formData.rp_revenue_share_percent) : null,
+        bp_revenue_share_override: formData.bp_revenue_share_override ? parseFloat(formData.bp_revenue_share_override) : null,
         insider_form_uploaded: false,
       };
       
