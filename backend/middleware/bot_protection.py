@@ -374,6 +374,10 @@ class BotProtectionMiddleware(BaseHTTPMiddleware):
     ALLOWED_PATHS = [
         "/api/health",
         "/api/ping",
+        "/api/demo/init",  # Demo mode initialization needs to work from frontend
+        "/api/demo/cleanup",  # Demo mode cleanup
+        "/api/demo/status",  # Demo status check
+        "/api/demo/verify-isolation",  # Demo isolation verification
     ]
     
     async def dispatch(self, request: Request, call_next):
