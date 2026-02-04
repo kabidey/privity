@@ -1,78 +1,69 @@
 <analysis>**original_problem_statement:**
-The user initially reported an access issue for the PE Desk admin role. After that was resolved, the user provided a series of new requests:
-1.  **Inventory Recalculation Logic**: Fix block release logic.
-2.  **Client Employee Mapping**: Fix a UI bug where the employee list failed to load.
-3.  **Refresh Booking Feature**: Add a button to refresh a booking's status.
-4.  **Referral Partner (RP) Mapping**: Make RP on a booking editable and set a default on creation.
-5.  **Hierarchy-based My Dashboard**: Display data according to the user's position in the org hierarchy.
+The user's initial requests from a previous session involved fixing access issues, bugs in inventory and client mapping, and adding features for booking refresh and referral partner editing. The focus then shifted to major architectural tasks: a complete backend RBAC audit, a selective database clearing feature with advanced options, and fixing a data integrity bug.
 
-After these items were addressed, the user requested the following major tasks:
-1.  **Full Backend RBAC Audit**: A complete security audit and lockdown of all backend API endpoints.
-2.  **Selective Database Clear**: Enhance the Clear Database feature to allow selective clearing of specific data collections.
-3.  **Advanced DB Clear Options**: Further enhance the clear feature with options for clearing by category, previewing changes, excluding records, and clearing only uploaded files.
-4.  **Fix Data Integrity**: Resolve a server error on the  endpoint.
-5.  **Complete RBAC Audit**: The current task is to finish the full RBAC audit that was started.
+In this session, the user requested the following:
+1.  **News Section:** Create an auto-scrolling news section on the dashboard with sources, polling every hour.
+2.  **Stock-Specific News:** Ensure the news is relevant to the stocks listed in the application's database.
+3.  **AI-Powered News:** Enhance the news feature to use AI for deep search, summarization (gist), and displaying real news.
+4.  **Comprehensive RBAC Testing:** Run a full test of the RBAC implementation with admin vs. restricted roles.
+5.  **UI Renaming:** Change Stock News to Unlisted News and Contract Note to Confirmation Note globally, including in generated PDFs.
+6.  **Login Page Quotes:** Add randomly rotating Private Equity-related quotes to the login page.
+7.  **License System:** Implement a license modal with time-based renewal keys for the entire application.
+8.  **License Exemption:** Update the license system so that internal employees () do not require a license, while Business Partners do.
+9.  **Automated Emails:** Implement email notifications for license expiry and a new email template for voided bookings.
+10. **Client Document Bug:** Fix a bug where uploaded client documents are not visible to PE Desk/Manager roles.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB system for managing financial bookings. In this session, the agent has made significant progress on multiple fronts:
-1.  **Completed the Referral Partner (RP) mapping feature** by building the required UI in  and testing it end-to-end.
-2.  **Executed a large-scale backend security overhaul** by performing an RBAC audit and applying permission checks () to dozens of endpoints across approximately 18 different router files. This task is nearly complete.
-3.  **Implemented a Selective Database Clear feature** from scratch, including a new backend API and a dynamic frontend dialog in  that allows admins to choose specific collections to delete.
-4.  **Further enhanced the Clear DB feature** with advanced capabilities like clearing by category, previewing deletions, excluding specific records, and clearing only uploaded files.
-5.  **Fixed a critical data integrity bug** in the  endpoint caused by missing data in the database, which made the endpoint unusable. The fix involved making the Pydantic model more robust and cleaning up orphaned data.
+The application is a full-stack financial booking system (React/FastAPI/MongoDB). The recent work has significantly enhanced its features and security:
+-   **AI-Powered Unlisted News Dashboard:** The dashboard now features an Unlisted News section that uses  and GPT-4o-mini to fetch real-time news from Google News RSS for stocks in the database. It provides AI-generated summaries, sentiment analysis (Bullish/Bearish/Neutral), and category classification.
+-   **Completed RBAC Security Overhaul:** A full backend audit is complete, with all API endpoints now protected by granular, role-based permissions. This was validated through comprehensive, automated testing.
+-   **Comprehensive License Management System:** A time-based licensing system is now in place. It blocks application access for non-licensed Business Partners while exempting internal  users. It includes an admin UI for generating/activating keys and automated email notifications for license expiry.
+-   **UI/UX Enhancements:** The login page now displays rotating private equity quotes. The term Contract Note has been globally refactored to Confirmation Note, including in the UI, API, and generated PDF documents.
+-   **New Email Templates:** Email templates for Voided Booking, License Expiry Warning, and License Expired have been created and integrated.
 
 **Last working item**:
--   Last item agent was working: Continuing the **Full Backend RBAC Audit**. The agent had just fixed a data integrity issue with  and was proceeding to add permission checks to the remaining unprotected endpoints in  as part of the broader audit.
+-   Last item agent was working: Investigating a bug where uploaded client documents are not visible to PE Desk or Manager roles. The agent had begun analyzing the frontend () and backend () to trace the data flow, suspecting that the document data was not being included when the client list is fetched from the API.
 -   Status: IN PROGRESS
--   Agent Testing Done: Y (The  fix was tested. The RBAC audit has been tested in phases).
--   Which testing method agent to use? backend testing agent (to run a final, comprehensive check on all endpoints once the audit is complete).
+-   Agent Testing Done: N
+-   Which testing method agent to use? Frontend testing agent (to verify the document visibility fix after implementation).
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Incomplete Full Backend RBAC Audit (P0)**
-    -   This is the highest priority task currently in progress. The agent is systematically adding RBAC permission checks to all remaining unprotected API endpoints.
+-   **Issue 1: Client Document Visibility Bug (P0)**
+    -   Description: PE Desk/Manager roles cannot view documents that have been uploaded for a client.
+    -   Attempted fixes: The agent has started analyzing the code flow, identifying  in  and the corresponding backend endpoint in  as the likely areas of interest. The current hypothesis is that the documents array is not being projected in the backend query.
     -   Next debug checklist:
-        1.  Run the audit script (/app/backend/routers/__init__.py
-/app/backend/routers/auth.py
-/app/backend/routers/group_chat.py
-/app/backend/routers/kill_switch.py
-/app/backend/routers/notifications.py
-/app/backend/routers/reports.py
-/app/backend/routers/research.py
-/app/backend/routers/revenue_dashboard.py
-/app/backend/routers/sohini.py
-/app/backend/routers/two_factor.py) to identify the final set of unprotected router files.
-        2.  Focus on the remaining files, which include , , , , and .
-        3.  Add the appropriate  to each unprotected endpoint.
-        4.  After all files are updated, run a final test using both an admin and a non-admin user to confirm all rules are enforced correctly.
-    -   Why fix this issue and what will be achieved with the fix? This will complete a critical security overhaul of the entire application, ensuring that all backend operations are protected by granular, role-based permissions.
+        1.  Examine the  endpoint in . Check if the MongoDB query/pipeline includes the  field in its projection.
+        2.  Modify the backend query to correctly return the  array for each client.
+        3.  Confirm that the frontend  correctly receives this data and populates the state used by the documents dialog.
+        4.  Test the complete flow: log in as a PE Desk user, upload a document to a client, and verify it can be viewed.
+    -   Why fix this issue and what will be achieved with the fix? This is a critical workflow regression. Fixing it will restore the ability for authorized users to access essential client documentation.
     -   Status: IN PROGRESS
     -   Is recurring issue? N
-    -   Should Test frontend/backend/both after fix? Backend
+    -   Should Test frontend/backend/both after fix? Both. The fix is likely in the backend, but verification must happen on the frontend.
     -   Blocked on other issue: None
 
 **In progress Task List**:
--   There are no other in-progress tasks. The RBAC audit is the primary active task.
+-   There are no other in-progress tasks.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks**:
-    -   (P0) **Full RBAC Test**: Once the audit is complete, run a comprehensive test of all 96+ permissions against all endpoints using the testing agent to validate the entire security model.
-    -   (P1) **Enforce 2FA for Admin Roles**: Propose and implement enforcing Two-Factor Authentication for all administrative roles as a security enhancement.
 -   **Future Tasks**:
-    -   (P2) Refactor security state management to a persistent store like Redis.
+    -   (P1) Enforce 2FA for Admin Roles.
+    -   (P2) Create a dedicated dashboard for Referral Partners (RPs).
     -   (P2) Implement a feature to close multiple bookings at once.
     -   (P2) Add settings for auto-approving loss-making bookings.
-    -   (P2) Create a dedicated dashboard for Referral Partners (RPs).
+    -   (P2) Refactor security state management to a persistent store like Redis.
     -   (P3) Automatically generate backend API documentation (Swagger/OpenAPI).
 
 **Completed work in this session**
--   **Feature: Edit Referral Partner (RP) UI**: Completed the UI in  including the dialog and button, and fully tested the frontend/backend flow.
--   **Task: Full Backend RBAC Audit (In Progress)**: Added RBAC protection to dozens of endpoints across ~18 routers (, , , , , , , , , , , , , , etc.).
--   **Feature: Selective Database Clear**: Implemented a new UI and backend () for selective clearing of database collections from .
--   **Feature: Enhanced Database Clear**: Added four new advanced options: Clear by Category, Preview Mode, Exclude Records, and Clear Files Only, with corresponding backend logic and UI updates.
--   **Bug Fix: Corporate Actions Data Integrity**: Fixed a  on the  endpoint by making the  field optional in the data model and enhancing the endpoint to handle orphaned records gracefully.
+-   **Task: Full Backend RBAC Audit & Testing:** Completed the security overhaul by protecting all remaining endpoints and verifying the entire system with comprehensive admin vs. restricted role tests.
+-   **Feature: AI-Powered Unlisted News Section:** Implemented an end-to-end news feature that uses GPT-4o-mini and Google News RSS to fetch, summarize, and display real-time, stock-specific news with sentiment analysis on the dashboard.
+-   **Feature: License Management System:** Built a complete, time-based licensing system with a blocking modal, an admin management UI, and role-based exemptions for internal users.
+-   **Feature: Automated Email Notifications:** Created and integrated email templates and logic for license expiry warnings and notifications for voided bookings.
+-   **UI/UX Improvement: Login Page Quotes:** Added rotating, PE-themed quotes to the login screen.
+-   **UI/UX Improvement: Confirmation Note Renaming:** Performed a global refactor of Contract Note to Confirmation Note across the UI, backend, and PDF generation.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -84,89 +75,129 @@ The application is a full-stack React/FastAPI/MongoDB system for managing financ
 
 
 **Key Technical Concepts**
--   **Granular RBAC Implementation**: Systematically applied  to a large number of FastAPI endpoints based on a scripted audit.
--   **Dynamic UI Generation**: Created a frontend dialog in React that dynamically generates UI elements (checkboxes, tabs) for database collections and categories fetched from backend APIs.
--   **Complex Backend Logic**: Implemented sophisticated logic for the enhanced DB clear feature, including categorization, previewing deletions, and file system operations.
--   **Data Integrity & Migration**: Diagnosed and fixed a database consistency issue by modifying a Pydantic model and creating logic to handle orphaned records at runtime.
+-   **AI-Powered Content Generation:** Using  to call GPT-4o-mini for summarizing external web content (Google News) and adding analytical data (sentiment, category).
+-   **Time-Based License System:** A full-featured licensing mechanism with backend validation, key generation, time limits, and role-based exemptions.
+-   **Global State Management (React Context):** Using  to check license validity across the application and trigger a blocking modal.
+-   **System-Wide Refactoring:** Executed a large-scale rename of a key term (Contract Note -> Confirmation Note) across dozens of frontend and backend files.
+-   **Automated Email Notifications:** Implemented logic to trigger emails based on system events (booking voided, license expiring).
 
 **key DB schema**
--   **corporate_actions**: This collection was found to have records with a missing , which caused validation errors. The  Pydantic model was adjusted to make this field optional.
+-   **licenses:** A new collection created by  to store license keys, their status (, ), creation/expiry dates, and associated user info.
+-   **stocks:** The schema is now used to store real stock symbols and names (e.g., RELIANCE, TCS) to power the AI news feature.
 
 **changes in tech stack**
--   None.
+-   **Added Dependency:** usage: openai [-h] [-v] [-b API_BASE] [-k API_KEY] [-p PROXY [PROXY ...]]
+              [-o ORGANIZATION] [-t {openai,azure}]
+              [--api-version API_VERSION] [--azure-endpoint AZURE_ENDPOINT]
+              [--azure-ad-token AZURE_AD_TOKEN] [-V]
+              {api,tools,migrate,grit} ...
+
+positional arguments:
+  {api,tools,migrate,grit}
+    api                 Direct API calls
+    tools               Client side tools for convenience
+
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose         Set verbosity.
+  -b API_BASE, --api-base API_BASE
+                        What API base url to use.
+  -k API_KEY, --api-key API_KEY
+                        What API key to use.
+  -p PROXY [PROXY ...], --proxy PROXY [PROXY ...]
+                        What proxy to use.
+  -o ORGANIZATION, --organization ORGANIZATION
+                        Which organization to run as (will use your default
+                        organization if not specified)
+  -t {openai,azure}, --api-type {openai,azure}
+                        The backend API to call, must be `openai` or `azure`
+  --api-version API_VERSION
+                        The Azure API version, e.g.
+                        'https://learn.microsoft.com/en-us/azure/ai-
+                        services/openai/reference#rest-api-versioning'
+  --azure-endpoint AZURE_ENDPOINT
+                        The Azure endpoint, e.g.
+                        'https://endpoint.openai.azure.com'
+  --azure-ad-token AZURE_AD_TOKEN
+                        A token from Azure Active Directory,
+                        https://www.microsoft.com/en-
+                        us/security/business/identity-access/microsoft-entra-
+                        id
+  -V, --version         show program's version number and exit Python library was installed to support the  library.
 
 **All files of reference**
--   **Heavily Modified**:
+-   **New Files:**
     -   
     -   
-    -   Most files within  due to the ongoing RBAC audit.
--   **Modified**:
     -   
+    -   
+    -   
+    -   
+-   **Heavily Modified:**
+    -   
+    -   
+    -   
+    -   
+    -   
+-   **Under Investigation:**
     -   
     -   
 
 **Areas that need refactoring**:
--   The frontend race condition fix from the previous session (patched across ~15 pages) is still a candidate for a centralized solution, perhaps in a custom hook, to avoid patching every new page.
+-   The frontend race condition fix (patched across ~15 pages in a previous session) remains a candidate for a centralized custom hook to improve maintainability.
 
 **key api endpoints**
--   **New**:
-    -   : Lists collections for clearing, with record counts and categories.
-    -   : Previews the results of a selective clear operation without deleting data.
-    -   : Retrieves statistics on uploaded files.
--   **Modified**:
-    -   : Endpoint heavily updated to accept lists of collections, categories, exclusion IDs, and flags for preview/file-only clearing.
-    -   : Fixed to prevent server errors from data inconsistencies.
-    -   Dozens of endpoints across the backend were modified to add the  dependency.
+-   **New:**
+    -   : Fetches AI-summarized news for stocks in the DB.
+    -   : Checks the current license validity for the logged-in user.
+    -   : Generates a new license key (Admin only).
+    -   : Activates a license key.
+    -   : Manually triggers the license expiry notification check.
+-   **Modified:**
+    -   : Now sends an email notification upon voiding a booking.
 
 **Critical Info for New Agent**
-1.  **RBAC Audit is the Priority**: The main task is to complete the security audit. Use a script like /app/backend/routers/__init__.py
-/app/backend/routers/auth.py
-/app/backend/routers/group_chat.py
-/app/backend/routers/kill_switch.py
-/app/backend/routers/notifications.py
-/app/backend/routers/reports.py
-/app/backend/routers/research.py
-/app/backend/routers/revenue_dashboard.py
-/app/backend/routers/sohini.py
-/app/backend/routers/two_factor.py to find the remaining unprotected endpoints and secure them.
-2.  **Test with Multiple Roles**: After completing the RBAC audit, it's critical to test using both an admin role () and a restricted role () to verify that permissions are correctly granted and denied across the application.
-3.  **DB Clear Feature is Complex**: Be aware that the database clearing functionality in  is now highly advanced, with multiple modes of operation (selective, by category, preview, file-only) supported by complex backend logic in .
+1.  **Priority: Client Document Bug:** Your immediate task is to fix the bug preventing PE Desk/Manager roles from viewing uploaded client documents. The investigation has started in  and . The backend API query is the most likely cause.
+2.  **License System Logic:** The license system is role-based and only applies to users without an  email. Core logic resides in  and is managed on the frontend via .
+3.  **AI News Service:** The Unlisted News feature depends on  (GPT-4o-mini) and Google News RSS. The implementation is in  and includes fallback data for test stocks or if fetching fails.
+4.  **RBAC is Complete:** The security audit is finished and tested. Do not alter permissions unless a new feature explicitly requires it.
 
 **documents and test reports created in this job**
+-    (Comprehensive RBAC Audit Test Report)
 -   
--   
--    (updated with all completed features)
+-    (Updated throughout the session)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  : User confirms the initial work plan. **COMPLETED**.
-2.  : User requests the audit task. **IN PROGRESS**.
-3.  : User asks to continue the audit. **IN PROGRESS**.
-4.  : User requests the selective DB clear feature. **COMPLETED**.
-5.  : User requests advanced DB clear options. **IN PROGRESS**.
-6.  : User specifies the exact advanced options needed. **COMPLETED**.
-7.  : User's latest request to fix a bug and continue the main audit task. **IN PROGRESS**.
+-   : Request to test the completed RBAC audit. **COMPLETED**.
+-   : Request to enhance the news feature with AI. **COMPLETED**.
+-   : Request to rename UI elements and PDF content. **COMPLETED**.
+-   : Request to add rotating quotes to the login page. **COMPLETED**.
+-   : Request for a new license management system. **COMPLETED**.
+-   : Request to make the license system conditional based on user role/email. **COMPLETED**.
+-   : Request for automated email notifications. **COMPLETED**.
+-   : User reports a new bug. **IN PROGRESS**.
 
 **Project Health Check:**
--   **Broken**: None. A critical endpoint () was broken but has been fixed.
--   **Mocked**: None.
+-   **Broken**: The client document viewing feature is currently broken for certain user roles.
+-   **Mocked**: The AI news service uses fallback data for test stocks, but is otherwise fully functional with live services.
 
 **3rd Party Integrations**
+-   : Used via  for AI-powered news summarization. (Uses Emergent LLM Key)
+-   : Used via direct web requests to fetch real-time news articles.
 -    & 
--    via  (Uses Emergent LLM Key)
 -   
 -   
--    &  (for TOTP/2FA feature)
+-    &  (for existing 2FA feature)
 
 **Testing status**
--   Testing agent used after significant changes: YES (for both the RP Mapping and the initial RBAC audit phase).
+-   Testing agent used after significant changes: YES (for the comprehensive RBAC audit).
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None. The  issue was identified as pre-existing data corruption.
+-   Known regressions: The inability to view client documents is a new regression or a previously undiscovered bug.
 
 **Credentials to test flow:**
--   **PE Desk Super Admin**:  / 
--   **Employee**:  / 
--   **Finance User**:  /  (Note: The agent found this password to be invalid during testing).
+-   **PE Desk Super Admin**:  /  (This user is exempt from license checks).
+-   **Business Partner**:  (This user type requires a license to access the application).
 
 **What agent forgot to execute**
--   The agent is actively working on the user's latest request and has not forgotten any items. The primary ongoing task is to complete the RBAC audit.</analysis>
+-   While an API endpoint was created to manually trigger the license expiry check, a recurring scheduled task (e.g., a cron job) was not implemented to run this check automatically. This could be a future enhancement.</analysis>
