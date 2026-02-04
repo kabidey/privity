@@ -15,8 +15,10 @@ import { useDemo } from '../contexts/DemoContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { enterDemoMode } = useDemo();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
   const [ssoConfig, setSsoConfig] = useState(null);
   const [msalInstance, setMsalInstance] = useState(null);
