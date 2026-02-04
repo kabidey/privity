@@ -45,37 +45,50 @@ Build a Share Booking System for managing client share bookings, inventory track
    - Demo mode state management
    - Tour progress tracking
    - Feature showcase data
+   - **Demo data cleanup on exit** (calls `/api/demo/cleanup`)
    
 2. **FeatureShowcase.js** (`/app/frontend/src/components/demo/FeatureShowcase.js`)
    - Animated welcome screen with "Welcome to PRIVITY - Run it to Learn it"
    - Feature cards for 6 major features
    - Quick action buttons
+   - **Video Walkthroughs section**
 
-3. **DemoTour.js** (`/app/frontend/src/components/demo/DemoTour.js`)
+3. **WorkflowAnimation.js** (`/app/frontend/src/components/demo/WorkflowAnimation.js`) **NEW**
+   - **Animated video demonstrations** of 4 key workflows:
+     - Booking Creation (6 steps, 12s)
+     - Client Onboarding (5 steps, 10s)
+     - Approval Workflow (4 steps, 8s)
+     - Reports & Analytics (4 steps, 8s)
+   - Play/Pause controls
+   - Step-by-step progress indicators
+   - Visual components for forms, lists, charts, status indicators
+   
+4. **DemoTour.js** (`/app/frontend/src/components/demo/DemoTour.js`)
    - Custom spotlight tour component
    - Step-by-step guided tours for each section
    
-4. **DemoModeBar.js** (`/app/frontend/src/components/demo/DemoModeBar.js`)
+5. **DemoModeBar.js** (`/app/frontend/src/components/demo/DemoModeBar.js`)
    - Orange banner at top showing "DEMO MODE"
    - Tour controls, progress, exit button
 
-5. **demo.py** (`/app/backend/routers/demo.py`)
+6. **demo.py** (`/app/backend/routers/demo.py`)
    - `/api/demo/init` - Initialize demo with sample data
-   - `/api/demo/cleanup` - Remove demo data
-   - `/api/demo/status` - Check demo status
+   - `/api/demo/cleanup` - Remove ALL demo data on exit
+   - `/api/demo/status` - Check demo status with isolation info
+   - `/api/demo/verify-isolation` - Verify complete separation of demo/live data
 
-**Demo Data Generated**:
-- 8 sample clients
-- 8 sample stocks (with real symbols like RELIANCE, TCS, HDFC)
-- 15 sample bookings
-- 3 sample vendors
-- 3 sample business partners
+**Demo Data Isolation** (VERIFIED):
+- All demo data marked with `is_demo: true` flag
+- All demo IDs prefixed with `demo_` 
+- Live data counts unchanged after cleanup (52 clients, 3 stocks, 31 bookings)
+- Cleanup removes demo data from 10+ collections
+- Isolation verification endpoint confirms no cross-references
 
-**UI Features**:
-- "Try PRIVITY Demo" button on login page with gradient styling
-- Tagline: "Run it to Learn it"
-- No login required - one-click demo access
-- Agreement modal bypassed for demo users
+**Demo Data Reset on Exit**:
+- When user clicks "Exit Demo", frontend calls `/api/demo/cleanup`
+- All demo records deleted (clients, stocks, bookings, vendors, partners, etc.)
+- Demo user account deleted
+- Local storage cleared (token, user, demo_state)
 
 **Branding**: "PRIVITY Demo - Run it to Learn it"
 
