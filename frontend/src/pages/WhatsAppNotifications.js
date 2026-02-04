@@ -263,7 +263,7 @@ const WhatsAppNotifications = () => {
           <p className="text-muted-foreground">Manage WhatsApp integration and message templates</p>
         </div>
         <div className="flex gap-2">
-          {isConnected && (
+          {isConnected && canSend && (
             <Button onClick={() => setSendDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
               <Send className="w-4 h-4 mr-2" />
               Send Message
