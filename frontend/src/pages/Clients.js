@@ -180,6 +180,38 @@ const Clients = () => {
     }
   };
 
+  // Manual refresh handler - bypasses cache and fetches fresh data
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Clear cache to force fresh data fetch
+      sessionStorage.removeItem('clientsCache');
+      
+      // Fetch fresh data from server
+      const [clientsRes, pendingRes, employeesRes] = await Promise.all([
+        api.get('/clients?is_vendor=false'),
+        api.get('/clients/pending-approval').catch(() => ({ data: [] })),
+        api.get('/users/employees').catch(() => ({ data: [] }))
+      ]);
+      
+      setClients(clientsRes.data);
+      setPendingClients(pendingRes.data);
+      setEmployees(employeesRes.data);
+      
+      // Update cache
+      sessionStorage.setItem('clientsCache', JSON.stringify({
+        data: clientsRes.data,
+        expiry: Date.now() + 5 * 60 * 1000
+      }));
+      
+      toast.success('Data refreshed successfully');
+    } catch (error) {
+      toast.error('Failed to refresh data');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Calculate similarity between two strings (Levenshtein-based percentage)
   const calculateNameSimilarity = (name1, name2) => {
     if (!name1 || !name2) return 0;
