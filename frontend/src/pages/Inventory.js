@@ -400,8 +400,8 @@ const Inventory = () => {
                               <span className="font-bold mono text-lg">{item.stock_symbol}</span>
                               <span className="text-xs text-muted-foreground block">{item.stock_name}</span>
                             </div>
-                            {/* LP History Chart Button */}
-                            {isPELevel && (
+                            {/* LP History Chart Button - visible based on permission */}
+                            {(isPELevel || canViewLPHistory) && (
                               <Button
                                 variant="ghost"
                                 size="sm"
