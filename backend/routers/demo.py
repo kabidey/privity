@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import uuid
 import random
 from database import db
-from services.auth_service import create_access_token, hash_password
+from utils.auth import hash_password, create_token
 
 router = APIRouter(prefix="/demo", tags=["Demo"])
 
