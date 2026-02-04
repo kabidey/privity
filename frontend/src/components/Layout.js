@@ -289,6 +289,16 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: ShieldCheck, label: 'Security Dashboard', path: '/security' });
   }
   
+  // BI Reports - based on permission
+  if (hasPermission('reports.bi_builder') || isPELevel) {
+    menuItems.push({ icon: BarChart3, label: 'BI Reports', path: '/bi-reports' });
+  }
+  
+  // WhatsApp Notifications - based on permission
+  if (hasPermission('notifications.whatsapp') || isPEDesk) {
+    menuItems.push({ icon: MessageCircle, label: 'WhatsApp', path: '/whatsapp' });
+  }
+  
   // File Migration - PE Desk only
   if (isPEDesk) {
     menuItems.push({ icon: HardDrive, label: 'File Migration', path: '/file-migration' });
