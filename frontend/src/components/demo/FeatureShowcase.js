@@ -5,14 +5,21 @@ import { useDemo, FEATURE_SHOWCASES, DEMO_TOURS } from '../../contexts/DemoConte
 import { useNavigate } from 'react-router-dom';
 import WorkflowAnimation, { WORKFLOW_ANIMATIONS } from './WorkflowAnimation';
 
-const FeatureCard = ({ feature, index, onExplore }) => {
+const FeatureCard = ({ feature, index, onExplore, onWatchAnimation }) => {
+  // Map features to workflow animations
+  const workflowMap = {
+    bookings: 'booking',
+    clients: 'client',
+    reports: 'reports',
+  };
+  const hasAnimation = workflowMap[feature.id];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group"
-      onClick={() => onExplore(feature.id)}
+      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group"
     >
       <div className={`h-2 bg-gradient-to-r ${feature.color}`} />
       <div className="p-6">
@@ -29,10 +36,24 @@ const FeatureCard = ({ feature, index, onExplore }) => {
             </li>
           ))}
         </ul>
-        <div className="mt-4 flex items-center gap-2 text-emerald-600 font-medium text-sm group-hover:text-emerald-700">
-          <Play className="w-4 h-4" />
-          <span>Explore this feature</span>
-          <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+        <div className="mt-4 flex items-center gap-2">
+          {hasAnimation && (
+            <button
+              onClick={() => onWatchAnimation(workflowMap[feature.id])}
+              className="flex items-center gap-1.5 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
+            >
+              <Film className="w-4 h-4" />
+              Watch Demo
+            </button>
+          )}
+          <button
+            onClick={() => onExplore(feature.id)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors text-sm font-medium group-hover:bg-emerald-600 group-hover:text-white"
+          >
+            <Play className="w-4 h-4" />
+            Explore
+            <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+          </button>
         </div>
       </div>
     </motion.div>
