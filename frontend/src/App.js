@@ -215,6 +215,8 @@ function App() {
                           <Route path="/help" element={<HelpTutorial />} />
                           <Route path="/account-security" element={<AccountSecurity />} />
                           <Route path="/2fa-setup" element={<TwoFactorSetupPage />} />
+                          <Route path="/bi-reports" element={<BIReports />} />
+                          <Route path="/whatsapp" element={<WhatsAppNotifications />} />
                         </Routes>
                         </Layout>
                         {/* Notification Permission Banner */}
