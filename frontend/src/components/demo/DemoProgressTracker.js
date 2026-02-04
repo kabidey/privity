@@ -7,12 +7,12 @@ import {
 } from 'lucide-react';
 import { useDemo, DEMO_TOURS, FEATURE_SHOWCASES } from '../../contexts/DemoContext';
 
-// Badge definitions
+// Badge definitions - Employee Role focused
 const BADGES = {
   explorer: {
     id: 'explorer',
     name: 'Explorer',
-    description: 'Started your PRIVITY journey',
+    description: 'Started your PRIVITY Employee journey',
     icon: Star,
     color: 'from-yellow-400 to-orange-500',
     requirement: 'Start demo mode',
@@ -20,8 +20,8 @@ const BADGES = {
   },
   bookingMaster: {
     id: 'bookingMaster',
-    name: 'Booking Master',
-    description: 'Completed the Bookings tour',
+    name: 'Booking Creator',
+    description: 'Learned how to create bookings',
     icon: BookOpen,
     color: 'from-emerald-400 to-teal-500',
     requirement: 'Complete bookings tour',
@@ -30,8 +30,8 @@ const BADGES = {
   },
   clientPro: {
     id: 'clientPro',
-    name: 'Client Pro',
-    description: 'Mastered client management',
+    name: 'Client Viewer',
+    description: 'Explored client information',
     icon: Users,
     color: 'from-blue-400 to-indigo-500',
     requirement: 'Complete clients tour',
@@ -40,28 +40,18 @@ const BADGES = {
   },
   inventoryGuru: {
     id: 'inventoryGuru',
-    name: 'Inventory Guru',
-    description: 'Understood inventory tracking',
+    name: 'Stock Checker',
+    description: 'Learned to check inventory',
     icon: ShoppingCart,
     color: 'from-purple-400 to-pink-500',
     requirement: 'Complete inventory tour',
     tourId: DEMO_TOURS.INVENTORY,
     points: 25,
   },
-  analyticsWizard: {
-    id: 'analyticsWizard',
-    name: 'Analytics Wizard',
-    description: 'Explored reports and analytics',
-    icon: BarChart3,
-    color: 'from-cyan-400 to-blue-500',
-    requirement: 'Complete reports tour',
-    tourId: DEMO_TOURS.REPORTS,
-    points: 25,
-  },
   dashboardChampion: {
     id: 'dashboardChampion',
-    name: 'Dashboard Champion',
-    description: 'Mastered the PE Dashboard',
+    name: 'Dashboard User',
+    description: 'Explored your personal dashboard',
     icon: Target,
     color: 'from-orange-400 to-red-500',
     requirement: 'Complete dashboard tour',
@@ -71,7 +61,7 @@ const BADGES = {
   tourComplete: {
     id: 'tourComplete',
     name: 'Tour Complete',
-    description: 'Completed all guided tours',
+    description: 'Completed all Employee guided tours',
     icon: Trophy,
     color: 'from-amber-400 to-yellow-500',
     requirement: 'Complete all tours',
