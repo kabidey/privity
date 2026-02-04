@@ -378,7 +378,7 @@ const LicenseManagement = () => {
 };
 
 const SecurityDashboard = () => {
-  const { securityStatus, loginLocations, mapData, loading, error, refetch } = useSecurityData();
+  const { securityStatus, loginLocations, mapData, threatData, loading, error, refetch } = useSecurityData();
   const [timeRange, setTimeRange] = useState('24h');
   const [activeTab, setActiveTab] = useState('overview');
 
