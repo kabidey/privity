@@ -239,14 +239,26 @@ const Inventory = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="inventory-page">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Inventory</h1>
-        <p className="text-muted-foreground text-base">
-          {isPELevel 
-            ? 'Track stock levels with WAP (Weighted Avg Price) and LP (Landing Price)'
-            : 'Track stock levels and pricing'
-          }
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Inventory</h1>
+          <p className="text-muted-foreground text-base">
+            {isPELevel 
+              ? 'Track stock levels with WAP (Weighted Avg Price) and LP (Landing Price)'
+              : 'Track stock levels and pricing'
+            }
+          </p>
+        </div>
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by stock symbol, name, ISIN..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+            data-testid="inventory-search-input"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
