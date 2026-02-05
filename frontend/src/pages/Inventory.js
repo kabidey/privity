@@ -412,6 +412,7 @@ const Inventory = () => {
                                 onClick={() => fetchLPHistory(item.stock_id, item.stock_symbol)}
                                 className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600"
                                 title="View LP History"
+                                data-testid={`lp-history-btn-${item.stock_symbol}`}
                               >
                                 <LineChart className="h-4 w-4" />
                               </Button>
