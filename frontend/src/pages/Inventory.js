@@ -69,14 +69,18 @@ const Inventory = () => {
 
   // Fetch LP history for a stock
   const fetchLPHistory = async (stockId, stockSymbol) => {
+    console.log('fetchLPHistory called:', stockId, stockSymbol);
     setLoadingHistory(true);
     setSelectedStockForHistory({ stock_id: stockId, stock_symbol: stockSymbol });
     setLpHistoryDialogOpen(true);
+    console.log('lpHistoryDialogOpen set to true');
     
     try {
       const response = await api.get(`/inventory/${stockId}/lp-history`);
+      console.log('LP History response:', response.data);
       setLpHistory(response.data.history || []);
     } catch (error) {
+      console.error('LP History error:', error);
       toast.error('Failed to load LP history');
       setLpHistory([]);
     } finally {
