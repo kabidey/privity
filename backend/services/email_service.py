@@ -1577,7 +1577,7 @@ async def send_dp_ready_email(
     """
     
     # Wrap with company logo header
-    body = wrap_email_with_logo(body, company_info)
+    body = wrap_email_with_branding(body, company_info)
     
     # Send email
     await send_email(
