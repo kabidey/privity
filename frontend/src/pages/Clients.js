@@ -562,7 +562,8 @@ const Clients = () => {
       const missingDocs = [];
       if (!docFiles.pan_card) missingDocs.push('PAN Card');
       if (!docFiles.cml_copy) missingDocs.push('CML Copy');
-      if (!docFiles.cancelled_cheque) missingDocs.push('Cancelled Cheque');
+      // Only require cancelled cheque if user doesn't have skip permission
+      if (!docFiles.cancelled_cheque && !canSkipCancelledCheque) missingDocs.push('Cancelled Cheque');
       
       // Check for name mismatch between form and OCR extracted names
       const panName = extractedNames.pan_card?.toLowerCase().trim();
