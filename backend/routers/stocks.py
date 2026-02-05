@@ -2,7 +2,7 @@
 Stocks Router
 Handles stock management, corporate actions, and inventory
 """
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Query
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
