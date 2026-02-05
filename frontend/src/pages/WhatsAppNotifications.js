@@ -1035,6 +1035,77 @@ const WhatsAppNotifications = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk Broadcast Dialog */}
+      <Dialog open={broadcastDialogOpen} onOpenChange={setBroadcastDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Send Bulk Broadcast
+            </DialogTitle>
+            <DialogDescription>
+              Send a message to multiple recipients at once
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Broadcast Name (optional)</Label>
+              <Input
+                placeholder="e.g., January 2026 Updates"
+                value={broadcastForm.broadcast_name}
+                onChange={(e) => setBroadcastForm({...broadcastForm, broadcast_name: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>Recipient Type *</Label>
+              <Select 
+                value={broadcastForm.recipient_type} 
+                onValueChange={(v) => setBroadcastForm({...broadcastForm, recipient_type: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all_clients">All Clients</SelectItem>
+                  <SelectItem value="all_rps">All Referral Partners</SelectItem>
+                  <SelectItem value="all_bps">All Business Partners</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Message *</Label>
+              <Textarea
+                placeholder="Type your broadcast message..."
+                rows={6}
+                value={broadcastForm.message}
+                onChange={(e) => setBroadcastForm({...broadcastForm, message: e.target.value})}
+              />
+            </div>
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+              <p className="text-yellow-800">
+                <AlertTriangle className="w-4 h-4 inline mr-1" />
+                This will send messages to all recipients in the selected group. Make sure your message is ready.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBroadcastDialogOpen(false)}>Cancel</Button>
+            <Button 
+              onClick={handleSendBroadcast} 
+              disabled={sendingBroadcast}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {sendingBroadcast ? (
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4 mr-2" />
+              )}
+              Send Broadcast
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
