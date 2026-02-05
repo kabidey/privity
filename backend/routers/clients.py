@@ -16,18 +16,18 @@ from database import db
 from config import ROLES, UPLOAD_DIR
 from models import ClientCreate, Client, BankAccount, ClientSuspensionRequest
 from utils.auth import get_current_user
-from services.permission_service import check_permission, require_permission, has_permission
+from services.permission_service import (
+    check_permission,
+    check_permission as check_dynamic_permission,
+    has_permission,
+    require_permission,
+    is_pe_level_dynamic
+)
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
 from services.email_service import send_templated_email, send_email, get_email_template
 from services.ocr_service import process_document_ocr
 from services.file_storage import upload_file_to_gridfs, get_file_url
-from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
-    is_pe_level_dynamic,
-    require_permission
-)
 from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(tags=["Clients"])
