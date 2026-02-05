@@ -193,8 +193,7 @@ class SecurityAlertService:
                 await send_email(
                     to_email=pe_user["email"],
                     subject=subject,
-                    body=body,
-                    is_html=True
+                    body=body
                 )
                 logger.info(f"Sent account locked alert to {pe_user['email']}")
             except Exception as e:
@@ -263,8 +262,7 @@ class SecurityAlertService:
                 await send_email(
                     to_email=pe_user["email"],
                     subject=subject,
-                    body=body,
-                    is_html=True
+                    body=body
                 )
             except Exception as e:
                 logger.error(f"Failed to send suspicious activity alert: {e}")
@@ -320,8 +318,7 @@ class SecurityAlertService:
             await send_email(
                 to_email=user_email,
                 subject=subject,
-                body=body,
-                is_html=True
+                body=body
             )
             logger.info(f"Sent new login alert to {user_email}")
         except Exception as e:
@@ -441,8 +438,7 @@ class SecurityAlertService:
                 await send_email(
                     to_email=pe_user["email"],
                     subject=subject,
-                    body=body,
-                    is_html=True
+                    body=body
                 )
                 logger.info(f"Sent unusual login alert to {pe_user['email']}")
             except Exception as e:
@@ -453,8 +449,7 @@ class SecurityAlertService:
             await send_email(
                 to_email=user_email,
                 subject=f"{emoji} Security Alert: Unusual login to your account",
-                body=body,
-                is_html=True
+                body=body
             )
         except Exception as e:
             logger.error(f"Failed to send unusual login alert to user: {e}")
