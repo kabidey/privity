@@ -837,6 +837,7 @@ const Vendors = () => {
             </Tabs>
           </DialogContent>
         </Dialog>
+        </div>
 
         {/* Proprietor Confirmation Dialog */}
         <Dialog open={proprietorDialogOpen} onOpenChange={setProprietorDialogOpen}>
