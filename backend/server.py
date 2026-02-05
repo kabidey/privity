@@ -402,6 +402,9 @@ from routers.whatsapp import router as whatsapp_router
 # Demo Mode
 from routers.demo import router as demo_router
 
+# Payments
+from routers.payments import router as payments_router
+
 # Register all routers with /api prefix
 app.include_router(auth_router, prefix="/api")
 app.include_router(users_router, prefix="/api")
