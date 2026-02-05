@@ -696,10 +696,9 @@ async def upload_client_document(
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
-        check_permission(current_user, "manage_clients")
-        client = await db.clients.find_one({"id": client_id}, {"_id": 0})
-        if not client:
-            raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Permission check
+    await check_permission(current_user, "clients.upload_docs", "upload client documents")
     
     # Read file content
     content = await file.read()
