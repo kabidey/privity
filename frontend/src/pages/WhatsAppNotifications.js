@@ -26,6 +26,27 @@ const WhatsAppNotifications = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   
+  // Automation state
+  const [automationConfig, setAutomationConfig] = useState({
+    payment_reminder_enabled: false,
+    payment_reminder_days: 3,
+    document_reminder_enabled: false,
+    dp_ready_notification_enabled: true
+  });
+  const [automationLogs, setAutomationLogs] = useState([]);
+  const [broadcasts, setBroadcasts] = useState([]);
+  const [savingAutomation, setSavingAutomation] = useState(false);
+  const [runningAutomation, setRunningAutomation] = useState(null);
+  
+  // Bulk broadcast state
+  const [broadcastDialogOpen, setBroadcastDialogOpen] = useState(false);
+  const [broadcastForm, setBroadcastForm] = useState({
+    message: '',
+    recipient_type: 'all_clients',
+    broadcast_name: ''
+  });
+  const [sendingBroadcast, setSendingBroadcast] = useState(false);
+  
   // Wati Config state
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [watiEndpoint, setWatiEndpoint] = useState('');
