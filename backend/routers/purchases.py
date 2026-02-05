@@ -255,10 +255,19 @@ async def get_purchases(
     status: Optional[str] = None,
     vendor_id: Optional[str] = None,
     stock_id: Optional[str] = None,
+    search: Optional[str] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(1000, ge=1, le=10000),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("purchases.view", "view purchases"))
 ):
-    """Get all purchases with vendor and stock details"""
+    """Get all purchases with vendor and stock details
+    
+    Args:
+        search: Search query to filter by vendor name, stock symbol, or purchase number
+        skip: Number of records to skip (for pagination)
+        limit: Maximum number of records to return
+    """
     query = {}
     if status:
         query["status"] = status
@@ -267,11 +276,44 @@ async def get_purchases(
     if stock_id:
         query["stock_id"] = stock_id
     
+    # Server-side search filter
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        # Find matching vendor IDs
+        matching_vendors = await db.clients.find(
+            {"name": search_regex, "is_vendor": True},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        vendor_ids_match = [v["id"] for v in matching_vendors]
+        
+        # Find matching stock IDs
+        matching_stocks = await db.stocks.find(
+            {"symbol": search_regex},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        stock_ids_match = [s["id"] for s in matching_stocks]
+        
+        # Build search conditions
+        search_conditions = [
+            {"purchase_number": search_regex},
+            {"vendor_name": search_regex},
+            {"stock_symbol": search_regex}
+        ]
+        if vendor_ids_match:
+            search_conditions.append({"vendor_id": {"$in": vendor_ids_match}})
+        if stock_ids_match:
+            search_conditions.append({"stock_id": {"$in": stock_ids_match}})
+        
+        if query:
+            query = {"$and": [query, {"$or": search_conditions}]}
+        else:
+            query = {"$or": search_conditions}
+    
     # CRITICAL: Add demo data isolation filter
     # Demo users only see demo data, live users don't see demo data
     query = add_demo_filter(query, current_user)
     
-    purchases = await db.purchases.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    purchases = await db.purchases.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     if not purchases:
         return []
