@@ -910,6 +910,19 @@ async def send_payment_request_email(
         if doc:
             attachments.append(doc)
     
+    # Also attach client documents (CML, PAN, Cancelled Cheque)
+    client_documents = client.get("documents", [])
+    for doc_info in client_documents:
+        doc_type = doc_info.get("doc_type")
+        doc_url = doc_info.get("url") or doc_info.get("file_url")
+        if doc_url and doc_type in ["cml_copy", "pan_card", "cancelled_cheque"]:
+            ext = doc_url.split('.')[-1].lower() if '.' in doc_url else 'pdf'
+            doc_name = f"Client_{doc_type.upper().replace('_', ' ')}.{ext}"
+            doc = await load_document(doc_url, doc_name)
+            if doc:
+                attachments.append(doc)
+                logging.info(f"Attached client document: {doc_name}")
+    
     # Log attachment details
     if attachments:
         logging.info(f"Payment request email will have {len(attachments)} attachment(s): {[a['filename'] for a in attachments]}")
