@@ -20,16 +20,16 @@ from database import db
 from config import is_viewer, check_viewer_restriction, ROLES
 from models import BookingCreate, Booking, BookingWithDetails
 from utils.auth import get_current_user
-from services.permission_service import check_permission, require_permission, has_permission
+from services.permission_service import (
+    check_permission,
+    check_permission as check_dynamic_permission,
+    has_permission,
+    require_permission,
+    is_pe_level_dynamic
+)
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
 from services.email_service import send_templated_email, send_payment_request_email
-from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
-    is_pe_level_dynamic,
-    require_permission
-)
 from services.inventory_service import (
     update_inventory,
     check_and_reserve_inventory,
