@@ -136,11 +136,37 @@ async def get_employees(
 # ============== User Endpoints ==============
 @router.get("", response_model=List[User])
 async def get_users(
+    search: Optional[str] = None,
+    role: Optional[int] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(1000, ge=1, le=10000),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("users.view", "view users"))
 ):
-    """Get all users (requires users.view permission)"""
-    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    """Get all users (requires users.view permission)
+    
+    Args:
+        search: Search query to filter by name, email, or PAN
+        role: Filter by specific role ID
+        skip: Number of records to skip (for pagination)
+        limit: Maximum number of records to return
+    """
+    query = {}
+    
+    # Server-side search filter
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        query["$or"] = [
+            {"name": search_regex},
+            {"email": search_regex},
+            {"pan_number": search_regex}
+        ]
+    
+    # Role filter
+    if role is not None:
+        query["role"] = role
+    
+    users = await db.users.find(query, {"_id": 0, "password": 0}).skip(skip).limit(limit).to_list(limit)
     
     result = []
     for u in users:
