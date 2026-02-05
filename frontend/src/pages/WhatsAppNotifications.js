@@ -601,6 +601,276 @@ const WhatsAppNotifications = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Automation Tab */}
+        {canConfig && (
+          <TabsContent value="automation">
+            <div className="space-y-6">
+              {/* Automation Settings Card */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Settings className="w-5 h-5" />
+                        Automation Settings
+                      </CardTitle>
+                      <CardDescription>Configure automated WhatsApp notifications</CardDescription>
+                    </div>
+                    <Button onClick={handleSaveAutomationConfig} disabled={savingAutomation}>
+                      {savingAutomation ? (
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                      )}
+                      Save Settings
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Payment Reminders */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-orange-500" />
+                        <span className="font-medium">Payment Reminders</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Send reminders to clients with pending payments
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Label className="text-xs">Days overdue:</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="30"
+                          value={automationConfig.payment_reminder_days}
+                          onChange={(e) => setAutomationConfig(prev => ({
+                            ...prev,
+                            payment_reminder_days: parseInt(e.target.value) || 3
+                          }))}
+                          className="w-20 h-8"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Switch
+                        checked={automationConfig.payment_reminder_enabled}
+                        onCheckedChange={(checked) => setAutomationConfig(prev => ({
+                          ...prev,
+                          payment_reminder_enabled: checked
+                        }))}
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleRunAutomation('payment')}
+                        disabled={runningAutomation === 'payment'}
+                      >
+                        {runningAutomation === 'payment' ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Document Reminders */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                        <span className="font-medium">Document Upload Reminders</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Remind clients to upload missing documents (PAN, CML, Cheque)
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Switch
+                        checked={automationConfig.document_reminder_enabled}
+                        onCheckedChange={(checked) => setAutomationConfig(prev => ({
+                          ...prev,
+                          document_reminder_enabled: checked
+                        }))}
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleRunAutomation('document')}
+                        disabled={runningAutomation === 'document'}
+                      >
+                        {runningAutomation === 'document' ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* DP Ready Notifications */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="font-medium">DP Ready Notifications</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Notify clients when shares are ready for DP transfer
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Switch
+                        checked={automationConfig.dp_ready_notification_enabled}
+                        onCheckedChange={(checked) => setAutomationConfig(prev => ({
+                          ...prev,
+                          dp_ready_notification_enabled: checked
+                        }))}
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleRunAutomation('dp_ready')}
+                        disabled={runningAutomation === 'dp_ready'}
+                      >
+                        {runningAutomation === 'dp_ready' ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Run All Button */}
+                  <div className="flex justify-center pt-4 border-t">
+                    <Button 
+                      onClick={() => handleRunAutomation('all')}
+                      disabled={runningAutomation === 'all'}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {runningAutomation === 'all' ? (
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4 mr-2" />
+                      )}
+                      Run All Enabled Automations
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    Automations run automatically at 10:00 AM IST daily
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Bulk Broadcast Card */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="w-5 h-5" />
+                      Bulk Broadcast
+                    </CardTitle>
+                    <CardDescription>Send messages to multiple recipients at once</CardDescription>
+                  </div>
+                  <Button onClick={() => setBroadcastDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Send className="w-4 h-4 mr-2" />
+                    New Broadcast
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Broadcast Name</TableHead>
+                        <TableHead>Recipients</TableHead>
+                        <TableHead>Success</TableHead>
+                        <TableHead>Failed</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {broadcasts.map((broadcast) => (
+                        <TableRow key={broadcast.id}>
+                          <TableCell className="font-medium">{broadcast.name}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{broadcast.recipient_type}</Badge>
+                            <span className="ml-2 text-muted-foreground">({broadcast.recipient_count})</span>
+                          </TableCell>
+                          <TableCell className="text-green-600">{broadcast.success_count || 0}</TableCell>
+                          <TableCell className="text-red-600">{broadcast.failed_count || 0}</TableCell>
+                          <TableCell>
+                            <Badge variant={broadcast.status === 'completed' ? 'default' : 'secondary'}>
+                              {broadcast.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{new Date(broadcast.created_at).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                      {broadcasts.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                            No broadcasts sent yet
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Automation Logs Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <History className="w-5 h-5" />
+                    Automation Logs
+                  </CardTitle>
+                  <CardDescription>Recent automation run history</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Automation Type</TableHead>
+                        <TableHead>Trigger</TableHead>
+                        <TableHead>Recipients</TableHead>
+                        <TableHead>Success</TableHead>
+                        <TableHead>Failed</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {automationLogs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="font-medium">{log.automation_type}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{log.trigger_event}</Badge>
+                          </TableCell>
+                          <TableCell>{log.recipients_count}</TableCell>
+                          <TableCell className="text-green-600">{log.success_count}</TableCell>
+                          <TableCell className="text-red-600">{log.failed_count}</TableCell>
+                          <TableCell>{new Date(log.run_at).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                      {automationLogs.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                            No automation runs yet
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Wati.io Config Dialog */}
