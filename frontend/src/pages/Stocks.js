@@ -569,6 +569,7 @@ const Stocks = () => {
             </Dialog>
           </div>
         )}
+        </div>
       </div>
 
       {!isPELevel && (
