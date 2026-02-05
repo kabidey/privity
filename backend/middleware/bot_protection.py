@@ -391,33 +391,40 @@ class BotProtectionMiddleware(BaseHTTPMiddleware):
         if any(path.startswith(p) for p in self.ALLOWED_PATHS):
             return await call_next(request)
         
-        # Check if IP is already blocked from previous violations
-        if threat_db.is_ip_blocked(client_ip):
-            return self._blocked_response("IP blocked due to repeated violations")
-        
-        # 1. Check for bots/crawlers
-        is_bot, bot_type = BotDetector.is_bot(user_agent)
-        if is_bot:
-            await threat_db.record_blocked_request(
-                ip_address=client_ip,
-                threat_type=bot_type,
-                user_agent=user_agent,
-                path=path,
-                details=f"Bot detected: {bot_type}"
-            )
-            return self._blocked_response("Access denied")
-        
-        # 2. Check for suspicious user agent
-        is_suspicious, reason = BotDetector.is_suspicious_user_agent(user_agent)
-        if is_suspicious:
-            await threat_db.record_blocked_request(
-                ip_address=client_ip,
-                threat_type="suspicious_user_agent",
-                user_agent=user_agent,
-                path=path,
-                details=reason
-            )
-            return self._blocked_response("Access denied")
+        # Skip bot detection for authenticated requests (have valid Authorization header)
+        auth_header = request.headers.get("authorization", "")
+        if auth_header.startswith("Bearer ") and len(auth_header) > 20:
+            # Authenticated request - still check for attacks but skip bot detection
+            # This allows curl/script access for authenticated API calls
+            pass
+        else:
+            # Check if IP is already blocked from previous violations
+            if threat_db.is_ip_blocked(client_ip):
+                return self._blocked_response("IP blocked due to repeated violations")
+            
+            # 1. Check for bots/crawlers (only for unauthenticated requests)
+            is_bot, bot_type = BotDetector.is_bot(user_agent)
+            if is_bot:
+                await threat_db.record_blocked_request(
+                    ip_address=client_ip,
+                    threat_type=bot_type,
+                    user_agent=user_agent,
+                    path=path,
+                    details=f"Bot detected: {bot_type}"
+                )
+                return self._blocked_response("Access denied")
+            
+            # 2. Check for suspicious user agent
+            is_suspicious, reason = BotDetector.is_suspicious_user_agent(user_agent)
+            if is_suspicious:
+                await threat_db.record_blocked_request(
+                    ip_address=client_ip,
+                    threat_type="suspicious_user_agent",
+                    user_agent=user_agent,
+                    path=path,
+                    details=reason
+                )
+                return self._blocked_response("Access denied")
         
         # 3. Check for path traversal
         is_attack, details = AttackDetector.detect_path_traversal(path)
