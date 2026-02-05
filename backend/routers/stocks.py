@@ -113,18 +113,42 @@ async def create_stock(
 
 @router.get("/stocks", response_model=List[Stock])
 async def get_stocks(
-    current_user: dict = Depends(get_current_user),
+    search: Optional[str] = None,
     active_only: bool = True,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(1000, ge=1, le=10000),
+    current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("stocks.view", "view stocks"))
 ):
-    """Get all stocks"""
+    """Get all stocks
+    
+    Args:
+        search: Search query to filter by symbol, name, ISIN, or sector
+        active_only: Filter only active stocks
+        skip: Number of records to skip (for pagination)
+        limit: Maximum number of records to return
+    """
     query = {"is_active": True} if active_only else {}
+    
+    # Server-side search filter
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        search_conditions = [
+            {"symbol": search_regex},
+            {"name": search_regex},
+            {"isin_number": search_regex},
+            {"sector": search_regex}
+        ]
+        if "$and" not in query:
+            query = {"$and": [query, {"$or": search_conditions}]} if query else {"$or": search_conditions}
+        else:
+            query["$and"].append({"$or": search_conditions})
     
     # CRITICAL: Add demo data isolation filter
     # Demo users only see demo data, live users don't see demo data
     query = add_demo_filter(query, current_user)
     
-    stocks = await db.stocks.find(query, {"_id": 0}).to_list(10000)
+    stocks = await db.stocks.find(query, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
     return [Stock(**s) for s in stocks]
 
 
