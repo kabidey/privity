@@ -90,6 +90,9 @@ const WhatsAppNotifications = () => {
   const canBulkSend = checkPerm('notifications.whatsapp_bulk');
   const canViewHistory = checkPerm('notifications.whatsapp_history');
 
+  // Permission checks
+  const canConfig = checkPerm('notifications.whatsapp_config');
+
   useEffect(() => {
     if (!isAuthorized) return;
     fetchData();
@@ -107,6 +110,22 @@ const WhatsAppNotifications = () => {
       setTemplates(templatesRes.data);
       setMessages(messagesRes.data.messages || messagesRes.data);
       setStats(statsRes.data);
+      
+      // Fetch automation data if user has permission
+      if (canConfig) {
+        try {
+          const [automationRes, logsRes, broadcastsRes] = await Promise.all([
+            api.get('/whatsapp/automation/config'),
+            api.get('/whatsapp/automation/logs?limit=20'),
+            api.get('/whatsapp/broadcasts?limit=20')
+          ]);
+          setAutomationConfig(automationRes.data);
+          setAutomationLogs(logsRes.data.logs || []);
+          setBroadcasts(broadcastsRes.data.broadcasts || []);
+        } catch (e) {
+          console.log('Automation data not available');
+        }
+      }
     } catch (error) {
       toast.error('Failed to load WhatsApp configuration');
     } finally {
