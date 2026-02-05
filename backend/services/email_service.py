@@ -1121,6 +1121,84 @@ async def send_payment_request_email(
             )
     
     logging.info(f"Payment request email sent for booking {booking_number} to {client_email}")
+    
+    # Send WhatsApp notification if configured
+    await send_payment_whatsapp_notification(
+        client=client,
+        booking=booking,
+        stock=stock,
+        company_master=company_master
+    )
+
+
+async def send_payment_whatsapp_notification(
+    client: dict,
+    booking: dict,
+    stock: dict,
+    company_master: dict
+):
+    """
+    Send payment request notification via WhatsApp using Wati.io API
+    """
+    from database import db
+    
+    try:
+        # Check if WhatsApp is configured
+        wa_config = await db.system_config.find_one({"config_type": "whatsapp"}, {"_id": 0})
+        if not wa_config or not wa_config.get("enabled"):
+            logging.info("WhatsApp not enabled - skipping payment notification")
+            return
+        
+        # Get client mobile number
+        client_mobile = client.get("mobile") or client.get("phone")
+        if not client_mobile:
+            logging.warning(f"No mobile number for client {client.get('name')} - skipping WhatsApp")
+            return
+        
+        # Format details
+        booking_number = booking.get("booking_number", "N/A")
+        client_name = client.get("name", "Client")
+        stock_symbol = stock.get("symbol", "N/A") if stock else "N/A"
+        quantity = booking.get("quantity", 0)
+        selling_price = booking.get("selling_price", 0)
+        total_amount = quantity * selling_price
+        
+        # Bank details from company master
+        bank_name = company_master.get("company_bank_name", "N/A")
+        account_number = company_master.get("company_bank_account", "N/A")
+        ifsc_code = company_master.get("company_bank_ifsc", "N/A")
+        
+        # Create WhatsApp message
+        message = f"""📢 *Payment Request - Booking #{booking_number}*
+
+Dear {client_name},
+
+Your booking for *{quantity} shares* of *{stock_symbol}* has been approved!
+
+💰 *Payment Details:*
+• Total Amount: ₹{total_amount:,.2f}
+• Price per Share: ₹{selling_price:,.2f}
+
+🏦 *Bank Details:*
+• Bank: {bank_name}
+• A/C No: {account_number}
+• IFSC: {ifsc_code}
+
+Please complete the payment and share the proof via email for faster processing.
+
+Thank you for choosing SMIFS Private Equity! 🙏"""
+        
+        # Send via Wati API
+        from routers.whatsapp import get_wati_service
+        service = await get_wati_service()
+        if service:
+            await service.send_session_message(client_mobile, message)
+            logging.info(f"WhatsApp payment notification sent to {client_mobile} for booking {booking_number}")
+        else:
+            logging.warning("Wati service not available - WhatsApp notification not sent")
+            
+    except Exception as e:
+        logging.error(f"Failed to send WhatsApp payment notification: {e}")
 
 
 async def send_stock_transfer_request_email(
