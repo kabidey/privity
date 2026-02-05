@@ -464,7 +464,17 @@ const Purchases = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {purchases.map((purchase) => (
+                  {purchases
+                    .filter(purchase => {
+                      if (!searchQuery) return true;
+                      const query = searchQuery.toLowerCase();
+                      return (
+                        purchase.vendor_name?.toLowerCase().includes(query) ||
+                        purchase.stock_symbol?.toLowerCase().includes(query) ||
+                        purchase.purchase_number?.toLowerCase().includes(query)
+                      );
+                    })
+                    .map((purchase) => (
                     <TableRow key={purchase.id} className="table-row" data-testid="purchase-row">
                       <TableCell className="font-medium">{purchase.vendor_name}</TableCell>
                       <TableCell className="mono text-sm font-semibold">{purchase.stock_symbol}</TableCell>
