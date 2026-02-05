@@ -37,6 +37,46 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Server-Side Search Refactoring (Feb 06, 2026)
+- Implemented server-side search for all major API endpoints to handle large datasets efficiently
+- **Backend endpoints updated:**
+  - `/api/bookings` - Search by booking number, client name/PAN, stock symbol, creator name
+  - `/api/inventory` - Search by stock symbol, name, ISIN
+  - `/api/users` - Search by name, email, PAN
+  - `/api/stocks` - Search by symbol, name, ISIN, sector
+  - `/api/purchases` - Search by vendor name, stock symbol, purchase number
+- Added `skip` and `limit` pagination parameters to all search endpoints
+- Files: `bookings.py`, `inventory.py`, `users.py`, `stocks.py`, `purchases.py`
+
+#### ✅ WhatsApp Bulk Notification Automation (Feb 06, 2026)
+- Created comprehensive WhatsApp automation service
+- **New Files:**
+  - `/app/backend/services/whatsapp_automation.py` - Core automation logic
+  - `/app/backend/services/wati_service.py` - Wati.io API wrapper
+- **Automation Features:**
+  - Payment reminders for overdue bookings (configurable days)
+  - Document upload reminders for pending clients
+  - DP Ready notifications when shares are ready for transfer
+  - Bulk broadcast to all clients/RPs/BPs
+- **New API Endpoints:**
+  - `GET/PUT /api/whatsapp/automation/config` - Configure automation settings
+  - `POST /api/whatsapp/automation/payment-reminders` - Trigger payment reminders
+  - `POST /api/whatsapp/automation/document-reminders` - Trigger document reminders
+  - `POST /api/whatsapp/automation/dp-ready-notifications` - Trigger DP notifications
+  - `POST /api/whatsapp/automation/bulk-broadcast` - Send bulk messages
+  - `GET /api/whatsapp/automation/logs` - View automation logs
+  - `GET /api/whatsapp/broadcasts` - View broadcast history
+
+#### ✅ RBAC Endpoint Audit (Feb 06, 2026)
+- Added permission checks to previously unprotected endpoints:
+  - Group Chat: `chat.view`, `chat.send` permissions
+  - Files: `files.view` permission for file info endpoint
+- Updated `permission_service.py` with new permission categories:
+  - `chat`: view, send
+  - `files`: view, upload, delete
+  - `notifications`: Added `whatsapp_config` permission
+- Fixed bot protection to allow authenticated curl/script API calls
+
 #### ✅ Search Functionality Across All Data Tables (Feb 06, 2026)
 - Added client-side search bars to all major data tables for easier data navigation
 - **Pages updated:**
