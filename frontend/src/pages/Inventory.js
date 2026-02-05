@@ -90,7 +90,17 @@ const Inventory = () => {
   };
 
   // Sorting function
-  const sortedInventory = [...inventory].sort((a, b) => {
+  const sortedInventory = [...inventory]
+    .filter(item => {
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        item.stock_symbol?.toLowerCase().includes(query) ||
+        item.stock_name?.toLowerCase().includes(query) ||
+        item.isin_number?.toLowerCase().includes(query)
+      );
+    })
+    .sort((a, b) => {
     let aVal, bVal;
     
     switch (sortBy) {
