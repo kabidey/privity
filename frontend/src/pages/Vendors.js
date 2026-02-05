@@ -446,21 +446,32 @@ const Vendors = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 page-enter" data-testid="vendors-page">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-4xl font-bold mb-2">Vendors</h1>
           <p className="text-muted-foreground text-base">Manage your stock vendors and suppliers</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => {
-          setDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button className="rounded-sm" data-testid="add-vendor-button">
-              <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
-              Add Vendor
-            </Button>
-          </DialogTrigger>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search vendors..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+              data-testid="vendor-search-input"
+            />
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild>
+              <Button className="rounded-sm" data-testid="add-vendor-button">
+                <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                Add Vendor
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" aria-describedby="vendor-dialog-description">
             <DialogHeader>
               <DialogTitle>{editingVendor ? 'Edit Vendor' : 'Add New Vendor'}</DialogTitle>
