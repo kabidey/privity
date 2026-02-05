@@ -247,7 +247,8 @@ async def force_download_file(file_id: str):
 @router.get("/{file_id}/info")
 async def get_file_info(
     file_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("files.view", "view file info"))
 ):
     """
     Get file metadata without downloading content
