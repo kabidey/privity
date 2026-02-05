@@ -72,6 +72,7 @@ AVAILABLE_PERMISSIONS = {
             {"key": "clients.upload_docs", "name": "Upload Documents", "description": "Upload client documents"},
             {"key": "clients.view_docs", "name": "View Documents", "description": "View client documents"},
             {"key": "clients.suspend", "name": "Suspend Clients", "description": "Suspend/unsuspend clients"},
+            {"key": "clients.skip_cancelled_cheque", "name": "Skip Cancelled Cheque", "description": "Create/approve clients without cancelled cheque document"},
         ]
     },
     "stocks": {
