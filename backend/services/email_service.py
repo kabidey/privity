@@ -1482,6 +1482,161 @@ async def send_stock_transfer_request_email(
     logging.info(f"Stock transfer request email sent for purchase {purchase_number} to {vendor_email}")
 
 
+async def send_dp_ready_email(
+    client: dict,
+    booking: dict,
+    stock: dict,
+    company_master: dict,
+    cc_email: Optional[str] = None
+):
+    """
+    Send DP Ready notification email to client when full payment is received.
+    Informs them that their shares are ready for transfer.
+    
+    Args:
+        client: Client document
+        booking: Booking document
+        stock: Stock document
+        company_master: Company master document
+        cc_email: Optional CC email
+    """
+    client_name = client.get("name", "Valued Client")
+    client_email = client.get("email")
+    
+    if not client_email:
+        logging.warning(f"Cannot send DP Ready email - no email for client {client.get('id')}")
+        return
+    
+    booking_number = booking.get("booking_number", "N/A")
+    stock_symbol = stock.get("symbol", "N/A") if stock else "N/A"
+    stock_name = stock.get("name", "N/A") if stock else "N/A"
+    quantity = booking.get("quantity", 0)
+    
+    # Get company info for email template
+    company_info = await get_company_info()
+    
+    # Get base URL for links
+    base_url = await get_base_url()
+    
+    subject = f"✅ Payment Received - Shares Ready for Transfer | Booking #{booking_number}"
+    
+    body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Payment Confirmed!</h1>
+            <p style="color: #d1fae5; margin: 10px 0 0 0;">Your shares are ready for transfer</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
+            <p style="color: #374151;">Dear <strong>{client_name}</strong>,</p>
+            
+            <p style="color: #374151; line-height: 1.6;">
+                We are pleased to confirm that we have received your complete payment for booking 
+                <strong>#{booking_number}</strong>. Your shares are now ready for transfer to your demat account.
+            </p>
+            
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #059669; margin: 0 0 15px 0;">📋 Transfer Details</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280;">Stock:</td>
+                        <td style="padding: 8px 0; color: #111827; font-weight: 500;">{stock_symbol} - {stock_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280;">Quantity:</td>
+                        <td style="padding: 8px 0; color: #111827; font-weight: 500;">{quantity:,} shares</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; color: #6b7280;">Status:</td>
+                        <td style="padding: 8px 0; color: #059669; font-weight: 600;">✅ Ready for Transfer</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+                <p style="color: #92400e; margin: 0; font-size: 14px;">
+                    <strong>What's Next?</strong><br>
+                    Our team will initiate the DP transfer shortly. The shares will reflect in your demat account 
+                    within T+2 working days after transfer. You will receive a confirmation email once the transfer is complete.
+                </p>
+            </div>
+            
+            <p style="color: #374151; line-height: 1.6;">
+                Thank you for your trust in SMIFS Private Equity. If you have any questions, 
+                please don't hesitate to contact us.
+            </p>
+        </div>
+        
+        <div style="background: #f9fafb; padding: 20px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none; text-align: center;">
+            <p style="color: #6b7280; margin: 0; font-size: 12px;">
+                {company_info.get('name', 'SMIFS Private Equity')}<br>
+                {company_info.get('address', '')}
+            </p>
+        </div>
+    </div>
+    """
+    
+    # Wrap with company logo header
+    body = wrap_email_with_logo(body, company_info)
+    
+    # Send email
+    await send_email(
+        to_email=client_email,
+        subject=subject,
+        body=body,
+        cc_emails=[cc_email] if cc_email else None
+    )
+    
+    # Send WhatsApp notification
+    try:
+        await send_dp_ready_whatsapp(client, booking, stock)
+    except Exception as e:
+        logging.error(f"Failed to send DP Ready WhatsApp: {e}")
+    
+    logging.info(f"DP Ready email sent for booking {booking_number} to {client_email}")
+
+
+async def send_dp_ready_whatsapp(client: dict, booking: dict, stock: dict):
+    """Send DP Ready notification via WhatsApp"""
+    from database import db
+    
+    try:
+        wa_config = await db.system_config.find_one({"config_type": "whatsapp"}, {"_id": 0})
+        if not wa_config or not wa_config.get("enabled"):
+            return
+        
+        client_mobile = client.get("mobile") or client.get("phone")
+        if not client_mobile:
+            return
+        
+        booking_number = booking.get("booking_number", "N/A")
+        stock_symbol = stock.get("symbol", "N/A") if stock else "N/A"
+        quantity = booking.get("quantity", 0)
+        
+        message = f"""✅ *Payment Confirmed - Booking #{booking_number}*
+
+Dear {client.get('name', 'Client')},
+
+Your payment has been received successfully!
+
+📋 *Transfer Details:*
+• Stock: {stock_symbol}
+• Quantity: {quantity:,} shares
+• Status: Ready for Transfer
+
+Our team will initiate the DP transfer shortly. You will receive a confirmation once complete.
+
+Thank you for choosing SMIFS Private Equity! 🙏"""
+        
+        from routers.whatsapp import get_wati_service
+        service = await get_wati_service()
+        if service:
+            await service.send_session_message(client_mobile, message)
+            logging.info(f"DP Ready WhatsApp sent to {client_mobile}")
+    except Exception as e:
+        logging.error(f"DP Ready WhatsApp failed: {e}")
+
+
 async def send_stock_transferred_email(
     booking_id: str,
     client: dict,
