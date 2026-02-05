@@ -173,13 +173,6 @@ class WatiService:
         except httpx.HTTPError as e:
             logger.error(f"Wati v2 template message error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Failed to send template: {str(e)}")
-                    url, json=payload, headers=self.headers, timeout=30.0
-                )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            logger.error(f"Wati template message error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to send template: {str(e)}")
     
     async def send_bulk_template(
         self,
