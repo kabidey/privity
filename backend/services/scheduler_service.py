@@ -120,16 +120,26 @@ def init_scheduler():
         misfire_grace_time=3600  # 1 hour grace period if missed
     )
     
+    # Schedule WhatsApp automations at 10 AM IST daily
+    scheduler.add_job(
+        run_whatsapp_automations,
+        trigger=CronTrigger(hour=10, minute=0, timezone=IST),
+        id='whatsapp_automations',
+        name='WhatsApp Automation Tasks',
+        replace_existing=True,
+        misfire_grace_time=3600  # 1 hour grace period if missed
+    )
+    
     # Start the scheduler
     scheduler.start()
     
     print(f"[{datetime.now(IST)}] Scheduler started with IST timezone")
     print(f"Day-end reports scheduled for 6:00 PM IST daily")
+    print(f"WhatsApp automations scheduled for 10:00 AM IST daily")
     
-    # Print next run time
-    job = scheduler.get_job('day_end_reports')
-    if job:
-        print(f"Next run: {job.next_run_time}")
+    # Print next run times
+    for job in scheduler.get_jobs():
+        print(f"Job '{job.name}' next run: {job.next_run_time}")
     
     return scheduler
 
