@@ -759,6 +759,7 @@ async def upload_bank_proof(
     _: None = Depends(require_permission("clients.upload_docs", "upload bank proof"))
 ):
     """Upload bank proof document for proprietor clients with name mismatch (PE Level only). Stored in GridFS."""
+    user_role = current_user.get("role", 6)
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
