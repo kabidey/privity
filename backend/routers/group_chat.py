@@ -84,11 +84,15 @@ class ChatMessage(BaseModel):
     content: str
 
 
+from services.permission_service import require_permission
+
+
 @router.get("/messages")
 async def get_chat_messages(
     limit: int = 50,
     before_id: str = None,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("chat.view", "view group chat messages"))
 ):
     """Get recent chat messages"""
     query = {}
