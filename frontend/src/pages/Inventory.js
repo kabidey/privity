@@ -9,11 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import { Package, TrendingUp, TrendingDown, AlertTriangle, Trash2, Edit2, Check, X, DollarSign, RefreshCw, ArrowUpDown, LineChart, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, AlertTriangle, Trash2, Edit2, Check, X, DollarSign, RefreshCw, ArrowUpDown, LineChart, ArrowUp, ArrowDown, Minus, Search } from 'lucide-react';
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [recalculating, setRecalculating] = useState(false);
   const [editingLP, setEditingLP] = useState(null); // stock_id being edited
   const [newLP, setNewLP] = useState('');
