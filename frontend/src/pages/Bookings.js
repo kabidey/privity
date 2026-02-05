@@ -1281,18 +1281,32 @@ const Bookings = () => {
 
       <Card className="border shadow-sm">
         <CardHeader>
-          <CardTitle>
-            {activeTab === 'pending' ? 'Pending Approval' : 
-             (activeTab === 'loss' ? 'Loss Bookings - Pending Approval' : 
-             (activeTab === 'bp-overrides' ? 'BP Revenue Override Approvals' : 'All Bookings'))}
-          </CardTitle>
-          <CardDescription>
-            {activeTab === 'loss' 
-              ? 'These bookings have selling price lower than landing price - requires PE Desk approval'
-              : activeTab === 'bp-overrides'
-              ? 'Business Partner bookings with revenue share override requests pending approval'
-              : (canRecordPayments && 'Record payments for approved bookings to enable DP transfer')}
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle>
+                {activeTab === 'pending' ? 'Pending Approval' : 
+                 (activeTab === 'loss' ? 'Loss Bookings - Pending Approval' : 
+                 (activeTab === 'bp-overrides' ? 'BP Revenue Override Approvals' : 'All Bookings'))}
+              </CardTitle>
+              <CardDescription>
+                {activeTab === 'loss' 
+                  ? 'These bookings have selling price lower than landing price - requires PE Desk approval'
+                  : activeTab === 'bp-overrides'
+                  ? 'Business Partner bookings with revenue share override requests pending approval'
+                  : (canRecordPayments && 'Record payments for approved bookings to enable DP transfer')}
+              </CardDescription>
+            </div>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search bookings..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+                data-testid="booking-search-input"
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? <div>Loading...</div> : displayedBookings.length === 0 ? (
