@@ -49,7 +49,8 @@ const CompanyMaster = () => {
     company_bank_account: '',
     company_bank_ifsc: '',
     company_bank_branch: '',
-    user_agreement_text: ''
+    user_agreement_text: '',
+    custom_domain: ''
   });
   const [documents, setDocuments] = useState({
     cml_cdsl_url: null,
