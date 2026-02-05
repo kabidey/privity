@@ -75,11 +75,19 @@ async def calculate_weighted_avg_for_stock(stock_id: str) -> dict:
 
 @router.get("")
 async def get_inventory(
+    search: Optional[str] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(1000, ge=1, le=10000),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("inventory.view", "view inventory"))
 ):
     """
     Get all inventory items with dynamically calculated weighted average pricing.
+    
+    Args:
+        search: Search query to filter by stock symbol, name, or ISIN
+        skip: Number of records to skip (for pagination)
+        limit: Maximum number of records to return
     
     - PE Desk/Manager: See both WAP (Weighted Avg Price) and LP (Landing Price)
     - Other users: Only see LP (Landing Price) - WAP is hidden
@@ -91,7 +99,27 @@ async def get_inventory(
     query = {}
     query = add_demo_filter(query, current_user)
     
-    inventory = await db.inventory.find(query, {"_id": 0}).to_list(10000)
+    # If search is provided, first find matching stock IDs
+    stock_filter = {}
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        stock_filter = {"$or": [
+            {"symbol": search_regex},
+            {"name": search_regex},
+            {"isin": search_regex}
+        ]}
+    
+    # Get matching stock IDs
+    if stock_filter:
+        matching_stocks = await db.stocks.find(stock_filter, {"_id": 0, "id": 1}).to_list(10000)
+        matching_stock_ids = [s["id"] for s in matching_stocks]
+        if matching_stock_ids:
+            query["stock_id"] = {"$in": matching_stock_ids}
+        else:
+            # No matching stocks, return empty
+            return []
+    
+    inventory = await db.inventory.find(query, {"_id": 0}).skip(skip).limit(limit).to_list(limit)
     
     # Enrich with stock details
     stock_ids = list(set(item.get("stock_id") for item in inventory if item.get("stock_id")))
