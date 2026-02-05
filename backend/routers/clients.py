@@ -413,6 +413,9 @@ async def approve_client(
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
+    # Check if user has permission to skip cancelled cheque
+    can_skip_cancelled_cheque = await has_permission(current_user, "clients.skip_cancelled_cheque")
+    
     # MANDATORY DOCUMENT CHECK: Require all 3 documents before approval
     if approve:
         documents = client.get("documents", [])
@@ -423,7 +426,8 @@ async def approve_client(
             missing_docs.append("PAN Card")
         if "cml_copy" not in doc_types:
             missing_docs.append("CML Copy")
-        if "cancelled_cheque" not in doc_types:
+        # Only require cancelled cheque if user doesn't have skip permission
+        if "cancelled_cheque" not in doc_types and not can_skip_cancelled_cheque:
             missing_docs.append("Cancelled Cheque")
         
         if missing_docs:
