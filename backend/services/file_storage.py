@@ -125,6 +125,38 @@ async def get_file_metadata(file_id: str) -> Optional[dict]:
     except Exception:
         return None
 
+
+async def get_file_from_gridfs(file_id: str) -> Optional[dict]:
+    """
+    Get file content and metadata from GridFS
+    
+    Args:
+        file_id: The GridFS file_id string
+    
+    Returns:
+        Dict with 'content' (bytes), 'filename', 'content_type', or None if not found
+    """
+    try:
+        fs = AsyncIOMotorGridFSBucket(db)
+        file_doc = await db.fs.files.find_one({"_id": ObjectId(file_id)})
+        if not file_doc:
+            return None
+        
+        # Download file content
+        grid_out = await fs.open_download_stream(ObjectId(file_id))
+        content = await grid_out.read()
+        
+        return {
+            "content": content,
+            "filename": file_doc.get("filename", "document"),
+            "content_type": file_doc.get("metadata", {}).get("content_type", "application/octet-stream"),
+            "length": file_doc.get("length")
+        }
+    except Exception as e:
+        print(f"Error getting file from GridFS {file_id}: {e}")
+        return None
+
+
 async def list_files_by_category(category: str, entity_id: str = None) -> List[dict]:
     """
     List all files in a category
