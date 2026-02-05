@@ -62,13 +62,21 @@ async def get_company_info():
     try:
         company = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
         if company:
+            # Get base URL for constructing full logo URL
+            base_url = await get_base_url()
+            logo_url = company.get("logo_url", "")
+            
+            # Convert relative logo URL to absolute URL for email clients
+            if logo_url and logo_url.startswith("/"):
+                logo_url = f"{base_url}{logo_url}"
+            
             return {
                 "name": company.get("company_name", "SMIFS Private Equity"),
                 "address": company.get("company_address", ""),
                 "cin": company.get("company_cin", ""),
                 "gst": company.get("company_gst", ""),
                 "pan": company.get("company_pan", ""),
-                "logo_url": company.get("logo_url", ""),
+                "logo_url": logo_url,
                 "bank_name": company.get("company_bank_name", ""),
                 "bank_account": company.get("company_bank_account", ""),
                 "bank_ifsc": company.get("company_bank_ifsc", ""),
