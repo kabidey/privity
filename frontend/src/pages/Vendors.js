@@ -911,7 +911,19 @@ const Vendors = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {vendors.map((vendor) => (
+                {vendors
+                  .filter(vendor => {
+                    if (!searchQuery) return true;
+                    const query = searchQuery.toLowerCase();
+                    return (
+                      vendor.name?.toLowerCase().includes(query) ||
+                      vendor.email?.toLowerCase().includes(query) ||
+                      vendor.pan_number?.toLowerCase().includes(query) ||
+                      vendor.otc_ucc?.toLowerCase().includes(query) ||
+                      vendor.phone?.toLowerCase().includes(query)
+                    );
+                  })
+                  .map((vendor) => (
                   <TableRow key={vendor.id} data-testid="vendor-row">
                     <TableCell className="font-mono text-sm font-bold text-primary">{vendor.otc_ucc || 'N/A'}</TableCell>
                     <TableCell className="font-medium">
