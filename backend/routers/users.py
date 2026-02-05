@@ -2,7 +2,7 @@
 User management routes
 """
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
 from datetime import datetime, timezone
 import uuid
