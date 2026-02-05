@@ -159,7 +159,10 @@ async def send_chat_message(
 
 
 @router.get("/online-users")
-async def get_online_users(current_user: dict = Depends(get_current_user)):
+async def get_online_users(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("chat.view", "view online users"))
+):
     """Get list of currently online users"""
     online_users = [
         {"id": uid, "name": info["name"], "role_name": info["role_name"]}
