@@ -21,6 +21,38 @@ from config import (
 )
 
 
+async def get_base_url() -> str:
+    """
+    Get the base URL for file links in emails.
+    Priority:
+    1. Custom domain from system_config
+    2. FRONTEND_URL environment variable
+    3. Default fallback
+    """
+    from database import db
+    
+    # First check if there's a custom domain in system config
+    try:
+        config = await db.system_config.find_one(
+            {"config_type": "domain"}, 
+            {"_id": 0, "custom_domain": 1}
+        )
+        if config and config.get("custom_domain"):
+            custom_domain = config["custom_domain"].rstrip('/')
+            logging.info(f"Using custom domain from config: {custom_domain}")
+            return custom_domain
+    except Exception as e:
+        logging.warning(f"Error fetching custom domain config: {e}")
+    
+    # Fall back to FRONTEND_URL environment variable
+    frontend_url = os.environ.get('FRONTEND_URL', '')
+    if frontend_url:
+        return frontend_url.rstrip('/')
+    
+    # Last resort default (should never happen in production)
+    return 'https://privity.smifs.com'
+
+
 async def get_company_info():
     """Get company master info for email branding"""
     from database import db
