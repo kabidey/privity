@@ -1830,6 +1830,25 @@ async def add_payment_tranche(
     
     await db.bookings.update_one({"id": booking_id}, update_data)
     
+    # Send DP Ready email to client when payment is complete
+    if is_complete:
+        try:
+            from services.email_service import send_dp_ready_email
+            client = await db.clients.find_one({"id": booking.get("client_id")}, {"_id": 0})
+            stock = await db.stocks.find_one({"id": booking.get("stock_id")}, {"_id": 0})
+            company_master = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
+            
+            if client and stock:
+                await send_dp_ready_email(
+                    client=client,
+                    booking=booking,
+                    stock=stock,
+                    company_master=company_master or {},
+                    cc_email=current_user.get("email")
+                )
+        except Exception as e:
+            logging.error(f"Failed to send DP Ready email: {e}")
+    
     return {
         "message": f"Payment of ₹{amount:,.2f} recorded successfully",
         "tranche_number": tranche_number,
