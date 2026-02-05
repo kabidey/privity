@@ -676,9 +676,22 @@ const Bookings = () => {
     }).format(value || 0);
   };
 
-  const displayedBookings = activeTab === 'pending' ? pendingBookings : 
-    (activeTab === 'loss' ? pendingLossBookings : 
-    (activeTab === 'bp-overrides' ? pendingBpOverrides : bookings));
+  // Filter bookings based on search query
+  const filterBookings = (bookingsList) => {
+    if (!searchQuery) return bookingsList;
+    const query = searchQuery.toLowerCase();
+    return bookingsList.filter(booking => 
+      booking.booking_number?.toLowerCase().includes(query) ||
+      booking.client_name?.toLowerCase().includes(query) ||
+      booking.client_pan?.toLowerCase().includes(query) ||
+      booking.stock_symbol?.toLowerCase().includes(query) ||
+      booking.created_by_name?.toLowerCase().includes(query)
+    );
+  };
+
+  const displayedBookings = activeTab === 'pending' ? filterBookings(pendingBookings) : 
+    (activeTab === 'loss' ? filterBookings(pendingLossBookings) : 
+    (activeTab === 'bp-overrides' ? filterBookings(pendingBpOverrides) : filterBookings(bookings)));
 
   // Calculate payment progress
   const getPaymentProgress = (booking) => {
