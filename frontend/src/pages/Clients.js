@@ -1484,9 +1484,14 @@ const Clients = () => {
                     <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                       <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">All documents are mandatory</p>
+                        <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                          {canSkipCancelledCheque ? 'Required documents' : 'All documents are mandatory'}
+                        </p>
                         <p className="text-xs text-amber-700 dark:text-amber-300">
-                          Please upload PAN Card, CML Copy, and Cancelled Cheque to create a client.
+                          {canSkipCancelledCheque 
+                            ? 'Please upload PAN Card and CML Copy to create a client. Cancelled Cheque is optional.'
+                            : 'Please upload PAN Card, CML Copy, and Cancelled Cheque to create a client.'
+                          }
                         </p>
                       </div>
                     </div>
