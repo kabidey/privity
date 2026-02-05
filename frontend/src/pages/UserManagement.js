@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, ChevronRight, Building, LogIn, Eye } from 'lucide-react';
+import { Plus, Trash2, Key, UserX, UserCheck, Users, Shield, Link2, Unlink, ChevronRight, Building, LogIn, Eye, Search } from 'lucide-react';
 
 import { ROLE_NAMES } from '../hooks/useCurrentUser';
 
