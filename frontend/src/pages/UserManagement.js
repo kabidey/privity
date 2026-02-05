@@ -350,8 +350,22 @@ const UserManagement = () => {
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle>System Users</CardTitle>
-              <CardDescription>Total: {users.length} users</CardDescription>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <CardTitle>System Users</CardTitle>
+                  <CardDescription>Total: {users.length} users</CardDescription>
+                </div>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                    data-testid="user-search-input"
+                  />
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -372,7 +386,18 @@ const UserManagement = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map((user) => (
+                      {users
+                        .filter(user => {
+                          if (!searchQuery) return true;
+                          const query = searchQuery.toLowerCase();
+                          return (
+                            user.name?.toLowerCase().includes(query) ||
+                            user.email?.toLowerCase().includes(query) ||
+                            user.pan_number?.toLowerCase().includes(query) ||
+                            (roles[user.role]?.name || '').toLowerCase().includes(query)
+                          );
+                        })
+                        .map((user) => (
                         <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
                           <TableCell className="font-medium">{user.name}</TableCell>
                           <TableCell className="text-sm">{user.email}</TableCell>
