@@ -12,12 +12,12 @@ from database import db
 from config import ROLES
 from models import User
 from utils.auth import get_current_user
-from services.permission_service import check_permission, require_permission, has_permission
 from services.permission_service import (
-    has_permission,
+    check_permission,
     check_permission as check_dynamic_permission,
-    is_pe_level_dynamic,
-    require_permission
+    has_permission,
+    require_permission,
+    is_pe_level_dynamic
 )
 
 router = APIRouter(prefix="/users", tags=["Users"])
