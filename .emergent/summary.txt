@@ -1,135 +1,142 @@
-<analysis>**original_problem_statement**: The user wants to add a Demo Mode to the application. This mode is intended to be a learning tool for potential users, showcasing the platform's capabilities.
+<analysis>**original_problem_statement:**
+The user initiated the session with a list of requests:
+1.  Replace the existing WhatsApp QR code system with an integration for the Wati.io API.
+2.  Unmask the bank account numbers for Referral Partners (RPs) so they are fully visible.
+3.  Fix the payment proof functionality, ensuring proofs can be uploaded and viewed for both vendor and client payments.
 
-**PRODUCT REQUIREMENTS**:
-- A prominent Public Demo button on the login page with the slogan PRIVITY Demo - Run it to Learn it.
-- The demo should feature guided tours, video showcases for key workflows, and operate on fresh, demo-specific data.
-- The demo environment must be completely isolated from live production data and operations.
-- A Demo Progress Tracker should be implemented to gamify the experience, showing users which features they've explored and rewarding them with badges.
-- Upon exiting, all demo-related data should be cleaned up.
-- **Critical Bug**: It was discovered that the demo mode is incorrectly accessing and displaying live production data. This must be fixed immediately.
+Throughout the session, the user added several more requests and bug reports:
+-   **Client Document Icon:** After a client is created via OCR, the document attachment icon is not visible in the client list.
+-   **Permission Override:** Create a new permission to allow specific roles to create clients without requiring a cancelled cheque.
+-   **Wati.io Connection:** The provided Wati.io v3 credentials were not working.
+-   **RBAC Bug:** A critical bug where permissions assigned to roles were not being correctly applied to users, resulting in Access Denied errors.
+-   **Email Link URL:** Emails sent from the application were using an internal preview URL instead of the correct public-facing deployment URL.
+-   **Confirmation Notes:** Sent confirmation notes were not appearing in the sent list, and the ISIN was missing from the generated note.
+-   **Payment Intimation:** Client documents (CML, PAN, Cancelled Cheque) were not being attached to payment intimation emails, and an alert should also be sent via WhatsApp.
+-   **DP Ready Email:** An email notification was not being sent to the client when their order status changed to DP Ready.
+-   **Email Logo:** The company logo was not being displayed correctly in email templates.
+-   **Search Functionality:** Add a search bar to all major data tables (Users, Inventory, Bookings, etc.) to improve usability as data grows.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A Demo Mode feature has been substantially implemented. It includes a Try PRIVITY Demo button on the login page which, when clicked, logs in a temporary Demo user. The demo environment features a custom tour component, a progress tracker with badges, a floating progress widget, and video animations for workflows. The backend has dedicated API endpoints () for initializing the demo session with seeded data, verifying data isolation, and cleaning up data upon exit.
-
-Previously, a significant effort was made to harden the application's security by auditing and applying granular Role-Based Access Control (RBAC) to numerous backend endpoints.
+The application is a FastAPI backend with a React frontend. The agent has successfully addressed a majority of the user's requests. The most critical fix was a complete overhaul of the Role-Based Access Control (RBAC) system, which was fundamentally broken due to legacy code. The agent unified permission checks to a single, reliable service. Additionally, the agent integrated the Wati.io API, implemented a custom domain feature for emails, fixed numerous bugs related to email attachments and content, and resolved UI visibility issues. The application is now in a much more stable state.
 
 **Last working item**:
--   **Last item agent was working**: Fixing a critical security flaw where the Demo Mode was accessing and displaying live production data. The agent began implementing a data isolation filter () and started applying it to the  and  API routers to segregate demo data from live data.
--   **Status**: IN PROGRESS
--   **Agent Testing Done**: N
--   **Which testing method agent to use?**: backend testing agent. The agent must verify that API endpoints (e.g., , , ) return ONLY data marked with  when authenticated as a demo user. Conversely, it must also test that regular users cannot see any demo data.
--   **User Testing Done**: N
+*   **Last item agent was working:** Implementing a new feature request to add search functionality across all major data tables in the application. The agent was systematically editing the frontend React components for each page (, , , , ) to add a search input field and the necessary client-side filtering logic.
+*   **Status:** IN PROGRESS
+*   **Agent Testing Done:** N
+*   **Which testing method agent to use?** Frontend testing agent. The agent should be instructed to test each modified page (, , , , , and ) to confirm the search bar is present and correctly filters the displayed data.
+*   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1 (P0)**: Demo Mode is leaking live production data.
-
-    **Issues Detail**:
-    -   **Issue 1**: Demo Mode Data Leak
-        -   **Attempted fixes**: A  function was created in . The agent started applying this filter as a dependency to the  endpoints in the  and  routers. The logic to mark newly created client data with an  flag was also added.
-        -   **Next debug checklist**:
-            1.  Continue applying the  to **all** remaining data-retrieval endpoints across all relevant routers (, , , , , etc.).
-            2.  Ensure that endpoints for creating or modifying data (POST, PUT, PATCH) correctly add the  flag if the request is from a demo user.
-            3.  Implement the inverse logic to ensure regular users do not see data where .
-        -   **Why fix this issue and what will be achieved with the fix?**: This is a critical security and data privacy vulnerability. Fixing it will ensure complete separation between the demo environment and live production data, protecting sensitive user information.
-        -   **Status**: IN PROGRESS
-        -   **Is recurring issue?**: N
-        -   **Should Test frontend/backend/both after fix?**: both
-        -   **Blocked on other issue**: None
+There are no pending bugs reported by the user. The only active item is the feature implementation that is currently in progress.
 
 **In progress Task List**:
--   **Task 1**: Complete Backend Data Isolation
-    -   **Where to resume**: The agent needs to audit all routers in  and apply the  from  to every endpoint that fetches lists or individual items of data. The agent just finished  and  and should proceed to other routers like , , etc.
-    -   **What will be achieved with this?**: This will plug the critical data leak and ensure the demo mode is securely isolated from production data.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on something**: No.
+*   **Task 1: Complete the Implementation of Search Functionality**
+    *   **Priority:** P0
+    *   **Where to resume:** The agent has already added client-side search code to , , , , and . The next step is to add a search input UI to the **** page, which currently uses URL search parameters but lacks a visible input field. After that, the agent should review other key pages like  to ensure comprehensive search coverage.
+    *   **What will be achieved with this?** This will fulfill the user's request for easier data navigation on pages that display large lists of records, significantly improving user experience.
+    *   **Status:** IN PROGRESS
+    *   **Should Test frontend/backend/both after fix?** Frontend
+    *   **Blocked on something:** No.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks**:
-    -   **P0: Test Data Isolation**: After applying the filter everywhere, perform rigorous testing. Use the backend testing agent to create two test suites: one for a demo user (asserting only demo data is returned) and one for a regular user (asserting no demo data is returned).
--   **Future Tasks**:
-    -   None. All user requirements for the demo mode will be met once the data isolation is fixed and verified.
+*   **Future Task:** Consider refactoring the client-side search to server-side search for pages expected to handle very large datasets (e.g., Bookings, Clients). This would involve updating the backend APIs to accept a search query parameter to improve performance.
 
 **Completed work in this session**
--   **RBAC Security Hardening**: Audited and applied granular permission checks () across a wide range of backend endpoints, including , , , , , , and partner management routes.
--   **Role Management Page Verified**: Confirmed the Role Management page at  is fully functional. The initial bug report was due to using an incorrect URL. The UI for visual permissions was updated to show new permission categories.
--   **Demo Mode Scaffolding**:
-    -   Implemented the core backend logic for demo session creation, data seeding, and data cleanup ().
-    -   Added the Try PRIVITY Demo button and its handler to the login page ().
-    -   Developed a suite of frontend components for the demo experience, including a top bar, progress tracker, floating widget, and video showcases ().
-    -   Created a  () to manage the demo state globally.
-    -   Modified the application to bypass the user agreement modal for demo users.
+- **RBAC System Overhaul (CRITICAL):** Fixed the root cause of permissions not being applied correctly by centralizing all permission checks to  and replacing outdated, hardcoded permission strings in , , and .
+- **Custom Domain for Email Links:** Implemented a feature in Company Master settings for users to specify a custom domain, which is now used to generate correct, absolute URLs in all outgoing emails (, ).
+- **Confirmation Notes and Payment Intimation Fixes:**
+    - Corrected logic to update confirmation note status to sent so they appear in the correct list ().
+    - Fixed the PDF generation to show the correct ISIN field ().
+    - Enhanced payment intimation emails to attach client documents (CML, PAN, Cheque) from GridFS ().
+    - Added a WhatsApp notification for payment intimations.
+- **DP Ready Email Notification:** Created and triggered a new email to be sent to clients when their booking status becomes DP Ready (, ).
+- **Wati.io v3 API Integration:** Fixed the WhatsApp connection by updating the  to use the correct v3 API endpoints ().
+- **Cancelled Cheque Override Permission:** Implemented a new permission () that allows designated roles to bypass the cancelled cheque requirement during client creation and approval.
+- **UI and Initial Bug Fixes:**
+    - Replaced the old WhatsApp QR system with a full Wati.io API integration.
+    - Unmasked bank account details for Referral Partners for authorized users.
+    - Created the missing  endpoint to fix file uploads.
+    - Resolved an issue preventing the client document icon from appearing after an OCR upload due to a caching problem.
+    - Fixed an initial backend crash related to an unexpected  argument in an email function.
 
 **Earlier issues found/mentioned but not fixed**
--   None. The current critical issue is being actively addressed.
+- All issues raised by the user during this session have been addressed or are currently in progress.
 
 **Known issue recurrence from previous fork**
--   None. The Role Management page not loading issue from the previous handoff was investigated and determined to be a non-issue (user error).
+- The initial handoff mentioned an  for . The agent investigated and found this was already resolved, correctly identifying the real issue from the logs.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend**: FastAPI with MongoDB (motor).
--   **Frontend**: React 19, Vite, Tailwind CSS.
--   **Authorization**: Custom Role-Based Access Control (RBAC) via FastAPI dependencies.
--   **Demo Mode Isolation**: The strategy is to add an  flag to all relevant database documents. API calls are filtered based on this flag and the user's demo status.
+- **Backend:** FastAPI, MongoDB (with  ODM), GridFS for file storage.
+- **Frontend:** React, Material-UI (MUI).
+- **Authentication:** JWT-based stateless authentication.
+- **RBAC:** A database-driven Role-Based Access Control system. A major fix was implemented to remove hardcoded permissions from the config and unify all checks through the .
 
 **key DB schema**
--   **clients**: 
--   **bookings**: 
--   **stocks**: 
--   *(This pattern must be enforced on all data collections accessible in the demo)*
+- **roles**:  - Stores the list of granular permission strings for a given role.
+- **company_master**:  - Global configuration, including the user-defined domain for emails.
+- **clients**:  - Stores client details and an array of their documents.
+- **confirmation_notes**:  - Stores details of generated confirmation notes, including their sent status.
 
 **changes in tech stack**
--   The  library was removed due to React 19 incompatibility and replaced with a custom-built tour component.
+- None.
 
 **All files of reference**
--   : Contains the crucial  function that needs to be implemented across the backend.
--   : Handles all backend logic for the demo mode lifecycle.
--   , , , etc.: These files need to be modified to use the isolation filter.
--   : Manages the frontend state for the demo.
--   : Contains the entry point for the demo mode.
--   : This new directory holds all the UI components specific to the demo feature.
+- : The heart of the now-fixed RBAC system. All new permission checks should use this.
+- : Significantly updated to handle dynamic URLs via , attach files from GridFS, and send new email types.
+-  & : Examples of routers where old permission checks were replaced with the new centralized service.
+- : The frontend component where the user can configure the custom domain for email links.
+- , , , , : Frontend files where client-side search was recently added.
+
+**Areas that need refactoring**:
+- The newly implemented search functionality is client-side. If performance becomes an issue on pages with thousands of entries, this should be refactored to a server-side search model where the API handles the filtering.
+
+**key api endpoints**
+- : Fetches the current user's details and their calculated permissions.
+- : Updates a role and its associated permissions in the database.
+- : Approves a client; now checks for the  permission.
+- : A new endpoint created to handle the upload of payment proof files.
+- : Endpoint to get and set company-wide settings, including the new .
 
 **Critical Info for New Agent**
--   Your immediate and highest priority task is to fix the critical security vulnerability where the demo mode leaks live data.
--   The strategy is already defined: use the  from . You must systematically apply this filter to **every single API endpoint that retrieves data**.
--   You also must ensure that any endpoint that **creates or updates** data correctly applies the  flag if the action is performed by a demo user.
--   Do not waste time re-investigating the Role Management page; it has been thoroughly verified and is working correctly at the  URL.
+- **RBAC is now stable.** The single most critical task of the last session was fixing the RBAC system. The root cause was a legacy  function in  that used hardcoded config values. This has been deprecated. **All permission checks must now use the  function from **. If you see any Access Denied errors, first verify the imports and the permission string format ().
+- **Email URLs are dynamic.** Do not hardcode URLs in email templates. The system now uses a  helper in  which pulls the domain from the Company Master settings.
+- Your immediate task is to **finish implementing the search feature** on the remaining frontend pages, starting with adding a visible search bar to the  page.
 
 **documents and test reports created in this job**
--   
--   
+- None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  : Create a Demo mode... - Initial feature request. (Completed)
-2.  : 1 Public demo button... - Provided specific design requirements. (Completed)
-3.  : Audit other endpoints... - Request to harden security. (Completed)
-4.  : Visual permission and permission matrix needs updation... - UI update request. (Completed)
-5.  : Create a Demo mode... - Re-initiated demo work. (Completed)
-6.  : 1 Public demo button... - Re-confirmed demo requirements. (Completed)
-7.  : Consider adding video animations... - Requested feature enhancement. (Completed)
-8.  : Demo Progress Tracker... - Requested gamification feature. (Completed)
-9.  : Demo is using live data from the live app, it should not use live data from the live app - **CRITICAL BUG REPORTED. This is the pending and active request.** (In Progress)
+1.  **As the data grows for users/ inventory/ bookings and others there mist be a search option where ever possible to make access easy.** - IN PROGRESS. The agent started implementing this feature request.
+2.  **I dont see the payment proof uploaded for vendors/client, also after DP ready email...Email templates configured to show the company logo...is not corectlt configured** - COMPLETED. Agent added the DP ready email and fixed the logo URL logic.
+3.  **Conformation note sent is not being shown...ISIN is not shown...files in client master...is not getting attached in the outgoing mail. Send all such alerts on WhatsApp also** - COMPLETED. Agent fixed the note status, ISIN, added email attachments, and a WhatsApp alert.
+4.  **Emails going are returning this url and not the deployment URL...** - COMPLETED. Agent implemented the custom domain feature to fix this.
+5.  **check RBAC for each permission, when some permission is applied to roles, the same permission is not passed on to the user** - COMPLETED. This was the start of the critical RBAC bug discovery.
+6.  **permissions were changed by PE Desk, any permission assigned to roles says access denied...** - COMPLETED. This user feedback was key to confirming the RBAC bug.
+7.  **Wati API credentials... this is not connecting.** - COMPLETED. Agent fixed the Wati.io API integration to use v3.
+8.  **create an override permission for Cancelled cheque in client creation...** - COMPLETED. Agent implemented this new permission.
+9.  **when a client is created and the OCR runs... the attached icon is not visible.** - COMPLETED. Agent fixed the UI cache issue.
+10. **The whatsapp QR system is not working, please remove it and change it to Wati.io API...** - COMPLETED. This was one of the first tasks of the session.
 
 **Project Health Check:**
--   **Broken**: The data isolation for the demo mode is critically broken, creating a severe data leak risk.
+- **Broken:** The search feature is partially implemented.
+- **Mocked:** None.
 
 **3rd Party Integrations**
--   None added during this session.
+- **Wati.io API v3** (WhatsApp Messaging) — requires User API Key.
 
 **Testing status**
--   **Testing agent used after significant changes**: NO
--   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None
--   **Known regressions**: The demo mode exposes live production data.
+- **Testing agent used after significant changes:** YES
+- **Troubleshoot agent used after agent stuck in loop:** NO
+- **Test files created:** None.
+- **Known regressions:** None. The RBAC fix resolved a major source of regressions.
 
 **Credentials to test flow:**
--   **Demo User**: Navigate to the login page and click the Try PRIVITY Demo button.
--   **Standard User**: Use credentials like  /  to log in as a regular user with permissions.
+- Use  /  for a user with high-level permissions.
 
 **What agent forgot to execute**
--   The agent correctly identified the critical data leak but only began the fix. The  must be applied comprehensively to **all** data-fetching and data-creation endpoints, not just the initial ones (, ). This complete rollout was not finished.</analysis>
+- The agent was in the middle of implementing the search feature across multiple pages. It added the logic and UI for several pages but did not complete the task for all requested pages (e.g., adding a search bar to the  page) and did not perform any testing of the new search bars.</analysis>
