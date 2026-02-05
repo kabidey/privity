@@ -1580,7 +1580,7 @@ const Clients = () => {
                   <div className="grid grid-cols-1 gap-4">
                     {renderDocumentUploadCard('pan_card', `PAN Card${!editingClient ? ' *' : ''}`, CreditCard, 'text-blue-600', 'Extracts: Name, PAN Number')}
                     {renderDocumentUploadCard('cml_copy', `CML Copy${!editingClient ? ' *' : ''}`, FileCheck, 'text-purple-600', 'Extracts: DP ID, Name, PAN, Email, Mobile, Address, Bank Details')}
-                    {renderDocumentUploadCard('cancelled_cheque', `Cancelled Cheque${!editingClient ? ' *' : ''}`, FileText, 'text-orange-600', 'Extracts: Bank Name, Account Number, IFSC Code (adds as separate bank account)')}
+                    {renderDocumentUploadCard('cancelled_cheque', `Cancelled Cheque${!editingClient && !canSkipCancelledCheque ? ' *' : canSkipCancelledCheque ? ' (Optional)' : ''}`, FileText, 'text-orange-600', 'Extracts: Bank Name, Account Number, IFSC Code (adds as separate bank account)')}
                     
                     {/* Proprietor info message */}
                     {isProprietor === true && (
