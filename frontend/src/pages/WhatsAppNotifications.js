@@ -482,6 +482,7 @@ const WhatsAppNotifications = () => {
         <TabsList>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           {canViewHistory && <TabsTrigger value="history">Message History</TabsTrigger>}
+          {canConfig && <TabsTrigger value="automation">Automation</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="templates">
