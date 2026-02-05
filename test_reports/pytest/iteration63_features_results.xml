@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="12" skipped="0" tests="13" time="2.345" timestamp="2026-02-05T12:19:49.592277+00:00" hostname="agent-env-e271bf0d-4f70-4f2f-936c-e4f4ad49b598"><testcase classname="backend.tests.test_iteration63_features.TestWhatsAppWatiIntegration" name="test_whatsapp_config_endpoint_exists" time="0.505"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestWhatsAppWatiIntegration object at 0xfcac8d9f96d0&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTB9.ozVpw6KnUvpDjGw_l3_J1YsO8kJsFErwWYkLolSDdI8'}
+
+    def test_whatsapp_config_endpoint_exists(self, auth_headers):
+        """Verify WhatsApp config endpoint returns proper structure"""
+        response = requests.get(f"{BASE_URL}/api/whatsapp/config", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:49: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestWhatsAppWatiIntegration" name="test_whatsapp_templates_endpoint_exists" time="0.041"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestWhatsAppWatiIntegration object at 0xfcac8d5f28d0&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTB9.ozVpw6KnUvpDjGw_l3_J1YsO8kJsFErwWYkLolSDdI8'}
+
+    def test_whatsapp_templates_endpoint_exists(self, auth_headers):
+        """Verify WhatsApp templates endpoint exists"""
+        response = requests.get(f"{BASE_URL}/api/whatsapp/templates", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:58: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestWhatsAppWatiIntegration" name="test_whatsapp_stats_endpoint_exists" time="0.045"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestWhatsAppWatiIntegration object at 0xfcac8d5f2f50&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTB9.ozVpw6KnUvpDjGw_l3_J1YsO8kJsFErwWYkLolSDdI8'}
+
+    def test_whatsapp_stats_endpoint_exists(self, auth_headers):
+        """Verify WhatsApp stats endpoint exists"""
+        response = requests.get(f"{BASE_URL}/api/whatsapp/stats", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:67: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestWhatsAppWatiIntegration" name="test_whatsapp_messages_endpoint_exists" time="0.036"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestWhatsAppWatiIntegration object at 0xfcac8d5f3610&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTB9.ozVpw6KnUvpDjGw_l3_J1YsO8kJsFErwWYkLolSDdI8'}
+
+    def test_whatsapp_messages_endpoint_exists(self, auth_headers):
+        """Verify WhatsApp messages endpoint exists"""
+        response = requests.get(f"{BASE_URL}/api/whatsapp/messages", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:76: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestRPBankDetailsUnmasked" name="test_referral_partners_list_endpoint" time="0.352"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestRPBankDetailsUnmasked object at 0xfcac8d5f3ed0&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTB9.ozVpw6KnUvpDjGw_l3_J1YsO8kJsFErwWYkLolSDdI8'}
+
+    def test_referral_partners_list_endpoint(self, auth_headers):
+        """Verify referral partners endpoint exists"""
+        response = requests.get(f"{BASE_URL}/api/referral-partners", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:102: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestRPBankDetailsUnmasked" name="test_rp_contains_bank_details_fields" time="0.039"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestRPBankDetailsUnmasked object at 0xfcac8d60c590&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTB9.ozVpw6KnUvpDjGw_l3_J1YsO8kJsFErwWYkLolSDdI8'}
+
+    def test_rp_contains_bank_details_fields(self, auth_headers):
+        """Verify RPs contain bank detail fields for PE users"""
+        response = requests.get(f"{BASE_URL}/api/referral-partners", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:111: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestPaymentProofUpload" name="test_payment_upload_proof_endpoint_exists" time="0.304"><failure message="AssertionError: Expected 422/400/500, got 403&#10;assert 403 in [422, 400, 500]&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestPaymentProofUpload object at 0xfcac8d60cf10&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTB9.ozVpw6KnUvpDjGw_l3_J1YsO8kJsFErwWYkLolSDdI8'}
+
+    def test_payment_upload_proof_endpoint_exists(self, auth_headers):
+        """Verify payment proof upload endpoint exists and accepts multipart"""
+        # Try to upload without file - should get 422 (validation error) not 404
+        response = requests.post(
+            f"{BASE_URL}/api/payments/upload-proof",
+            headers=auth_headers
+        )
+        # 422 means endpoint exists but validation failed (no file)
+        # 400 also acceptable for bad request
+&gt;       assert response.status_code in [422, 400, 500], f"Expected 422/400/500, got {response.status_code}"
+E       AssertionError: Expected 422/400/500, got 403
+E       assert 403 in [422, 400, 500]
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:155: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestPaymentProofUpload" name="test_vendor_payment_upload_proof_endpoint_exists" time="0.037"><failure message="AssertionError: Expected 422/400/500, got 403&#10;assert 403 in [422, 400, 500]&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestPaymentProofUpload object at 0xfcac8d5f2610&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTB9.ozVpw6KnUvpDjGw_l3_J1YsO8kJsFErwWYkLolSDdI8'}
+
+    def test_vendor_payment_upload_proof_endpoint_exists(self, auth_headers):
+        """Verify vendor payment proof upload endpoint exists"""
+        response = requests.post(
+            f"{BASE_URL}/api/payments/vendor/upload-proof",
+            headers=auth_headers
+        )
+        # 422 means endpoint exists but validation failed (no file)
+&gt;       assert response.status_code in [422, 400, 500], f"Expected 422/400/500, got {response.status_code}"
+E       AssertionError: Expected 422/400/500, got 403
+E       assert 403 in [422, 400, 500]
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:165: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestPaymentProofUpload" name="test_payment_upload_with_dummy_file" time="0.036" /><testcase classname="backend.tests.test_iteration63_features.TestBookingPaymentsWithProof" name="test_bookings_endpoint_exists" time="0.390"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestBookingPaymentsWithProof object at 0xfcac8d60dad0&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTF9.V_Z350a-TUnV-QcVVTdjKiqf-VRhDgJ5Zv6N5sIV1cI'}
+
+    def test_bookings_endpoint_exists(self, auth_headers):
+        """Verify bookings endpoint exists"""
+        response = requests.get(f"{BASE_URL}/api/bookings", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:210: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestBookingPaymentsWithProof" name="test_bookings_have_payments_structure" time="0.040"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestBookingPaymentsWithProof object at 0xfcac8d60de90&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTF9.V_Z350a-TUnV-QcVVTdjKiqf-VRhDgJ5Zv6N5sIV1cI'}
+
+    def test_bookings_have_payments_structure(self, auth_headers):
+        """Verify bookings with payments have correct structure"""
+        response = requests.get(f"{BASE_URL}/api/bookings", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:219: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestPurchasesVendorPayments" name="test_purchases_endpoint_exists" time="0.343"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestPurchasesVendorPayments object at 0xfcac8d60e890&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTF9.V_Z350a-TUnV-QcVVTdjKiqf-VRhDgJ5Zv6N5sIV1cI'}
+
+    def test_purchases_endpoint_exists(self, auth_headers):
+        """Verify purchases endpoint exists"""
+        response = requests.get(f"{BASE_URL}/api/purchases", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:260: AssertionError</failure></testcase><testcase classname="backend.tests.test_iteration63_features.TestPurchasesVendorPayments" name="test_purchases_payments_endpoint" time="0.039"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">self = &lt;test_iteration63_features.TestPurchasesVendorPayments object at 0xfcac8d60ef50&gt;
+auth_headers = {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTFjNGMyZDQtZGM3MS00YzAyLWJlMTUtZGI3NDlkZTYzY2MzIiwiZW1haWwiOiJwZUBzbWlmcy5jb20iLCJleHAiOjE3NzAzODAzOTF9.V_Z350a-TUnV-QcVVTdjKiqf-VRhDgJ5Zv6N5sIV1cI'}
+
+    def test_purchases_payments_endpoint(self, auth_headers):
+        """Test fetching payments for a purchase"""
+        # Get purchases first
+        response = requests.get(f"{BASE_URL}/api/purchases", headers=auth_headers)
+&gt;       assert response.status_code == 200
+E       assert 403 == 200
+E        +  where 403 = &lt;Response [403]&gt;.status_code
+
+backend/tests/test_iteration63_features.py:269: AssertionError</failure></testcase></testsuite></testsuites>
