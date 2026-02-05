@@ -37,6 +37,37 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Complete WhatsApp Automation Feature (Feb 06, 2026)
+- **Backend API Endpoints:**
+  - `GET/PUT /api/whatsapp/automation/config` - Configure automation settings
+  - `POST /api/whatsapp/automation/payment-reminders` - Trigger payment reminders
+  - `POST /api/whatsapp/automation/document-reminders` - Trigger document reminders
+  - `POST /api/whatsapp/automation/dp-ready-notifications` - Trigger DP ready notifications
+  - `POST /api/whatsapp/automation/run-all` - Run all enabled automations
+  - `POST /api/whatsapp/automation/bulk-broadcast` - Send bulk broadcast
+  - `GET /api/whatsapp/automation/logs` - View automation logs
+  - `GET /api/whatsapp/broadcasts` - View broadcast history
+
+- **Frontend UI (WhatsApp Notifications > Automation tab):**
+  - Automation Settings card with toggles for Payment Reminders, Document Upload Reminders, DP Ready Notifications
+  - Configurable "Days overdue" for payment reminders
+  - "Save Settings" button to persist configuration
+  - "Run All Enabled Automations" button for manual triggering
+  - Bulk Broadcast section with "New Broadcast" dialog
+  - Automation Logs table showing run history
+  - Broadcasts table showing sent broadcasts
+
+- **Scheduled Automation:**
+  - WhatsApp automations run automatically at 10:00 AM IST daily via `scheduler_service.py`
+  - Job: `whatsapp_automations` using APScheduler CronTrigger
+
+- **Files Created/Modified:**
+  - `/app/backend/services/whatsapp_automation.py` - Core automation logic
+  - `/app/backend/services/wati_service.py` - Wati.io API wrapper
+  - `/app/backend/services/scheduler_service.py` - Added WhatsApp automation job
+  - `/app/backend/routers/whatsapp.py` - Added automation endpoints
+  - `/app/frontend/src/pages/WhatsAppNotifications.js` - Added Automation tab
+
 #### ✅ Server-Side Search Refactoring (Feb 06, 2026)
 - Implemented server-side search for all major API endpoints to handle large datasets efficiently
 - **Backend endpoints updated:**
