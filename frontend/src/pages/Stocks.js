@@ -46,6 +46,7 @@ const Stocks = () => {
   const [stocks, setStocks] = useState([]);
   const [corporateActions, setCorporateActions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
