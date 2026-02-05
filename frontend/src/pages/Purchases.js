@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { useProtectedPage } from '../hooks/useProtectedPage';
-import { Plus, ShoppingCart, TrendingUp, CreditCard, CheckCircle, Clock, Trash2, RefreshCw, Calculator, Eye, FileText, ExternalLink } from 'lucide-react';
+import { Plus, ShoppingCart, TrendingUp, CreditCard, CheckCircle, Clock, Trash2, RefreshCw, Calculator, Eye, FileText, ExternalLink, Search } from 'lucide-react';
 
 const Purchases = () => {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ const Purchases = () => {
   const [vendors, setVendors] = useState([]);
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState({ open: false, purchase: null });
   const [paymentForm, setPaymentForm] = useState({
