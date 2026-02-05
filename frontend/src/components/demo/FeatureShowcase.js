@@ -258,11 +258,11 @@ export default function FeatureShowcase() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-40 bg-gray-50 overflow-y-auto"
+          className="fixed inset-0 z-40 bg-gray-50 overflow-y-auto ml-0 md:ml-[220px]"
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
-            <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="max-w-6xl mx-auto px-6 py-8">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
@@ -283,7 +283,7 @@ export default function FeatureShowcase() {
 
           {/* Progress */}
           <div className="bg-white border-b shadow-sm">
-            <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="max-w-6xl mx-auto px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600">Tour Progress:</span>
@@ -307,7 +307,7 @@ export default function FeatureShowcase() {
           </div>
 
           {/* Feature Cards */}
-          <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="max-w-6xl mx-auto px-6 py-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Explore Features</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {FEATURE_SHOWCASES.map((feature, index) => (
