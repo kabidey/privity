@@ -664,6 +664,29 @@ const CompanyMaster = () => {
             </div>
           </div>
 
+          {/* Custom Domain Settings */}
+          <div className="space-y-4">
+            <h3 className="font-medium flex items-center gap-2 text-muted-foreground">
+              <Building2 className="w-4 h-4" />
+              Email Link Settings
+            </h3>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <Label htmlFor="custom_domain">Custom Domain URL</Label>
+                <Input
+                  id="custom_domain"
+                  value={formData.custom_domain}
+                  onChange={(e) => setFormData({ ...formData, custom_domain: e.target.value })}
+                  placeholder="e.g., https://privity.yourdomain.com"
+                  data-testid="custom-domain-input"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Used for file/document links in outgoing emails. Leave empty to use default URL.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Save Button */}
           <div className="flex justify-end pt-4">
             <Button 
