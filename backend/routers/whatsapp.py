@@ -1,18 +1,15 @@
 """
-WhatsApp Notification System
-Self-hosted QR-based WhatsApp integration for alerts
+WhatsApp Notification System - Wati.io API Integration
+Replaces QR-based system with official Wati.io Business API
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional, List
 from datetime import datetime, timezone
 from pydantic import BaseModel
-import asyncio
 import uuid
-import io
-import qrcode
-import base64
-import json
+import httpx
+import logging
+import os
 
 from database import db
 from utils.auth import get_current_user
@@ -20,13 +17,15 @@ from services.permission_service import require_permission
 from services.audit_service import create_audit_log
 
 router = APIRouter(prefix="/whatsapp", tags=["WhatsApp Notifications"])
+logger = logging.getLogger(__name__)
 
 
-class WhatsAppConfig(BaseModel):
+# ============== MODELS ==============
+
+class WatiConfig(BaseModel):
+    api_endpoint: str
+    api_token: str
     enabled: bool = False
-    session_id: Optional[str] = None
-    phone_number: Optional[str] = None
-    connected_at: Optional[str] = None
 
 
 class WhatsAppTemplate(BaseModel):
@@ -43,20 +42,170 @@ class SendMessageRequest(BaseModel):
     template_id: Optional[str] = None
 
 
-# Store active WebSocket connections for QR updates
-active_connections: dict = {}
+class SendTemplateRequest(BaseModel):
+    phone_number: str
+    template_name: str
+    parameters: Optional[List[str]] = None
+    broadcast_name: Optional[str] = None
 
 
-# WhatsApp session state (in production, use Redis)
-whatsapp_sessions: dict = {}
+class BulkSendRequest(BaseModel):
+    phone_numbers: List[str]
+    template_name: str
+    parameters: Optional[List[str]] = None
+    broadcast_name: Optional[str] = None
 
+
+# ============== WATI SERVICE ==============
+
+class WatiService:
+    """Wati.io WhatsApp Business API Service"""
+    
+    def __init__(self, endpoint: str, token: str):
+        self.endpoint = endpoint.rstrip('/')
+        self.token = token
+        self.headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+    
+    async def send_session_message(self, phone_number: str, message: str) -> dict:
+        """Send a message within active WhatsApp session (24-hour window)"""
+        # Remove non-digits and ensure proper format
+        phone = ''.join(filter(str.isdigit, phone_number))
+        if not phone.startswith('91'):
+            phone = '91' + phone
+        
+        url = f"{self.endpoint}/api/v1/sendSessionMessage/{phone}"
+        payload = {"messageText": message}
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url, json=payload, headers=self.headers, timeout=30.0
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPError as e:
+            logger.error(f"Wati session message error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
+    
+    async def send_template_message(
+        self, 
+        phone_number: str, 
+        template_name: str,
+        parameters: Optional[List[str]] = None,
+        broadcast_name: Optional[str] = None
+    ) -> dict:
+        """Send a pre-approved template message"""
+        phone = ''.join(filter(str.isdigit, phone_number))
+        if not phone.startswith('91'):
+            phone = '91' + phone
+        
+        url = f"{self.endpoint}/api/v2/sendTemplateMessage?whatsappNumber={phone}"
+        payload = {
+            "template_name": template_name,
+            "parameters": parameters or []
+        }
+        if broadcast_name:
+            payload["broadcast_name"] = broadcast_name
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url, json=payload, headers=self.headers, timeout=30.0
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPError as e:
+            logger.error(f"Wati template message error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to send template: {str(e)}")
+    
+    async def send_bulk_template(
+        self,
+        phone_numbers: List[str],
+        template_name: str,
+        parameters: Optional[List[str]] = None,
+        broadcast_name: Optional[str] = None
+    ) -> dict:
+        """Send template to multiple recipients"""
+        url = f"{self.endpoint}/api/v1/sendTemplateMessage"
+        
+        receivers = []
+        for phone in phone_numbers:
+            clean_phone = ''.join(filter(str.isdigit, phone))
+            if not clean_phone.startswith('91'):
+                clean_phone = '91' + clean_phone
+            receivers.append({
+                "whatsappNumber": clean_phone,
+                "customParams": parameters or []
+            })
+        
+        payload = {
+            "template_name": template_name,
+            "broadcast_name": broadcast_name or f"bulk_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "receivers": receivers
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url, json=payload, headers=self.headers, timeout=60.0
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPError as e:
+            logger.error(f"Wati bulk message error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to send bulk messages: {str(e)}")
+    
+    async def get_templates(self) -> dict:
+        """Get all templates from Wati account"""
+        url = f"{self.endpoint}/api/v1/getMessageTemplates"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    url, headers=self.headers, timeout=10.0
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPError as e:
+            logger.error(f"Wati get templates error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to get templates: {str(e)}")
+    
+    async def test_connection(self) -> bool:
+        """Test if Wati connection is working"""
+        try:
+            result = await self.get_templates()
+            return result.get("result", False)
+        except Exception:
+            return False
+
+
+async def get_wati_service() -> Optional[WatiService]:
+    """Get Wati service instance from database config"""
+    config = await db.system_config.find_one({"config_type": "whatsapp"}, {"_id": 0})
+    
+    if not config or not config.get("enabled"):
+        return None
+    
+    api_endpoint = config.get("api_endpoint")
+    api_token = config.get("api_token")
+    
+    if not api_endpoint or not api_token:
+        return None
+    
+    return WatiService(api_endpoint, api_token)
+
+
+# ============== CONFIG ENDPOINTS ==============
 
 @router.get("/config")
 async def get_whatsapp_config(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("notifications.whatsapp_view", "view WhatsApp config"))
 ):
-    """Get current WhatsApp configuration"""
+    """Get current WhatsApp/Wati configuration"""
     config = await db.system_config.find_one(
         {"config_type": "whatsapp"},
         {"_id": 0}
@@ -66,26 +215,53 @@ async def get_whatsapp_config(
         config = {
             "config_type": "whatsapp",
             "enabled": False,
-            "session_id": None,
-            "phone_number": None,
-            "connected_at": None,
-            "status": "disconnected"
+            "api_endpoint": None,
+            "api_token": None,
+            "status": "disconnected",
+            "connected_at": None
         }
+    
+    # Mask the API token for security
+    if config.get("api_token"):
+        token = config["api_token"]
+        config["api_token_masked"] = f"{'*' * 20}...{token[-4:]}" if len(token) > 4 else "****"
+        # Don't expose full token
+        del config["api_token"]
     
     return config
 
 
 @router.post("/config")
-async def update_whatsapp_config(
-    enabled: bool = Query(...),
+async def save_wati_config(
+    api_endpoint: str = Query(..., description="Wati API endpoint URL"),
+    api_token: str = Query(..., description="Wati API access token"),
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp_connect", "update WhatsApp config"))
+    _: None = Depends(require_permission("notifications.whatsapp_connect", "configure WhatsApp"))
 ):
-    """Enable or disable WhatsApp notifications"""
+    """Save Wati.io API configuration and test connection"""
+    # Clean the endpoint
+    api_endpoint = api_endpoint.rstrip('/')
+    
+    # Create service and test connection
+    service = WatiService(api_endpoint, api_token)
+    is_connected = await service.test_connection()
+    
+    if not is_connected:
+        raise HTTPException(
+            status_code=400, 
+            detail="Failed to connect to Wati.io. Please check your API endpoint and token."
+        )
+    
+    # Save config
     await db.system_config.update_one(
         {"config_type": "whatsapp"},
         {"$set": {
-            "enabled": enabled,
+            "config_type": "whatsapp",
+            "api_endpoint": api_endpoint,
+            "api_token": api_token,
+            "enabled": True,
+            "status": "connected",
+            "connected_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "updated_by": current_user["id"]
         }},
@@ -93,102 +269,16 @@ async def update_whatsapp_config(
     )
     
     await create_audit_log(
-        action="WHATSAPP_CONFIG_UPDATE",
+        action="WHATSAPP_WATI_CONNECTED",
         entity_type="system_config",
         entity_id="whatsapp",
         user_id=current_user["id"],
         user_name=current_user["name"],
         user_role=current_user.get("role", 6),
-        details={"enabled": enabled}
+        details={"api_endpoint": api_endpoint}
     )
     
-    return {"message": f"WhatsApp notifications {'enabled' if enabled else 'disabled'}"}
-
-
-@router.get("/qr-code")
-async def get_qr_code(
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp_connect", "connect WhatsApp"))
-):
-    """Generate QR code for WhatsApp Web connection"""
-    # Generate a unique session ID
-    session_id = str(uuid.uuid4())
-    
-    # In a real implementation, this would connect to WhatsApp Web API
-    # For now, we generate a placeholder QR code that simulates the connection process
-    
-    # Store session info
-    whatsapp_sessions[session_id] = {
-        "status": "pending",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "created_by": current_user["id"]
-    }
-    
-    # Generate QR code data (in production, this would be WhatsApp's pairing data)
-    qr_data = f"PRIVITY-WA-CONNECT:{session_id}:{current_user['id']}"
-    
-    # Create QR code image
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(qr_data)
-    qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="black", back_color="white")
-    
-    # Convert to base64
-    img_buffer = io.BytesIO()
-    qr_img.save(img_buffer, format="PNG")
-    img_buffer.seek(0)
-    qr_base64 = base64.b64encode(img_buffer.getvalue()).decode()
-    
-    return {
-        "session_id": session_id,
-        "qr_code": f"data:image/png;base64,{qr_base64}",
-        "expires_in": 60,  # seconds
-        "instructions": [
-            "1. Open WhatsApp on your phone",
-            "2. Go to Settings > Linked Devices",
-            "3. Tap 'Link a Device'",
-            "4. Scan this QR code with your phone"
-        ]
-    }
-
-
-@router.post("/simulate-connect")
-async def simulate_whatsapp_connect(
-    session_id: str = Query(...),
-    phone_number: str = Query(...),
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp_connect", "connect WhatsApp"))
-):
-    """Simulate WhatsApp connection (for demo/testing)"""
-    # Update session status
-    if session_id in whatsapp_sessions:
-        whatsapp_sessions[session_id]["status"] = "connected"
-        whatsapp_sessions[session_id]["phone_number"] = phone_number
-    
-    # Update config in database
-    await db.system_config.update_one(
-        {"config_type": "whatsapp"},
-        {"$set": {
-            "enabled": True,
-            "session_id": session_id,
-            "phone_number": phone_number,
-            "connected_at": datetime.now(timezone.utc).isoformat(),
-            "status": "connected"
-        }},
-        upsert=True
-    )
-    
-    await create_audit_log(
-        action="WHATSAPP_CONNECTED",
-        entity_type="system_config",
-        entity_id="whatsapp",
-        user_id=current_user["id"],
-        user_name=current_user["name"],
-        user_role=current_user.get("role", 6),
-        details={"phone_number": phone_number[-4:].rjust(len(phone_number), '*')}
-    )
-    
-    return {"message": "WhatsApp connected successfully", "phone_number": phone_number}
+    return {"message": "Wati.io connected successfully", "status": "connected"}
 
 
 @router.post("/disconnect")
@@ -196,22 +286,14 @@ async def disconnect_whatsapp(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("notifications.whatsapp_connect", "disconnect WhatsApp"))
 ):
-    """Disconnect WhatsApp session"""
-    config = await db.system_config.find_one({"config_type": "whatsapp"})
-    
-    if config and config.get("session_id"):
-        session_id = config["session_id"]
-        if session_id in whatsapp_sessions:
-            del whatsapp_sessions[session_id]
-    
+    """Disconnect Wati.io integration"""
     await db.system_config.update_one(
         {"config_type": "whatsapp"},
         {"$set": {
             "enabled": False,
-            "session_id": None,
-            "phone_number": None,
-            "connected_at": None,
-            "status": "disconnected"
+            "status": "disconnected",
+            "api_token": None,
+            "disconnected_at": datetime.now(timezone.utc).isoformat()
         }}
     )
     
@@ -227,6 +309,34 @@ async def disconnect_whatsapp(
     return {"message": "WhatsApp disconnected"}
 
 
+@router.post("/test-connection")
+async def test_wati_connection(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_connect", "test WhatsApp connection"))
+):
+    """Test current Wati.io connection"""
+    service = await get_wati_service()
+    
+    if not service:
+        return {"connected": False, "message": "Wati.io not configured"}
+    
+    is_connected = await service.test_connection()
+    
+    if is_connected:
+        # Update status
+        await db.system_config.update_one(
+            {"config_type": "whatsapp"},
+            {"$set": {"status": "connected", "last_tested": datetime.now(timezone.utc).isoformat()}}
+        )
+        return {"connected": True, "message": "Connection successful"}
+    else:
+        await db.system_config.update_one(
+            {"config_type": "whatsapp"},
+            {"$set": {"status": "error"}}
+        )
+        return {"connected": False, "message": "Connection failed - check credentials"}
+
+
 # ============== TEMPLATES ==============
 
 DEFAULT_TEMPLATES = [
@@ -234,8 +344,8 @@ DEFAULT_TEMPLATES = [
         "id": "booking_confirmation",
         "name": "Booking Confirmation",
         "category": "booking",
-        "message_template": "Dear {{client_name}},\n\nYour booking #{{booking_number}} for {{quantity}} shares of {{stock_symbol}} has been confirmed.\n\nBuying Price: ₹{{buying_price}}\nSelling Price: ₹{{selling_price}}\nTotal Amount: ₹{{total_amount}}\n\nThank you for choosing SMIFS Private Equity.",
-        "variables": ["client_name", "booking_number", "quantity", "stock_symbol", "buying_price", "selling_price", "total_amount"],
+        "message_template": "Dear {{client_name}},\n\nYour booking #{{booking_number}} for {{quantity}} shares of {{stock_symbol}} has been confirmed.\n\nTotal Amount: ₹{{total_amount}}\n\nThank you for choosing SMIFS Private Equity.",
+        "variables": ["client_name", "booking_number", "quantity", "stock_symbol", "total_amount"],
         "recipient_types": ["client"],
         "is_system": True
     },
@@ -261,8 +371,8 @@ DEFAULT_TEMPLATES = [
         "id": "dp_transfer_complete",
         "name": "DP Transfer Complete",
         "category": "dp_transfer",
-        "message_template": "Dear {{client_name}},\n\n{{quantity}} shares of {{stock_symbol}} have been transferred to your DP account.\n\nDP ID: {{dp_id}}\nClient ID: {{client_id}}\nBooking: #{{booking_number}}\n\nThank you for your business.",
-        "variables": ["client_name", "quantity", "stock_symbol", "dp_id", "client_id", "booking_number"],
+        "message_template": "Dear {{client_name}},\n\n{{quantity}} shares of {{stock_symbol}} have been transferred to your DP account.\n\nDP ID: {{dp_id}}\nBooking: #{{booking_number}}\n\nThank you for your business.",
+        "variables": ["client_name", "quantity", "stock_symbol", "dp_id", "booking_number"],
         "recipient_types": ["client"],
         "is_system": True
     },
@@ -292,7 +402,8 @@ async def get_templates(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("notifications.whatsapp_templates", "view WhatsApp templates"))
 ):
-    """Get all message templates"""
+    """Get all message templates (local + Wati)"""
+    # Get local templates
     templates = await db.whatsapp_templates.find({}, {"_id": 0}).to_list(100)
     
     # If no templates exist, initialize with defaults
@@ -300,9 +411,26 @@ async def get_templates(
         for template in DEFAULT_TEMPLATES:
             template["created_at"] = datetime.now(timezone.utc).isoformat()
             await db.whatsapp_templates.insert_one(template)
-        templates = DEFAULT_TEMPLATES
+        templates = DEFAULT_TEMPLATES.copy()
     
-    return templates
+    # Try to get Wati templates if connected
+    service = await get_wati_service()
+    if service:
+        try:
+            wati_templates = await service.get_templates()
+            if wati_templates.get("result"):
+                # Mark these as wati templates
+                for wt in wati_templates.get("messageTemplates", []):
+                    wt["is_wati"] = True
+                    wt["source"] = "wati"
+                return {
+                    "local_templates": templates,
+                    "wati_templates": wati_templates.get("messageTemplates", [])
+                }
+        except Exception as e:
+            logger.warning(f"Could not fetch Wati templates: {e}")
+    
+    return {"local_templates": templates, "wati_templates": []}
 
 
 @router.post("/templates")
@@ -379,11 +507,13 @@ async def send_message(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("notifications.whatsapp_send", "send WhatsApp message"))
 ):
-    """Send a WhatsApp message"""
-    # Check if WhatsApp is connected
-    config = await db.system_config.find_one({"config_type": "whatsapp"})
-    if not config or config.get("status") != "connected":
-        raise HTTPException(status_code=400, detail="WhatsApp is not connected. Please scan QR code first.")
+    """Send a WhatsApp message via Wati.io"""
+    service = await get_wati_service()
+    if not service:
+        raise HTTPException(status_code=400, detail="WhatsApp not configured. Please set up Wati.io API credentials.")
+    
+    # Send message
+    result = await service.send_session_message(request.phone_number, request.message)
     
     # Log the message
     message_log = {
@@ -391,142 +521,157 @@ async def send_message(
         "phone_number": request.phone_number,
         "message": request.message,
         "template_id": request.template_id,
-        "status": "sent",  # In production: pending, sent, delivered, read, failed
+        "status": "sent" if result.get("result") else "failed",
+        "wati_message_id": result.get("localMessageId"),
         "sent_at": datetime.now(timezone.utc).isoformat(),
         "sent_by": current_user["id"],
         "sent_by_name": current_user["name"]
     }
-    
     await db.whatsapp_messages.insert_one(message_log)
-    if "_id" in message_log:
-        del message_log["_id"]
-    
-    # In production, this would actually send via WhatsApp Web API
-    # For now, we simulate success
     
     return {
-        "message": "Message sent successfully",
-        "message_id": message_log["id"],
-        "status": "sent"
+        "message": "Message sent successfully" if result.get("result") else "Message sending failed",
+        "result": result.get("result", False),
+        "message_id": result.get("localMessageId")
+    }
+
+
+@router.post("/send-template")
+async def send_template_message(
+    request: SendTemplateRequest,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_send", "send WhatsApp template"))
+):
+    """Send a pre-approved Wati template message"""
+    service = await get_wati_service()
+    if not service:
+        raise HTTPException(status_code=400, detail="WhatsApp not configured. Please set up Wati.io API credentials.")
+    
+    result = await service.send_template_message(
+        request.phone_number,
+        request.template_name,
+        request.parameters,
+        request.broadcast_name
+    )
+    
+    # Log the message
+    message_log = {
+        "id": str(uuid.uuid4()),
+        "phone_number": request.phone_number,
+        "template_name": request.template_name,
+        "parameters": request.parameters,
+        "status": "sent" if result.get("result") else "failed",
+        "wati_message_id": result.get("localMessageId"),
+        "sent_at": datetime.now(timezone.utc).isoformat(),
+        "sent_by": current_user["id"],
+        "sent_by_name": current_user["name"]
+    }
+    await db.whatsapp_messages.insert_one(message_log)
+    
+    return {
+        "message": "Template sent successfully" if result.get("result") else "Template sending failed",
+        "result": result.get("result", False),
+        "message_id": result.get("localMessageId")
     }
 
 
 @router.post("/send-bulk")
 async def send_bulk_messages(
-    template_id: str = Query(...),
-    recipient_type: str = Query(...),  # client, user, bp, rp
-    recipient_ids: List[str] = Query(None),  # If None, send to all of that type
+    request: BulkSendRequest,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp_bulk", "send bulk WhatsApp"))
+    _: None = Depends(require_permission("notifications.whatsapp_bulk", "send bulk WhatsApp messages"))
 ):
-    """Send bulk WhatsApp messages using a template"""
-    # Check if WhatsApp is connected
-    config = await db.system_config.find_one({"config_type": "whatsapp"})
-    if not config or config.get("status") != "connected":
-        raise HTTPException(status_code=400, detail="WhatsApp is not connected")
+    """Send template message to multiple recipients via Wati.io"""
+    service = await get_wati_service()
+    if not service:
+        raise HTTPException(status_code=400, detail="WhatsApp not configured. Please set up Wati.io API credentials.")
     
-    # Get template
-    template = await db.whatsapp_templates.find_one({"id": template_id}, {"_id": 0})
-    if not template:
-        raise HTTPException(status_code=404, detail="Template not found")
+    if len(request.phone_numbers) > 1000:
+        raise HTTPException(status_code=400, detail="Maximum 1000 recipients per bulk send")
     
-    # Get recipients based on type
-    recipients = []
-    if recipient_type == "client":
-        query = {"phone": {"$exists": True, "$ne": None}}
-        if recipient_ids:
-            query["id"] = {"$in": recipient_ids}
-        recipients = await db.clients.find(query, {"_id": 0, "id": 1, "name": 1, "phone": 1}).to_list(1000)
-    elif recipient_type == "user":
-        query = {"phone": {"$exists": True, "$ne": None}, "is_active": True}
-        if recipient_ids:
-            query["id"] = {"$in": recipient_ids}
-        recipients = await db.users.find(query, {"_id": 0, "id": 1, "name": 1, "phone": 1}).to_list(1000)
-    elif recipient_type == "bp":
-        query = {"phone": {"$exists": True, "$ne": None}, "approval_status": "approved"}
-        if recipient_ids:
-            query["id"] = {"$in": recipient_ids}
-        recipients = await db.business_partners.find(query, {"_id": 0, "id": 1, "name": 1, "phone": 1}).to_list(1000)
-    elif recipient_type == "rp":
-        query = {"phone": {"$exists": True, "$ne": None}, "approval_status": "approved"}
-        if recipient_ids:
-            query["id"] = {"$in": recipient_ids}
-        recipients = await db.referral_partners.find(query, {"_id": 0, "id": 1, "name": 1, "phone": 1}).to_list(1000)
-    
-    # Create bulk send job
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "template_id": template_id,
-        "recipient_type": recipient_type,
-        "total_recipients": len(recipients),
-        "sent_count": 0,
-        "failed_count": 0,
-        "status": "processing",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "created_by": current_user["id"]
-    }
-    
-    await db.whatsapp_bulk_jobs.insert_one(job)
-    
-    # In production, this would be processed by a background worker
-    # For now, we simulate immediate processing
-    sent_count = len(recipients)
-    
-    await db.whatsapp_bulk_jobs.update_one(
-        {"id": job_id},
-        {"$set": {
-            "sent_count": sent_count,
-            "status": "completed",
-            "completed_at": datetime.now(timezone.utc).isoformat()
-        }}
+    result = await service.send_bulk_template(
+        request.phone_numbers,
+        request.template_name,
+        request.parameters,
+        request.broadcast_name
     )
     
+    # Log bulk send
+    bulk_log = {
+        "id": str(uuid.uuid4()),
+        "type": "bulk",
+        "recipient_count": len(request.phone_numbers),
+        "template_name": request.template_name,
+        "broadcast_name": request.broadcast_name,
+        "status": "sent" if result.get("result") else "failed",
+        "sent_at": datetime.now(timezone.utc).isoformat(),
+        "sent_by": current_user["id"],
+        "sent_by_name": current_user["name"]
+    }
+    await db.whatsapp_messages.insert_one(bulk_log)
+    
     return {
-        "message": f"Bulk send job created",
-        "job_id": job_id,
-        "total_recipients": len(recipients),
-        "status": "completed"
+        "message": f"Bulk message sent to {len(request.phone_numbers)} recipients",
+        "result": result.get("result", False),
+        "recipients_count": len(request.phone_numbers)
     }
 
 
+# ============== MESSAGE HISTORY ==============
+
 @router.get("/messages")
-async def get_message_logs(
-    limit: int = Query(50),
+async def get_messages(
+    limit: int = Query(50, ge=1, le=500),
+    skip: int = Query(0, ge=0),
+    phone_filter: Optional[str] = None,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp_history", "view WhatsApp logs"))
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view WhatsApp history"))
 ):
-    """Get message sending history"""
-    messages = await db.whatsapp_messages.find(
-        {},
-        {"_id": 0}
-    ).sort("sent_at", -1).limit(limit).to_list(limit)
+    """Get message history"""
+    query = {}
+    if phone_filter:
+        query["phone_number"] = {"$regex": phone_filter, "$options": "i"}
     
-    return messages
+    messages = await db.whatsapp_messages.find(
+        query, {"_id": 0}
+    ).sort("sent_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    total = await db.whatsapp_messages.count_documents(query)
+    
+    return {
+        "messages": messages,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }
 
 
 @router.get("/stats")
-async def get_whatsapp_stats(
+async def get_stats(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("notifications.whatsapp_view", "view WhatsApp stats"))
 ):
     """Get WhatsApp messaging statistics"""
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # Get config status
+    config = await db.system_config.find_one({"config_type": "whatsapp"}, {"_id": 0})
+    is_connected = config.get("status") == "connected" if config else False
     
+    # Get message counts
     total_messages = await db.whatsapp_messages.count_documents({})
-    today_messages = await db.whatsapp_messages.count_documents({"sent_at": {"$regex": f"^{today}"}})
-    
-    # Messages by status
     sent_count = await db.whatsapp_messages.count_documents({"status": "sent"})
-    delivered_count = await db.whatsapp_messages.count_documents({"status": "delivered"})
     failed_count = await db.whatsapp_messages.count_documents({"status": "failed"})
     
+    # Get today's stats
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    today_messages = await db.whatsapp_messages.count_documents({
+        "sent_at": {"$gte": today_start}
+    })
+    
     return {
+        "connected": is_connected,
         "total_messages": total_messages,
+        "sent": sent_count,
+        "failed": failed_count,
         "today_messages": today_messages,
-        "by_status": {
-            "sent": sent_count,
-            "delivered": delivered_count,
-            "failed": failed_count
-        }
+        "connection_type": "wati_api"
     }
