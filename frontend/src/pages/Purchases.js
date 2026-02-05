@@ -618,7 +618,7 @@ const Purchases = () => {
                       {payment.proof_url && (
                         <div className="mt-3 pt-3 border-t">
                           <a 
-                            href={payment.proof_url} 
+                            href={payment.proof_url.startsWith('/api') ? `${process.env.REACT_APP_BACKEND_URL}${payment.proof_url}` : (payment.proof_url.startsWith('http') ? payment.proof_url : `${process.env.REACT_APP_BACKEND_URL}/api${payment.proof_url}`)} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
