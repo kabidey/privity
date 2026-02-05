@@ -60,6 +60,45 @@ async def run_day_end_reports():
             pass
 
 
+async def run_whatsapp_automations():
+    """
+    Job function to run WhatsApp automation tasks
+    Runs at 10 AM IST daily
+    """
+    from services.whatsapp_automation import run_scheduled_automations
+    from database import db
+    
+    print(f"[{datetime.now(IST)}] Starting WhatsApp automations job...")
+    
+    try:
+        result = await run_scheduled_automations()
+        print(f"[{datetime.now(IST)}] WhatsApp automations completed: {result}")
+        
+        # Log job execution
+        await db.scheduled_job_runs.insert_one({
+            "job_name": "whatsapp_automations",
+            "status": "success",
+            "result": result,
+            "executed_at": datetime.now(IST).isoformat(),
+            "executed_at_utc": datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"[{datetime.now(IST)}] WhatsApp automations failed: {e}")
+        
+        # Log job failure
+        try:
+            await db.scheduled_job_runs.insert_one({
+                "job_name": "whatsapp_automations",
+                "status": "failed",
+                "error": str(e),
+                "executed_at": datetime.now(IST).isoformat(),
+                "executed_at_utc": datetime.utcnow().isoformat()
+            })
+        except:
+            pass
+
+
 def init_scheduler():
     """Initialize and start the scheduler"""
     global scheduler
