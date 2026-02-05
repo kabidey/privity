@@ -347,8 +347,8 @@ export default function FeatureShowcase() {
                 ))}
               </div>
             </div>
-
-            {/* Quick Actions */}
+          </div>
+        </motion.div>            {/* Quick Actions */}
             <div className="mt-12 bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
