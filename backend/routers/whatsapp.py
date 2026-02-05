@@ -212,7 +212,32 @@ class WatiService:
             raise HTTPException(status_code=500, detail=f"Failed to send bulk messages: {str(e)}")
     
     async def get_templates(self) -> dict:
-        """Get all templates from Wati account"""
+        """Get all templates from Wati account using v3 API"""
+        # v3 API endpoint for getting templates
+        url = f"{self.endpoint}/api/ext/v3/messageTemplates"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    url, headers=self.headers, timeout=15.0
+                )
+                response.raise_for_status()
+                data = response.json()
+                # Normalize response format
+                return {
+                    "result": True,
+                    "messageTemplates": data.get("templates", [])
+                }
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Wati v3 get templates error: {e.response.status_code} - {e.response.text}")
+            # Try v1 API as fallback
+            return await self._get_templates_v1()
+        except httpx.HTTPError as e:
+            logger.error(f"Wati get templates error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to get templates: {str(e)}")
+    
+    async def _get_templates_v1(self) -> dict:
+        """Fallback to v1 API for getting templates"""
         url = f"{self.endpoint}/api/v1/getMessageTemplates"
         
         try:
@@ -223,15 +248,17 @@ class WatiService:
                 response.raise_for_status()
                 return response.json()
         except httpx.HTTPError as e:
-            logger.error(f"Wati get templates error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to get templates: {str(e)}")
+            logger.error(f"Wati v1 get templates error: {str(e)}")
+            return {"result": False, "messageTemplates": []}
     
     async def test_connection(self) -> bool:
         """Test if Wati connection is working"""
         try:
             result = await self.get_templates()
-            return result.get("result", False)
-        except Exception:
+            # Check if we got templates or result is True
+            return result.get("result", False) or len(result.get("messageTemplates", [])) > 0
+        except Exception as e:
+            logger.error(f"Wati connection test failed: {str(e)}")
             return False
 
 
