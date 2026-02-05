@@ -1555,14 +1555,26 @@ const Bookings = () => {
               {selectedBooking.payments && selectedBooking.payments.length > 0 && (
                 <div className="space-y-2">
                   <Label>Payment History</Label>
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
                     {selectedBooking.payments.map((p, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm p-2 bg-muted/50 rounded">
                         <div className="flex-1">
                           <span>Tranche {p.tranche_number}: {formatCurrency(p.amount)}</span>
+                          <span className="text-muted-foreground ml-2">({p.payment_mode || 'N/A'})</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground">{new Date(p.payment_date).toLocaleDateString('en-IN')}</span>
+                          {p.proof_url && (
+                            <a
+                              href={p.proof_url.startsWith('/api') ? `${process.env.REACT_APP_BACKEND_URL}${p.proof_url}` : `${process.env.REACT_APP_BACKEND_URL}/api${p.proof_url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-xs underline"
+                              title="View Payment Proof"
+                            >
+                              View Proof
+                            </a>
+                          )}
                           {isPELevel && (
                             <Button
                               type="button"
