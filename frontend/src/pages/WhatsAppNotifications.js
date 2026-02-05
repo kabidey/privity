@@ -257,6 +257,73 @@ const WhatsAppNotifications = () => {
     setSendMessage(template.message_template);
   };
 
+  // Automation handlers
+  const handleSaveAutomationConfig = async () => {
+    setSavingAutomation(true);
+    try {
+      await api.put('/whatsapp/automation/config', automationConfig);
+      toast.success('Automation settings saved');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save automation settings');
+    } finally {
+      setSavingAutomation(false);
+    }
+  };
+
+  const handleRunAutomation = async (type) => {
+    setRunningAutomation(type);
+    try {
+      let endpoint = '';
+      switch (type) {
+        case 'payment':
+          endpoint = '/whatsapp/automation/payment-reminders';
+          break;
+        case 'document':
+          endpoint = '/whatsapp/automation/document-reminders';
+          break;
+        case 'dp_ready':
+          endpoint = '/whatsapp/automation/dp-ready-notifications';
+          break;
+        case 'all':
+          endpoint = '/whatsapp/automation/run-all';
+          break;
+        default:
+          return;
+      }
+      const res = await api.post(endpoint);
+      toast.success(`Automation completed: ${res.data.success || 0} sent, ${res.data.failed || 0} failed`);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Automation failed');
+    } finally {
+      setRunningAutomation(null);
+    }
+  };
+
+  const handleSendBroadcast = async () => {
+    if (!broadcastForm.message.trim()) {
+      toast.error('Please enter a message');
+      return;
+    }
+    
+    setSendingBroadcast(true);
+    try {
+      const res = await api.post('/whatsapp/automation/bulk-broadcast', {
+        message: broadcastForm.message,
+        recipient_type: broadcastForm.recipient_type,
+        broadcast_name: broadcastForm.broadcast_name || undefined
+      });
+      toast.success(`Broadcast sent: ${res.data.success || 0} delivered, ${res.data.failed || 0} failed`);
+      setBroadcastDialogOpen(false);
+      setBroadcastForm({ message: '', recipient_type: 'all_clients', broadcast_name: '' });
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Broadcast failed');
+    } finally {
+      setSendingBroadcast(false);
+    }
+  };
+
   const getCategoryColor = (category) => {
     const colors = {
       booking: 'bg-blue-100 text-blue-800',
