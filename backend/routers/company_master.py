@@ -62,6 +62,8 @@ class CompanyMasterResponse(BaseModel):
     pan_card_url: Optional[str] = None
     # User Agreement
     user_agreement_text: Optional[str] = None
+    # Custom Domain for emails
+    custom_domain: Optional[str] = None
     # Metadata
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
