@@ -722,7 +722,7 @@ async def generate_vendor_purchase_contract_note_pdf(purchase: dict) -> io.Bytes
     
     stock_symbol = stock.get("symbol", "N/A") if stock else "N/A"
     stock_name = stock.get("name", "N/A") if stock else "N/A"
-    stock_isin = stock.get("isin", "N/A") if stock else "N/A"
+    stock_isin = stock.get("isin_number", "N/A") if stock else "N/A"
     
     stock_data = [
         ["Stock Symbol:", stock_symbol, "ISIN:", stock_isin],
