@@ -621,6 +621,14 @@ const Clients = () => {
       
       setDialogOpen(false);
       resetForm();
+      
+      // Clear cache to ensure fresh data with documents is fetched
+      localStorage.removeItem('privity_cache_clients');
+      sessionStorage.removeItem('clientsCache');
+      
+      // Small delay to ensure documents are committed before fetching
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       fetchClients();
       if (canMapClients) fetchPendingClients();
     } catch (error) {
