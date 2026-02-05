@@ -142,7 +142,9 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "system": ["kill_switch"],
         "license": ["view", "generate", "activate", "revoke"],
         "notifications": ["whatsapp_view", "whatsapp_connect", "whatsapp_templates", 
-                         "whatsapp_send", "whatsapp_bulk", "whatsapp_history"]
+                         "whatsapp_send", "whatsapp_bulk", "whatsapp_history", "whatsapp_config"],
+        "chat": ["view", "send"],
+        "files": ["view", "upload", "delete"]
     }
     
     expanded = set()
