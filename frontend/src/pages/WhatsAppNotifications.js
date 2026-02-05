@@ -14,21 +14,22 @@ import { toast } from 'sonner';
 import api from '../utils/api';
 import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
-  MessageCircle, QrCode, RefreshCw, Plus, Send, Edit, Trash2,
+  MessageCircle, RefreshCw, Plus, Send, Edit, Trash2,
   Phone, CheckCircle, XCircle, Clock, Users, Building2, UserCheck,
-  Smartphone, Link2, Unlink, AlertTriangle, History
+  Smartphone, Link2, Unlink, AlertTriangle, History, Settings, Key
 } from 'lucide-react';
 
 const WhatsAppNotifications = () => {
   const [config, setConfig] = useState(null);
-  const [templates, setTemplates] = useState([]);
+  const [templates, setTemplates] = useState({ local_templates: [], wati_templates: [] });
   const [messages, setMessages] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // QR Code state
-  const [qrData, setQrData] = useState(null);
-  const [showQrDialog, setShowQrDialog] = useState(false);
+  // Wati Config state
+  const [showConfigDialog, setShowConfigDialog] = useState(false);
+  const [watiEndpoint, setWatiEndpoint] = useState('');
+  const [watiToken, setWatiToken] = useState('');
   const [connecting, setConnecting] = useState(false);
   
   // Send message state
@@ -83,7 +84,7 @@ const WhatsAppNotifications = () => {
       ]);
       setConfig(configRes.data);
       setTemplates(templatesRes.data);
-      setMessages(messagesRes.data);
+      setMessages(messagesRes.data.messages || messagesRes.data);
       setStats(statsRes.data);
     } catch (error) {
       toast.error('Failed to load WhatsApp configuration');
@@ -92,37 +93,42 @@ const WhatsAppNotifications = () => {
     }
   };
 
-  const handleGenerateQR = async () => {
+  const handleConnectWati = async () => {
+    if (!watiEndpoint || !watiToken) {
+      toast.error('Please enter both API endpoint and token');
+      return;
+    }
+
     setConnecting(true);
     try {
-      const response = await api.get('/whatsapp/qr-code');
-      setQrData(response.data);
-      setShowQrDialog(true);
+      await api.post(`/whatsapp/config?api_endpoint=${encodeURIComponent(watiEndpoint)}&api_token=${encodeURIComponent(watiToken)}`);
+      toast.success('Wati.io connected successfully!');
+      setShowConfigDialog(false);
+      setWatiEndpoint('');
+      setWatiToken('');
+      fetchData();
     } catch (error) {
-      toast.error('Failed to generate QR code');
+      toast.error(error.response?.data?.detail || 'Failed to connect to Wati.io');
     } finally {
       setConnecting(false);
     }
   };
 
-  const handleSimulateConnect = async () => {
-    // For demo purposes - simulate WhatsApp connection
-    const phone = prompt('Enter phone number to simulate connection (e.g., +919876543210):');
-    if (!phone) return;
-
+  const handleTestConnection = async () => {
     try {
-      await api.post(`/whatsapp/simulate-connect?session_id=${qrData.session_id}&phone_number=${encodeURIComponent(phone)}`);
-      toast.success('WhatsApp connected successfully!');
-      setShowQrDialog(false);
-      setQrData(null);
-      fetchData();
+      const response = await api.post('/whatsapp/test-connection');
+      if (response.data.connected) {
+        toast.success('Connection is healthy!');
+      } else {
+        toast.error(response.data.message || 'Connection test failed');
+      }
     } catch (error) {
-      toast.error('Failed to connect WhatsApp');
+      toast.error('Failed to test connection');
     }
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm('Are you sure you want to disconnect WhatsApp?')) return;
+    if (!window.confirm('Are you sure you want to disconnect Wati.io?')) return;
 
     try {
       await api.post('/whatsapp/disconnect');
@@ -130,16 +136,6 @@ const WhatsAppNotifications = () => {
       fetchData();
     } catch (error) {
       toast.error('Failed to disconnect');
-    }
-  };
-
-  const handleToggleEnabled = async (enabled) => {
-    try {
-      await api.post(`/whatsapp/config?enabled=${enabled}`);
-      toast.success(`WhatsApp notifications ${enabled ? 'enabled' : 'disabled'}`);
-      fetchData();
-    } catch (error) {
-      toast.error('Failed to update configuration');
     }
   };
 
@@ -251,6 +247,7 @@ const WhatsAppNotifications = () => {
   }
 
   const isConnected = config?.status === 'connected';
+  const allTemplates = templates.local_templates || [];
 
   return (
     <div className="space-y-6" data-testid="whatsapp-page">
@@ -260,7 +257,7 @@ const WhatsAppNotifications = () => {
             <MessageCircle className="w-7 h-7 text-green-600" />
             WhatsApp Notifications
           </h1>
-          <p className="text-muted-foreground">Manage WhatsApp integration and message templates</p>
+          <p className="text-muted-foreground">Manage Wati.io WhatsApp integration and message templates</p>
         </div>
         <div className="flex gap-2">
           {isConnected && canSend && (
@@ -272,16 +269,16 @@ const WhatsAppNotifications = () => {
         </div>
       </div>
 
-      {/* Connection Status */}
+      {/* Connection Status Card */}
       <Card className={isConnected ? 'border-green-200 bg-green-50/50' : 'border-orange-200 bg-orange-50/50'}>
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div className={`p-3 rounded-full ${isConnected ? 'bg-green-100' : 'bg-orange-100'}`}>
                 {isConnected ? (
                   <Smartphone className="w-8 h-8 text-green-600" />
                 ) : (
-                  <QrCode className="w-8 h-8 text-orange-600" />
+                  <Settings className="w-8 h-8 text-orange-600" />
                 )}
               </div>
               <div>
@@ -289,7 +286,7 @@ const WhatsAppNotifications = () => {
                   {isConnected ? (
                     <>
                       <CheckCircle className="w-5 h-5 text-green-600" />
-                      Connected
+                      Wati.io Connected
                     </>
                   ) : (
                     <>
@@ -299,38 +296,36 @@ const WhatsAppNotifications = () => {
                   )}
                 </h3>
                 {isConnected ? (
-                  <p className="text-sm text-muted-foreground">
-                    Phone: {config.phone_number} | Connected: {new Date(config.connected_at).toLocaleString()}
-                  </p>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>API Endpoint: {config.api_endpoint}</p>
+                    <p>Token: {config.api_token_masked}</p>
+                    <p>Connected: {new Date(config.connected_at).toLocaleString()}</p>
+                  </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    Scan QR code with your WhatsApp to connect
+                    Configure your Wati.io API credentials to start sending WhatsApp messages
                   </p>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               {isConnected && canConnect && (
-                <div className="flex items-center gap-2">
-                  <Label>Notifications</Label>
-                  <Switch
-                    checked={config?.enabled}
-                    onCheckedChange={handleToggleEnabled}
-                  />
-                </div>
-              )}
-              {canConnect && (
-                isConnected ? (
+                <>
+                  <Button variant="outline" onClick={handleTestConnection}>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Test Connection
+                  </Button>
                   <Button variant="destructive" onClick={handleDisconnect}>
                     <Unlink className="w-4 h-4 mr-2" />
                     Disconnect
                   </Button>
-                ) : (
-                  <Button onClick={handleGenerateQR} disabled={connecting} className="bg-green-600 hover:bg-green-700">
-                    {connecting ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <QrCode className="w-4 h-4 mr-2" />}
-                    Connect WhatsApp
-                  </Button>
-                )
+                </>
+              )}
+              {!isConnected && canConnect && (
+                <Button onClick={() => setShowConfigDialog(true)} className="bg-green-600 hover:bg-green-700">
+                  <Key className="w-4 h-4 mr-2" />
+                  Configure Wati.io
+                </Button>
               )}
             </div>
           </div>
@@ -351,15 +346,7 @@ const WhatsAppNotifications = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-blue-600">{stats.today_messages}</p>
-                <p className="text-sm text-muted-foreground">Today</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-emerald-600">{stats.by_status?.sent || 0}</p>
+                <p className="text-3xl font-bold text-blue-600">{stats.sent}</p>
                 <p className="text-sm text-muted-foreground">Sent</p>
               </div>
             </CardContent>
@@ -367,78 +354,97 @@ const WhatsAppNotifications = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="text-center">
-                <p className="text-3xl font-bold text-red-600">{stats.by_status?.failed || 0}</p>
+                <p className="text-3xl font-bold text-red-600">{stats.failed}</p>
                 <p className="text-sm text-muted-foreground">Failed</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-purple-600">{stats.today_messages}</p>
+                <p className="text-sm text-muted-foreground">Today</p>
               </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Tabs */}
-      <Tabs defaultValue="templates">
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="templates" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="templates">Message Templates</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
           {canViewHistory && <TabsTrigger value="history">Message History</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="templates" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Message Templates</h3>
-            {canManageTemplates && (
-              <Button onClick={() => {
-                setEditingTemplate(null);
-                setTemplateForm({ name: '', category: 'custom', message_template: '', variables: [], recipient_types: [] });
-                setTemplateDialogOpen(true);
-              }}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Template
-              </Button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templates.map((template) => (
-              <Card key={template.id} className="relative">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-base">{template.name}</CardTitle>
-                      <Badge className={getCategoryColor(template.category)}>
-                        {template.category}
-                      </Badge>
-                    </div>
-                    {!template.is_system && canManageTemplates && (
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => openEditTemplate(template)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteTemplate(template.id)}>
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
+        <TabsContent value="templates">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Message Templates</CardTitle>
+                <CardDescription>Pre-defined message templates for common notifications</CardDescription>
+              </div>
+              {canManageTemplates && (
+                <Button onClick={() => {
+                  setEditingTemplate(null);
+                  setTemplateForm({ name: '', category: 'custom', message_template: '', variables: [], recipient_types: [] });
+                  setTemplateDialogOpen(true);
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Template
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {allTemplates.map((template) => (
+                  <div key={template.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-medium">{template.name}</h4>
+                          <Badge className={getCategoryColor(template.category)}>{template.category}</Badge>
+                          {template.is_system && <Badge variant="outline">System</Badge>}
+                        </div>
+                        <p className="text-sm text-muted-foreground whitespace-pre-line mb-2">
+                          {template.message_template}
+                        </p>
+                        {template.variables?.length > 0 && (
+                          <div className="flex gap-1 flex-wrap">
+                            {template.variables.map((v, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {`{{${v}}}`}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
+                      <div className="flex gap-2">
+                        {canSend && isConnected && (
+                          <Button variant="ghost" size="sm" onClick={() => applyTemplate(template)}>
+                            <Send className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {canManageTemplates && !template.is_system && (
+                          <>
+                            <Button variant="ghost" size="sm" onClick={() => openEditTemplate(template)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDeleteTemplate(template.id)}>
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line line-clamp-4">
-                    {template.message_template}
-                  </p>
-                  <div className="flex gap-1 mt-2">
-                    {template.recipient_types?.map((type) => (
-                      <Badge key={type} variant="outline" className="text-xs">
-                        {getRecipientIcon(type)}
-                        <span className="ml-1">{type}</span>
-                      </Badge>
-                    ))}
-                  </div>
-                  {template.is_system && (
-                    <Badge variant="secondary" className="mt-2">System Template</Badge>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+                {allTemplates.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">No templates found</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="history">
@@ -446,8 +452,9 @@ const WhatsAppNotifications = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <History className="w-5 h-5" />
-                Recent Messages
+                Message History
               </CardTitle>
+              <CardDescription>Recent WhatsApp messages sent through the system</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -457,34 +464,29 @@ const WhatsAppNotifications = () => {
                     <TableHead>Message</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Sent By</TableHead>
-                    <TableHead>Sent At</TableHead>
+                    <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {messages.length === 0 ? (
+                  {(Array.isArray(messages) ? messages : []).slice(0, 50).map((msg) => (
+                    <TableRow key={msg.id}>
+                      <TableCell className="font-mono">{msg.phone_number}</TableCell>
+                      <TableCell className="max-w-xs truncate">{msg.message || msg.template_name || '-'}</TableCell>
+                      <TableCell>
+                        <Badge variant={msg.status === 'sent' ? 'default' : msg.status === 'failed' ? 'destructive' : 'secondary'}>
+                          {msg.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{msg.sent_by_name}</TableCell>
+                      <TableCell>{new Date(msg.sent_at).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                  {(!messages || messages.length === 0) && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         No messages sent yet
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    messages.map((msg) => (
-                      <TableRow key={msg.id}>
-                        <TableCell className="font-mono">{msg.phone_number}</TableCell>
-                        <TableCell className="max-w-xs truncate">{msg.message}</TableCell>
-                        <TableCell>
-                          <Badge className={
-                            msg.status === 'sent' ? 'bg-green-100 text-green-800' :
-                            msg.status === 'failed' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
-                          }>
-                            {msg.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{msg.sent_by_name}</TableCell>
-                        <TableCell>{new Date(msg.sent_at).toLocaleString()}</TableCell>
-                      </TableRow>
-                    ))
                   )}
                 </TableBody>
               </Table>
@@ -493,93 +495,109 @@ const WhatsAppNotifications = () => {
         </TabsContent>
       </Tabs>
 
-      {/* QR Code Dialog */}
-      <Dialog open={showQrDialog} onOpenChange={setShowQrDialog}>
+      {/* Wati.io Config Dialog */}
+      <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <QrCode className="w-5 h-5 text-green-600" />
-              Connect WhatsApp
+              <Key className="w-5 h-5" />
+              Configure Wati.io API
             </DialogTitle>
             <DialogDescription>
-              Scan this QR code with your WhatsApp mobile app
+              Enter your Wati.io API credentials to enable WhatsApp messaging
             </DialogDescription>
           </DialogHeader>
-          
-          {qrData && (
-            <div className="space-y-4">
-              <div className="flex justify-center p-4 bg-white rounded-lg">
-                <img src={qrData.qr_code} alt="WhatsApp QR Code" className="w-64 h-64" />
-              </div>
-              
-              <div className="space-y-2">
-                {qrData.instructions?.map((instruction, idx) => (
-                  <p key={idx} className="text-sm text-muted-foreground">{instruction}</p>
-                ))}
-              </div>
-
-              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <p className="text-sm text-yellow-800 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  QR code expires in {qrData.expires_in} seconds
-                </p>
-              </div>
-
-              {/* Demo button - in production, connection would happen automatically */}
-              <Button onClick={handleSimulateConnect} className="w-full bg-green-600 hover:bg-green-700">
-                <Link2 className="w-4 h-4 mr-2" />
-                Simulate Connection (Demo)
-              </Button>
+          <div className="space-y-4">
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+              <p className="font-medium text-blue-800 mb-1">How to get credentials:</p>
+              <ol className="list-decimal list-inside text-blue-700 space-y-1">
+                <li>Log in to your Wati.io dashboard</li>
+                <li>Navigate to More → API Docs</li>
+                <li>Copy your API Endpoint and Token</li>
+              </ol>
             </div>
-          )}
+            <div>
+              <Label htmlFor="watiEndpoint">API Endpoint *</Label>
+              <Input
+                id="watiEndpoint"
+                placeholder="https://live-mt-server.wati.io/xxxxx"
+                value={watiEndpoint}
+                onChange={(e) => setWatiEndpoint(e.target.value)}
+                data-testid="wati-endpoint-input"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Your Wati.io API endpoint URL</p>
+            </div>
+            <div>
+              <Label htmlFor="watiToken">API Token *</Label>
+              <Input
+                id="watiToken"
+                type="password"
+                placeholder="Enter your API token"
+                value={watiToken}
+                onChange={(e) => setWatiToken(e.target.value)}
+                data-testid="wati-token-input"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Your Wati.io Bearer token</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfigDialog(false)}>Cancel</Button>
+            <Button onClick={handleConnectWati} disabled={connecting} className="bg-green-600 hover:bg-green-700">
+              {connecting ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Link2 className="w-4 h-4 mr-2" />}
+              Connect
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Send Message Dialog */}
       <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Send WhatsApp Message</DialogTitle>
+            <DialogDescription>Send a message via Wati.io</DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4">
             <div>
-              <Label>Phone Number</Label>
+              <Label>Phone Number *</Label>
               <Input
+                placeholder="10-digit mobile number"
                 value={sendPhone}
-                onChange={(e) => setSendPhone(e.target.value)}
-                placeholder="+919876543210"
+                onChange={(e) => setSendPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                data-testid="send-phone-input"
               />
+              <p className="text-xs text-muted-foreground mt-1">Enter 10-digit Indian mobile number</p>
             </div>
-
             <div>
-              <Label>Template (Optional)</Label>
-              <Select value={selectedTemplate} onValueChange={(v) => {
-                const template = templates.find(t => t.id === v);
-                if (template) applyTemplate(template);
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a template..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {templates.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Message</Label>
+              <Label>Message *</Label>
               <Textarea
+                placeholder="Type your message..."
+                rows={4}
                 value={sendMessage}
                 onChange={(e) => setSendMessage(e.target.value)}
-                placeholder="Enter your message..."
-                className="min-h-[150px]"
+                data-testid="send-message-input"
               />
             </div>
+            {allTemplates.length > 0 && (
+              <div>
+                <Label>Use Template</Label>
+                <Select value={selectedTemplate} onValueChange={(v) => {
+                  setSelectedTemplate(v);
+                  const tpl = allTemplates.find(t => t.id === v);
+                  if (tpl) setSendMessage(tpl.message_template);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allTemplates.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setSendDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSendMessage} disabled={sending} className="bg-green-600 hover:bg-green-700">
@@ -592,21 +610,19 @@ const WhatsAppNotifications = () => {
 
       {/* Template Dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingTemplate ? 'Edit Template' : 'Create Template'}</DialogTitle>
           </DialogHeader>
-          
           <div className="space-y-4">
             <div>
-              <Label>Template Name</Label>
+              <Label>Template Name *</Label>
               <Input
                 value={templateForm.name}
                 onChange={(e) => setTemplateForm({...templateForm, name: e.target.value})}
-                placeholder="My Custom Template"
+                placeholder="e.g., Payment Confirmation"
               />
             </div>
-
             <div>
               <Label>Category</Label>
               <Select value={templateForm.category} onValueChange={(v) => setTemplateForm({...templateForm, category: v})}>
@@ -622,26 +638,22 @@ const WhatsAppNotifications = () => {
                 </SelectContent>
               </Select>
             </div>
-
             <div>
-              <Label>Message Template</Label>
+              <Label>Message Template *</Label>
               <Textarea
                 value={templateForm.message_template}
                 onChange={(e) => setTemplateForm({...templateForm, message_template: e.target.value})}
+                rows={6}
                 placeholder="Dear {{client_name}}, your booking #{{booking_number}} has been confirmed..."
-                className="min-h-[150px]"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Use {'{{variable_name}}'} for dynamic content
+                Use {`{{variable_name}}`} for dynamic content
               </p>
             </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setTemplateDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveTemplate}>
-              {editingTemplate ? 'Update' : 'Create'} Template
-            </Button>
+            <Button onClick={handleSaveTemplate}>Save Template</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
