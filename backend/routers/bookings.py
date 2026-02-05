@@ -1601,7 +1601,7 @@ async def update_booking(
     """Update a booking."""
     user_role = current_user.get("role", 7)
     
-    check_permission(current_user, "manage_bookings")
+    await check_permission(current_user, "bookings.edit", "edit bookings")
     
     old_booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not old_booking:
