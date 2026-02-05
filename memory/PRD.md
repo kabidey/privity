@@ -37,6 +37,12 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 05, 2026)
 
+#### ✅ Skip Cancelled Cheque Permission (Feb 05, 2026)
+- New permission `clients.skip_cancelled_cheque` added
+- Role Management: Can assign this permission to allow client creation without cancelled cheque
+- Backend: `/app/backend/routers/clients.py` - Updated approval validation
+- Frontend: `/app/frontend/src/pages/Clients.js` - Shows "Cancelled Cheque (Optional)" when permission enabled
+
 #### ✅ WhatsApp Wati.io Integration (Feb 05, 2026)
 - Replaced QR-based WhatsApp system with official Wati.io API
 - Backend: `/app/backend/routers/whatsapp.py` - Complete rewrite
