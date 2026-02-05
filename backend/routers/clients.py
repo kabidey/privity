@@ -15,7 +15,8 @@ from pathlib import Path
 from database import db
 from config import ROLES, UPLOAD_DIR
 from models import ClientCreate, Client, BankAccount, ClientSuspensionRequest
-from utils.auth import get_current_user, check_permission
+from utils.auth import get_current_user
+from services.permission_service import check_permission, require_permission, has_permission
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
 from services.email_service import send_templated_email, send_email, get_email_template
