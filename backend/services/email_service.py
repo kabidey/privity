@@ -25,24 +25,27 @@ async def get_base_url() -> str:
     """
     Get the base URL for file links in emails.
     Priority:
-    1. Custom domain from system_config
+    1. Custom domain from company_master settings
     2. FRONTEND_URL environment variable
     3. Default fallback
     """
     from database import db
     
-    # First check if there's a custom domain in system config
+    # First check if there's a custom domain in company_master
     try:
-        config = await db.system_config.find_one(
-            {"config_type": "domain"}, 
-            {"_id": 0, "custom_domain": 1}
+        company = await db.company_master.find_one(
+            {"_id": "company_settings"}, 
+            {"custom_domain": 1}
         )
-        if config and config.get("custom_domain"):
-            custom_domain = config["custom_domain"].rstrip('/')
-            logging.info(f"Using custom domain from config: {custom_domain}")
+        if company and company.get("custom_domain"):
+            custom_domain = company["custom_domain"].rstrip('/')
+            # Ensure it has https://
+            if not custom_domain.startswith('http'):
+                custom_domain = f"https://{custom_domain}"
+            logging.info(f"Using custom domain from company master: {custom_domain}")
             return custom_domain
     except Exception as e:
-        logging.warning(f"Error fetching custom domain config: {e}")
+        logging.warning(f"Error fetching custom domain from company master: {e}")
     
     # Fall back to FRONTEND_URL environment variable
     frontend_url = os.environ.get('FRONTEND_URL', '')
