@@ -354,11 +354,12 @@ async def send_contract_note_email(
             attachments=attachments
         )
         
-        # Update contract note
+        # Update contract note - mark as sent
         await db.contract_notes.update_one(
             {"id": note_id},
             {
                 "$set": {
+                    "status": "sent",
                     "email_sent": True,
                     "email_sent_at": datetime.now(timezone.utc).isoformat(),
                     "email_sent_by": current_user["name"]
