@@ -611,7 +611,18 @@ const Stocks = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {stocks.map((stock) => (
+                    {stocks
+                      .filter(stock => {
+                        if (!searchQuery) return true;
+                        const query = searchQuery.toLowerCase();
+                        return (
+                          stock.symbol?.toLowerCase().includes(query) ||
+                          stock.name?.toLowerCase().includes(query) ||
+                          stock.isin_number?.toLowerCase().includes(query) ||
+                          stock.sector?.toLowerCase().includes(query)
+                        );
+                      })
+                      .map((stock) => (
                       <TableRow key={stock.id} data-testid="stock-row">
                         <TableCell className="font-bold mono text-primary">{stock.symbol}</TableCell>
                         <TableCell className="font-medium">{stock.name}</TableCell>
