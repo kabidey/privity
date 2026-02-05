@@ -98,10 +98,14 @@ const Clients = () => {
     isEmployee,
     canDelete,
     canModify,
+    hasPermission,
   } = useCurrentUser();
   
   // Can map clients = PE Level only
   const canMapClients = isPELevel;
+  
+  // Permission to skip cancelled cheque requirement
+  const canSkipCancelledCheque = hasPermission('clients.skip_cancelled_cheque');
 
   useEffect(() => {
     // Wait for user to load before fetching data
