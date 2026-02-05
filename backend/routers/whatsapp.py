@@ -755,3 +755,158 @@ async def get_stats(
         "today_messages": today_messages,
         "connection_type": "wati_api"
     }
+
+
+
+# ============== AUTOMATION ==============
+
+from services.whatsapp_automation import (
+    get_automation_config,
+    update_automation_config,
+    send_payment_reminders,
+    send_document_reminders,
+    send_bulk_broadcast,
+    notify_dp_ready_bookings,
+    run_scheduled_automations
+)
+
+
+class AutomationConfigUpdate(BaseModel):
+    payment_reminder_enabled: bool = False
+    payment_reminder_days: int = 3
+    document_reminder_enabled: bool = False
+    dp_ready_notification_enabled: bool = True
+
+
+class BulkBroadcastRequest(BaseModel):
+    message: str
+    recipient_type: str  # all_clients, all_rps, all_bps, custom
+    recipient_ids: Optional[List[str]] = None
+    broadcast_name: Optional[str] = None
+
+
+@router.get("/automation/config")
+async def get_automation_settings(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_config", "view WhatsApp automation config"))
+):
+    """Get WhatsApp automation configuration"""
+    config = await get_automation_config()
+    return config
+
+
+@router.put("/automation/config")
+async def update_automation_settings(
+    config: AutomationConfigUpdate,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_config", "update WhatsApp automation config"))
+):
+    """Update WhatsApp automation configuration"""
+    updated = await update_automation_config(
+        config.dict(),
+        current_user.get("id"),
+        current_user.get("name")
+    )
+    return updated
+
+
+@router.post("/automation/payment-reminders")
+async def trigger_payment_reminders(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_send", "send WhatsApp notifications"))
+):
+    """Manually trigger payment reminder automation"""
+    result = await send_payment_reminders()
+    return result
+
+
+@router.post("/automation/document-reminders")
+async def trigger_document_reminders(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_send", "send WhatsApp notifications"))
+):
+    """Manually trigger document upload reminder automation"""
+    result = await send_document_reminders()
+    return result
+
+
+@router.post("/automation/dp-ready-notifications")
+async def trigger_dp_ready_notifications(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_send", "send WhatsApp notifications"))
+):
+    """Manually trigger DP ready notifications"""
+    result = await notify_dp_ready_bookings()
+    return result
+
+
+@router.post("/automation/bulk-broadcast")
+async def send_broadcast(
+    request: BulkBroadcastRequest,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_send", "send WhatsApp notifications"))
+):
+    """Send bulk broadcast message"""
+    result = await send_bulk_broadcast(
+        message=request.message,
+        recipient_type=request.recipient_type,
+        recipient_ids=request.recipient_ids,
+        broadcast_name=request.broadcast_name,
+        user_id=current_user.get("id"),
+        user_name=current_user.get("name")
+    )
+    return result
+
+
+@router.post("/automation/run-all")
+async def run_all_automations(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_config", "run WhatsApp automations"))
+):
+    """Run all enabled automations manually"""
+    result = await run_scheduled_automations()
+    return result
+
+
+@router.get("/automation/logs")
+async def get_automation_logs(
+    limit: int = Query(50, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view WhatsApp automation logs"))
+):
+    """Get automation run logs"""
+    logs = await db.whatsapp_automation_logs.find(
+        {}, {"_id": 0}
+    ).sort("run_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    total = await db.whatsapp_automation_logs.count_documents({})
+    
+    return {
+        "logs": logs,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }
+
+
+@router.get("/broadcasts")
+async def get_broadcasts(
+    limit: int = Query(50, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view WhatsApp broadcasts"))
+):
+    """Get broadcast history"""
+    broadcasts = await db.whatsapp_broadcasts.find(
+        {}, {"_id": 0}
+    ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    total = await db.whatsapp_broadcasts.count_documents({})
+    
+    return {
+        "broadcasts": broadcasts,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }
