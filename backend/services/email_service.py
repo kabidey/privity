@@ -834,12 +834,23 @@ async def send_payment_request_email(
     attachments = []
     
     async def load_document(url: str, filename: str) -> Optional[dict]:
-        """Load document from URL or local path"""
+        """Load document from URL, local path, or GridFS"""
         if not url:
             return None
         try:
+            # Check if it's a GridFS file URL (stored in MongoDB)
+            if url.startswith("/api/files/"):
+                from services.file_storage import get_file_from_gridfs
+                file_id = url.split("/api/files/")[-1]
+                file_data = await get_file_from_gridfs(file_id)
+                if file_data:
+                    return {
+                        'filename': filename,
+                        'content': file_data['content'],
+                        'content_type': file_data.get('content_type', 'application/octet-stream')
+                    }
             # Check if it's a local file path
-            if url.startswith("/uploads/"):
+            elif url.startswith("/uploads/"):
                 local_path = f"/app{url}"
                 if os.path.exists(local_path):
                     async with aiofiles.open(local_path, 'rb') as f:
