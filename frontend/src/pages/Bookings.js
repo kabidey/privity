@@ -18,7 +18,7 @@ import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Plus, Pencil, Trash2, Clock, CheckCircle, XCircle, AlertCircle, 
   CreditCard, IndianRupee, Calendar, Receipt, Building2, TrendingDown, Download, FileSpreadsheet,
-  AlertTriangle, Upload, UserCircle, Mail, FileText, Info, Ban, RefreshCw, Users
+  AlertTriangle, Upload, UserCircle, Mail, FileText, Info, Ban, RefreshCw, Users, Search
 } from 'lucide-react';
 
 const Bookings = () => {
@@ -30,6 +30,7 @@ const Bookings = () => {
   const [stocks, setStocks] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
