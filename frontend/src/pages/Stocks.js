@@ -275,15 +275,26 @@ const Stocks = () => {
             {isPELevel ? 'Manage stocks and corporate actions' : 'View available stocks'}
           </p>
         </div>
-        {isPELevel && (
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            <Dialog open={actionDialogOpen} onOpenChange={(open) => { setActionDialogOpen(open); if (!open) resetActionForm(); }}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="rounded-sm flex-1 sm:flex-none" data-testid="add-corporate-action-button">
-                  <Split className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                  <span className="hidden sm:inline">Corporate </span>Action
-                </Button>
-              </DialogTrigger>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search stocks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+              data-testid="stock-search-input"
+            />
+          </div>
+          {isPELevel && (
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <Dialog open={actionDialogOpen} onOpenChange={(open) => { setActionDialogOpen(open); if (!open) resetActionForm(); }}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="rounded-sm flex-1 sm:flex-none" data-testid="add-corporate-action-button">
+                    <Split className="mr-2 h-4 w-4" strokeWidth={1.5} />
+                    <span className="hidden sm:inline">Corporate </span>Action
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="action-dialog-desc">
                 <DialogHeader>
                   <DialogTitle>Create Corporate Action</DialogTitle>
