@@ -149,11 +149,11 @@ async def create_booking(
     
     # Permission check - Business Partners can create bookings
     if is_business_partner:
-        check_permission(current_user, "create_bookings")
+        await check_permission(current_user, "bookings.create", "create bookings")
     elif not is_pe_level(user_role):
-        check_permission(current_user, "create_bookings")
+        await check_permission(current_user, "bookings.create", "create bookings")
     else:
-        check_permission(current_user, "manage_bookings")
+        await check_permission(current_user, "bookings.create", "create bookings")
     
     # If Business Partner, get their BP profile for revenue share
     bp_info = None
