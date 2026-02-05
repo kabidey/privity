@@ -902,8 +902,8 @@ async def send_payment_request_email(
     else:
         logging.warning("No company master documents found to attach to payment request email")
     
-    # Get base URL for document links
-    frontend_url = os.environ.get('FRONTEND_URL', 'https://fix-proceed.preview.emergentagent.com')
+    # Get base URL for document links (from system config or environment)
+    frontend_url = await get_base_url()
     
     # Build document links section
     doc_links = []
