@@ -1074,7 +1074,7 @@ const ReferralPartners = () => {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Account Number</p>
-                      <p className="font-mono text-sm">{selectedRp.bank_account_number ? `****${selectedRp.bank_account_number.slice(-4)}` : '-'}</p>
+                      <p className="font-mono text-sm">{selectedRp.bank_account_number ? (isPELevel ? selectedRp.bank_account_number : `****${selectedRp.bank_account_number.slice(-4)}`) : '-'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Branch</p>
