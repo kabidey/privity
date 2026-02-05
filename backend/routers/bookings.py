@@ -887,10 +887,19 @@ async def get_bookings(
     approval_status: Optional[str] = None,
     client_id: Optional[str] = None,
     stock_id: Optional[str] = None,
+    search: Optional[str] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(1000, ge=1, le=10000),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("bookings.view", "view bookings"))
 ):
-    """Get all bookings with optional filters based on hierarchy."""
+    """Get all bookings with optional filters based on hierarchy.
+    
+    Args:
+        search: Search query to filter by booking number, client name, PAN, or stock symbol
+        skip: Number of records to skip (for pagination)
+        limit: Maximum number of records to return
+    """
     from services.hierarchy_service import get_team_user_ids
     
     query = {}
@@ -917,11 +926,43 @@ async def get_bookings(
     if stock_id:
         query["stock_id"] = stock_id
     
+    # Server-side search filter
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        # First, find matching client IDs by name or PAN
+        matching_clients = await db.clients.find(
+            {"$or": [{"name": search_regex}, {"pan_number": search_regex}]},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        client_ids = [c["id"] for c in matching_clients]
+        
+        # Find matching stock IDs by symbol
+        matching_stocks = await db.stocks.find(
+            {"symbol": search_regex},
+            {"_id": 0, "id": 1}
+        ).to_list(1000)
+        stock_ids = [s["id"] for s in matching_stocks]
+        
+        # Build search conditions
+        search_conditions = [
+            {"booking_number": search_regex},
+            {"created_by_name": search_regex}
+        ]
+        if client_ids:
+            search_conditions.append({"client_id": {"$in": client_ids}})
+        if stock_ids:
+            search_conditions.append({"stock_id": {"$in": stock_ids}})
+        
+        if "$and" not in query:
+            query["$or"] = search_conditions
+        else:
+            query["$and"].append({"$or": search_conditions})
+    
     # CRITICAL: Add demo data isolation filter
     # Demo users only see demo data, live users don't see demo data
     query = add_demo_filter(query, current_user)
     
-    bookings = await db.bookings.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    bookings = await db.bookings.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     
     # Enrich with client and stock details
     result = []
