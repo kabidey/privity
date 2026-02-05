@@ -116,7 +116,8 @@ async def get_chat_messages(
 @router.post("/messages")
 async def send_chat_message(
     message: ChatMessage,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("chat.send", "send group chat messages"))
 ):
     """Send a message to the group chat"""
     if not message.content.strip():
