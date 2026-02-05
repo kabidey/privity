@@ -36,6 +36,7 @@ class CompanyMasterCreate(BaseModel):
     company_bank_ifsc: Optional[str] = None
     company_bank_branch: Optional[str] = None
     user_agreement_text: Optional[str] = None
+    custom_domain: Optional[str] = None  # Custom domain for email links (e.g., https://privity.smifs.com)
 
 
 class CompanyMasterResponse(BaseModel):
