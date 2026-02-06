@@ -158,7 +158,7 @@ const Inventory = () => {
   // Export inventory to Excel/CSV
   const handleExportInventory = async (format = 'xlsx') => {
     try {
-      const response = await api.get(`/inventory/inventory-export?format=${format}`, {
+      const response = await api.get(`/inventory/export?format=${format}`, {
         responseType: 'blob'
       });
       
