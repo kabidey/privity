@@ -981,7 +981,7 @@ async def get_bookings(
         
         # Calculate payment info
         payments = booking.get("payments", [])
-        total_paid = sum(p.get("amount", 0) for p in payments)
+        total_paid = round(sum(p.get("amount", 0) for p in payments), 2)
         
         booking_with_details = {
             **booking,
@@ -989,8 +989,8 @@ async def get_bookings(
             "client_email": client.get("email") if client else None,
             "stock_symbol": stock["symbol"] if stock else "Unknown",
             "stock_name": stock["name"] if stock else "Unknown",
-            "total_amount": total_amount,
-            "profit_loss": (selling_price - buying_price) * quantity,
+            "total_amount": round(total_amount, 2),
+            "profit_loss": round((selling_price - buying_price) * quantity, 2),
             "total_paid": total_paid,
             "payment_status": "paid" if total_paid >= total_amount else ("partial" if total_paid > 0 else "pending")
         }
