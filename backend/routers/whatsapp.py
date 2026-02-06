@@ -59,15 +59,40 @@ class BulkSendRequest(BaseModel):
 # ============== WATI SERVICE ==============
 
 class WatiService:
-    """Wati.io WhatsApp Business API Service - v3 API"""
+    """Wati.io WhatsApp Business API Service - v3 API with fallback"""
     
     def __init__(self, endpoint: str, token: str):
+        # Normalize endpoint - ensure it doesn't have trailing slash
         self.endpoint = endpoint.rstrip('/')
         self.token = token
         self.headers = {
             "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json"
         }
+    
+    async def test_connection(self) -> dict:
+        """Test the Wati API connection"""
+        # Try to get templates as a connection test
+        url = f"{self.endpoint}/api/v1/getMessageTemplates"
+        
+        try:
+            async with httpx.AsyncClient(verify=True) as client:
+                response = await client.get(url, headers=self.headers, timeout=15.0)
+                if response.status_code == 200:
+                    return {"connected": True, "message": "Successfully connected to Wati.io"}
+                elif response.status_code == 401:
+                    return {"connected": False, "message": "Authentication failed - check your API token"}
+                else:
+                    return {"connected": False, "message": f"Unexpected status: {response.status_code}"}
+        except httpx.ConnectError as e:
+            logger.error(f"Wati connection error: {str(e)}")
+            return {"connected": False, "message": f"Connection failed - check endpoint URL: {str(e)}"}
+        except httpx.TimeoutException:
+            return {"connected": False, "message": "Connection timed out - check endpoint URL"}
+        except Exception as e:
+            logger.error(f"Wati connection test error: {str(e)}")
+            return {"connected": False, "message": f"Connection error: {str(e)}"}
     
     async def send_session_message(self, phone_number: str, message: str) -> dict:
         """Send a message within active WhatsApp session (24-hour window)"""
