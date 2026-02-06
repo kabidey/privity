@@ -653,7 +653,7 @@ async def send_booking_approval_email(
                 <td style="padding: 10px; border: 1px solid #e5e7eb;">{quantity}</td>
             </tr>
             <tr style="background-color: #f3f4f6;">
-                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Landing Price</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Selling Price</strong></td>
                 <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{buying_price:,.2f}</td>
             </tr>
             <tr>
