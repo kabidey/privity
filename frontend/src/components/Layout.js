@@ -7,6 +7,7 @@ import ThemeSelector from './ThemeSelector';
 import KillSwitch from './KillSwitch';
 import SystemFrozenOverlay from './SystemFrozenOverlay';
 import ChangelogModal, { useChangelogModal } from './ChangelogModal';
+import ContentProtection from './ContentProtection';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { getFullVersion } from '../version';
