@@ -1875,7 +1875,8 @@ async def add_payment_tranche(
         "$push": {"payments": payment},
         "$set": {
             "total_paid": new_total_paid,
-            "payment_complete": is_complete
+            "payment_complete": is_complete,
+            "payment_status": "paid" if is_complete else ("partial" if new_total_paid > 0 else "pending")
         }
     }
     
