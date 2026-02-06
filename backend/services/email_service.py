@@ -52,8 +52,8 @@ async def get_base_url() -> str:
     if frontend_url:
         return frontend_url.rstrip('/')
     
-    # Last resort default (should never happen in production)
-    return 'https://privity.smifs.com'
+    # Return empty string if no URL configured (emails will use relative paths)
+    return ''
 
 
 async def get_company_info():
