@@ -503,47 +503,16 @@ async def test_wati_connection(
     return result
 
 
-@router.get("/config")
-async def get_whatsapp_config(
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp_view", "view WhatsApp config"))
-):
-    """Get current WhatsApp/Wati configuration"""
-    config = await db.system_config.find_one(
-        {"config_type": "whatsapp"},
-        {"_id": 0}
-    )
-    
-    if not config:
-        config = {
-            "config_type": "whatsapp",
-            "enabled": False,
-            "api_endpoint": None,
-            "api_token": None,
-            "status": "disconnected",
-            "connected_at": None
-        }
-    
-    # Mask the API token for security
-    if config.get("api_token"):
-        token = config["api_token"]
-        config["api_token_masked"] = f"{'*' * 20}...{token[-4:]}" if len(token) > 4 else "****"
-        # Don't expose full token
-        del config["api_token"]
-    
-    return config
-
-
 @router.post("/config")
 async def save_wati_config(
-    api_endpoint: str = Query(..., description="Wati API endpoint URL (e.g., https://live-mt-server.wati.io)"),
+    api_endpoint: str = Query(..., description="Wati API endpoint URL (e.g., https://live-mt-server.wati.io/302931)"),
     api_token: str = Query(..., description="Wati API access token (Bearer token)"),
     api_version: str = Query("v1", description="API version to use (v1 or v3)"),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("notifications.whatsapp_connect", "configure WhatsApp"))
 ):
     """
-    Save Wati.io API configuration and test connection
+    Save Wati.io API configuration to override hardcoded defaults.
     
     Supports both v1 and v3 APIs:
     - v1: Standard API endpoints
