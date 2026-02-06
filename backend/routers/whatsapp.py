@@ -59,82 +59,207 @@ class BulkSendRequest(BaseModel):
 # ============== WATI SERVICE ==============
 
 class WatiService:
-    """Wati.io WhatsApp Business API Service - v3 API with fallback"""
+    """
+    Wati.io WhatsApp Business API Service
     
-    def __init__(self, endpoint: str, token: str):
+    Supports both v1 and v3 APIs:
+    - v1 API: https://{endpoint}/api/v1/...
+    - v3 API: https://live-mt-server.wati.io/api/ext/v3/...
+    
+    API Documentation: https://docs.wati.io/reference
+    """
+    
+    def __init__(self, endpoint: str, token: str, api_version: str = "v1"):
+        """
+        Initialize Wati service
+        
+        Args:
+            endpoint: Your Wati API endpoint (e.g., https://live-mt-server.wati.io)
+            token: Your API Bearer token
+            api_version: API version to use ("v1" or "v3")
+        """
         # Normalize endpoint - ensure it doesn't have trailing slash
         self.endpoint = endpoint.rstrip('/')
         self.token = token
+        self.api_version = api_version
         self.headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
+        
+        # Set up API-version specific base URLs
+        # v3 uses a different endpoint format
+        if api_version == "v3":
+            self.v3_base = f"{self.endpoint}/api/ext/v3"
+        self.v1_base = f"{self.endpoint}/api/v1"
     
     async def test_connection(self) -> dict:
-        """Test the Wati API connection"""
-        # Try to get templates as a connection test
-        url = f"{self.endpoint}/api/v1/getMessageTemplates"
+        """
+        Test the Wati API connection
+        Tries v1 first, then v3 if v1 fails
+        """
+        errors = []
         
+        # Try v1 API first - getMessageTemplates
+        v1_url = f"{self.v1_base}/getMessageTemplates"
         try:
-            async with httpx.AsyncClient(verify=True) as client:
-                response = await client.get(url, headers=self.headers, timeout=15.0)
+            async with httpx.AsyncClient(verify=True, timeout=15.0) as client:
+                response = await client.get(v1_url, headers=self.headers)
+                logger.info(f"Wati v1 test response: {response.status_code}")
                 if response.status_code == 200:
-                    return {"connected": True, "message": "Successfully connected to Wati.io"}
+                    return {
+                        "connected": True, 
+                        "message": "Successfully connected to Wati.io (v1 API)",
+                        "api_version": "v1"
+                    }
                 elif response.status_code == 401:
-                    return {"connected": False, "message": "Authentication failed - check your API token"}
+                    errors.append("v1: Authentication failed - check your API token")
                 else:
-                    return {"connected": False, "message": f"Unexpected status: {response.status_code}"}
+                    errors.append(f"v1: Status {response.status_code}")
         except httpx.ConnectError as e:
-            logger.error(f"Wati connection error: {str(e)}")
-            return {"connected": False, "message": f"Connection failed - check endpoint URL: {str(e)}"}
+            errors.append(f"v1: Connection failed - {str(e)}")
         except httpx.TimeoutException:
-            return {"connected": False, "message": "Connection timed out - check endpoint URL"}
+            errors.append("v1: Connection timed out")
         except Exception as e:
-            logger.error(f"Wati connection test error: {str(e)}")
-            return {"connected": False, "message": f"Connection error: {str(e)}"}
+            errors.append(f"v1: {str(e)}")
+        
+        # Try v3 API - messageTemplates
+        if self.api_version == "v3" or not errors[0].startswith("v1: Authentication"):
+            v3_url = f"{self.endpoint}/api/ext/v3/messageTemplates"
+            try:
+                async with httpx.AsyncClient(verify=True, timeout=15.0) as client:
+                    response = await client.get(v3_url, headers=self.headers)
+                    logger.info(f"Wati v3 test response: {response.status_code}")
+                    if response.status_code == 200:
+                        return {
+                            "connected": True, 
+                            "message": "Successfully connected to Wati.io (v3 API)",
+                            "api_version": "v3"
+                        }
+                    elif response.status_code == 401:
+                        errors.append("v3: Authentication failed")
+                    else:
+                        errors.append(f"v3: Status {response.status_code}")
+            except httpx.ConnectError as e:
+                errors.append(f"v3: Connection failed - {str(e)}")
+            except httpx.TimeoutException:
+                errors.append("v3: Connection timed out")
+            except Exception as e:
+                errors.append(f"v3: {str(e)}")
+        
+        logger.error(f"Wati connection test failed: {errors}")
+        return {
+            "connected": False, 
+            "message": f"Connection failed. Errors: {'; '.join(errors)}",
+            "errors": errors
+        }
     
     async def send_session_message(self, phone_number: str, message: str) -> dict:
-        """Send a message within active WhatsApp session (24-hour window)"""
-        # Remove non-digits and ensure proper format
-        phone = ''.join(filter(str.isdigit, phone_number))
-        if not phone.startswith('91'):
-            phone = '91' + phone
+        """
+        Send a message within active WhatsApp session (24-hour window)
+        Uses v1 API: POST /api/v1/sendSessionMessage/{phone}
+        """
+        phone = self._normalize_phone(phone_number)
         
-        # v3 API endpoint for sending session messages
-        url = f"{self.endpoint}/api/ext/v3/conversations/{phone}/messages"
-        payload = {"text": message}
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url, json=payload, headers=self.headers, timeout=30.0
-                )
-                response.raise_for_status()
-                return {"result": True, **response.json()}
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Wati session message error: {e.response.status_code} - {e.response.text}")
-            # Try v1 API as fallback
-            return await self._send_session_message_v1(phone, message)
-        except httpx.HTTPError as e:
-            logger.error(f"Wati session message error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
-    
-    async def _send_session_message_v1(self, phone: str, message: str) -> dict:
-        """Fallback to v1 API for session messages"""
-        url = f"{self.endpoint}/api/v1/sendSessionMessage/{phone}"
+        # v1 API endpoint
+        url = f"{self.v1_base}/sendSessionMessage/{phone}"
         payload = {"messageText": message}
         
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url, json=payload, headers=self.headers, timeout=30.0
-                )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            logger.error(f"Wati v1 session message error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(url, json=payload, headers=self.headers)
+                logger.info(f"Wati session message response: {response.status_code}")
+                
+                if response.status_code == 200:
+                    return {"success": True, "result": response.json()}
+                else:
+                    return {"success": False, "error": response.text, "status": response.status_code}
+        except Exception as e:
+            logger.error(f"Wati session message error: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    async def send_template_message_v1(
+        self, 
+        phone_number: str, 
+        template_name: str,
+        parameters: Optional[List[dict]] = None,
+        broadcast_name: Optional[str] = None
+    ) -> dict:
+        """
+        Send a template message using v1 API
+        POST /api/v1/sendTemplateMessage?whatsappNumber={phone}
+        
+        Args:
+            phone_number: Recipient phone with country code
+            template_name: Name of the approved template
+            parameters: List of {name: str, value: str} for template variables
+            broadcast_name: Name for this broadcast (for tracking)
+        """
+        phone = self._normalize_phone(phone_number)
+        
+        url = f"{self.v1_base}/sendTemplateMessage?whatsappNumber={phone}"
+        payload = {
+            "template_name": template_name,
+            "broadcast_name": broadcast_name or f"api_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        }
+        
+        if parameters:
+            payload["parameters"] = parameters
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(url, json=payload, headers=self.headers)
+                logger.info(f"Wati v1 template response: {response.status_code} - {response.text[:200]}")
+                
+                if response.status_code == 200:
+                    return {"success": True, "api_version": "v1", "result": response.json()}
+                else:
+                    return {"success": False, "api_version": "v1", "error": response.text, "status": response.status_code}
+        except Exception as e:
+            logger.error(f"Wati v1 template error: {str(e)}")
+            return {"success": False, "api_version": "v1", "error": str(e)}
+    
+    async def send_template_message_v3(
+        self, 
+        template_name: str,
+        broadcast_name: str,
+        recipients: List[dict],
+        channel: Optional[str] = None
+    ) -> dict:
+        """
+        Send template messages using v3 API (supports bulk sending)
+        POST /api/ext/v3/messageTemplates/send
+        
+        Args:
+            template_name: Name of the approved template
+            broadcast_name: Name for this broadcast
+            recipients: List of recipients with format:
+                [{"whatsappNumber": "919876543210", "customParams": [{"name": "1", "value": "John"}]}]
+            channel: Channel name/number (optional, uses default if null)
+        """
+        url = f"{self.endpoint}/api/ext/v3/messageTemplates/send"
+        payload = {
+            "template_name": template_name,
+            "broadcast_name": broadcast_name,
+            "recipients": recipients
+        }
+        
+        if channel:
+            payload["channel"] = channel
+        
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(url, json=payload, headers=self.headers)
+                logger.info(f"Wati v3 template response: {response.status_code}")
+                
+                if response.status_code == 200:
+                    return {"success": True, "api_version": "v3", "result": response.json()}
+                else:
+                    return {"success": False, "api_version": "v3", "error": response.text, "status": response.status_code}
+        except Exception as e:
+            logger.error(f"Wati v3 template error: {str(e)}")
+            return {"success": False, "api_version": "v3", "error": str(e)}
     
     async def send_template_message(
         self, 
@@ -143,61 +268,46 @@ class WatiService:
         parameters: Optional[List[str]] = None,
         broadcast_name: Optional[str] = None
     ) -> dict:
-        """Send a pre-approved template message using v3 API"""
-        phone = ''.join(filter(str.isdigit, phone_number))
-        if not phone.startswith('91'):
-            phone = '91' + phone
+        """
+        Send a template message - tries v1 first, falls back to v3
         
-        # v3 API endpoint for sending template messages
-        url = f"{self.endpoint}/api/ext/v3/messageTemplates/send"
-        payload = {
+        Args:
+            phone_number: Recipient phone with country code
+            template_name: Name of the approved template
+            parameters: List of parameter values (will be converted to {name, value} format)
+            broadcast_name: Name for this broadcast
+        """
+        phone = self._normalize_phone(phone_number)
+        
+        # Convert simple parameter list to format required by API
+        param_list = []
+        if parameters:
+            for i, value in enumerate(parameters):
+                param_list.append({"name": str(i + 1), "value": str(value)})
+        
+        # Try v1 API first
+        result = await self.send_template_message_v1(
+            phone, 
+            template_name, 
+            param_list,
+            broadcast_name
+        )
+        
+        if result.get("success"):
+            return result
+        
+        # If v1 fails, try v3
+        logger.info("v1 API failed, trying v3...")
+        recipients = [{
             "whatsappNumber": phone,
-            "templateName": template_name,
-            "broadcastName": broadcast_name or f"template_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            "parameters": [{"name": f"param{i+1}", "value": p} for i, p in enumerate(parameters or [])]
-        }
+            "customParams": param_list
+        }]
         
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url, json=payload, headers=self.headers, timeout=30.0
-                )
-                response.raise_for_status()
-                return {"result": True, **response.json()}
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Wati v3 template error: {e.response.status_code} - {e.response.text}")
-            # Try v2 API as fallback
-            return await self._send_template_message_v2(phone, template_name, parameters, broadcast_name)
-        except httpx.HTTPError as e:
-            logger.error(f"Wati template message error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to send template: {str(e)}")
-    
-    async def _send_template_message_v2(
-        self, 
-        phone: str, 
-        template_name: str,
-        parameters: Optional[List[str]] = None,
-        broadcast_name: Optional[str] = None
-    ) -> dict:
-        """Fallback to v2 API for template messages"""
-        url = f"{self.endpoint}/api/v2/sendTemplateMessage?whatsappNumber={phone}"
-        payload = {
-            "template_name": template_name,
-            "parameters": parameters or []
-        }
-        if broadcast_name:
-            payload["broadcast_name"] = broadcast_name
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url, json=payload, headers=self.headers, timeout=30.0
-                )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            logger.error(f"Wati v2 template message error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to send template: {str(e)}")
+        return await self.send_template_message_v3(
+            template_name,
+            broadcast_name or f"api_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            recipients
+        )
     
     async def send_bulk_template(
         self,
@@ -206,48 +316,86 @@ class WatiService:
         parameters: Optional[List[str]] = None,
         broadcast_name: Optional[str] = None
     ) -> dict:
-        """Send template to multiple recipients"""
-        url = f"{self.endpoint}/api/v1/sendTemplateMessage"
+        """
+        Send template to multiple recipients using v3 API
         
-        receivers = []
+        Args:
+            phone_numbers: List of phone numbers
+            template_name: Name of the approved template
+            parameters: Common parameters for all recipients
+            broadcast_name: Name for this broadcast
+        """
+        # Build recipients list
+        recipients = []
         for phone in phone_numbers:
-            clean_phone = ''.join(filter(str.isdigit, phone))
-            if not clean_phone.startswith('91'):
-                clean_phone = '91' + clean_phone
-            receivers.append({
-                "whatsappNumber": clean_phone,
-                "customParams": parameters or []
-            })
+            clean_phone = self._normalize_phone(phone)
+            recipient = {"whatsappNumber": clean_phone}
+            if parameters:
+                recipient["customParams"] = [
+                    {"name": str(i + 1), "value": str(v)} 
+                    for i, v in enumerate(parameters)
+                ]
+            recipients.append(recipient)
         
-        payload = {
-            "template_name": template_name,
-            "broadcast_name": broadcast_name or f"bulk_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            "receivers": receivers
-        }
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url, json=payload, headers=self.headers, timeout=60.0
-                )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            logger.error(f"Wati bulk message error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to send bulk messages: {str(e)}")
+        return await self.send_template_message_v3(
+            template_name,
+            broadcast_name or f"bulk_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            recipients
+        )
     
     async def get_templates(self) -> dict:
-        """Get all templates from Wati account using v3 API"""
-        # v3 API endpoint for getting templates
+        """
+        Get all message templates
+        Tries v1 first, then v3
+        """
+        # Try v1 API
+        url = f"{self.v1_base}/getMessageTemplates"
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(url, headers=self.headers)
+                if response.status_code == 200:
+                    return {"success": True, "api_version": "v1", "templates": response.json()}
+        except Exception as e:
+            logger.error(f"Wati v1 get templates error: {str(e)}")
+        
+        # Try v3 API
         url = f"{self.endpoint}/api/ext/v3/messageTemplates"
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(url, headers=self.headers)
+                if response.status_code == 200:
+                    return {"success": True, "api_version": "v3", "templates": response.json()}
+                else:
+                    return {"success": False, "error": response.text}
+        except Exception as e:
+            logger.error(f"Wati v3 get templates error: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    async def get_contacts(self, page_size: int = 100, page_number: int = 1) -> dict:
+        """Get contacts from Wati"""
+        url = f"{self.v1_base}/getContacts?pageSize={page_size}&pageNumber={page_number}"
         
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    url, headers=self.headers, timeout=15.0
-                )
-                response.raise_for_status()
-                data = response.json()
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(url, headers=self.headers)
+                if response.status_code == 200:
+                    return {"success": True, "contacts": response.json()}
+                else:
+                    return {"success": False, "error": response.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    def _normalize_phone(self, phone: str) -> str:
+        """Normalize phone number to include country code"""
+        # Remove all non-digits
+        phone = ''.join(filter(str.isdigit, phone))
+        # Add India country code if not present
+        if not phone.startswith('91') and len(phone) == 10:
+            phone = '91' + phone
+        return phone
+
+
+# Get Wati service instance
                 # Normalize response format
                 return {
                     "result": True,
