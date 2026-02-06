@@ -59,6 +59,28 @@ Build a Share Booking System for managing client share bookings, inventory track
   - `/app/backend/routers/clients.py` - Added rerun_client_ocr endpoint (lines 985-1170)
   - `/app/frontend/src/pages/Clients.js` - Added handleRerunOcr and updated Documents dialog
 
+#### ✅ Client Approval Flow UX Improvements (Feb 06, 2026)
+- **Issue:** Clients created by employees show as "pending" and cannot be used for bookings until PE Desk approves
+- **Solution:** Improved UX to make this clearer while keeping the approval workflow:
+  - **Booking Form Client Dropdown:**
+    - Shows "(Approved clients only)" label
+    - Approved clients are selectable
+    - Pending clients shown in separate "Pending PE Desk Approval" section (disabled, orange indicator)
+    - Message shown when all clients are pending approval
+  - **Clients Page Status Badge:**
+    - Enhanced "Pending Approval" badge with orange background
+    - Shows "Cannot book until approved" sub-text
+  - **Cache Invalidation:**
+    - Client mapping now immediately clears localStorage and sessionStorage cache
+    - Client approval immediately clears cache
+    - Bookings page clears stale cache before fetching clients
+  - **Improved Toast Messages:**
+    - "Client mapped to employee - changes are live!"
+    - "Client approved - now available for bookings!"
+- **Files Modified:**
+  - `/app/frontend/src/pages/Bookings.js` - Client dropdown with pending section, cache clearing
+  - `/app/frontend/src/pages/Clients.js` - handleMappingSubmit, handleApprove cache clearing, status badge
+
 #### ✅ Rainbow Theme System (Feb 06, 2026)
 - Implemented 10 colorful themes beyond basic white/dark mode
 - **Light Themes (7):**
