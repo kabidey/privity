@@ -218,7 +218,35 @@ const UserManagement = () => {
   };
 
   const resetForm = () => {
-    setFormData({ email: '', password: '', name: '', role: 7, hierarchy_level: 1, reports_to: '' });
+    setFormData({ email: '', password: '', name: '', mobile: '', role: 7, hierarchy_level: 1, reports_to: '' });
+  };
+
+  // Open edit dialog for user
+  const openEditDialog = (user) => {
+    setSelectedUser(user);
+    setEditFormData({
+      name: user.name || '',
+      mobile: user.mobile || '',
+      pan_number: user.pan_number || '',
+      role: user.role || 7,
+      hierarchy_level: user.hierarchy_level || 1,
+      reports_to: user.reports_to || ''
+    });
+    setEditDialogOpen(true);
+  };
+
+  // Handle edit user submit
+  const handleEditUser = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      await api.put(`/users/${selectedUser.id}`, editFormData);
+      toast.success('User updated successfully');
+      setEditDialogOpen(false);
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update user');
+    }
   };
 
   const openHierarchyDialog = (user) => {
