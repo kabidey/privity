@@ -630,15 +630,29 @@ const Inventory = () => {
                         
                         {isPEDesk && (
                           <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleDeleteInventory(item.stock_id, item.stock_symbol)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              data-testid={`delete-inventory-${item.stock_id}`}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center justify-end gap-1">
+                              {/* PE Report Button */}
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => openPeReportDialog(item)}
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                title="Send PE Report"
+                                data-testid={`pe-report-${item.stock_id}`}
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                              {/* Delete Button */}
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleDeleteInventory(item.stock_id, item.stock_symbol)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                data-testid={`delete-inventory-${item.stock_id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         )}
                       </TableRow>
