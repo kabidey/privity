@@ -1001,6 +1001,7 @@ const Clients = () => {
     setWizardStep(1);
     setEditingClient(null);
     setIsSubmitting(false);
+    setActiveTabInDialog('details'); // Reset tab to details
     // Reset name mismatch states
     setNameMismatchDetected(false);
     setIsProprietor(null);
