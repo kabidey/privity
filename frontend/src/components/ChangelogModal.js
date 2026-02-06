@@ -48,18 +48,18 @@ const ChangelogModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] p-0 overflow-hidden" data-testid="changelog-modal">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] p-0 flex flex-col" data-testid="changelog-modal">
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="relative bg-gradient-to-br from-emerald-500 to-teal-600 p-4 text-white flex-shrink-0">
+          <div className="flex items-center gap-3 mb-1">
             <div className="p-2 bg-white/20 rounded-xl">
-              <Rocket className="h-6 w-6" />
+              <Rocket className="h-5 w-5" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold text-white">
+              <DialogTitle className="text-lg font-bold text-white">
                 Version History
               </DialogTitle>
-              <DialogDescription className="text-emerald-100">
+              <DialogDescription className="text-emerald-100 text-xs">
                 Current version: {currentVersion}
               </DialogDescription>
             </div>
@@ -67,10 +67,10 @@ const ChangelogModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Content */}
-        <ScrollArea className="max-h-[50vh] p-4">
-          <div className="space-y-6">
+        <ScrollArea className="flex-1 max-h-[50vh] p-3">
+          <div className="space-y-4">
             {changelog.map((release, idx) => (
-              <div key={release.version} className="space-y-3">
+              <div key={release.version} className="space-y-2">
                 {/* Version Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -89,28 +89,28 @@ const ChangelogModal = ({ isOpen, onClose }) => {
 
                 {/* Release Title */}
                 {release.title && (
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                  <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">
                     {release.title}
                   </h3>
                 )}
 
                 {/* Changes List */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {release.changes.map((change, changeIdx) => (
                     <div 
                       key={changeIdx}
-                      className="flex items-start gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="flex items-start gap-2 p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
                       <div className="mt-0.5">
                         {getTypeIcon(change.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${getTypeBadge(change.type)}`}>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium capitalize ${getTypeBadge(change.type)}`}>
                             {change.type}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                        <p className="text-xs text-gray-700 dark:text-gray-300">
                           {change.description}
                         </p>
                       </div>
@@ -119,7 +119,7 @@ const ChangelogModal = ({ isOpen, onClose }) => {
                 </div>
 
                 {idx < changelog.length - 1 && (
-                  <Separator className="my-4" />
+                  <Separator className="my-3" />
                 )}
               </div>
             ))}
@@ -127,7 +127,7 @@ const ChangelogModal = ({ isOpen, onClose }) => {
         </ScrollArea>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+        <div className="p-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex-shrink-0">
           <div className="flex items-center justify-end">
             <Button
               onClick={onClose}
