@@ -673,7 +673,7 @@ const CompanyMaster = () => {
             </h3>
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <Label htmlFor="custom_domain">Custom Domain URL</Label>
+                <Label htmlFor="custom_domain">Production Domain URL</Label>
                 <Input
                   id="custom_domain"
                   value={formData.custom_domain}
@@ -682,7 +682,7 @@ const CompanyMaster = () => {
                   data-testid="custom-domain-input"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Used for file/document links in outgoing emails. Leave empty to use default URL.
+                  This URL is used in booking confirmation emails (Accept/Deny buttons). Set this to your production domain so email links open your actual website, not the preview server.
                 </p>
               </div>
             </div>
