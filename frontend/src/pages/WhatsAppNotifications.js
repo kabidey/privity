@@ -51,6 +51,7 @@ const WhatsAppNotifications = () => {
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [watiEndpoint, setWatiEndpoint] = useState('');
   const [watiToken, setWatiToken] = useState('');
+  const [watiApiVersion, setWatiApiVersion] = useState('v1');
   const [connecting, setConnecting] = useState(false);
   
   // Send message state
