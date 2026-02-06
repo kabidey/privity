@@ -565,17 +565,18 @@ def post_process_cancelled_cheque(data: Dict[str, Any]) -> tuple:
     acc_no = data.get('account_number', '')
     if acc_no:
         cleaned = clean_account_number(acc_no)
-        if cleaned and len(cleaned) >= 9:
+        if cleaned and len(cleaned) >= 9 and len(cleaned) <= 18:
             data['account_number'] = cleaned
         else:
             confidence -= 25
+            logger.warning(f"Invalid account number format: {acc_no} -> {cleaned}")
     else:
         confidence -= 25
     
     # Validate IFSC code
     ifsc = data.get('ifsc_code', '')
     if ifsc:
-        ifsc = ifsc.upper().strip().replace(' ', '')
+        ifsc = ifsc.upper().strip().replace(' ', '').replace('-', '')
         if validate_ifsc_code(ifsc):
             data['ifsc_code'] = ifsc
             # Extract bank name from IFSC if not provided
@@ -590,12 +591,17 @@ def post_process_cancelled_cheque(data: Dict[str, Any]) -> tuple:
                     'BARB': 'Bank of Baroda',
                     'CNRB': 'Canara Bank',
                     'UBIN': 'Union Bank of India',
-                    'IDIB': 'Indian Bank'
+                    'IDIB': 'Indian Bank',
+                    'YESB': 'Yes Bank',
+                    'IDFB': 'IDFC First Bank',
+                    'FDRL': 'Federal Bank',
+                    'INDB': 'IndusInd Bank'
                 }
                 bank_prefix = ifsc[:4]
                 data['bank_name'] = bank_codes.get(bank_prefix, data.get('bank_name'))
         else:
             confidence -= 25
+            logger.warning(f"Invalid IFSC format: {ifsc}")
     else:
         confidence -= 25
     
@@ -604,6 +610,68 @@ def post_process_cancelled_cheque(data: Dict[str, Any]) -> tuple:
     if holder:
         # Don't normalize - keep as is since it may have multiple names
         data['account_holder_name'] = holder.strip()
+    else:
+        confidence -= 15
+    
+    # Bank name
+    if not data.get('bank_name'):
+        confidence -= 10
+    
+    return data, max(0, confidence)
+
+
+def post_process_bank_statement(data: Dict[str, Any]) -> tuple:
+    """Post-process and validate Bank Statement/Passbook OCR data"""
+    confidence = 100
+    
+    # Clean and validate account number
+    acc_no = data.get('account_number', '')
+    if acc_no:
+        cleaned = clean_account_number(acc_no)
+        if cleaned and len(cleaned) >= 9 and len(cleaned) <= 18:
+            data['account_number'] = cleaned
+        else:
+            confidence -= 25
+            logger.warning(f"Invalid account number format: {acc_no} -> {cleaned}")
+    else:
+        confidence -= 25
+    
+    # Validate IFSC code
+    ifsc = data.get('ifsc_code', '')
+    if ifsc:
+        ifsc = ifsc.upper().strip().replace(' ', '').replace('-', '')
+        if validate_ifsc_code(ifsc):
+            data['ifsc_code'] = ifsc
+            # Extract bank name from IFSC if not provided
+            if not data.get('bank_name'):
+                bank_codes = {
+                    'HDFC': 'HDFC Bank',
+                    'ICIC': 'ICICI Bank',
+                    'SBIN': 'State Bank of India',
+                    'UTIB': 'Axis Bank',
+                    'KKBK': 'Kotak Mahindra Bank',
+                    'PUNB': 'Punjab National Bank',
+                    'BARB': 'Bank of Baroda',
+                    'CNRB': 'Canara Bank',
+                    'UBIN': 'Union Bank of India',
+                    'IDIB': 'Indian Bank',
+                    'YESB': 'Yes Bank',
+                    'IDFB': 'IDFC First Bank',
+                    'FDRL': 'Federal Bank',
+                    'INDB': 'IndusInd Bank'
+                }
+                bank_prefix = ifsc[:4]
+                data['bank_name'] = bank_codes.get(bank_prefix, data.get('bank_name'))
+        else:
+            confidence -= 20
+            logger.warning(f"Invalid IFSC format: {ifsc}")
+    else:
+        confidence -= 20
+    
+    # Clean account holder name
+    holder = data.get('account_holder_name', '')
+    if holder:
+        data['account_holder_name'] = normalize_name(holder)
     else:
         confidence -= 15
     
