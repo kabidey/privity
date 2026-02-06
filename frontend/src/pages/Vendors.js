@@ -841,7 +841,7 @@ const Vendors = () => {
 
         {/* Proprietor Confirmation Dialog */}
         <Dialog open={proprietorDialogOpen} onOpenChange={setProprietorDialogOpen}>
-          <DialogContent className="max-w-md" aria-describedby="proprietor-dialog-desc">
+          <DialogContent className="sm:max-w-md" aria-describedby="proprietor-dialog-desc">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-amber-500" />
@@ -1046,7 +1046,7 @@ const Vendors = () => {
 
       {/* Documents View Dialog */}
       <Dialog open={documentsDialogOpen} onOpenChange={setDocumentsDialogOpen}>
-        <DialogContent className="max-w-2xl" aria-describedby="docs-desc">
+        <DialogContent className="sm:max-w-2xl" aria-describedby="docs-desc">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FolderOpen className="h-5 w-5" />
@@ -1116,7 +1116,7 @@ const Vendors = () => {
 
       {/* OCR Data Dialog */}
       <Dialog open={ocrDialogOpen} onOpenChange={setOcrDialogOpen}>
-        <DialogContent className="max-w-2xl" aria-describedby="ocr-desc">
+        <DialogContent className="sm:max-w-2xl" aria-describedby="ocr-desc">
           <DialogHeader>
             <DialogTitle>OCR Extracted Data</DialogTitle>
           </DialogHeader>

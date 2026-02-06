@@ -340,7 +340,7 @@ export default function EmployeeRevenueDashboard() {
 
       {/* Bookings Dialog */}
       <Dialog open={showBookingsDialog} onOpenChange={setShowBookingsDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>
               Bookings for {selectedEmployee?.employee_name} ({selectedEmployee?.role_name})

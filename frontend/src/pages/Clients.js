@@ -1885,7 +1885,7 @@ const Clients = () => {
       </Dialog>
 
       <Dialog open={ocrDialogOpen} onOpenChange={setOcrDialogOpen}>
-        <DialogContent className="max-w-2xl" aria-describedby="ocr-desc">
+        <DialogContent className="sm:max-w-2xl" aria-describedby="ocr-desc">
           <DialogHeader><DialogTitle>OCR Extracted Data</DialogTitle></DialogHeader>
           <p id="ocr-desc" className="sr-only">View OCR data</p>
           {selectedOcrData && (
@@ -1913,7 +1913,7 @@ const Clients = () => {
 
       {/* Documents View Dialog */}
       <Dialog open={documentsDialogOpen} onOpenChange={setDocumentsDialogOpen}>
-        <DialogContent className="max-w-2xl" aria-describedby="docs-desc">
+        <DialogContent className="sm:max-w-2xl" aria-describedby="docs-desc">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FolderOpen className="h-5 w-5" />
@@ -1987,7 +1987,7 @@ const Clients = () => {
 
       {/* Suspend Client Dialog */}
       <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
-        <DialogContent className="max-w-md" data-testid="suspend-client-dialog">
+        <DialogContent className="sm:max-w-md" data-testid="suspend-client-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-orange-600">
               <Ban className="h-5 w-5" />
@@ -2037,7 +2037,7 @@ const Clients = () => {
 
       {/* View Suspension Reason Dialog (for Employees) */}
       <Dialog open={suspensionReasonDialogOpen} onOpenChange={setSuspensionReasonDialogOpen}>
-        <DialogContent className="max-w-md" data-testid="suspension-reason-dialog">
+        <DialogContent className="sm:max-w-md" data-testid="suspension-reason-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <Ban className="h-5 w-5" />
@@ -2090,7 +2090,7 @@ const Clients = () => {
       
       {/* Proprietor Confirmation Dialog */}
       <Dialog open={proprietorDialogOpen} onOpenChange={setProprietorDialogOpen}>
-        <DialogContent className="max-w-md" aria-describedby="proprietor-dialog-desc">
+        <DialogContent className="sm:max-w-md" aria-describedby="proprietor-dialog-desc">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-amber-500" />

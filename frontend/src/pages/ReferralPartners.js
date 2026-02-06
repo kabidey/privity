@@ -651,7 +651,7 @@ const ReferralPartners = () => {
 
       {/* Add RP Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Referral Partner</DialogTitle>
             <DialogDescription>
@@ -805,7 +805,7 @@ const ReferralPartners = () => {
 
       {/* Edit RP Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Referral Partner</DialogTitle>
             <DialogDescription>
@@ -937,7 +937,7 @@ const ReferralPartners = () => {
 
       {/* Upload Documents Dialog */}
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Upload Documents</DialogTitle>
             <DialogDescription>
@@ -1011,7 +1011,7 @@ const ReferralPartners = () => {
 
       {/* View RP Dialog */}
       <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Referral Partner Details</DialogTitle>
           </DialogHeader>
@@ -1144,7 +1144,7 @@ const ReferralPartners = () => {
 
       {/* Approval Dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-yellow-500" />

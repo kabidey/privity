@@ -745,7 +745,7 @@ const Bookings = () => {
                 Create Booking
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="booking-dialog-desc">
+          <DialogContent className="sm:max-w-lg" aria-describedby="booking-dialog-desc">
             <DialogHeader>
               <DialogTitle>{editingBooking ? 'Edit Booking' : 'Create New Booking'}</DialogTitle>
             </DialogHeader>
@@ -1533,7 +1533,7 @@ const Bookings = () => {
 
       {/* Payment Dialog */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
@@ -1700,7 +1700,7 @@ const Bookings = () => {
 
       {/* Insider Trading Warning Dialog */}
       <Dialog open={insiderWarningOpen} onOpenChange={setInsiderWarningOpen}>
-        <DialogContent className="max-w-md" data-testid="insider-warning-dialog">
+        <DialogContent className="sm:max-w-md" data-testid="insider-warning-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-orange-600">
               <AlertTriangle className="h-5 w-5" />
@@ -1778,7 +1778,7 @@ const Bookings = () => {
 
       {/* Insider Form Upload Dialog */}
       <Dialog open={insiderFormDialogOpen} onOpenChange={setInsiderFormDialogOpen}>
-        <DialogContent className="max-w-md" data-testid="insider-form-upload-dialog">
+        <DialogContent className="sm:max-w-md" data-testid="insider-form-upload-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5 text-blue-600" />
@@ -1854,7 +1854,7 @@ const Bookings = () => {
 
       {/* RP Mapping Edit Dialog */}
       <Dialog open={rpMappingDialogOpen} onOpenChange={setRpMappingDialogOpen}>
-        <DialogContent className="max-w-md" data-testid="rp-mapping-dialog">
+        <DialogContent className="sm:max-w-md" data-testid="rp-mapping-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-purple-600" />
@@ -1979,7 +1979,7 @@ const Bookings = () => {
 
       {/* BP Revenue Override Approval Dialog */}
       <Dialog open={bpOverrideDialogOpen} onOpenChange={setBpOverrideDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <IndianRupee className="h-5 w-5 text-blue-600" />

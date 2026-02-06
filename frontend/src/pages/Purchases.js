@@ -282,7 +282,7 @@ const Purchases = () => {
                 Record Purchase
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-lg" aria-describedby="purchase-dialog-description">
+          <DialogContent className="sm:max-w-lg" aria-describedby="purchase-dialog-description">
             <DialogHeader>
               <DialogTitle>Record New Purchase</DialogTitle>
             </DialogHeader>
@@ -539,7 +539,7 @@ const Purchases = () => {
 
       {/* View Payments Dialog */}
       <Dialog open={paymentsDialog.open} onOpenChange={(open) => setPaymentsDialog({ ...paymentsDialog, open })}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-primary" />
@@ -677,7 +677,7 @@ const Purchases = () => {
           setTcsManualOverride(false);
         }
       }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-primary" />

@@ -875,7 +875,7 @@ const WhatsAppNotifications = () => {
 
       {/* Wati.io Config Dialog */}
       <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Key className="w-5 h-5" />
@@ -1038,7 +1038,7 @@ const WhatsAppNotifications = () => {
 
       {/* Bulk Broadcast Dialog */}
       <Dialog open={broadcastDialogOpen} onOpenChange={setBroadcastDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />

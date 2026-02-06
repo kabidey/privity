@@ -295,7 +295,7 @@ const Stocks = () => {
                     <span className="hidden sm:inline">Corporate </span>Action
                   </Button>
                 </DialogTrigger>
-              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby="action-dialog-desc">
+              <DialogContent className="sm:max-w-lg" aria-describedby="action-dialog-desc">
                 <DialogHeader>
                   <DialogTitle>Create Corporate Action</DialogTitle>
                 </DialogHeader>
@@ -465,7 +465,7 @@ const Stocks = () => {
                   Add Stock
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-lg" aria-describedby="stock-dialog-desc">
+              <DialogContent className="sm:max-w-lg" aria-describedby="stock-dialog-desc">
                 <DialogHeader>
                   <DialogTitle>{editingStock ? 'Edit Stock' : 'Add New Stock'}</DialogTitle>
                 </DialogHeader>

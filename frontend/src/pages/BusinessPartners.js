@@ -300,7 +300,7 @@ const BusinessPartners = () => {
                 Add Partner
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>{editingPartner ? 'Edit Business Partner' : 'Add Business Partner'}</DialogTitle>
               </DialogHeader>
@@ -671,7 +671,7 @@ const BusinessPartners = () => {
 
       {/* Document Upload Dialog */}
       <Dialog open={docDialogOpen} onOpenChange={setDocDialogOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Upload className="h-5 w-5 text-emerald-500" />

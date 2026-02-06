@@ -758,7 +758,7 @@ const DatabaseBackup = () => {
 
       {/* Clear Database Dialog */}
       <Dialog open={clearDialogOpen} onOpenChange={(open) => { setClearDialogOpen(open); if (!open) { setClearConfirmText(''); setSelectedCollections([]); setSelectedFileTypes([]); setExcludedRecords([]); setPreviewData(null); } }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="clear-database-dialog">
+        <DialogContent className="sm:max-w-4xl" data-testid="clear-database-dialog">
           <DialogHeader>
             <DialogTitle className="text-red-600 flex items-center gap-2">
               <XCircle className="h-5 w-5" />

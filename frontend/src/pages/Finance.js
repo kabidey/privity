@@ -1093,7 +1093,7 @@ const Finance = () => {
 
       {/* Employee Commission Dialog */}
       <Dialog open={commissionDialogOpen} onOpenChange={setCommissionDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
@@ -1140,7 +1140,7 @@ const Finance = () => {
 
       {/* Refund Update Dialog */}
       <Dialog open={refundDialogOpen} onOpenChange={setRefundDialogOpen}>
-        <DialogContent className="max-w-lg" data-testid="refund-dialog">
+        <DialogContent className="sm:max-w-lg" data-testid="refund-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <RotateCcw className="h-5 w-5" />
@@ -1246,7 +1246,7 @@ const Finance = () => {
 
       {/* RP Payment Update Dialog */}
       <Dialog open={rpPaymentDialogOpen} onOpenChange={setRpPaymentDialogOpen}>
-        <DialogContent className="max-w-lg" data-testid="rp-payment-dialog">
+        <DialogContent className="sm:max-w-lg" data-testid="rp-payment-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
@@ -1351,7 +1351,7 @@ const Finance = () => {
 
       {/* BP Payment Update Dialog */}
       <Dialog open={bpPaymentDialogOpen} onOpenChange={setBpPaymentDialogOpen}>
-        <DialogContent className="max-w-lg" data-testid="bp-payment-dialog">
+        <DialogContent className="sm:max-w-lg" data-testid="bp-payment-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building className="h-5 w-5 text-purple-600" />
