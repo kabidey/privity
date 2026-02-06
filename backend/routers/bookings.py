@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 import uuid
 import os
 import io
+import logging
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
