@@ -475,6 +475,204 @@ async def delete_inventory(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("inventory.delete", "delete inventory"))
 ):
+
+
+# ========== PE REPORT ENDPOINT ==========
+
+class PEReportRequest(BaseModel):
+    stock_id: str
+    method: str = "both"  # 'email', 'whatsapp', 'both'
+
+
+@router.post("/send-pe-report")
+async def send_pe_report(
+    request: PEReportRequest,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.send_report", "send PE report"))
+):
+    """
+    Send PE Stock Report to all users via Email and/or WhatsApp.
+    
+    Includes:
+    - Stock Symbol
+    - Stock Name
+    - Landing Price (LP)
+    - Company details from Company Master
+    
+    CC: pe@smifs.com
+    """
+    from services.email_service import send_email
+    from routers.whatsapp import get_wati_service
+    
+    # Get stock/inventory details
+    inventory = await db.inventory.find_one({"stock_id": request.stock_id}, {"_id": 0})
+    if not inventory:
+        raise HTTPException(status_code=404, detail="Stock not found in inventory")
+    
+    # Get stock details
+    stock = await db.stocks.find_one({"id": request.stock_id}, {"_id": 0})
+    
+    # Get company master details
+    company = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
+    if not company:
+        company = {
+            "company_name": "SMIFS Private Equity",
+            "address": "",
+            "phone": "",
+            "email": "pe@smifs.com"
+        }
+    
+    # Get all active users
+    users = await db.users.find(
+        {"is_active": {"$ne": False}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "mobile": 1}
+    ).to_list(10000)
+    
+    results = {
+        "total_users": len(users),
+        "emails_sent": 0,
+        "whatsapp_sent": 0,
+        "errors": []
+    }
+    
+    # Prepare stock data
+    stock_data = {
+        "stock_symbol": inventory.get("stock_symbol") or stock.get("symbol", ""),
+        "stock_name": inventory.get("stock_name") or stock.get("name", ""),
+        "landing_price": inventory.get("landing_price", 0),
+        "sector": stock.get("sector", "Unlisted"),
+        "lot_size": stock.get("lot_size", 1),
+        "min_investment": stock.get("min_investment", inventory.get("landing_price", 0) * stock.get("lot_size", 1)),
+        "available_quantity": inventory.get("available_quantity", 0),
+        "company_name": company.get("company_name", "SMIFS Private Equity"),
+        "company_address": company.get("address", ""),
+        "company_phone": company.get("phone", ""),
+        "company_email": company.get("email", "pe@smifs.com"),
+        "custom_domain": company.get("custom_domain", "")
+    }
+    
+    # Format currency for display
+    def format_currency(value):
+        try:
+            return f"{float(value):,.2f}"
+        except:
+            return "0.00"
+    
+    # Send reports
+    for user in users:
+        user_name = user.get("name", "Valued Client")
+        user_email = user.get("email")
+        user_mobile = user.get("mobile")
+        
+        # Send Email
+        if request.method in ["email", "both"] and user_email:
+            try:
+                booking_url = f"{stock_data['custom_domain'] or 'https://pesmifs.com'}/bookings?stock={request.stock_id}"
+                
+                email_data = {
+                    "recipient_name": user_name,
+                    "stock_symbol": stock_data["stock_symbol"],
+                    "stock_name": stock_data["stock_name"],
+                    "landing_price": format_currency(stock_data["landing_price"]),
+                    "sector": stock_data["sector"],
+                    "lot_size": str(stock_data["lot_size"]),
+                    "min_investment": format_currency(stock_data["min_investment"]),
+                    "available_quantity": f"{stock_data['available_quantity']:,}",
+                    "booking_url": booking_url,
+                    "company_name": stock_data["company_name"],
+                    "company_address": stock_data["company_address"],
+                    "company_phone": stock_data["company_phone"],
+                    "company_email": stock_data["company_email"]
+                }
+                
+                # Send email with CC to pe@smifs.com
+                await send_email(
+                    to_email=user_email,
+                    template_key="pe_stock_report",
+                    data=email_data,
+                    cc_email="pe@smifs.com"
+                )
+                results["emails_sent"] += 1
+            except Exception as e:
+                logger.error(f"Failed to send email to {user_email}: {str(e)}")
+                results["errors"].append({"user": user_email, "type": "email", "error": str(e)})
+        
+        # Send WhatsApp
+        if request.method in ["whatsapp", "both"] and user_mobile:
+            try:
+                service = await get_wati_service()
+                if service:
+                    # Format phone number
+                    phone = ''.join(filter(str.isdigit, user_mobile))
+                    if not phone.startswith('91') and len(phone) == 10:
+                        phone = '91' + phone
+                    
+                    # Create message
+                    message = f"""📈 *PE Stock Report*
+
+Hello {user_name},
+
+*{stock_data['stock_name']}* ({stock_data['stock_symbol']})
+
+💰 *Landing Price:* ₹{format_currency(stock_data['landing_price'])}
+
+📋 *Details:*
+• Sector: {stock_data['sector']}
+• Lot Size: {stock_data['lot_size']} shares
+• Available: {stock_data['available_quantity']:,} shares
+
+Contact us to book now!
+
+{stock_data['company_name']}
+📞 {stock_data['company_phone']}
+✉️ {stock_data['company_email']}"""
+                    
+                    # Try session message first
+                    result = await service.send_session_message(phone, message)
+                    if result.get("result"):
+                        results["whatsapp_sent"] += 1
+                    else:
+                        # If session fails, try template (requires pre-approved template in Wati)
+                        results["errors"].append({
+                            "user": phone, 
+                            "type": "whatsapp", 
+                            "error": "Session expired - needs template"
+                        })
+            except Exception as e:
+                logger.error(f"Failed to send WhatsApp to {user_mobile}: {str(e)}")
+                results["errors"].append({"user": user_mobile, "type": "whatsapp", "error": str(e)})
+    
+    # Create audit log
+    from services.audit_service import create_audit_log
+    await create_audit_log(
+        action="PE_REPORT_SENT",
+        entity_type="inventory",
+        entity_id=request.stock_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 6),
+        entity_name=stock_data["stock_symbol"],
+        details={
+            "method": request.method,
+            "total_users": results["total_users"],
+            "emails_sent": results["emails_sent"],
+            "whatsapp_sent": results["whatsapp_sent"],
+            "errors_count": len(results["errors"])
+        }
+    )
+    
+    logger.info(f"PE Report sent for {stock_data['stock_symbol']}: {results['emails_sent']} emails, {results['whatsapp_sent']} WhatsApp by {current_user['name']}")
+    
+    return {
+        "message": f"PE Report sent: {results['emails_sent']} emails, {results['whatsapp_sent']} WhatsApp messages",
+        "stock": {
+            "symbol": stock_data["stock_symbol"],
+            "name": stock_data["stock_name"],
+            "landing_price": stock_data["landing_price"]
+        },
+        "results": results
+    }
+
     """Delete inventory for a stock (requires inventory.delete permission)"""
     user_role = current_user.get("role", 6)
     
