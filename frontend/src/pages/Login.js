@@ -185,26 +185,36 @@ const Login = () => {
   // Select random theme on mount
   const [currentTheme] = useState(() => themes[Math.floor(Math.random() * themes.length)]);
 
-  // Quote rotation with 15-minute no-repeat window
+  // Quote rotation with 15-minute no-repeat window - Sequential rolling
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(() => {
     const stored = sessionStorage.getItem('pe_quotes_shown');
-    const shownQuotes = stored ? JSON.parse(stored) : { indices: [], timestamp: Date.now() };
+    const shownQuotes = stored ? JSON.parse(stored) : { lastIndex: -1, shownIndices: [], timestamp: Date.now() };
     
     // Reset if 15 minutes passed
     if (Date.now() - shownQuotes.timestamp > 15 * 60 * 1000) {
-      sessionStorage.setItem('pe_quotes_shown', JSON.stringify({ indices: [], timestamp: Date.now() }));
-      return Math.floor(Math.random() * allQuotes.length);
+      const startIndex = Math.floor(Math.random() * allQuotes.length); // Random starting point
+      sessionStorage.setItem('pe_quotes_shown', JSON.stringify({ 
+        lastIndex: startIndex, 
+        shownIndices: [startIndex], 
+        timestamp: Date.now() 
+      }));
+      return startIndex;
     }
     
-    // Find unshown quote
-    const availableIndices = allQuotes.map((_, i) => i).filter(i => !shownQuotes.indices.includes(i));
-    if (availableIndices.length === 0) {
-      // All shown, reset
-      sessionStorage.setItem('pe_quotes_shown', JSON.stringify({ indices: [], timestamp: Date.now() }));
-      return Math.floor(Math.random() * allQuotes.length);
+    // Get next sequential quote (wrapping around)
+    const nextIndex = (shownQuotes.lastIndex + 1) % allQuotes.length;
+    
+    // If we've shown all quotes, reset but continue from current position
+    if (shownQuotes.shownIndices.length >= allQuotes.length) {
+      sessionStorage.setItem('pe_quotes_shown', JSON.stringify({ 
+        lastIndex: nextIndex, 
+        shownIndices: [nextIndex], 
+        timestamp: Date.now() 
+      }));
+      return nextIndex;
     }
     
-    return availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    return nextIndex;
   });
 
   // Typewriter state
