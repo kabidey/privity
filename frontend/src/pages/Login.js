@@ -270,6 +270,10 @@ const Login = () => {
         toast.success('Account created! Check your email for login credentials.');
       }
     } catch (error) {
+      console.error('Login error:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
       const errorResponse = error.response?.data;
       const errorDetail = errorResponse?.detail;
       
