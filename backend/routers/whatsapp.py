@@ -395,24 +395,78 @@ class WatiService:
         return phone
 
 
+# ============== HARDCODED WATI DEFAULTS (can be overridden via DB) ==============
+WATI_DEFAULT_ENDPOINT = "https://live-mt-server.wati.io/302931"
+WATI_DEFAULT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImJpZHl1dC5kaGFyQHNtaWZzLmNvLmluIiwibmFtZWlkIjoiYmlkeXV0LmRoYXJAc21pZnMuY28uaW4iLCJlbWFpbCI6ImJpZHl1dC5kaGFyQHNtaWZzLmNvLmluIiwiYXV0aF90aW1lIjoiMDIvMDYvMjAyNiAxNjozNTowNSIsInRlbmFudF9pZCI6IjMwMjkzMSIsImRiX25hbWUiOiJtdC1wcm9kLVRlbmFudHMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBRE1JTklTVFJBVE9SIiwiZXhwIjoyNTM0MDIzMDA4MDAsImlzcyI6IkNsYXJlX0FJIiwiYXVkIjoiQ2xhcmVfQUkifQ.zk83hsHUrp_ARBp5Lkng7S5dZu2TRZlCsuhbeZlz3Pc"
+WATI_DEFAULT_VERSION = "v1"
+
+
 # Get Wati service instance
 async def get_wati_service() -> Optional[WatiService]:
-    """Get configured Wati service instance"""
+    """
+    Get configured Wati service instance.
+    Uses hardcoded defaults if no database config exists.
+    Database config can override defaults.
+    """
+    # Try to get from database first
     config = await db.system_config.find_one({"config_type": "whatsapp"})
-    if not config:
-        return None
     
-    api_endpoint = config.get("api_endpoint")
-    api_token = config.get("api_token")
-    api_version = config.get("api_version", "v1")
-    
-    if not api_endpoint or not api_token:
-        return None
+    # Use database values if present and not empty, otherwise use hardcoded defaults
+    if config:
+        api_endpoint = config.get("api_endpoint") or WATI_DEFAULT_ENDPOINT
+        api_token = config.get("api_token") or WATI_DEFAULT_TOKEN
+        api_version = config.get("api_version") or WATI_DEFAULT_VERSION
+    else:
+        # No config in DB - use hardcoded defaults
+        api_endpoint = WATI_DEFAULT_ENDPOINT
+        api_token = WATI_DEFAULT_TOKEN
+        api_version = WATI_DEFAULT_VERSION
     
     return WatiService(api_endpoint, api_token, api_version)
 
 
 # ============== CONFIG ENDPOINTS ==============
+
+@router.get("/config")
+async def get_whatsapp_config(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_view", "view WhatsApp configuration"))
+):
+    """
+    Get current WhatsApp/Wati.io configuration.
+    Shows hardcoded defaults if no database config exists.
+    """
+    config = await db.system_config.find_one({"config_type": "whatsapp"}, {"_id": 0})
+    
+    # Always return config (using defaults if needed)
+    api_endpoint = WATI_DEFAULT_ENDPOINT
+    api_token = WATI_DEFAULT_TOKEN
+    api_version = WATI_DEFAULT_VERSION
+    enabled = True
+    status = "connected"
+    
+    if config:
+        api_endpoint = config.get("api_endpoint") or WATI_DEFAULT_ENDPOINT
+        api_token = config.get("api_token") or WATI_DEFAULT_TOKEN
+        api_version = config.get("api_version") or WATI_DEFAULT_VERSION
+        enabled = config.get("enabled", True)
+        status = config.get("status", "connected")
+    
+    # Mask token for display
+    masked_token = f"{api_token[:20]}...{api_token[-4:]}" if len(api_token) > 24 else "***"
+    
+    return {
+        "config_type": "whatsapp",
+        "api_endpoint": api_endpoint,
+        "api_version": api_version,
+        "api_token_masked": masked_token,
+        "enabled": enabled,
+        "status": status,
+        "using_defaults": not bool(config),
+        "connected_at": config.get("connected_at") if config else None,
+        "updated_at": config.get("updated_at") if config else None
+    }
+
 
 @router.post("/test-connection")
 async def test_wati_connection(
