@@ -18,7 +18,7 @@ import { useCurrentUser } from '../hooks/useCurrentUser';
 import { 
   Plus, Pencil, Trash2, Clock, CheckCircle, XCircle, AlertCircle, 
   CreditCard, IndianRupee, Calendar, Receipt, Building2, TrendingDown, Download, FileSpreadsheet,
-  AlertTriangle, Upload, UserCircle, Mail, FileText, Info, Ban, RefreshCw, Users, Search
+  AlertTriangle, Upload, UserCircle, Mail, FileText, Info, Ban, RefreshCw, Users, Search, FolderOpen
 } from 'lucide-react';
 
 const Bookings = () => {
