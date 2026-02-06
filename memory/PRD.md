@@ -37,6 +37,19 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Feature - Production Domain URL Setting in Company Master (Feb 06, 2026)
+- **Request:** Add UI setting to configure the production domain for email links (Accept/Deny buttons)
+- **Implementation:**
+  - Added "Email Link Settings" section in Company Master page
+  - "Production Domain URL" field allows PE Desk to set the domain (e.g., `https://privity.yourdomain.com`)
+  - Booking approval flow now reads from Company Master first, then falls back to env variables
+  - Trailing slashes are automatically removed on save
+- **Files Modified:**
+  - `/app/backend/routers/company_master.py` - Added custom_domain to save and response
+  - `/app/backend/routers/bookings.py` - Lines 633-647, reads custom_domain from Company Master
+  - `/app/frontend/src/pages/CompanyMaster.js` - Lines 668-689, UI for Production Domain URL
+- **Test Status:** Verified with testing agent (iteration_74)
+
 #### ✅ Bug Fix - Booking Visibility for Mapped Clients (Feb 06, 2026)
 - **Bug:** Employees could only see bookings they created, not bookings for clients mapped to them
 - **Root Cause:** The booking query only filtered by `created_by`, not by client mapping
