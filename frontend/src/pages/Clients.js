@@ -186,6 +186,35 @@ const Clients = () => {
     }
   };
 
+  // Export clients to Excel/CSV
+  const handleExportClients = async (format = 'xlsx') => {
+    try {
+      const response = await api.get(`/clients-export?format=${format}&is_vendor=false`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], {
+        type: format === 'xlsx' 
+          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+          : 'text/csv'
+      });
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `clients_export_${new Date().toISOString().split('T')[0]}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Clients exported to ${format.toUpperCase()} successfully`);
+    } catch (error) {
+      toast.error('Failed to export clients');
+      console.error('Export error:', error);
+    }
+  };
+
   // Manual refresh handler - bypasses cache and fetches fresh data
   const handleRefresh = async () => {
     setRefreshing(true);
