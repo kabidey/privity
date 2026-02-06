@@ -118,7 +118,7 @@ const Login = () => {
   ], []);
 
   // Keywords extracted from quotes for floating icons - expanded list
-  const floatingKeywords = [
+  const floatingKeywords = useMemo(() => [
     { word: "CAPITAL", icon: DollarSign },
     { word: "OWNERSHIP", icon: Key },
     { word: "BUSINESS", icon: Briefcase },
@@ -170,7 +170,7 @@ const Login = () => {
     { word: "INORGANIC", icon: Package },
     { word: "BOARD", icon: Users },
     { word: "STEWARD", icon: Star },
-  ];
+  ], []);
 
   // Random theme generator for surprise effect
   const themes = useMemo(() => [
