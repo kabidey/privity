@@ -32,10 +32,24 @@ const Inventory = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   
   // PE Report state
-  const [peReportDialogOpen, setPeReportDialogOpen] = useState(false);
-  const [selectedStockForReport, setSelectedStockForReport] = useState(null);
-  const [sendingReport, setSendingReport] = useState(false);
-  const [reportMethod, setReportMethod] = useState('both'); // 'email', 'whatsapp', 'both'
+  const [sendingPeReport, setSendingPeReport] = useState(false);
+  
+  // PE Report Function - Consolidated report of ALL inventory
+  const handleSendPeReport = async () => {
+    if (!window.confirm('Send PE Inventory Report to ALL users?\n\nThis will email a consolidated report of all available stocks with their Landing Prices to every registered user.')) {
+      return;
+    }
+    
+    setSendingPeReport(true);
+    try {
+      const response = await api.post('/inventory/send-pe-report');
+      toast.success(response.data.message || 'PE Report sent successfully!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send PE Report');
+    } finally {
+      setSendingPeReport(false);
+    }
+  };
   
   const [stats, setStats] = useState({
     totalStocks: 0,
