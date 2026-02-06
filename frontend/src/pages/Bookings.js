@@ -1469,6 +1469,30 @@ const Bookings = () => {
                             <p className="text-xs text-muted-foreground">{booking.client_pan || ''}</p>
                           </div>
                         </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRevealDocuments(booking.client_id, booking.client_name)}
+                            disabled={revealingDocs === booking.client_id}
+                            className="h-8 px-2"
+                            title="Reveal Documents from GridFS"
+                          >
+                            {revealingDocs === booking.client_id ? (
+                              <RefreshCw className="h-4 w-4 animate-spin" />
+                            ) : clientDocsCache[booking.client_id] > 0 ? (
+                              <div className="flex items-center gap-1">
+                                <FolderOpen className="h-4 w-4 text-green-600" />
+                                <span className="text-xs font-medium text-green-600">{clientDocsCache[booking.client_id]}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1">
+                                <Search className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-xs">Reveal</span>
+                              </div>
+                            )}
+                          </Button>
+                        </TableCell>
                         <TableCell className="mono font-semibold">{booking.stock_symbol}</TableCell>
                         <TableCell className="mono">{booking.quantity}</TableCell>
                         <TableCell className="mono">
