@@ -283,10 +283,13 @@ async def get_clients(
         
         # Show clients that are:
         # 1. Mapped to anyone in the team, OR
-        # 2. Created by anyone in the team (and approved)
+        # 2. Created by anyone in the team AND approved
         query["$or"] = [
             {"mapped_employee_id": {"$in": team_ids}},
-            {"created_by": {"$in": team_ids}, "approval_status": "approved"}
+            {"$and": [
+                {"created_by": {"$in": team_ids}}, 
+                {"approval_status": "approved"}
+            ]}
         ]
     
     # Pending approval filter (for PE Level only)
