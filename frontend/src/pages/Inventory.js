@@ -221,6 +221,31 @@ const Inventory = () => {
     }
   };
 
+  // PE Report Functions
+  const openPeReportDialog = (item) => {
+    setSelectedStockForReport(item);
+    setPeReportDialogOpen(true);
+  };
+
+  const handleSendPeReport = async () => {
+    if (!selectedStockForReport) return;
+    
+    setSendingReport(true);
+    try {
+      const response = await api.post('/inventory/send-pe-report', {
+        stock_id: selectedStockForReport.stock_id,
+        method: reportMethod // 'email', 'whatsapp', 'both'
+      });
+      
+      toast.success(response.data.message || 'PE Report sent successfully!');
+      setPeReportDialogOpen(false);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send PE Report');
+    } finally {
+      setSendingReport(false);
+    }
+  };
+
   const startEditLP = (item) => {
     setEditingLP(item.stock_id);
     setNewLP(item.landing_price?.toString() || item.weighted_avg_price?.toString() || '');
