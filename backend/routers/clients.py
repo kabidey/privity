@@ -845,10 +845,40 @@ async def create_client_with_documents(
             except:
                 pass
         
-        error_msg = "Failed to upload mandatory documents to storage. "
+        error_msg = "STRICT REQUIREMENT: Both PAN Card and CML Copy documents must be uploaded. "
         if upload_errors:
-            error_msg += f"Errors: {', '.join(upload_errors)}"
-        raise HTTPException(status_code=500, detail=error_msg)
+            error_msg += f"Upload errors: {', '.join(upload_errors)}"
+        raise HTTPException(status_code=400, detail=error_msg)
+    
+    # STEP 2.5: STRICT VERIFICATION - Confirm documents exist in GridFS before proceeding
+    from bson import ObjectId
+    verified_documents = []
+    for doc in documents:
+        try:
+            # Verify the file actually exists in GridFS
+            gridfs_file = await db["fs.files"].find_one({"_id": ObjectId(doc["file_id"])})
+            if not gridfs_file:
+                raise Exception(f"Document {doc['doc_type']} not found in GridFS after upload")
+            
+            # Mark as verified
+            doc["gridfs_verified"] = True
+            doc["gridfs_upload_date"] = gridfs_file.get("uploadDate").isoformat() if gridfs_file.get("uploadDate") else None
+            verified_documents.append(doc)
+        except Exception as e:
+            # If verification fails, clean up and abort
+            for d in documents:
+                try:
+                    from services.file_storage import delete_file_from_gridfs
+                    await delete_file_from_gridfs(d["file_id"])
+                except:
+                    pass
+            raise HTTPException(
+                status_code=500, 
+                detail=f"STRICT VERIFICATION FAILED: Could not verify document {doc.get('doc_type', 'unknown')} in GridFS. Error: {str(e)}. Client NOT created."
+            )
+    
+    # Replace documents with verified ones
+    documents = verified_documents
     
     # STEP 3: Create the client with document references
     approval_status = "approved" if is_pe_level(user_role) else "pending"
