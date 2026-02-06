@@ -601,20 +601,65 @@ async def disconnect_whatsapp(
 # ============== TEMPLATES ==============
 
 DEFAULT_TEMPLATES = [
+    # ========== BOOKING TEMPLATES ==========
     {
         "id": "booking_confirmation",
         "name": "Booking Confirmation",
         "category": "booking",
-        "message_template": "Dear {{client_name}},\n\nYour booking #{{booking_number}} for {{quantity}} shares of {{stock_symbol}} has been confirmed.\n\nTotal Amount: ₹{{total_amount}}\n\nThank you for choosing SMIFS Private Equity.",
-        "variables": ["client_name", "booking_number", "quantity", "stock_symbol", "total_amount"],
+        "message_template": """Dear {{client_name}},
+
+Your booking has been confirmed! 🎉
+
+📋 *Booking Details:*
+• Booking No: #{{booking_number}}
+• Stock: {{stock_symbol}}
+• Quantity: {{quantity}} shares
+• Selling Price: ₹{{selling_price}}
+• Total Amount: ₹{{total_amount}}
+
+Thank you for choosing SMIFS Private Equity.
+
+For queries, contact your relationship manager.""",
+        "variables": ["client_name", "booking_number", "stock_symbol", "quantity", "selling_price", "total_amount"],
         "recipient_types": ["client"],
         "is_system": True
     },
     {
+        "id": "booking_pending_approval",
+        "name": "Booking Pending Approval",
+        "category": "booking",
+        "message_template": """Dear {{client_name}},
+
+Your booking request has been received and is pending approval.
+
+📋 *Booking Details:*
+• Booking No: #{{booking_number}}
+• Stock: {{stock_symbol}}
+• Quantity: {{quantity}} shares
+
+We will notify you once your booking is approved.
+
+Thank you for your patience.""",
+        "variables": ["client_name", "booking_number", "stock_symbol", "quantity"],
+        "recipient_types": ["client"],
+        "is_system": True
+    },
+    # ========== PAYMENT TEMPLATES ==========
+    {
         "id": "payment_reminder",
         "name": "Payment Reminder",
         "category": "payment",
-        "message_template": "Dear {{client_name}},\n\nThis is a reminder for your pending payment of ₹{{pending_amount}} for booking #{{booking_number}}.\n\nPlease complete the payment at your earliest convenience.\n\nThank you.",
+        "message_template": """Dear {{client_name}},
+
+This is a friendly reminder for your pending payment.
+
+💰 *Payment Details:*
+• Booking No: #{{booking_number}}
+• Pending Amount: ₹{{pending_amount}}
+
+Please complete the payment at your earliest convenience.
+
+Thank you.""",
         "variables": ["client_name", "booking_number", "pending_amount"],
         "recipient_types": ["client"],
         "is_system": True
@@ -623,25 +668,63 @@ DEFAULT_TEMPLATES = [
         "id": "payment_received",
         "name": "Payment Received",
         "category": "payment",
-        "message_template": "Dear {{client_name}},\n\nWe have received your payment of ₹{{amount}} for booking #{{booking_number}}.\n\nPayment Mode: {{payment_mode}}\nPayment Date: {{payment_date}}\n\nThank you.",
+        "message_template": """Dear {{client_name}},
+
+We have received your payment. Thank you! ✅
+
+💰 *Payment Details:*
+• Booking No: #{{booking_number}}
+• Amount Received: ₹{{amount}}
+• Payment Mode: {{payment_mode}}
+• Payment Date: {{payment_date}}
+
+Your booking is now being processed.
+
+Thank you for your business.""",
         "variables": ["client_name", "booking_number", "amount", "payment_mode", "payment_date"],
         "recipient_types": ["client"],
         "is_system": True
     },
+    # ========== DP TRANSFER TEMPLATES ==========
     {
         "id": "dp_transfer_complete",
         "name": "DP Transfer Complete",
         "category": "dp_transfer",
-        "message_template": "Dear {{client_name}},\n\n{{quantity}} shares of {{stock_symbol}} have been transferred to your DP account.\n\nDP ID: {{dp_id}}\nBooking: #{{booking_number}}\n\nThank you for your business.",
-        "variables": ["client_name", "quantity", "stock_symbol", "dp_id", "booking_number"],
+        "message_template": """Dear {{client_name}},
+
+Great news! Your shares have been transferred successfully. 🎉
+
+📊 *Transfer Details:*
+• Booking No: #{{booking_number}}
+• Stock: {{stock_symbol}}
+• Quantity: {{quantity}} shares
+• Your DP ID: {{dp_id}}
+• Client ID: {{client_id}}
+
+The shares should reflect in your demat account within 24-48 hours.
+
+Thank you for your business with SMIFS Private Equity.""",
+        "variables": ["client_name", "booking_number", "stock_symbol", "quantity", "dp_id", "client_id"],
         "recipient_types": ["client"],
         "is_system": True
     },
+    # ========== PARTNER TEMPLATES ==========
     {
         "id": "bp_booking_alert",
         "name": "BP Booking Alert",
-        "category": "alert",
-        "message_template": "Hello {{bp_name}},\n\nA new booking has been created under your account:\n\nBooking: #{{booking_number}}\nClient: {{client_name}}\nStock: {{stock_symbol}}\nQuantity: {{quantity}}\n\nYour revenue share: {{revenue_share}}%",
+        "category": "partner",
+        "message_template": """Hello {{bp_name}},
+
+A new booking has been created under your account! 📈
+
+📋 *Booking Details:*
+• Booking No: #{{booking_number}}
+• Client: {{client_name}}
+• Stock: {{stock_symbol}}
+• Quantity: {{quantity}} shares
+• Your Revenue Share: {{revenue_share}}%
+
+Keep up the great work!""",
         "variables": ["bp_name", "booking_number", "client_name", "stock_symbol", "quantity", "revenue_share"],
         "recipient_types": ["bp"],
         "is_system": True
@@ -649,8 +732,18 @@ DEFAULT_TEMPLATES = [
     {
         "id": "rp_commission_alert",
         "name": "RP Commission Alert",
-        "category": "alert",
-        "message_template": "Hello {{rp_name}},\n\nYou have earned a commission on a new booking:\n\nBooking: #{{booking_number}}\nClient: {{client_name}}\nCommission: ₹{{commission_amount}} ({{commission_percent}}%)\n\nThank you for your referral!",
+        "category": "partner",
+        "message_template": """Hello {{rp_name}},
+
+You have earned a commission on a new booking! 💰
+
+📋 *Commission Details:*
+• Booking No: #{{booking_number}}
+• Client: {{client_name}}
+• Commission Amount: ₹{{commission_amount}}
+• Commission Rate: {{commission_percent}}%
+
+Thank you for your valuable referral!""",
         "variables": ["rp_name", "booking_number", "client_name", "commission_amount", "commission_percent"],
         "recipient_types": ["rp"],
         "is_system": True
