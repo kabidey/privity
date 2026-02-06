@@ -930,9 +930,16 @@ const Clients = () => {
       await api.put(`/clients/${selectedClient.id}/employee-mapping`, null, {
         params: { employee_id: employeeId || null }
       });
-      toast.success(employeeId ? 'Client mapped to employee' : 'Client unmapped');
+      toast.success(employeeId ? 'Client mapped to employee - changes are live!' : 'Client unmapped');
       setMappingDialogOpen(false);
+      
+      // Clear all client caches to ensure immediate visibility of changes
+      localStorage.removeItem('privity_cache_clients');
+      sessionStorage.removeItem('clientsCache');
+      
+      // Fetch fresh data
       fetchClients();
+      if (canMapClients) fetchPendingClients();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update mapping');
     }
