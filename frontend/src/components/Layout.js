@@ -303,6 +303,9 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: MessageCircle, label: 'WhatsApp', path: '/whatsapp' });
   }
   
+  // Notification Dashboard - visible to all users
+  menuItems.push({ icon: Bell, label: 'Notifications', path: '/notifications' });
+  
   // File Migration - PE Desk only
   if (isPEDesk) {
     menuItems.push({ icon: HardDrive, label: 'File Migration', path: '/file-migration' });
