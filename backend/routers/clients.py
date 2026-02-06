@@ -281,8 +281,13 @@ async def get_clients(
         # Get team user IDs based on hierarchy (self + all subordinates)
         team_ids = await get_team_user_ids(user_id, include_self=True)
         
-        # Show clients mapped to anyone in the team
-        query["mapped_employee_id"] = {"$in": team_ids}
+        # Show clients that are:
+        # 1. Mapped to anyone in the team, OR
+        # 2. Created by anyone in the team (and approved)
+        query["$or"] = [
+            {"mapped_employee_id": {"$in": team_ids}},
+            {"created_by": {"$in": team_ids}, "approval_status": "approved"}
+        ]
     
     # Pending approval filter (for PE Level only)
     if pending_approval and is_pe_level(user_role):
