@@ -910,3 +910,267 @@ async def get_broadcasts(
         "limit": limit,
         "skip": skip
     }
+
+
+# ============== WATI WEBHOOK ENDPOINTS ==============
+
+class WebhookPayload(BaseModel):
+    """Wati.io Webhook payload model"""
+    eventType: Optional[str] = None
+    waId: Optional[str] = None  # WhatsApp ID (phone number)
+    id: Optional[str] = None  # Message ID
+    timestamp: Optional[str] = None
+    text: Optional[str] = None
+    status: Optional[str] = None  # sent, delivered, read, failed
+    type: Optional[str] = None
+    localMessageId: Optional[str] = None
+    conversationId: Optional[str] = None
+    # Allow any additional fields
+    class Config:
+        extra = "allow"
+
+
+@router.post("/webhook")
+async def wati_webhook(payload: dict):
+    """
+    Wati.io Webhook endpoint for receiving delivery status updates.
+    Configure this URL in your Wati.io dashboard under Settings > Webhooks.
+    
+    Webhook URL: {your_domain}/api/whatsapp/webhook
+    """
+    try:
+        event_type = payload.get("eventType", payload.get("type", "unknown"))
+        wa_id = payload.get("waId", payload.get("from", ""))
+        message_id = payload.get("id", payload.get("messageId", ""))
+        status = payload.get("status", "")
+        timestamp = payload.get("timestamp", datetime.now(timezone.utc).isoformat())
+        
+        # Store webhook event
+        webhook_event = {
+            "id": str(uuid.uuid4()),
+            "event_type": event_type,
+            "wa_id": wa_id,
+            "message_id": message_id,
+            "status": status,
+            "payload": payload,
+            "received_at": datetime.now(timezone.utc).isoformat(),
+            "processed": False
+        }
+        
+        await db.whatsapp_webhook_events.insert_one(webhook_event.copy())
+        
+        # Process based on event type
+        if event_type in ["message_status", "status_update"] or status:
+            # Update message log with delivery status
+            await process_delivery_status(message_id, status, wa_id, timestamp)
+        
+        elif event_type in ["message_received", "incoming"]:
+            # Store incoming message
+            await process_incoming_message(payload)
+        
+        # Create notification for PE Desk about important events
+        if status == "failed" or event_type == "message_failed":
+            from services.notification_service import notify_roles
+            await notify_roles(
+                roles=[1, 2],  # PE Desk and PE Manager
+                notif_type="whatsapp_failed",
+                title="WhatsApp Message Failed",
+                message=f"Message to {wa_id} failed to deliver",
+                data={"wa_id": wa_id, "message_id": message_id, "payload": payload}
+            )
+        
+        # Mark as processed
+        await db.whatsapp_webhook_events.update_one(
+            {"id": webhook_event["id"]},
+            {"$set": {"processed": True, "processed_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"status": "ok", "event_id": webhook_event["id"]}
+    
+    except Exception as e:
+        logger.error(f"Webhook processing error: {str(e)}")
+        # Store the error but return 200 to prevent retries
+        await db.whatsapp_webhook_events.insert_one({
+            "id": str(uuid.uuid4()),
+            "event_type": "error",
+            "error": str(e),
+            "payload": payload,
+            "received_at": datetime.now(timezone.utc).isoformat(),
+            "processed": False
+        })
+        return {"status": "error", "message": str(e)}
+
+
+async def process_delivery_status(message_id: str, status: str, wa_id: str, timestamp: str):
+    """Process delivery status update from webhook"""
+    if not message_id:
+        return
+    
+    # Update the message log entry
+    update_data = {
+        f"delivery_status.{status}": True,
+        f"delivery_status.{status}_at": timestamp,
+        "delivery_status.current": status,
+        "delivery_status.updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.whatsapp_message_logs.update_one(
+        {"$or": [{"message_id": message_id}, {"local_message_id": message_id}]},
+        {"$set": update_data}
+    )
+    
+    # Also update by phone number if message_id not found
+    await db.whatsapp_message_logs.update_one(
+        {"phone_number": {"$regex": wa_id.replace("+", "").replace("91", "")}},
+        {"$set": update_data},
+        upsert=False
+    )
+
+
+async def process_incoming_message(payload: dict):
+    """Process incoming WhatsApp message"""
+    incoming_message = {
+        "id": str(uuid.uuid4()),
+        "wa_id": payload.get("waId", payload.get("from", "")),
+        "message_id": payload.get("id", ""),
+        "text": payload.get("text", payload.get("body", "")),
+        "type": payload.get("type", "text"),
+        "timestamp": payload.get("timestamp", datetime.now(timezone.utc).isoformat()),
+        "received_at": datetime.now(timezone.utc).isoformat(),
+        "read": False
+    }
+    
+    await db.whatsapp_incoming_messages.insert_one(incoming_message.copy())
+    
+    # Notify PE Desk
+    from services.notification_service import notify_roles
+    await notify_roles(
+        roles=[1, 2],
+        notif_type="whatsapp_incoming",
+        title="New WhatsApp Message",
+        message=f"New message from {incoming_message['wa_id']}: {incoming_message['text'][:50]}...",
+        data=incoming_message
+    )
+
+
+@router.get("/webhook/events")
+async def get_webhook_events(
+    limit: int = Query(100, ge=1, le=500),
+    skip: int = Query(0, ge=0),
+    event_type: Optional[str] = Query(None),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view webhook events"))
+):
+    """Get webhook event history for debugging"""
+    query = {}
+    if event_type:
+        query["event_type"] = event_type
+    
+    events = await db.whatsapp_webhook_events.find(
+        query, {"_id": 0}
+    ).sort("received_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    total = await db.whatsapp_webhook_events.count_documents(query)
+    
+    return {
+        "events": events,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }
+
+
+@router.get("/incoming-messages")
+async def get_incoming_messages(
+    limit: int = Query(50, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+    unread_only: bool = Query(False),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view incoming messages"))
+):
+    """Get incoming WhatsApp messages"""
+    query = {}
+    if unread_only:
+        query["read"] = False
+    
+    messages = await db.whatsapp_incoming_messages.find(
+        query, {"_id": 0}
+    ).sort("received_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    total = await db.whatsapp_incoming_messages.count_documents(query)
+    unread_count = await db.whatsapp_incoming_messages.count_documents({"read": False})
+    
+    return {
+        "messages": messages,
+        "total": total,
+        "unread_count": unread_count,
+        "limit": limit,
+        "skip": skip
+    }
+
+
+@router.put("/incoming-messages/{message_id}/read")
+async def mark_incoming_read(
+    message_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_history", "mark messages as read"))
+):
+    """Mark incoming message as read"""
+    result = await db.whatsapp_incoming_messages.update_one(
+        {"id": message_id},
+        {"$set": {"read": True, "read_at": datetime.now(timezone.utc).isoformat(), "read_by": current_user["id"]}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    return {"message": "Marked as read"}
+
+
+@router.get("/delivery-stats")
+async def get_delivery_stats(
+    days: int = Query(7, ge=1, le=30),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view delivery stats"))
+):
+    """Get WhatsApp message delivery statistics"""
+    from datetime import timedelta
+    
+    start_date = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    # Aggregate delivery stats from message logs
+    pipeline = [
+        {"$match": {"sent_at": {"$gte": start_date.isoformat()}}},
+        {"$group": {
+            "_id": None,
+            "total_sent": {"$sum": 1},
+            "delivered": {"$sum": {"$cond": [{"$eq": ["$delivery_status.delivered", True]}, 1, 0]}},
+            "read": {"$sum": {"$cond": [{"$eq": ["$delivery_status.read", True]}, 1, 0]}},
+            "failed": {"$sum": {"$cond": [{"$eq": ["$delivery_status.failed", True]}, 1, 0]}}
+        }}
+    ]
+    
+    stats = await db.whatsapp_message_logs.aggregate(pipeline).to_list(1)
+    
+    if stats:
+        stat = stats[0]
+        total = stat.get("total_sent", 0)
+        return {
+            "period_days": days,
+            "total_sent": total,
+            "delivered": stat.get("delivered", 0),
+            "read": stat.get("read", 0),
+            "failed": stat.get("failed", 0),
+            "delivery_rate": round((stat.get("delivered", 0) / total * 100) if total > 0 else 0, 2),
+            "read_rate": round((stat.get("read", 0) / total * 100) if total > 0 else 0, 2)
+        }
+    
+    return {
+        "period_days": days,
+        "total_sent": 0,
+        "delivered": 0,
+        "read": 0,
+        "failed": 0,
+        "delivery_rate": 0,
+        "read_rate": 0
+    }
