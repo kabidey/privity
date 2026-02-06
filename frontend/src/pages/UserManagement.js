@@ -998,8 +998,8 @@ const UserManagement = () => {
                 Mobile Number
               </Label>
               <Input
-                value={editFormData.mobile}
-                onChange={(e) => setEditFormData({...editFormData, mobile: e.target.value})}
+                value={editFormData.mobile_number}
+                onChange={(e) => setEditFormData({...editFormData, mobile_number: e.target.value})}
                 placeholder="Enter mobile number"
                 data-testid="edit-mobile"
               />
