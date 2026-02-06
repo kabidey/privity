@@ -48,7 +48,8 @@ import {
   DollarSign,
   HardDrive,
   HelpCircle,
-  MessageCircle
+  MessageCircle,
+  Bell
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
