@@ -31,6 +31,12 @@ const Inventory = () => {
   const [lpHistory, setLpHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   
+  // PE Report state
+  const [peReportDialogOpen, setPeReportDialogOpen] = useState(false);
+  const [selectedStockForReport, setSelectedStockForReport] = useState(null);
+  const [sendingReport, setSendingReport] = useState(false);
+  const [reportMethod, setReportMethod] = useState('both'); // 'email', 'whatsapp', 'both'
+  
   const [stats, setStats] = useState({
     totalStocks: 0,
     totalValue: 0,
