@@ -408,8 +408,13 @@ const WhatsAppNotifications = () => {
                 {isConnected ? (
                   <div className="text-sm text-muted-foreground space-y-1">
                     <p>API Endpoint: {config.api_endpoint}</p>
+                    <p>API Version: <Badge variant="outline" className="ml-1">{config.api_version || config.api_version_detected || 'v1'}</Badge></p>
                     <p>Token: {config.api_token_masked}</p>
                     <p>Connected: {new Date(config.connected_at).toLocaleString()}</p>
+                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950 rounded text-xs">
+                      <p className="font-semibold text-blue-700 dark:text-blue-300">Webhook URL (configure in Wati dashboard):</p>
+                      <code className="text-blue-600 dark:text-blue-400 break-all">{window.location.origin}/api/whatsapp/webhook</code>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
