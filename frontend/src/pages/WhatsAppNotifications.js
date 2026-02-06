@@ -142,11 +142,13 @@ const WhatsAppNotifications = () => {
 
     setConnecting(true);
     try {
-      await api.post(`/whatsapp/config?api_endpoint=${encodeURIComponent(watiEndpoint)}&api_token=${encodeURIComponent(watiToken)}`);
-      toast.success('Wati.io connected successfully!');
+      const response = await api.post(`/whatsapp/config?api_endpoint=${encodeURIComponent(watiEndpoint)}&api_token=${encodeURIComponent(watiToken)}&api_version=${watiApiVersion}`);
+      const detectedVersion = response.data?.api_version || watiApiVersion;
+      toast.success(`Wati.io connected successfully! (API ${detectedVersion})`);
       setShowConfigDialog(false);
       setWatiEndpoint('');
       setWatiToken('');
+      setWatiApiVersion('v1');
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to connect to Wati.io');
