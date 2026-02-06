@@ -845,6 +845,120 @@ const Inventory = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* PE Report Dialog */}
+      <Dialog open={peReportDialogOpen} onOpenChange={setPeReportDialogOpen}>
+        <DialogContent className="max-w-md" data-testid="pe-report-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-blue-600" />
+              Send PE Report
+            </DialogTitle>
+            <DialogDescription>
+              Send stock details to all users via Email and/or WhatsApp
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedStockForReport && (
+            <div className="space-y-4 py-4">
+              {/* Stock Preview */}
+              <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950 dark:to-green-950 rounded-lg p-4 border border-emerald-200 dark:border-emerald-800">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-bold text-lg text-emerald-800 dark:text-emerald-200">
+                      {selectedStockForReport.stock_name}
+                    </h3>
+                    <p className="text-sm text-emerald-600 dark:text-emerald-400 font-mono">
+                      {selectedStockForReport.stock_symbol}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">Landing Price</p>
+                    <p className="text-2xl font-bold text-emerald-600">
+                      ₹{selectedStockForReport.landing_price?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="bg-white/50 rounded p-2">
+                    <p className="text-gray-500 text-xs">Available</p>
+                    <p className="font-semibold">{selectedStockForReport.available_quantity?.toLocaleString('en-IN')} shares</p>
+                  </div>
+                  <div className="bg-white/50 rounded p-2">
+                    <p className="text-gray-500 text-xs">Sector</p>
+                    <p className="font-semibold">{selectedStockForReport.sector || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Send Method */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Send Via</label>
+                <Select value={reportMethod} onValueChange={setReportMethod}>
+                  <SelectTrigger data-testid="report-method">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        <MessageSquare className="h-4 w-4" />
+                        Both Email & WhatsApp
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="email">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        Email Only
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="whatsapp">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4" />
+                        WhatsApp Only
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Info */}
+              <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 text-sm">
+                <p className="text-blue-700 dark:text-blue-300">
+                  <strong>Note:</strong> This will send the PE Report to all active users in the system with their individual details and company information from Company Master.
+                </p>
+                <p className="text-blue-600 dark:text-blue-400 mt-1 text-xs">
+                  CC: pe@smifs.com
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPeReportDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSendPeReport} 
+              disabled={sendingReport}
+              className="bg-blue-600 hover:bg-blue-700"
+              data-testid="send-pe-report-btn"
+            >
+              {sendingReport ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send PE Report
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
