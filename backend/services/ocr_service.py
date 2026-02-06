@@ -153,36 +153,6 @@ Return ONLY this JSON structure:
 }
 
 CRITICAL: Return ONLY raw JSON, no explanations, no markdown, no code blocks."""
-   - The cardholder's name (NOT the father's name)
-   - Usually appears AFTER "Name" label
-   - In CAPITAL LETTERS
-   - May have title like MR/MRS - extract without title
-
-3. **Father's Name**:
-   - Usually on line ABOVE the cardholder's name
-   - Labeled as "Father's Name" or "पिता का नाम"
-   - Extract without any title (MR/MRS/SHRI etc.)
-
-4. **Date of Birth**:
-   - Format: DD/MM/YYYY
-   - Labeled as "Date of Birth" / "जन्म तिथि"
-
-CRITICAL RULES:
-- PAN format MUST be 5 letters + 4 digits + 1 letter (total 10 chars)
-- If you see something like "BLOPS6942P" - that's the PAN
-- The cardholder name is BELOW father's name
-- Remove any titles (MR, MRS, SHRI, SMT) from names
-- Return null for fields you cannot clearly read
-
-Return ONLY this JSON structure:
-{
-    "pan_number": "BLOPS6942P",
-    "name": "BENOY SEN",
-    "father_name": "SUPRABHAT SEN",
-    "date_of_birth": "30/08/1968"
-}
-
-NO explanations, NO markdown code blocks, ONLY the raw JSON object."""
 
 
 def get_cancelled_cheque_prompt() -> str:
