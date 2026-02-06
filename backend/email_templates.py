@@ -1262,5 +1262,257 @@ DEFAULT_EMAIL_TEMPLATES = {
         """,
         "variables": ["user_name", "license_key", "expiry_date"],
         "is_active": True
+    },
+    
+    # ========== HIERARCHY REVENUE REPORT EMAIL TEMPLATES ==========
+    "hierarchy_daily_report": {
+        "key": "hierarchy_daily_report",
+        "name": "Daily Revenue Report (Hierarchy)",
+        "subject": "📊 Daily Revenue Report - {{report_date}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #f9fafb; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #064E3B 0%, #065f46 100%); padding: 25px; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 22px;">📊 Daily Revenue Report</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">{{report_date}} | {{hierarchy_level_name}}</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 25px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                <p style="color: #374151; font-size: 16px;">Dear {{user_name}},</p>
+                
+                <h3 style="color: #064E3B; margin: 25px 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 8px;">💰 Today's Performance</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr style="background: #f3f4f6;">
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;"><strong>Total Bookings</strong></td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right; font-weight: bold; color: #064E3B;">{{total_bookings}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;"><strong>Total Value</strong></td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right; font-weight: bold;">₹{{total_value}}</td>
+                    </tr>
+                    <tr style="background: #ecfdf5;">
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;"><strong>Your Revenue</strong></td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right; font-weight: bold; color: #10b981;">₹{{your_revenue}}</td>
+                    </tr>
+                </table>
+                
+                <h3 style="color: #064E3B; margin: 25px 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 8px;">📈 Team Breakdown</h3>
+                {{team_breakdown_html}}
+                
+                <h3 style="color: #064E3B; margin: 25px 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 8px;">🏆 Top Performers</h3>
+                {{top_performers_html}}
+                
+                <div style="background: #f0fdf4; border-radius: 8px; padding: 15px; margin: 20px 0; border-left: 4px solid #10b981;">
+                    <p style="margin: 0; color: #065f46;"><strong>Month-to-Date:</strong> ₹{{mtd_revenue}}</p>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 13px; margin-top: 25px;">
+                    This report was automatically generated at 6:00 PM IST.<br>
+                    For queries, contact PE Desk: pe@smifs.com
+                </p>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["user_name", "report_date", "hierarchy_level_name", "total_bookings", "total_value", "your_revenue", "team_breakdown_html", "top_performers_html", "mtd_revenue"],
+        "is_active": True
+    },
+    "hierarchy_weekly_report": {
+        "key": "hierarchy_weekly_report",
+        "name": "Weekly Revenue Report (Hierarchy)",
+        "subject": "📊 Weekly Revenue Report - {{week_range}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #f9fafb; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); padding: 25px; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 22px;">📊 Weekly Revenue Report</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">{{week_range}} | {{hierarchy_level_name}}</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 25px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                <p style="color: #374151; font-size: 16px;">Dear {{user_name}},</p>
+                
+                <h3 style="color: #1e40af; margin: 25px 0 15px 0; border-bottom: 2px solid #3b82f6; padding-bottom: 8px;">💰 Weekly Summary</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr style="background: #f3f4f6;">
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;"><strong>Total Bookings</strong></td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right; font-weight: bold;">{{total_bookings}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;"><strong>Total Value</strong></td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right; font-weight: bold;">₹{{total_value}}</td>
+                    </tr>
+                    <tr style="background: #eff6ff;">
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;"><strong>Your Revenue</strong></td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right; font-weight: bold; color: #1e40af;">₹{{your_revenue}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;"><strong>WoW Growth</strong></td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right; font-weight: bold; color: {{growth_color}};">{{wow_growth}}%</td>
+                    </tr>
+                </table>
+                
+                <h3 style="color: #1e40af; margin: 25px 0 15px 0; border-bottom: 2px solid #3b82f6; padding-bottom: 8px;">📊 Target Achievement</h3>
+                <div style="background: #f3f4f6; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                    <p style="margin: 0 0 10px 0;"><strong>Target:</strong> ₹{{target}}</p>
+                    <p style="margin: 0 0 10px 0;"><strong>Achieved:</strong> ₹{{achieved}} ({{achievement}}%)</p>
+                    <div style="background: #e5e7eb; border-radius: 4px; height: 20px; overflow: hidden;">
+                        <div style="background: linear-gradient(90deg, #10b981, #34d399); height: 100%; width: {{achievement}}%; max-width: 100%;"></div>
+                    </div>
+                </div>
+                
+                <h3 style="color: #1e40af; margin: 25px 0 15px 0; border-bottom: 2px solid #3b82f6; padding-bottom: 8px;">🏆 Leaderboard</h3>
+                {{leaderboard_html}}
+                
+                <p style="color: #6b7280; font-size: 13px; margin-top: 25px;">
+                    This report was automatically generated at 6:00 PM IST on Saturday.<br>
+                    For queries, contact PE Desk: pe@smifs.com
+                </p>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["user_name", "week_range", "hierarchy_level_name", "total_bookings", "total_value", "your_revenue", "wow_growth", "growth_color", "target", "achieved", "achievement", "leaderboard_html"],
+        "is_active": True
+    },
+    "hierarchy_monthly_report": {
+        "key": "hierarchy_monthly_report",
+        "name": "Monthly Revenue Report (Hierarchy)",
+        "subject": "📊 Monthly Revenue Report - {{month_year}}",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #f9fafb; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 25px; border-radius: 12px 12px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 22px;">📊 Monthly Revenue Report</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0;">{{month_year}} | {{hierarchy_level_name}}</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 25px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                <p style="color: #374151; font-size: 16px;">Dear {{user_name}},</p>
+                
+                <h3 style="color: #7c3aed; margin: 25px 0 15px 0; border-bottom: 2px solid #a855f7; padding-bottom: 8px;">💰 Monthly Summary</h3>
+                {{monthly_summary_html}}
+                
+                <h3 style="color: #7c3aed; margin: 25px 0 15px 0; border-bottom: 2px solid #a855f7; padding-bottom: 8px;">💵 Earnings Breakdown</h3>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <tr style="background: #f3f4f6;">
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">Base Commission</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right;">₹{{base_commission}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">Override (Team)</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right;">₹{{override}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;">Incentives</td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right;">₹{{incentives}}</td>
+                    </tr>
+                    <tr style="background: #f3e8ff;">
+                        <td style="padding: 12px; border: 1px solid #e5e7eb;"><strong>Total Earnings</strong></td>
+                        <td style="padding: 12px; border: 1px solid #e5e7eb; text-align: right; font-weight: bold; color: #7c3aed;">₹{{total_earnings}}</td>
+                    </tr>
+                </table>
+                
+                <h3 style="color: #7c3aed; margin: 25px 0 15px 0; border-bottom: 2px solid #a855f7; padding-bottom: 8px;">📈 Performance Metrics</h3>
+                {{performance_metrics_html}}
+                
+                <h3 style="color: #7c3aed; margin: 25px 0 15px 0; border-bottom: 2px solid #a855f7; padding-bottom: 8px;">🏆 Team Rankings</h3>
+                {{rankings_html}}
+                
+                <p style="color: #6b7280; font-size: 13px; margin-top: 25px;">
+                    This report was automatically generated on the 1st of the month.<br>
+                    For queries, contact PE Desk: pe@smifs.com
+                </p>
+                
+                <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["user_name", "month_year", "hierarchy_level_name", "monthly_summary_html", "base_commission", "override", "incentives", "total_earnings", "performance_metrics_html", "rankings_html"],
+        "is_active": True
+    },
+    
+    # ========== PE REPORT (INVENTORY) EMAIL TEMPLATE ==========
+    "pe_stock_report": {
+        "key": "pe_stock_report",
+        "name": "PE Stock Report",
+        "subject": "📈 PE Stock Report - {{stock_symbol}} | SMIFS Private Equity",
+        "body": """
+        <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; background: #f9fafb; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #064E3B 0%, #10b981 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 26px;">📈 PE Stock Report</h1>
+                <p style="color: rgba(255,255,255,0.95); margin: 10px 0 0 0; font-size: 18px;">{{stock_symbol}}</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                <p style="color: #374151; font-size: 16px;">Dear {{recipient_name}},</p>
+                
+                <p style="color: #4b5563; line-height: 1.7;">We are pleased to share the following investment opportunity with you:</p>
+                
+                <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-radius: 12px; padding: 25px; margin: 25px 0; border: 1px solid #a7f3d0;">
+                    <h2 style="color: #064E3B; margin: 0 0 20px 0; text-align: center; font-size: 24px;">{{stock_name}}</h2>
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 15px; text-align: center; border-right: 1px solid #a7f3d0;">
+                                <p style="color: #6b7280; margin: 0 0 5px 0; font-size: 13px;">SYMBOL</p>
+                                <p style="color: #064E3B; margin: 0; font-size: 20px; font-weight: bold;">{{stock_symbol}}</p>
+                            </td>
+                            <td style="padding: 15px; text-align: center;">
+                                <p style="color: #6b7280; margin: 0 0 5px 0; font-size: 13px;">LANDING PRICE</p>
+                                <p style="color: #10b981; margin: 0; font-size: 24px; font-weight: bold;">₹{{landing_price}}</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="background: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <h3 style="color: #374151; margin: 0 0 15px 0;">📋 Stock Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Sector</td>
+                            <td style="padding: 10px 0; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb;">{{sector}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Lot Size</td>
+                            <td style="padding: 10px 0; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb;">{{lot_size}} shares</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Min Investment</td>
+                            <td style="padding: 10px 0; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb;">₹{{min_investment}}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #6b7280;">Available Quantity</td>
+                            <td style="padding: 10px 0; color: #111827; text-align: right;">{{available_quantity}}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <p style="color: #374151; margin-bottom: 15px;">Interested in this opportunity?</p>
+                    <a href="{{booking_url}}" style="display: inline-block; background: linear-gradient(135deg, #064E3B, #10b981); color: white; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Book Now</a>
+                </div>
+                
+                <div style="background: #fef3c7; border-radius: 8px; padding: 15px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+                    <p style="margin: 0; color: #92400e; font-size: 13px;">
+                        <strong>Disclaimer:</strong> This is not investment advice. Please consult your financial advisor before making any investment decisions. Past performance does not guarantee future results.
+                    </p>
+                </div>
+                
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+                
+                <div style="text-align: center;">
+                    <p style="color: #6b7280; font-size: 13px; margin: 0;">
+                        <strong>{{company_name}}</strong><br>
+                        {{company_address}}<br>
+                        📞 {{company_phone}} | ✉️ {{company_email}}
+                    </p>
+                </div>
+                
+                <p style="color: #374151; margin-top: 25px;">Best regards,<br><strong>SMIFS Private Equity Team</strong></p>
+            </div>
+        </div>
+        """,
+        "variables": ["recipient_name", "stock_symbol", "stock_name", "landing_price", "sector", "lot_size", "min_investment", "available_quantity", "booking_url", "company_name", "company_address", "company_phone", "company_email"],
+        "is_active": True
     }
 }
