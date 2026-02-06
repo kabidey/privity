@@ -1033,15 +1033,21 @@ async def rerun_client_ocr(
         
         try:
             # Retrieve file from GridFS
-            file_data = await get_file_from_gridfs(file_id)
-            if not file_data:
+            file_result = await get_file_from_gridfs(file_id)
+            if not file_result:
                 results["errors"].append(f"Could not retrieve file for {doc_type} from storage")
+                continue
+            
+            # Extract actual content bytes from the result dict
+            file_content = file_result.get("content") if isinstance(file_result, dict) else file_result
+            if not file_content:
+                results["errors"].append(f"No content found in file for {doc_type}")
                 continue
             
             # Save to temp file for OCR processing
             file_ext = doc.get("filename", "file.jpg").split(".")[-1] or "jpg"
             with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_ext}") as tmp:
-                tmp.write(file_data)
+                tmp.write(file_content)
                 tmp_path = tmp.name
             
             try:
