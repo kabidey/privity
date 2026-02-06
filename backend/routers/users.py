@@ -260,6 +260,36 @@ async def update_user(
     update_data = {}
     if user_data.name is not None:
         update_data["name"] = user_data.name
+    
+    # Handle mobile number update
+    if user_data.mobile_number is not None:
+        if user_data.mobile_number:
+            # Clean and validate mobile number (10 digits)
+            clean_mobile = ''.join(filter(str.isdigit, user_data.mobile_number))
+            if len(clean_mobile) != 10:
+                raise HTTPException(status_code=400, detail="Mobile number must be 10 digits")
+            # Check for duplicate mobile among users
+            existing_mobile_user = await db.users.find_one(
+                {"mobile_number": clean_mobile, "id": {"$ne": user_id}},
+                {"_id": 0, "name": 1, "email": 1}
+            )
+            if existing_mobile_user:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Mobile number already registered to {existing_mobile_user.get('name', existing_mobile_user.get('email'))}"
+                )
+            update_data["mobile_number"] = clean_mobile
+        else:
+            update_data["mobile_number"] = None
+    
+    # Handle PAN number update
+    if user_data.pan_number is not None:
+        if user_data.pan_number:
+            pan = user_data.pan_number.upper().strip()
+            update_data["pan_number"] = pan
+        else:
+            update_data["pan_number"] = None
+    
     if user_data.role is not None:
         # Validate role (system or custom)
         if not await is_valid_role(user_data.role):
