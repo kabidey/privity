@@ -634,26 +634,64 @@ const Clients = () => {
     try {
       let clientId;
       
-      // Prepare submission data with proprietor flags
-      const submitData = {
-        ...formData,
-        is_proprietor: isProprietor === true,
-        has_name_mismatch: nameMismatchDetected
-      };
-      
       if (editingClient) {
+        // For editing existing clients, use the regular update endpoint
+        const submitData = {
+          ...formData,
+          is_proprietor: isProprietor === true,
+          has_name_mismatch: nameMismatchDetected
+        };
         await api.put(`/clients/${editingClient.id}`, submitData);
         clientId = editingClient.id;
+        
+        // Upload any new documents for existing client
+        const hasDocuments = Object.values(docFiles).some(f => f !== null);
+        if (hasDocuments) {
+          await uploadDocuments(clientId);
+        }
+        
         toast.success('Client updated successfully');
       } else {
-        const response = await api.post('/clients', submitData);
+        // For NEW clients, use atomic endpoint that creates client WITH documents
+        // This ensures documents are stored in GridFS BEFORE client is created
+        const formDataObj = new FormData();
+        
+        // Add client fields
+        formDataObj.append('name', formData.name);
+        formDataObj.append('email', formData.email || '');
+        formDataObj.append('email_secondary', formData.email_secondary || '');
+        formDataObj.append('email_tertiary', formData.email_tertiary || '');
+        formDataObj.append('phone', formData.phone || '');
+        formDataObj.append('mobile', formData.mobile || '');
+        formDataObj.append('pan_number', formData.pan_number);
+        formDataObj.append('dp_id', formData.dp_id || '');
+        formDataObj.append('dp_type', formData.dp_type || 'outside');
+        formDataObj.append('trading_ucc', formData.trading_ucc || '');
+        formDataObj.append('address', formData.address || '');
+        formDataObj.append('pin_code', formData.pin_code || '');
+        formDataObj.append('is_vendor', 'false');
+        formDataObj.append('is_proprietor', isProprietor === true ? 'true' : 'false');
+        formDataObj.append('has_name_mismatch', nameMismatchDetected ? 'true' : 'false');
+        formDataObj.append('bank_accounts', JSON.stringify(formData.bank_accounts || []));
+        
+        // Add mandatory documents
+        if (docFiles.pan_card) {
+          formDataObj.append('pan_card', docFiles.pan_card);
+        }
+        if (docFiles.cml_copy) {
+          formDataObj.append('cml_copy', docFiles.cml_copy);
+        }
+        if (docFiles.cancelled_cheque) {
+          formDataObj.append('cancelled_cheque', docFiles.cancelled_cheque);
+        }
+        
+        // Use the atomic endpoint that uploads docs to GridFS first, then creates client
+        const response = await api.post('/clients-with-documents', formDataObj, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
         clientId = response.data.id;
-        toast.success('Client created successfully');
-      }
-      
-      const hasDocuments = Object.values(docFiles).some(f => f !== null);
-      if (hasDocuments && clientId) {
-        await uploadDocuments(clientId);
+        toast.success(`Client created with ${response.data.documents_count} documents stored securely`);
       }
       
       setDialogOpen(false);
