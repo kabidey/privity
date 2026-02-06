@@ -117,18 +117,27 @@ const Bookings = () => {
       // Clear stale client cache before fetching - ensures fresh data for bookings
       localStorage.removeItem('privity_cache_clients');
       
-      const [bookingsRes, clientsRes, stocksRes, inventoryRes, rpRes] = await Promise.all([
+      // Fetch core data - these should always succeed
+      const [bookingsRes, clientsRes, stocksRes, inventoryRes] = await Promise.all([
         api.get('/bookings'),
         api.get('/clients'),
         api.get('/stocks'),
         api.get('/inventory'),
-        api.get('/referral-partners-approved'),  // Only approved and active RPs for booking form
       ]);
       setBookings(bookingsRes.data);
       setClients(clientsRes.data);
       setStocks(stocksRes.data);
       setInventory(inventoryRes.data);
-      setReferralPartners(rpRes.data || []);
+      
+      // Fetch referral partners separately - may fail for non-PE users (403)
+      try {
+        const rpRes = await api.get('/referral-partners-approved');
+        setReferralPartners(rpRes.data || []);
+      } catch (rpError) {
+        // Non-PE users don't have access to RPs - this is expected
+        console.log('Referral partners not available for this user');
+        setReferralPartners([]);
+      }
       
       // Fetch pending bookings and loss bookings if PE Desk
       if (isPEDesk) {
