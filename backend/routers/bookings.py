@@ -630,9 +630,20 @@ async def approve_booking(
         
         if client and primary_email:
             confirmation_token = booking.get("client_confirmation_token")
-            # Get frontend URL - try FRONTEND_URL first, then REACT_APP_BACKEND_URL, then fallback
-            # This ensures the correct URL is used in both preview and production
-            frontend_url = os.environ.get('FRONTEND_URL') or os.environ.get('REACT_APP_BACKEND_URL', 'https://ocr-booking-fix.preview.emergentagent.com')
+            
+            # Get frontend URL - Priority order:
+            # 1. custom_domain from Company Master (UI configurable)
+            # 2. FRONTEND_URL env variable
+            # 3. REACT_APP_BACKEND_URL env variable
+            # 4. Default fallback
+            company_master = await db.company_master.find_one({"_id": "company_settings"})
+            frontend_url = (
+                (company_master.get("custom_domain") if company_master else None) or
+                os.environ.get('FRONTEND_URL') or 
+                os.environ.get('REACT_APP_BACKEND_URL', 'https://ocr-booking-fix.preview.emergentagent.com')
+            )
+            # Remove trailing slash if present
+            frontend_url = frontend_url.rstrip('/') if frontend_url else frontend_url
             
             if is_loss_pending:
                 await send_templated_email(
