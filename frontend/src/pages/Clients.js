@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Loader2, Sparkles, Check, Clock, CheckCircle, XCircle, Download, Eye, FolderOpen, Copy, AlertCircle, Ban, ShieldOff, AlertTriangle, RefreshCw, FileSpreadsheet } from 'lucide-react';
+import { Plus, Pencil, Trash2, PieChart, Upload, FileText, CreditCard, FileCheck, UserCog, Loader2, Sparkles, Check, Clock, CheckCircle, XCircle, Download, Eye, FolderOpen, Copy, AlertCircle, Ban, ShieldOff, AlertTriangle, RefreshCw, FileSpreadsheet, Search } from 'lucide-react';
 
 const Clients = () => {
   const navigate = useNavigate();
