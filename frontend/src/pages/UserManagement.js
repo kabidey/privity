@@ -969,6 +969,120 @@ const UserManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md" data-testid="edit-user-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5 text-emerald-600" />
+              Edit User: {selectedUser?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Update user details. Only PE Desk can edit user parameters.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                placeholder="Enter full name"
+                data-testid="edit-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Mobile Number
+              </Label>
+              <Input
+                value={editFormData.mobile}
+                onChange={(e) => setEditFormData({...editFormData, mobile: e.target.value})}
+                placeholder="Enter mobile number"
+                data-testid="edit-mobile"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>PAN Number</Label>
+              <Input
+                value={editFormData.pan_number}
+                onChange={(e) => setEditFormData({...editFormData, pan_number: e.target.value.toUpperCase()})}
+                placeholder="Enter PAN number"
+                maxLength={10}
+                data-testid="edit-pan"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select
+                value={String(editFormData.role)}
+                onValueChange={(value) => setEditFormData({...editFormData, role: parseInt(value)})}
+              >
+                <SelectTrigger data-testid="edit-role">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(roles).map(([id, data]) => (
+                    <SelectItem key={id} value={id}>
+                      {data.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Hierarchy Level</Label>
+              <Select
+                value={String(editFormData.hierarchy_level)}
+                onValueChange={(value) => setEditFormData({...editFormData, hierarchy_level: parseInt(value)})}
+              >
+                <SelectTrigger data-testid="edit-hierarchy">
+                  <SelectValue placeholder="Select level" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(HIERARCHY_LEVELS).map(([level, { name }]) => (
+                    <SelectItem key={level} value={level}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Reports To</Label>
+              <Select
+                value={editFormData.reports_to || 'none'}
+                onValueChange={(value) => setEditFormData({...editFormData, reports_to: value === 'none' ? '' : value})}
+              >
+                <SelectTrigger data-testid="edit-reports-to">
+                  <SelectValue placeholder="Select manager" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— No Manager —</SelectItem>
+                  {users
+                    .filter(u => u.id !== selectedUser?.id && u.hierarchy_level > (editFormData.hierarchy_level || 1))
+                    .map((manager) => (
+                      <SelectItem key={manager.id} value={manager.id}>
+                        {manager.name} ({HIERARCHY_LEVELS[manager.hierarchy_level]?.name || 'Unknown'})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditUser} className="bg-emerald-600 hover:bg-emerald-700" data-testid="save-edit">
+              <Edit className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
