@@ -380,6 +380,7 @@ class BotProtectionMiddleware(BaseHTTPMiddleware):
         "/api/demo/verify-isolation",  # Demo isolation verification
         "/api/auth/login",  # Allow login from curl/scripts
         "/api/auth/register",  # Allow registration
+        "/api/whatsapp/webhook",  # Wati.io webhook endpoint - external service callback
     ]
     
     async def dispatch(self, request: Request, call_next):
