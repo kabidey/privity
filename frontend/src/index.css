@@ -779,3 +779,195 @@ code {
 .slide-in-from-right-full {
     animation: slide-in-right 0.3s ease-out forwards;
 }
+
+/* ========================================
+   CONTENT PROTECTION STYLES
+   ======================================== */
+
+/* Base protection - disable selection globally */
+.content-protection-wrapper {
+    position: relative;
+    min-height: 100vh;
+}
+
+.protected-content {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-drag: none !important;
+    transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+/* Allow selection only in form inputs */
+.protected-content input,
+.protected-content textarea,
+.protected-content [contenteditable="true"] {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+}
+
+/* Blur content when tab loses focus or devtools detected */
+.protected-content.content-blurred {
+    filter: blur(20px) brightness(0.7);
+    pointer-events: none;
+}
+
+.protected-content.devtools-warning {
+    filter: blur(25px) brightness(0.5);
+    pointer-events: none;
+}
+
+/* Protection overlay */
+.content-protection-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: fadeIn 0.3s ease;
+}
+
+.protection-message {
+    text-align: center;
+    color: white;
+    padding: 2rem;
+    max-width: 400px;
+}
+
+.protection-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    color: #ef4444;
+}
+
+.protection-message h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: white;
+}
+
+.protection-message p {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+}
+
+/* Watermark overlay */
+.watermark-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+    opacity: 0.03;
+}
+
+.watermark-pattern {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 100px;
+    transform: rotate(-30deg);
+    justify-content: center;
+    align-content: center;
+}
+
+.watermark-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: currentColor;
+    white-space: nowrap;
+    padding: 50px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* Disable image dragging */
+.protected-content img {
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+    pointer-events: none;
+}
+
+/* Re-enable pointer events for clickable images (like in buttons) */
+.protected-content button img,
+.protected-content a img {
+    pointer-events: auto;
+}
+
+/* Disable printing styles */
+@media print {
+    .content-protection-wrapper {
+        display: none !important;
+    }
+    
+    body::before {
+        content: "Printing is disabled for security reasons.";
+        display: block;
+        text-align: center;
+        padding: 100px;
+        font-size: 24px;
+        color: #666;
+    }
+}
+
+/* Hide content from screen readers when blurred (accessibility consideration) */
+.protected-content.content-blurred [role="main"],
+.protected-content.devtools-warning [role="main"] {
+    visibility: hidden;
+}
+
+/* CSS content protection - makes scraping harder */
+.protected-content::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Disable text selection highlight */
+.protected-content::selection,
+.protected-content *::selection {
+    background: transparent !important;
+}
+
+.protected-content::-moz-selection,
+.protected-content *::-moz-selection {
+    background: transparent !important;
+}
+
+/* Keep selection working in inputs */
+.protected-content input::selection,
+.protected-content textarea::selection {
+    background: rgba(16, 185, 129, 0.3) !important;
+}
+
+.protected-content input::-moz-selection,
+.protected-content textarea::-moz-selection {
+    background: rgba(16, 185, 129, 0.3) !important;
+}
+
