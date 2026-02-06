@@ -673,7 +673,58 @@ const Clients = () => {
 
   const handleViewDocuments = (client) => {
     setSelectedClientDocs(client);
+    setOcrRerunResults(null); // Reset previous results
     setDocumentsDialogOpen(true);
+  };
+
+  // Re-run OCR on client documents (PE Level only)
+  const handleRerunOcr = async (clientId, docTypes = null, updateClient = false) => {
+    if (!isPELevel) {
+      toast.error('Only PE Desk or PE Manager can re-run OCR');
+      return;
+    }
+    
+    setRerunningOcr(true);
+    setOcrRerunResults(null);
+    
+    try {
+      const params = new URLSearchParams();
+      if (docTypes && docTypes.length > 0) {
+        docTypes.forEach(dt => params.append('doc_types', dt));
+      }
+      if (updateClient) {
+        params.append('update_client', 'true');
+      }
+      
+      const response = await api.post(`/clients/${clientId}/rerun-ocr?${params.toString()}`);
+      
+      setOcrRerunResults(response.data);
+      
+      if (response.data.errors && response.data.errors.length > 0) {
+        toast.warning(`OCR completed with ${response.data.errors.length} error(s)`);
+      } else {
+        toast.success(`OCR re-run completed for ${response.data.documents_processed?.length || 0} document(s)`);
+      }
+      
+      if (response.data.update_applied) {
+        toast.success('Client data updated with new OCR results');
+        // Refresh client list
+        fetchClients();
+        if (canMapClients) fetchPendingClients();
+      }
+      
+      // Refresh the selected client docs to show updated OCR data
+      if (selectedClientDocs) {
+        const updatedClient = await api.get(`/clients/${clientId}`);
+        setSelectedClientDocs(updatedClient.data);
+      }
+      
+    } catch (error) {
+      console.error('OCR re-run error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to re-run OCR');
+    } finally {
+      setRerunningOcr(false);
+    }
   };
 
   const handleDownloadDocument = async (clientId, filename, gridfsId = null) => {
