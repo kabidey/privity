@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { useCurrentUser } from '../hooks/useCurrentUser';
+import api from '../utils/api';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -10,7 +10,7 @@ import { Input } from '../components/ui/input';
 import { 
   Bell, MessageSquare, CheckCircle, XCircle, Clock, RefreshCw,
   Send, Eye, Trash2, BarChart3, TrendingUp, AlertTriangle,
-  Phone, Mail, Filter, Search, ChevronDown, ChevronUp
+  Phone, Filter, Search
 } from 'lucide-react';
 
 const NotificationDashboard = () => {
