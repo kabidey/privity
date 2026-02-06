@@ -4,7 +4,7 @@ import json
 from datetime import datetime, date
 
 class SMIFSStockManagementTester:
-    def __init__(self, base_url="https://booking-mgmt-fixes.preview.emergentagent.com"):
+    def __init__(self, base_url="https://quote-refresh.preview.emergentagent.com"):
         self.base_url = base_url
         self.admin_token = None
         self.employee_token = None
