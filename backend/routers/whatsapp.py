@@ -656,14 +656,18 @@ async def get_templates(
     if service:
         try:
             wati_templates = await service.get_templates()
-            if wati_templates.get("result"):
+            if wati_templates.get("success"):
+                # The templates are nested in "templates" key from our service
+                # The actual response from Wati API has "messageTemplates" array
+                raw_templates = wati_templates.get("templates", {})
+                template_list = raw_templates.get("messageTemplates", []) if isinstance(raw_templates, dict) else []
                 # Mark these as wati templates
-                for wt in wati_templates.get("messageTemplates", []):
+                for wt in template_list:
                     wt["is_wati"] = True
                     wt["source"] = "wati"
                 return {
                     "local_templates": templates,
-                    "wati_templates": wati_templates.get("messageTemplates", [])
+                    "wati_templates": template_list
                 }
         except Exception as e:
             logger.warning(f"Could not fetch Wati templates: {e}")
