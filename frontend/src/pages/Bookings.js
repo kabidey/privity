@@ -1437,7 +1437,6 @@ const Bookings = () => {
                   <TableRow>
                     <TableHead className="text-xs uppercase">Booking ID</TableHead>
                     <TableHead className="text-xs uppercase">Client</TableHead>
-                    <TableHead className="text-xs uppercase">Docs</TableHead>
                     <TableHead className="text-xs uppercase">Stock</TableHead>
                     <TableHead className="text-xs uppercase">Qty</TableHead>
                     <TableHead className="text-xs uppercase">Landing Price</TableHead>
