@@ -230,7 +230,8 @@ const Purchases = () => {
 
   const getRemainingAmount = (purchase) => {
     const totalPaid = purchase.total_paid || 0;
-    return purchase.total_amount - totalPaid;
+    // Round to 2 decimal places to avoid floating point precision issues
+    return Math.round((purchase.total_amount - totalPaid) * 100) / 100;
   };
 
   const handleDeletePurchase = async (purchaseId) => {
