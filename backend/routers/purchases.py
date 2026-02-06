@@ -462,12 +462,13 @@ async def add_purchase_payment(
     ).to_list(100)
     
     total_paid = sum(p.get("amount", 0) for p in existing_payments)
-    remaining = purchase.get("total_amount", 0) - total_paid
+    # Round remaining to 2 decimal places to avoid floating point precision issues
+    remaining = round(purchase.get("total_amount", 0) - total_paid, 2)
     
-    if amount > remaining:
+    if amount > remaining + 0.01:  # Allow small rounding tolerance
         raise HTTPException(
             status_code=400,
-            detail=f"Payment amount ({amount}) exceeds remaining balance ({remaining})"
+            detail=f"Payment amount (₹{amount:,.2f}) exceeds remaining balance (₹{remaining:,.2f})"
         )
     
     # Calculate TCS
