@@ -49,6 +49,128 @@ logger = logging.getLogger(__name__)
 
 
 # ====================
+# Health Check Endpoint (No Auth Required)
+# ====================
+
+@app.get("/api/health")
+async def health_check():
+    """
+    Comprehensive health check endpoint for diagnosing production issues.
+    No authentication required - accessible for monitoring.
+    """
+    import platform
+    import sys
+    
+    health = {
+        "status": "ok",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "2.0.0",
+        "checks": {}
+    }
+    
+    # 1. Database connectivity check
+    try:
+        # Simple ping to check MongoDB connection
+        await db.command("ping")
+        collections = await db.list_collection_names()
+        health["checks"]["database"] = {
+            "status": "ok",
+            "collections_count": len(collections),
+            "message": "MongoDB connected"
+        }
+    except Exception as e:
+        health["status"] = "degraded"
+        health["checks"]["database"] = {
+            "status": "error",
+            "message": str(e)
+        }
+    
+    # 2. Check critical collections exist
+    try:
+        critical_collections = ["users", "clients", "bookings", "stocks"]
+        existing = await db.list_collection_names()
+        missing = [c for c in critical_collections if c not in existing]
+        health["checks"]["collections"] = {
+            "status": "ok" if not missing else "warning",
+            "critical_collections": critical_collections,
+            "missing": missing
+        }
+    except Exception as e:
+        health["checks"]["collections"] = {"status": "error", "message": str(e)}
+    
+    # 3. Check admin user exists
+    try:
+        admin = await db.users.find_one({"email": "pe@smifs.com"}, {"_id": 0, "email": 1, "name": 1})
+        health["checks"]["admin_user"] = {
+            "status": "ok" if admin else "error",
+            "exists": bool(admin),
+            "email": admin.get("email") if admin else None
+        }
+    except Exception as e:
+        health["checks"]["admin_user"] = {"status": "error", "message": str(e)}
+    
+    # 4. Environment check
+    env_vars = ["MONGO_URL", "DB_NAME", "JWT_SECRET"]
+    env_status = {}
+    for var in env_vars:
+        value = os.environ.get(var)
+        env_status[var] = "set" if value else "missing"
+    
+    health["checks"]["environment"] = {
+        "status": "ok" if all(v == "set" for v in env_status.values()) else "error",
+        "variables": env_status
+    }
+    
+    # 5. System info
+    health["system"] = {
+        "python_version": sys.version.split()[0],
+        "platform": platform.system(),
+        "hostname": platform.node()
+    }
+    
+    # 6. WhatsApp/Wati check
+    try:
+        wati_config = await db.system_config.find_one({"config_type": "whatsapp"}, {"_id": 0, "api_token": 0})
+        health["checks"]["whatsapp"] = {
+            "status": "ok",
+            "configured": bool(wati_config),
+            "using_defaults": not bool(wati_config),
+            "message": "Hardcoded defaults active" if not wati_config else "Database config active"
+        }
+    except Exception as e:
+        health["checks"]["whatsapp"] = {"status": "error", "message": str(e)}
+    
+    return health
+
+
+@app.get("/api/health/simple")
+async def simple_health():
+    """Simple health check - just returns OK if server is running"""
+    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get("/api/health/db")
+async def db_health():
+    """Database-only health check"""
+    try:
+        await db.command("ping")
+        count = await db.users.count_documents({})
+        return {
+            "status": "ok",
+            "database": "connected",
+            "users_count": count,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "database": "disconnected",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+
+# ====================
 # Helper Functions
 # ====================
 
