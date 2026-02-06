@@ -321,6 +321,16 @@ const WhatsAppNotifications = () => {
     }
   };
 
+  const handleRefreshSystemTemplates = async () => {
+    try {
+      const response = await api.post('/whatsapp/templates/refresh-system');
+      toast.success(response.data.message || 'System templates refreshed');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to refresh templates');
+    }
+  };
+
   const openEditTemplate = (template) => {
     setEditingTemplate(template);
     setTemplateForm({
