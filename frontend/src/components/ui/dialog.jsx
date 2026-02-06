@@ -30,14 +30,14 @@ const DialogContent = React.forwardRef(({ className, children, hideCloseButton =
       ref={ref}
       className={cn(
         // Base styles - mobile first (bottom sheet style)
-        "fixed z-[10002] grid gap-4 border bg-background shadow-lg duration-200",
+        "fixed z-[10002] grid gap-3 border bg-background shadow-lg duration-200",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         // Mobile: bottom sheet that slides up
-        "inset-x-0 bottom-0 rounded-t-2xl p-4 max-h-[90vh] overflow-y-auto",
+        "inset-x-0 bottom-0 rounded-t-2xl p-3 max-h-[90vh] overflow-y-auto",
         "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
         // Desktop: centered modal
         "sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2",
-        "sm:rounded-lg sm:max-w-lg sm:w-full sm:p-6 sm:max-h-[85vh]",
+        "sm:rounded-lg sm:max-w-lg sm:w-full sm:p-4 sm:max-h-[85vh]",
         "sm:data-[state=closed]:fade-out-0 sm:data-[state=open]:fade-in-0",
         "sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95",
         "sm:data-[state=closed]:slide-out-to-left-1/2 sm:data-[state=closed]:slide-out-to-top-[48%]",
@@ -48,8 +48,8 @@ const DialogContent = React.forwardRef(({ className, children, hideCloseButton =
       {children}
       {!hideCloseButton && (
         <DialogPrimitive.Close
-          className="absolute right-3 top-3 sm:right-4 sm:top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10">
-          <X className="h-4 w-4" />
+          className="absolute right-2 top-2 sm:right-3 sm:top-3 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10">
+          <X className="h-3.5 w-3.5" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       )}
