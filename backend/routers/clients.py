@@ -885,9 +885,9 @@ async def download_client_document(
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    # Try GridFS first (if gridfs_id exists)
-    gridfs_id = document.get("gridfs_id")
-    if gridfs_id:
+    # Try GridFS first - check both file_id (new) and gridfs_id (legacy) fields
+    gridfs_id = document.get("file_id") or document.get("gridfs_id")
+    if gridfs_id and gridfs_id not in ["None", "null", ""]:
         try:
             content, metadata = await download_file_from_gridfs(gridfs_id)
             content_type = metadata.get("content_type", "application/octet-stream")
@@ -900,8 +900,9 @@ async def download_client_document(
                     "Content-Disposition": f'attachment; filename="{original_filename}"',
                 }
             )
-        except Exception:
+        except Exception as e:
             # GridFS failed, try local file
+            print(f"GridFS download failed for {gridfs_id}: {e}")
             pass
     
     # Fallback to local file storage
