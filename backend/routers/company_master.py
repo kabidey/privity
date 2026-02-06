@@ -137,6 +137,7 @@ By clicking "I Agree", you confirm that you have read, understood, and agree to 
             "cancelled_cheque_url": None,
             "pan_card_url": None,
             "user_agreement_text": default_agreement,
+            "custom_domain": None,
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "updated_by": current_user["name"]
         }
@@ -162,6 +163,7 @@ By clicking "I Agree", you confirm that you have read, understood, and agree to 
         cancelled_cheque_url=master.get("cancelled_cheque_url"),
         pan_card_url=master.get("pan_card_url"),
         user_agreement_text=master.get("user_agreement_text"),
+        custom_domain=master.get("custom_domain"),
         updated_at=master.get("updated_at"),
         updated_by=master.get("updated_by")
     )
