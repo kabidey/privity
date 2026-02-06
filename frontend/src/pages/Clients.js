@@ -41,6 +41,8 @@ const Clients = () => {
   const [ocrResults, setOcrResults] = useState({});
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [rerunningOcr, setRerunningOcr] = useState(false);
+  const [ocrRerunResults, setOcrRerunResults] = useState(null);
   
   const [formData, setFormData] = useState({
     name: '',
