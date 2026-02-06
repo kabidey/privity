@@ -152,8 +152,8 @@ async def create_backup(
     # Determine which collections to backup
     if include_all:
         all_collections = await db.list_collection_names()
-        # Exclude database_backups from backup
-        collections_to_backup = [c for c in all_collections if c != "database_backups"]
+        # Exclude database_backups and fs.chunks (binary data) from backup
+        collections_to_backup = [c for c in all_collections if c not in ["database_backups", "fs.chunks"]]
     else:
         collections_to_backup = BACKUP_COLLECTIONS
     
@@ -166,6 +166,7 @@ async def create_backup(
             record_counts[collection_name] = len(documents)
             total_size += len(json.dumps(documents, default=str))
         except Exception as e:
+            logger.error(f"Error backing up {collection_name}: {str(e)}")
             backup_data[collection_name] = []
             record_counts[collection_name] = 0
     
