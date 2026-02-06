@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useNotifications } from '../context/NotificationContext';
 import NotificationBell from './NotificationBell';
+import ThemeSelector from './ThemeSelector';
 import KillSwitch from './KillSwitch';
 import SystemFrozenOverlay from './SystemFrozenOverlay';
 import ChangelogModal, { useChangelogModal } from './ChangelogModal';
@@ -23,8 +24,6 @@ import {
   LogOut, 
   Menu, 
   X,
-  Sun,
-  Moon,
   Settings,
   UserCog,
   PieChart,
