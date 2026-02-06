@@ -69,6 +69,14 @@ async def create_client(
     if user_role in [4, 7] and client_data.is_vendor:
         raise HTTPException(status_code=403, detail="You do not have permission to create vendors")
     
+    # STRICT RULE: Clients MUST be created with documents using /clients-with-documents endpoint
+    # This endpoint is only allowed for VENDORS (who don't require documents)
+    if not client_data.is_vendor:
+        raise HTTPException(
+            status_code=400,
+            detail="Clients must be created with mandatory documents (PAN Card, CML Copy). Please use the document upload form to create clients. Documents must be uploaded and stored before client creation."
+        )
+    
     # Check for duplicate PAN
     existing = await db.clients.find_one(
         {"pan_number": client_data.pan_number.upper()},
