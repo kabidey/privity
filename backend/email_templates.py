@@ -113,7 +113,7 @@ DEFAULT_EMAIL_TEMPLATES = {
                     <td style="padding: 10px; border: 1px solid #e5e7eb;">{{quantity}}</td>
                 </tr>
                 <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Selling Price</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Sale Price</strong></td>
                     <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{{selling_price}}</td>
                 </tr>
                 <tr>
