@@ -1395,6 +1395,7 @@ const WhatsAppNotifications = () => {
                   <SelectItem value="all_clients">All Clients</SelectItem>
                   <SelectItem value="all_rps">All Referral Partners</SelectItem>
                   <SelectItem value="all_bps">All Business Partners</SelectItem>
+                  <SelectItem value="all_users">All Users (Staff)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
