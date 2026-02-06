@@ -592,13 +592,21 @@ const Clients = () => {
       }
     }
     
-    // Validate mandatory documents for new clients
+    // Validate mandatory documents for new clients - STRICT REQUIREMENT
     if (!editingClient) {
       const missingDocs = [];
       if (!docFiles.pan_card) missingDocs.push('PAN Card');
       if (!docFiles.cml_copy) missingDocs.push('CML Copy');
       // Only require cancelled cheque if user doesn't have skip permission
       if (!docFiles.cancelled_cheque && !canSkipCancelledCheque) missingDocs.push('Cancelled Cheque');
+      
+      if (missingDocs.length > 0) {
+        toast.error(`MANDATORY: Documents must be uploaded before client creation. Missing: ${missingDocs.join(', ')}`);
+        // Switch to documents tab
+        setActiveTabInDialog('documents');
+        setIsSubmitting(false);
+        return;
+      }
       
       // Check for name mismatch between form and OCR extracted names
       const panName = extractedNames.pan_card?.toLowerCase().trim();
@@ -625,12 +633,6 @@ const Clients = () => {
           setIsSubmitting(false);
           return;
         }
-      }
-      
-      if (missingDocs.length > 0) {
-        toast.error(`Please upload: ${missingDocs.join(', ')}`);
-        setIsSubmitting(false);
-        return;
       }
     }
     
