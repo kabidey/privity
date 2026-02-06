@@ -67,7 +67,7 @@ const UserManagement = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: '',
-    mobile: '',
+    mobile_number: '',
     pan_number: '',
     role: 7,
     hierarchy_level: 1,
