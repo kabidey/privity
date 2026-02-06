@@ -125,7 +125,8 @@ const ContentProtection = ({ children }) => {
 
     // ========== DEV TOOLS DETECTION ==========
     const devToolsChecker = setInterval(detectDevTools, 1000);
-    detectDevTools(); // Initial check
+    // Use setTimeout to avoid synchronous setState in effect
+    setTimeout(detectDevTools, 0);
 
     // ========== COPY EVENT PREVENTION ==========
     const preventCopy = (e) => {
