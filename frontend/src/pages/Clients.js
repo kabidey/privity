@@ -748,6 +748,45 @@ const Clients = () => {
     setDocumentsDialogOpen(true);
   };
 
+  // Reveal documents from GridFS for a client
+  const handleRevealDocuments = async (clientId, clientName) => {
+    setRevealingDocs(clientId);
+    try {
+      const response = await api.post(`/clients/${clientId}/reveal-documents`);
+      const result = response.data;
+      
+      if (result.summary.total_found > 0 || result.current_documents?.length > 0) {
+        if (result.summary.auto_linked > 0) {
+          toast.success(`Found ${result.summary.total_found} documents! ${result.summary.auto_linked} auto-linked to client.`);
+          // Refresh clients to show updated document count
+          fetchClients();
+          if (canMapClients) fetchPendingClients();
+        } else if (result.current_documents?.length > 0) {
+          toast.info(`Client has ${result.current_documents.length} document(s) linked.`);
+        } else {
+          toast.info(`Found ${result.summary.total_found} possible documents for review.`);
+        }
+        
+        // Show documents dialog with results
+        setRevealedDocsData({
+          clientId,
+          clientName,
+          documents: result.current_documents || [],
+          foundInGridFS: result.found_in_gridfs || [],
+          autoLinked: result.auto_linked || [],
+          summary: result.summary
+        });
+        setRevealedDocsDialog(true);
+      } else {
+        toast.warning('No documents found in GridFS for this client.');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to search for documents');
+    } finally {
+      setRevealingDocs(null);
+    }
+  };
+
   // Re-run OCR on client documents (PE Level only)
   const handleRerunOcr = async (clientId, docTypes = null, updateClient = false) => {
     if (!isPELevel) {
