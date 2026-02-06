@@ -98,23 +98,48 @@ async def convert_file_to_base64(file_path: str) -> tuple:
 
 
 def get_pan_card_prompt() -> str:
-    """Get optimized prompt for PAN card OCR"""
-    return """You are analyzing a PAN Card image. Extract the following information EXACTLY as shown on the card:
+    """Get optimized prompt for PAN card OCR - Enhanced for better accuracy"""
+    return """You are an expert OCR specialist analyzing an Indian PAN Card. Extract information with EXTREME precision.
 
-REQUIRED FIELDS:
-1. PAN Number: The 10-character alphanumeric code (format: 5 letters + 4 numbers + 1 letter, e.g., BLOPS6942P)
-2. Name: The full name of the cardholder (as printed on the card)
-3. Father's Name: The father's name (usually on second line)
-4. Date of Birth: In DD/MM/YYYY format
+DOCUMENT LAYOUT REFERENCE (Indian PAN Card):
+- TOP: "INCOME TAX DEPARTMENT" / "आयकर विभाग" and "GOVT. OF INDIA"
+- LEFT SIDE: Contains text fields in vertical arrangement
+- RIGHT SIDE: Photograph of cardholder
+- BOTTOM: PAN number in LARGE FONT
 
-EXTRACTION RULES:
-- PAN number is usually at the bottom of the card in large text
-- The name is in CAPITAL LETTERS
-- Father's name is prefixed with "Father's Name" or similar
-- DOB is labeled as "Date of Birth" or similar
-- If any field is not clearly visible, return null for that field
+REQUIRED FIELDS TO EXTRACT:
 
-Return ONLY a JSON object with these exact keys:
+1. **PAN Number** (CRITICAL):
+   - Located at BOTTOM of card in LARGE, BOLD characters
+   - Format: EXACTLY 10 characters - 5 LETTERS + 4 DIGITS + 1 LETTER
+   - Example: BLOPS6942P, AABPM1234Q
+   - The first 5 chars are ALWAYS letters (A-Z)
+   - The next 4 chars are ALWAYS digits (0-9)
+   - The last char is ALWAYS a letter (A-Z)
+
+2. **Name**:
+   - The cardholder's name (NOT the father's name)
+   - Usually appears AFTER "Name" label
+   - In CAPITAL LETTERS
+   - May have title like MR/MRS - extract without title
+
+3. **Father's Name**:
+   - Usually on line ABOVE the cardholder's name
+   - Labeled as "Father's Name" or "पिता का नाम"
+   - Extract without any title (MR/MRS/SHRI etc.)
+
+4. **Date of Birth**:
+   - Format: DD/MM/YYYY
+   - Labeled as "Date of Birth" / "जन्म तिथि"
+
+CRITICAL RULES:
+- PAN format MUST be 5 letters + 4 digits + 1 letter (total 10 chars)
+- If you see something like "BLOPS6942P" - that's the PAN
+- The cardholder name is BELOW father's name
+- Remove any titles (MR, MRS, SHRI, SMT) from names
+- Return null for fields you cannot clearly read
+
+Return ONLY this JSON structure:
 {
     "pan_number": "BLOPS6942P",
     "name": "BENOY SEN",
@@ -122,7 +147,7 @@ Return ONLY a JSON object with these exact keys:
     "date_of_birth": "30/08/1968"
 }
 
-NO explanations, NO markdown, ONLY the JSON object."""
+NO explanations, NO markdown code blocks, ONLY the raw JSON object."""
 
 
 def get_cancelled_cheque_prompt() -> str:
