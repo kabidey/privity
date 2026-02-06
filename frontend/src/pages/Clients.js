@@ -1370,7 +1370,7 @@ const Clients = () => {
 
             {/* Wizard Step 2 & 3 or Edit Mode - Use Tabs */}
             {(editingClient || wizardStep >= 2) && (
-            <Tabs defaultValue="details" className="w-full">
+            <Tabs value={activeTabInDialog} onValueChange={setActiveTabInDialog} className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Client Details</TabsTrigger>
                 <TabsTrigger value="bank">Bank Accounts</TabsTrigger>
