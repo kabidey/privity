@@ -11,8 +11,8 @@ import pytest
 import requests
 import os
 
-# Get backend URL from environment
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+# Get backend URL from environment - use localhost for internal testing
+BASE_URL = "http://localhost:8001"
 
 
 class TestCustomDomainFeature:
