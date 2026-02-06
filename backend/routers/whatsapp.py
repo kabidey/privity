@@ -305,6 +305,37 @@ async def get_wati_service() -> Optional[WatiService]:
 
 # ============== CONFIG ENDPOINTS ==============
 
+@router.post("/test-connection")
+async def test_wati_connection(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_connect", "test WhatsApp connection"))
+):
+    """Test the current Wati.io connection"""
+    service = await get_wati_service()
+    
+    if not service:
+        return {
+            "connected": False,
+            "message": "Wati.io is not configured. Please configure the API endpoint and token first."
+        }
+    
+    result = await service.test_connection()
+    
+    # Update status in config
+    if result.get("connected"):
+        await db.system_config.update_one(
+            {"config_type": "whatsapp"},
+            {"$set": {"status": "connected", "last_test": datetime.now(timezone.utc).isoformat()}}
+        )
+    else:
+        await db.system_config.update_one(
+            {"config_type": "whatsapp"},
+            {"$set": {"status": "disconnected", "last_error": result.get("message")}}
+        )
+    
+    return result
+
+
 @router.get("/config")
 async def get_whatsapp_config(
     current_user: dict = Depends(get_current_user),
