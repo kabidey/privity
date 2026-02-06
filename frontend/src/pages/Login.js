@@ -294,9 +294,22 @@ const Login = () => {
         toast.error(errorMessage);
       } else {
         // Regular error handling
-        const message = typeof errorDetail === 'string' 
-          ? errorDetail 
-          : errorDetail?.message || 'An error occurred';
+        let message = 'An error occurred';
+        
+        if (typeof errorDetail === 'string') {
+          message = errorDetail;
+        } else if (errorDetail?.message) {
+          message = errorDetail.message;
+        } else if (error.response?.status === 0 || error.code === 'ERR_NETWORK') {
+          message = 'Network error. Please check your connection.';
+        } else if (error.response?.status === 500) {
+          message = 'Server error. Please try again later.';
+        } else if (error.response?.status === 502 || error.response?.status === 503) {
+          message = 'Service temporarily unavailable. Please try again.';
+        } else if (error.message) {
+          message = error.message;
+        }
+        
         toast.error(message);
         
         // Clear CAPTCHA if error is not captcha related
