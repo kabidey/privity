@@ -37,6 +37,15 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Critical Bug Fix - Booking Dropdown Empty for Non-PE Users (Feb 06, 2026)
+- **Bug:** Approved clients not appearing in booking dropdown for Employee users
+- **Root Cause:** `Promise.all` in `fetchData()` included `/api/referral-partners-approved` endpoint which returns 403 for non-PE users. When this failed, the entire Promise.all failed and `setClients()` was never called.
+- **Fix:** Separated the referral-partners-approved API call into its own try-catch block, ensuring client data loads even if RP endpoint fails.
+- **Result:** Employees can now see and select approved clients in the booking dropdown, and create bookings.
+- **Files Modified:**
+  - `/app/frontend/src/pages/Bookings.js` - Lines 115-140, separated RP fetch from main Promise.all
+- **Test Status:** Verified with testing agent (iteration_72)
+
 #### ✅ Rounding Fix - All Prices/Payments to 2 Decimal Places (Feb 06, 2026)
 - **Bug:** Payment amounts showing extreme decimals (e.g., ₹21374.999999999996)
 - **Fix:** Applied `round(..., 2)` to all financial calculations:
