@@ -279,63 +279,63 @@ async def create_full_backup(
         # Get files by category
         files_by_category = {}
         if os.path.exists(UPLOADS_DIR):
-        for item in os.listdir(UPLOADS_DIR):
-            item_path = os.path.join(UPLOADS_DIR, item)
-            if os.path.isdir(item_path):
-                cat_count, cat_size = get_files_stats(item_path)
-                if cat_count > 0:
-                    files_by_category[item] = {
-                        "count": cat_count,
-                        "size_bytes": cat_size
-                    }
-    
-    # Store backup
-    now = datetime.now(timezone.utc)
-    backup_name = f"Full_Backup_{now.strftime('%Y%m%d_%H%M%S')}"
-    
-    backup_doc = {
-        "id": backup_id,
-        "name": backup_name,
-        "description": f"Full system backup - {len(collections_to_backup)} collections, {sum(record_counts.values())} records",
-        "created_at": now.isoformat(),
-        "created_by": current_user["id"],
-        "created_by_name": current_user["name"],
-        "collections": collections_to_backup,
-        "record_counts": record_counts,
-        "size_bytes": total_size,
-        "include_all": True,
-        "is_full_backup": True,
-        "files_metadata": {
-            "total_count": files_count,
-            "total_size_bytes": files_size,
-            "by_category": files_by_category
-        },
-        "data": backup_data
-    }
-    
-    await db.database_backups.insert_one(backup_doc)
-    
-    # Log the backup action
-    await db.audit_logs.insert_one({
-        "id": str(uuid.uuid4()),
-        "action": "FULL_DATABASE_BACKUP",
-        "entity_type": "database",
-        "entity_id": backup_id,
-        "user_id": current_user["id"],
-        "user_name": current_user["name"],
-        "user_role": current_user.get("role", 5),
-        "details": {
-            "backup_name": backup_name,
-            "collections_count": len(collections_to_backup),
-            "total_records": sum(record_counts.values()),
+            for item in os.listdir(UPLOADS_DIR):
+                item_path = os.path.join(UPLOADS_DIR, item)
+                if os.path.isdir(item_path):
+                    cat_count, cat_size = get_files_stats(item_path)
+                    if cat_count > 0:
+                        files_by_category[item] = {
+                            "count": cat_count,
+                            "size_bytes": cat_size
+                        }
+        
+        # Store backup
+        now = datetime.now(timezone.utc)
+        backup_name = f"Full_Backup_{now.strftime('%Y%m%d_%H%M%S')}"
+        
+        backup_doc = {
+            "id": backup_id,
+            "name": backup_name,
+            "description": f"Full system backup - {len(collections_to_backup)} collections, {sum(record_counts.values())} records",
+            "created_at": now.isoformat(),
+            "created_by": current_user["id"],
+            "created_by_name": current_user["name"],
+            "collections": collections_to_backup,
+            "record_counts": record_counts,
             "size_bytes": total_size,
-            "files_count": files_count,
-            "files_size_bytes": files_size
-        },
-        "timestamp": now.isoformat()
-    })
-    
-    # Keep only last 10 backups
+            "include_all": True,
+            "is_full_backup": True,
+            "files_metadata": {
+                "total_count": files_count,
+                "total_size_bytes": files_size,
+                "by_category": files_by_category
+            },
+            "data": backup_data
+        }
+        
+        await db.database_backups.insert_one(backup_doc)
+        
+        # Log the backup action
+        await db.audit_logs.insert_one({
+            "id": str(uuid.uuid4()),
+            "action": "FULL_DATABASE_BACKUP",
+            "entity_type": "database",
+            "entity_id": backup_id,
+            "user_id": current_user["id"],
+            "user_name": current_user["name"],
+            "user_role": current_user.get("role", 5),
+            "details": {
+                "backup_name": backup_name,
+                "collections_count": len(collections_to_backup),
+                "total_records": sum(record_counts.values()),
+                "size_bytes": total_size,
+                "files_count": files_count,
+                "files_size_bytes": files_size
+            },
+            "timestamp": now.isoformat()
+        })
+        
+        # Keep only last 10 backups
         all_backups = await db.database_backups.find({}, {"id": 1}).sort("created_at", -1).to_list(100)
         if len(all_backups) > 10:
             old_backup_ids = [b["id"] for b in all_backups[10:]]
