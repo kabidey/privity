@@ -487,197 +487,228 @@ async def delete_inventory(
 
 # ========== PE REPORT ENDPOINT ==========
 
-class PEReportRequest(BaseModel):
-    stock_id: str
-    method: str = "both"  # 'email', 'whatsapp', 'both'
-
-
 @router.post("/send-pe-report")
-async def send_pe_report(
-    request: PEReportRequest,
+async def send_consolidated_pe_report(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("inventory.send_report", "send PE report"))
 ):
     """
-    Send PE Stock Report to all users via Email and/or WhatsApp.
+    Send Consolidated PE Inventory Report to all users via Email.
     
-    Includes:
-    - Stock Symbol
-    - Stock Name
+    A single report containing ALL stocks in tabular format:
+    - Stock Code
+    - Stock Name  
     - Landing Price (LP)
-    - Company details from Company Master
     
+    Includes company logo, timestamp, footer with company info and disclaimer.
     CC: pe@smifs.com
     """
-    from services.email_service import send_email
-    from routers.whatsapp import get_wati_service
+    from services.email_service import send_email_raw
+    from datetime import datetime, timezone
     
-    # Get stock/inventory details
-    inventory = await db.inventory.find_one({"stock_id": request.stock_id}, {"_id": 0})
-    if not inventory:
-        raise HTTPException(status_code=404, detail="Stock not found in inventory")
+    # Get ALL inventory items
+    inventory_items = await db.inventory.find(
+        {"available_quantity": {"$gt": 0}},
+        {"_id": 0}
+    ).sort("stock_symbol", 1).to_list(1000)
     
-    # Get stock details
-    stock = await db.stocks.find_one({"id": request.stock_id}, {"_id": 0})
+    if not inventory_items:
+        raise HTTPException(status_code=400, detail="No inventory items found")
     
     # Get company master details
     company = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
     if not company:
         company = {
             "company_name": "SMIFS Private Equity",
-            "address": "",
-            "phone": "",
-            "email": "pe@smifs.com"
+            "address": "12, India Exchange Place, Kolkata - 700001",
+            "phone": "+91-33-4012-1234",
+            "email": "pe@smifs.com",
+            "website": "www.smifs.com",
+            "logo_url": ""
         }
     
-    # Get all active users
+    # Get all active users with email
     users = await db.users.find(
-        {"is_active": {"$ne": False}},
-        {"_id": 0, "id": 1, "name": 1, "email": 1, "mobile": 1}
+        {"is_active": {"$ne": False}, "email": {"$exists": True, "$ne": ""}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1}
     ).to_list(10000)
     
+    if not users:
+        raise HTTPException(status_code=400, detail="No users found to send report")
+    
+    # Generate timestamp
+    report_time = datetime.now(timezone.utc)
+    report_time_ist = report_time.strftime("%d %B %Y, %I:%M %p IST")
+    
+    # Build inventory table rows
+    table_rows = ""
+    for idx, item in enumerate(inventory_items):
+        bg_color = "#ffffff" if idx % 2 == 0 else "#f9fafb"
+        lp = item.get("landing_price", 0)
+        lp_formatted = f"₹{lp:,.2f}" if lp else "N/A"
+        
+        table_rows += f"""
+        <tr style="background-color: {bg_color};">
+            <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; font-family: 'Courier New', monospace; font-weight: 600; color: #064E3B;">{item.get('stock_symbol', 'N/A')}</td>
+            <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; color: #374151;">{item.get('stock_name', 'N/A')}</td>
+            <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #059669; font-size: 15px;">{lp_formatted}</td>
+        </tr>
+        """
+    
+    # Build the beautiful HTML email
+    logo_html = ""
+    if company.get("logo_url"):
+        logo_html = f'<img src="{company["logo_url"]}" alt="{company["company_name"]}" style="max-height: 60px; max-width: 200px; object-fit: contain;">'
+    else:
+        logo_html = f'<div style="font-size: 24px; font-weight: bold; color: #064E3B;">{company.get("company_name", "SMIFS")}</div>'
+    
+    html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f3f4f6;">
+    <div style="max-width: 800px; margin: 0 auto; background-color: #ffffff;">
+        
+        <!-- Header with Logo -->
+        <div style="background: linear-gradient(135deg, #064E3B 0%, #065f46 100%); padding: 30px 40px; text-align: center;">
+            {logo_html}
+            <h1 style="color: #ffffff; margin: 15px 0 5px 0; font-size: 26px; font-weight: 600;">PE Inventory Report</h1>
+            <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 14px;">Private Equity Unlisted Shares</p>
+        </div>
+        
+        <!-- Report Timestamp -->
+        <div style="background-color: #ecfdf5; padding: 12px 40px; border-bottom: 2px solid #10b981;">
+            <p style="margin: 0; color: #065f46; font-size: 13px;">
+                <strong>Report Generated:</strong> {report_time_ist}
+            </p>
+        </div>
+        
+        <!-- Main Content -->
+        <div style="padding: 30px 40px;">
+            <p style="color: #374151; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
+                Dear Investor,<br><br>
+                Please find below the current inventory of available unlisted and pre-IPO shares for your consideration.
+            </p>
+            
+            <!-- Inventory Table -->
+            <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #064E3B 0%, #047857 100%);">
+                            <th style="padding: 16px; text-align: left; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Stock Code</th>
+                            <th style="padding: 16px; text-align: left; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Stock Name</th>
+                            <th style="padding: 16px; text-align: right; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Landing Price (LP)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {table_rows}
+                    </tbody>
+                </table>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 13px; margin-top: 25px; line-height: 1.6;">
+                Total Stocks Available: <strong>{len(inventory_items)}</strong>
+            </p>
+            
+            <!-- CTA -->
+            <div style="text-align: center; margin: 35px 0;">
+                <p style="color: #374151; margin-bottom: 15px;">Interested in any of these opportunities?</p>
+                <a href="{company.get('custom_domain', 'https://pesmifs.com')}/bookings" 
+                   style="display: inline-block; background: linear-gradient(135deg, #064E3B, #059669); color: #ffffff; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">
+                    Book Now
+                </a>
+            </div>
+        </div>
+        
+        <!-- Disclaimer -->
+        <div style="background-color: #fef3c7; padding: 20px 40px; border-top: 1px solid #fbbf24; border-bottom: 1px solid #fbbf24;">
+            <p style="margin: 0; color: #92400e; font-size: 12px; line-height: 1.6;">
+                <strong>⚠️ DISCLAIMER:</strong> This is an <strong>indicative report</strong> for informational purposes only. 
+                Prices and availability are subject to change without prior notice. This does not constitute investment advice. 
+                Please consult your financial advisor before making any investment decisions. Past performance does not guarantee future results.
+                SMIFS Limited is a SEBI registered entity.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #1f2937; padding: 30px 40px; text-align: center;">
+            <div style="margin-bottom: 20px;">
+                <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 5px 0;">{company.get('company_name', 'SMIFS Private Equity')}</p>
+                <p style="color: #9ca3af; font-size: 13px; margin: 0; line-height: 1.6;">
+                    {company.get('address', '')}
+                </p>
+            </div>
+            
+            <div style="border-top: 1px solid #374151; padding-top: 20px; margin-top: 20px;">
+                <p style="color: #9ca3af; font-size: 13px; margin: 0;">
+                    📞 {company.get('phone', '')} &nbsp;|&nbsp; 
+                    ✉️ {company.get('email', 'pe@smifs.com')} &nbsp;|&nbsp;
+                    🌐 {company.get('website', 'www.smifs.com')}
+                </p>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 11px; margin: 20px 0 0 0;">
+                © {datetime.now().year} {company.get('company_name', 'SMIFS')}. All rights reserved.<br>
+                This email was sent to you as a registered user of SMIFS Private Equity platform.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+    
+    # Send to all users
     results = {
         "total_users": len(users),
         "emails_sent": 0,
-        "whatsapp_sent": 0,
         "errors": []
     }
     
-    # Prepare stock data
-    stock_data = {
-        "stock_symbol": inventory.get("stock_symbol") or stock.get("symbol", ""),
-        "stock_name": inventory.get("stock_name") or stock.get("name", ""),
-        "landing_price": inventory.get("landing_price", 0),
-        "sector": stock.get("sector", "Unlisted"),
-        "lot_size": stock.get("lot_size", 1),
-        "min_investment": stock.get("min_investment", inventory.get("landing_price", 0) * stock.get("lot_size", 1)),
-        "available_quantity": inventory.get("available_quantity", 0),
-        "company_name": company.get("company_name", "SMIFS Private Equity"),
-        "company_address": company.get("address", ""),
-        "company_phone": company.get("phone", ""),
-        "company_email": company.get("email", "pe@smifs.com"),
-        "custom_domain": company.get("custom_domain", "")
-    }
+    subject = f"📊 PE Inventory Report - {report_time.strftime('%d %b %Y')}"
     
-    # Format currency for display
-    def format_currency(value):
-        try:
-            return f"{float(value):,.2f}"
-        except:
-            return "0.00"
-    
-    # Send reports
     for user in users:
-        user_name = user.get("name", "Valued Client")
         user_email = user.get("email")
-        user_mobile = user.get("mobile")
-        
-        # Send Email
-        if request.method in ["email", "both"] and user_email:
+        if user_email:
             try:
-                booking_url = f"{stock_data['custom_domain'] or 'https://pesmifs.com'}/bookings?stock={request.stock_id}"
-                
-                email_data = {
-                    "recipient_name": user_name,
-                    "stock_symbol": stock_data["stock_symbol"],
-                    "stock_name": stock_data["stock_name"],
-                    "landing_price": format_currency(stock_data["landing_price"]),
-                    "sector": stock_data["sector"],
-                    "lot_size": str(stock_data["lot_size"]),
-                    "min_investment": format_currency(stock_data["min_investment"]),
-                    "available_quantity": f"{stock_data['available_quantity']:,}",
-                    "booking_url": booking_url,
-                    "company_name": stock_data["company_name"],
-                    "company_address": stock_data["company_address"],
-                    "company_phone": stock_data["company_phone"],
-                    "company_email": stock_data["company_email"]
-                }
-                
-                # Send email with CC to pe@smifs.com
-                await send_email(
+                await send_email_raw(
                     to_email=user_email,
-                    template_key="pe_stock_report",
-                    data=email_data,
+                    subject=subject,
+                    html_content=html_content,
                     cc_email="pe@smifs.com"
                 )
                 results["emails_sent"] += 1
             except Exception as e:
-                logger.error(f"Failed to send email to {user_email}: {str(e)}")
-                results["errors"].append({"user": user_email, "type": "email", "error": str(e)})
-        
-        # Send WhatsApp
-        if request.method in ["whatsapp", "both"] and user_mobile:
-            try:
-                service = await get_wati_service()
-                if service:
-                    # Format phone number
-                    phone = ''.join(filter(str.isdigit, user_mobile))
-                    if not phone.startswith('91') and len(phone) == 10:
-                        phone = '91' + phone
-                    
-                    # Create message
-                    message = f"""📈 *PE Stock Report*
-
-Hello {user_name},
-
-*{stock_data['stock_name']}* ({stock_data['stock_symbol']})
-
-💰 *Landing Price:* ₹{format_currency(stock_data['landing_price'])}
-
-📋 *Details:*
-• Sector: {stock_data['sector']}
-• Lot Size: {stock_data['lot_size']} shares
-• Available: {stock_data['available_quantity']:,} shares
-
-Contact us to book now!
-
-{stock_data['company_name']}
-📞 {stock_data['company_phone']}
-✉️ {stock_data['company_email']}"""
-                    
-                    # Try session message first
-                    result = await service.send_session_message(phone, message)
-                    if result.get("result"):
-                        results["whatsapp_sent"] += 1
-                    else:
-                        # If session fails, try template (requires pre-approved template in Wati)
-                        results["errors"].append({
-                            "user": phone, 
-                            "type": "whatsapp", 
-                            "error": "Session expired - needs template"
-                        })
-            except Exception as e:
-                logger.error(f"Failed to send WhatsApp to {user_mobile}: {str(e)}")
-                results["errors"].append({"user": user_mobile, "type": "whatsapp", "error": str(e)})
+                logger.error(f"Failed to send PE Report to {user_email}: {str(e)}")
+                results["errors"].append({"email": user_email, "error": str(e)})
     
     # Create audit log
     from services.audit_service import create_audit_log
     await create_audit_log(
-        action="PE_REPORT_SENT",
+        action="PE_INVENTORY_REPORT_SENT",
         entity_type="inventory",
-        entity_id=request.stock_id,
+        entity_id="consolidated_report",
         user_id=current_user["id"],
         user_name=current_user["name"],
         user_role=current_user.get("role", 6),
-        entity_name=stock_data["stock_symbol"],
+        entity_name="PE Inventory Report",
         details={
-            "method": request.method,
+            "total_stocks": len(inventory_items),
             "total_users": results["total_users"],
             "emails_sent": results["emails_sent"],
-            "whatsapp_sent": results["whatsapp_sent"],
-            "errors_count": len(results["errors"])
+            "errors_count": len(results["errors"]),
+            "report_time": report_time_ist
         }
     )
     
-    logger.info(f"PE Report sent for {stock_data['stock_symbol']}: {results['emails_sent']} emails, {results['whatsapp_sent']} WhatsApp by {current_user['name']}")
+    logger.info(f"PE Inventory Report sent to {results['emails_sent']} users by {current_user['name']}")
     
     return {
-        "message": f"PE Report sent: {results['emails_sent']} emails, {results['whatsapp_sent']} WhatsApp messages",
-        "stock": {
-            "symbol": stock_data["stock_symbol"],
-            "name": stock_data["stock_name"],
-            "landing_price": stock_data["landing_price"]
-        },
+        "message": f"PE Report sent successfully to {results['emails_sent']} users",
+        "report_time": report_time_ist,
+        "stocks_included": len(inventory_items),
         "results": results
     }
 
