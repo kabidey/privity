@@ -1585,9 +1585,9 @@ async def refresh_booking_status(
             "payment_status": updated_booking.get("payment_status"),
             "approval_status": updated_booking.get("approval_status"),
             "dp_status": updated_booking.get("dp_status"),
-            "total_amount": total_amount,
-            "total_paid": total_paid,
-            "remaining": total_amount - total_paid
+            "total_amount": round(total_amount, 2),
+            "total_paid": round(total_paid, 2),
+            "remaining": round(total_amount - total_paid, 2)
         }
     }
 
