@@ -597,8 +597,8 @@ const Clients = () => {
       const missingDocs = [];
       if (!docFiles.pan_card) missingDocs.push('PAN Card');
       if (!docFiles.cml_copy) missingDocs.push('CML Copy');
-      // Only require cancelled cheque if user doesn't have skip permission
-      if (!docFiles.cancelled_cheque && !canSkipCancelledCheque) missingDocs.push('Cancelled Cheque');
+      // Only require bank proof (cheque/statement/passbook) if user doesn't have skip permission
+      if (!docFiles.cancelled_cheque && !canSkipCancelledCheque) missingDocs.push('Bank Proof (Cancelled Cheque / Bank Statement / Passbook)');
       
       if (missingDocs.length > 0) {
         toast.error(`MANDATORY: Documents must be uploaded before client creation. Missing: ${missingDocs.join(', ')}`);
