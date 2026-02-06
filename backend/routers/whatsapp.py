@@ -410,27 +410,6 @@ async def get_wati_service() -> Optional[WatiService]:
         return None
     
     return WatiService(api_endpoint, api_token, api_version)
-            # Check if we got templates or result is True
-            return result.get("result", False) or len(result.get("messageTemplates", [])) > 0
-        except Exception as e:
-            logger.error(f"Wati connection test failed: {str(e)}")
-            return False
-
-
-async def get_wati_service() -> Optional[WatiService]:
-    """Get Wati service instance from database config"""
-    config = await db.system_config.find_one({"config_type": "whatsapp"}, {"_id": 0})
-    
-    if not config or not config.get("enabled"):
-        return None
-    
-    api_endpoint = config.get("api_endpoint")
-    api_token = config.get("api_token")
-    
-    if not api_endpoint or not api_token:
-        return None
-    
-    return WatiService(api_endpoint, api_token)
 
 
 # ============== CONFIG ENDPOINTS ==============
@@ -455,7 +434,11 @@ async def test_wati_connection(
     if result.get("connected"):
         await db.system_config.update_one(
             {"config_type": "whatsapp"},
-            {"$set": {"status": "connected", "last_test": datetime.now(timezone.utc).isoformat()}}
+            {"$set": {
+                "status": "connected", 
+                "api_version_detected": result.get("api_version"),
+                "last_test": datetime.now(timezone.utc).isoformat()
+            }}
         )
     else:
         await db.system_config.update_one(
