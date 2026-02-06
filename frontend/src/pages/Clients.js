@@ -1373,7 +1373,7 @@ const Clients = () => {
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Client Details</TabsTrigger>
                 <TabsTrigger value="bank">Bank Accounts</TabsTrigger>
-                <TabsTrigger value="documents" disabled={!editingClient}>Documents</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
               </TabsList>
               
               <TabsContent value="details">
