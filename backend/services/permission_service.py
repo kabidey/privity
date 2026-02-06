@@ -21,7 +21,7 @@ DEFAULT_ROLES = {
     2: {  # PE Manager
         "name": "PE Manager",
         "permissions": [
-            "dashboard.*", "bookings.*", "clients.*", "stocks.*", 
+            "dashboard.*", "bookings.*", "clients.*", "clients.rerun_ocr", "stocks.*", 
             "inventory.*", "purchases.*", "vendors.*", "finance.view",
             "finance.view_reports", "users.view", "business_partners.*",
             "referral_partners.*", "reports.*", "dp.*", "revenue.*",
