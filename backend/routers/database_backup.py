@@ -1516,3 +1516,487 @@ async def get_gridfs_stats(
             for c in categories
         ]
     }
+
+
+
+# ============== ULTIMATE FULL SYSTEM BACKUP ==============
+
+@router.post("/backups/ultimate")
+async def create_ultimate_backup(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.full", "create ultimate backup"))
+):
+    """
+    Create an ULTIMATE full system backup including:
+    - ALL database collections
+    - ALL GridFS files (stored as base64)
+    - Environment settings
+    - System configuration
+    - Log file summaries
+    
+    This is the most comprehensive backup option.
+    """
+    backup_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    backup_name = f"Ultimate_Backup_{now.strftime('%Y%m%d_%H%M%S')}"
+    
+    backup_data = {}
+    record_counts = {}
+    total_size = 0
+    errors = []
+    
+    # 1. Get ALL collections dynamically
+    all_collections = await db.list_collection_names()
+    collections_to_backup = [c for c in all_collections if c != "database_backups"]
+    
+    # 2. Backup each collection (excluding GridFS chunks which are binary)
+    for collection_name in collections_to_backup:
+        if collection_name == "fs.chunks":
+            # Skip fs.chunks as we'll backup GridFS files separately
+            continue
+        try:
+            collection = db[collection_name]
+            documents = await collection.find({}, {"_id": 0}).to_list(100000)
+            backup_data[collection_name] = documents
+            record_counts[collection_name] = len(documents)
+            total_size += len(json.dumps(documents, default=str))
+        except Exception as e:
+            errors.append(f"Error backing up {collection_name}: {str(e)}")
+            backup_data[collection_name] = []
+            record_counts[collection_name] = 0
+    
+    # 3. Backup GridFS files with base64 content
+    gridfs_files = []
+    gridfs_total_size = 0
+    
+    try:
+        async for file_doc in db["fs.files"].find({}):
+            file_id = str(file_doc["_id"])
+            try:
+                content, content_type = await download_file_from_gridfs(file_id)
+                gridfs_files.append({
+                    "file_id": file_id,
+                    "filename": file_doc.get("filename", ""),
+                    "length": file_doc.get("length", 0),
+                    "content_type": content_type,
+                    "upload_date": str(file_doc.get("uploadDate", "")),
+                    "metadata": file_doc.get("metadata", {}),
+                    "content_base64": base64.b64encode(content).decode('utf-8')
+                })
+                gridfs_total_size += file_doc.get("length", 0)
+            except Exception as e:
+                errors.append(f"Error backing up GridFS file {file_id}: {str(e)}")
+    except Exception as e:
+        errors.append(f"Error reading GridFS files: {str(e)}")
+    
+    # 4. Get environment/system settings
+    env_settings = {}
+    env_files = ["/app/backend/.env", "/app/frontend/.env"]
+    for env_file in env_files:
+        if os.path.exists(env_file):
+            try:
+                with open(env_file, 'r') as f:
+                    # Don't include sensitive keys, just structure
+                    content = f.read()
+                    # Mask sensitive values
+                    masked_lines = []
+                    for line in content.split('\n'):
+                        if '=' in line and not line.startswith('#'):
+                            key = line.split('=')[0]
+                            if any(sensitive in key.lower() for sensitive in ['key', 'secret', 'password', 'token']):
+                                masked_lines.append(f"{key}=***MASKED***")
+                            else:
+                                masked_lines.append(line)
+                        else:
+                            masked_lines.append(line)
+                    env_settings[env_file] = '\n'.join(masked_lines)
+            except Exception as e:
+                errors.append(f"Error reading {env_file}: {str(e)}")
+    
+    # 5. Get log file stats (not full content to save space)
+    log_stats = {}
+    log_dirs = ["/var/log/supervisor"]
+    for log_dir in log_dirs:
+        if os.path.exists(log_dir):
+            try:
+                for log_file in os.listdir(log_dir):
+                    log_path = os.path.join(log_dir, log_file)
+                    if os.path.isfile(log_path):
+                        stat = os.stat(log_path)
+                        log_stats[log_file] = {
+                            "size_bytes": stat.st_size,
+                            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat()
+                        }
+                        # Get last 50 lines of error logs
+                        if 'err' in log_file.lower():
+                            try:
+                                with open(log_path, 'r') as f:
+                                    lines = f.readlines()
+                                    log_stats[log_file]["last_50_lines"] = ''.join(lines[-50:])
+                            except:
+                                pass
+            except Exception as e:
+                errors.append(f"Error reading logs from {log_dir}: {str(e)}")
+    
+    # 6. Get uploaded files from filesystem
+    files_metadata = {}
+    if os.path.exists(UPLOADS_DIR):
+        for root, dirs, files in os.walk(UPLOADS_DIR):
+            for filename in files:
+                file_path = os.path.join(root, filename)
+                rel_path = os.path.relpath(file_path, UPLOADS_DIR)
+                try:
+                    stat = os.stat(file_path)
+                    files_metadata[rel_path] = {
+                        "size_bytes": stat.st_size,
+                        "modified": datetime.fromtimestamp(stat.st_mtime).isoformat()
+                    }
+                except:
+                    pass
+    
+    # Store the ultimate backup
+    backup_doc = {
+        "id": backup_id,
+        "name": backup_name,
+        "description": f"Ultimate backup - {len(collections_to_backup)} collections, {len(gridfs_files)} GridFS files",
+        "created_at": now.isoformat(),
+        "created_by": current_user["id"],
+        "created_by_name": current_user["name"],
+        "backup_type": "ultimate",
+        "collections": collections_to_backup,
+        "record_counts": record_counts,
+        "size_bytes": total_size,
+        "gridfs_files_count": len(gridfs_files),
+        "gridfs_total_size": gridfs_total_size,
+        "filesystem_files_count": len(files_metadata),
+        "errors": errors,
+        "data": backup_data,
+        "gridfs_data": gridfs_files,
+        "env_settings": env_settings,
+        "log_stats": log_stats,
+        "files_metadata": files_metadata
+    }
+    
+    await db.database_backups.insert_one(backup_doc)
+    
+    # Log the action
+    await db.audit_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "action": "ULTIMATE_BACKUP",
+        "entity_type": "database",
+        "entity_id": backup_id,
+        "user_id": current_user["id"],
+        "user_name": current_user["name"],
+        "user_role": current_user.get("role", 5),
+        "details": {
+            "backup_name": backup_name,
+            "collections_count": len(collections_to_backup),
+            "gridfs_files_count": len(gridfs_files),
+            "total_records": sum(record_counts.values()),
+            "errors_count": len(errors)
+        },
+        "timestamp": now.isoformat()
+    })
+    
+    return {
+        "message": "Ultimate backup created successfully" if not errors else "Backup created with some warnings",
+        "backup": {
+            "id": backup_id,
+            "name": backup_name,
+            "collections_count": len(collections_to_backup),
+            "total_records": sum(record_counts.values()),
+            "gridfs_files": len(gridfs_files),
+            "gridfs_size_mb": round(gridfs_total_size / (1024 * 1024), 2),
+            "filesystem_files": len(files_metadata),
+            "size_bytes": total_size
+        },
+        "warnings": errors[:10] if errors else [],
+        "download_url": f"/api/database/backups/{backup_id}/download-ultimate"
+    }
+
+
+@router.get("/backups/{backup_id}/download-ultimate")
+async def download_ultimate_backup(
+    backup_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.view", "download ultimate backup"))
+):
+    """
+    Download an ultimate backup as a comprehensive ZIP file.
+    Includes database, GridFS files, settings, and logs.
+    """
+    # Get backup
+    backup = await db.database_backups.find_one({"id": backup_id}, {"_id": 0})
+    
+    if not backup:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    
+    # Create ZIP in memory
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        # 1. Add metadata
+        metadata = {
+            "id": backup["id"],
+            "name": backup["name"],
+            "description": backup.get("description"),
+            "created_at": backup["created_at"],
+            "created_by_name": backup["created_by_name"],
+            "backup_type": backup.get("backup_type", "standard"),
+            "collections": backup.get("collections", []),
+            "record_counts": backup.get("record_counts", {}),
+            "gridfs_files_count": backup.get("gridfs_files_count", 0),
+            "filesystem_files_count": backup.get("filesystem_files_count", 0),
+            "backup_version": "3.0-ultimate"
+        }
+        zip_file.writestr("metadata.json", json.dumps(metadata, indent=2))
+        
+        # 2. Add database collections
+        backup_data = backup.get("data", {})
+        for collection_name, documents in backup_data.items():
+            json_content = json.dumps(documents, indent=2, default=str)
+            zip_file.writestr(f"database/{collection_name}.json", json_content)
+        
+        # 3. Add GridFS files (decode base64 and store as actual files)
+        gridfs_data = backup.get("gridfs_data", [])
+        gridfs_manifest = []
+        for gf in gridfs_data:
+            try:
+                content = base64.b64decode(gf.get("content_base64", ""))
+                category = gf.get("metadata", {}).get("category", "uncategorized")
+                filename = gf.get("filename", gf["file_id"])
+                zip_path = f"gridfs/{category}/{filename}"
+                zip_file.writestr(zip_path, content)
+                
+                # Add to manifest (without base64 content)
+                manifest_entry = {k: v for k, v in gf.items() if k != "content_base64"}
+                manifest_entry["zip_path"] = zip_path
+                gridfs_manifest.append(manifest_entry)
+            except Exception as e:
+                gridfs_manifest.append({
+                    "file_id": gf.get("file_id"),
+                    "error": str(e)
+                })
+        
+        zip_file.writestr("gridfs/manifest.json", json.dumps(gridfs_manifest, indent=2, default=str))
+        
+        # 4. Add environment settings
+        env_settings = backup.get("env_settings", {})
+        for env_file, content in env_settings.items():
+            safe_name = env_file.replace("/", "_").replace("\\", "_")
+            zip_file.writestr(f"settings/{safe_name}", content)
+        
+        # 5. Add log stats
+        log_stats = backup.get("log_stats", {})
+        zip_file.writestr("logs/log_stats.json", json.dumps(log_stats, indent=2, default=str))
+        
+        # 6. Add filesystem files metadata
+        files_metadata = backup.get("files_metadata", {})
+        zip_file.writestr("uploads/files_metadata.json", json.dumps(files_metadata, indent=2))
+        
+        # 7. Add actual upload files if they exist
+        if os.path.exists(UPLOADS_DIR):
+            for root, dirs, files in os.walk(UPLOADS_DIR):
+                for filename in files:
+                    file_path = os.path.join(root, filename)
+                    rel_path = os.path.relpath(file_path, UPLOADS_DIR)
+                    try:
+                        zip_file.write(file_path, f"uploads/{rel_path}")
+                    except Exception:
+                        pass
+        
+        # 8. Add restore instructions
+        restore_instructions = """
+# Ultimate Backup Restore Instructions
+
+## Contents
+- /database/ - All MongoDB collections as JSON files
+- /gridfs/ - All GridFS files with manifest.json
+- /settings/ - Environment configuration files (sensitive values masked)
+- /logs/ - Log file statistics and recent error logs
+- /uploads/ - All uploaded files from filesystem
+
+## How to Restore
+
+### Option 1: Use the API
+POST /api/database/restore-from-file
+- Upload this ZIP file
+- All database collections will be restored
+
+### Option 2: Manual Restore
+1. Import each JSON file in /database/ to MongoDB
+2. Upload files from /gridfs/ using the GridFS restore API
+3. Copy files from /uploads/ to /app/uploads/
+
+### Important Notes
+- The super admin user (pe@smifs.com) is preserved during restore
+- GridFS files include metadata for proper re-linking
+- Environment files have sensitive values masked for security
+
+## Backup Info
+Created: {created_at}
+By: {created_by}
+Collections: {collections_count}
+GridFS Files: {gridfs_count}
+        """.format(
+            created_at=backup["created_at"],
+            created_by=backup["created_by_name"],
+            collections_count=len(backup.get("collections", [])),
+            gridfs_count=backup.get("gridfs_files_count", 0)
+        )
+        zip_file.writestr("RESTORE_INSTRUCTIONS.md", restore_instructions)
+    
+    zip_buffer.seek(0)
+    
+    # Generate filename
+    safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in backup["name"])
+    filename = f"{safe_name}_{backup['created_at'][:10]}.zip"
+    
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.post("/restore-ultimate")
+async def restore_ultimate_backup(
+    file: UploadFile = File(...),
+    restore_gridfs: bool = True,
+    restore_files: bool = True,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("database_backup.restore", "restore ultimate backup"))
+):
+    """
+    Restore from an ultimate backup ZIP file.
+    
+    Args:
+        file: The ultimate backup ZIP file
+        restore_gridfs: If True, restore GridFS files
+        restore_files: If True, restore filesystem files
+    """
+    if not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Please upload a ZIP file")
+    
+    try:
+        content = await file.read()
+        zip_buffer = io.BytesIO(content)
+        
+        restored = {
+            "collections": {},
+            "gridfs_files": 0,
+            "upload_files": 0
+        }
+        errors = []
+        
+        with zipfile.ZipFile(zip_buffer, 'r') as zip_file:
+            # Read metadata
+            if "metadata.json" not in zip_file.namelist():
+                raise HTTPException(status_code=400, detail="Invalid backup: missing metadata.json")
+            
+            metadata = json.loads(zip_file.read("metadata.json"))
+            
+            # 1. Restore database collections
+            for filename in zip_file.namelist():
+                if filename.startswith("database/") and filename.endswith(".json"):
+                    collection_name = filename.replace("database/", "").replace(".json", "")
+                    
+                    if collection_name == "database_backups":
+                        continue
+                    
+                    try:
+                        documents = json.loads(zip_file.read(filename))
+                        collection = db[collection_name]
+                        
+                        if collection_name == "users":
+                            await collection.delete_many({"email": {"$ne": "pe@smifs.com"}})
+                            users_to_insert = [d for d in documents if d.get("email") != "pe@smifs.com"]
+                            if users_to_insert:
+                                await collection.insert_many(users_to_insert)
+                            restored["collections"][collection_name] = len(users_to_insert)
+                        else:
+                            await collection.delete_many({})
+                            if documents:
+                                await collection.insert_many(documents)
+                            restored["collections"][collection_name] = len(documents)
+                    except Exception as e:
+                        errors.append(f"Error restoring {collection_name}: {str(e)}")
+            
+            # 2. Restore GridFS files
+            if restore_gridfs and "gridfs/manifest.json" in zip_file.namelist():
+                try:
+                    manifest = json.loads(zip_file.read("gridfs/manifest.json"))
+                    
+                    for file_info in manifest:
+                        if file_info.get("error"):
+                            continue
+                        
+                        zip_path = file_info.get("zip_path")
+                        if zip_path and zip_path in zip_file.namelist():
+                            try:
+                                file_content = zip_file.read(zip_path)
+                                await upload_file_to_gridfs(
+                                    file_content,
+                                    file_info.get("filename", ""),
+                                    file_info.get("content_type", "application/octet-stream"),
+                                    file_info.get("metadata", {})
+                                )
+                                restored["gridfs_files"] += 1
+                            except Exception as e:
+                                errors.append(f"Error restoring GridFS file: {str(e)}")
+                except Exception as e:
+                    errors.append(f"Error processing GridFS manifest: {str(e)}")
+            
+            # 3. Restore filesystem files
+            if restore_files:
+                for filename in zip_file.namelist():
+                    if filename.startswith("uploads/") and not filename.endswith("/") and not filename.endswith(".json"):
+                        try:
+                            rel_path = filename[8:]  # Remove "uploads/" prefix
+                            target_path = os.path.join(UPLOADS_DIR, rel_path)
+                            target_dir = os.path.dirname(target_path)
+                            os.makedirs(target_dir, exist_ok=True)
+                            
+                            with zip_file.open(filename) as src:
+                                with open(target_path, 'wb') as dst:
+                                    dst.write(src.read())
+                            restored["upload_files"] += 1
+                        except Exception as e:
+                            errors.append(f"Error restoring file {filename}: {str(e)}")
+        
+        # Log the restore
+        await db.audit_logs.insert_one({
+            "id": str(uuid.uuid4()),
+            "action": "ULTIMATE_RESTORE",
+            "entity_type": "database",
+            "entity_id": metadata.get("id", "uploaded"),
+            "user_id": current_user["id"],
+            "user_name": current_user["name"],
+            "user_role": current_user.get("role", 5),
+            "details": {
+                "backup_name": metadata.get("name"),
+                "restored_collections": len(restored["collections"]),
+                "restored_gridfs": restored["gridfs_files"],
+                "restored_files": restored["upload_files"],
+                "errors_count": len(errors)
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "message": "Ultimate restore completed successfully" if not errors else "Restore completed with some warnings",
+            "backup_info": {
+                "name": metadata.get("name"),
+                "original_date": metadata.get("created_at"),
+                "backup_version": metadata.get("backup_version")
+            },
+            "restored": restored,
+            "total_collections": len(restored["collections"]),
+            "total_records": sum(restored["collections"].values()),
+            "errors": errors[:20] if errors else []
+        }
+    
+    except zipfile.BadZipFile:
+        raise HTTPException(status_code=400, detail="Invalid ZIP file")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing backup: {str(e)}")
