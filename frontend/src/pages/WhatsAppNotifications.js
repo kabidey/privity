@@ -796,16 +796,24 @@ const WhatsAppNotifications = () => {
                 <CardTitle>Message Templates</CardTitle>
                 <CardDescription>Pre-defined message templates for common notifications</CardDescription>
               </div>
-              {canManageTemplates && (
-                <Button onClick={() => {
-                  setEditingTemplate(null);
-                  setTemplateForm({ name: '', category: 'custom', message_template: '', variables: [], recipient_types: [] });
-                  setTemplateDialogOpen(true);
-                }}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Template
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {canManageTemplates && (
+                  <>
+                    <Button variant="outline" onClick={handleRefreshSystemTemplates} data-testid="refresh-templates-btn">
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Refresh System
+                    </Button>
+                    <Button onClick={() => {
+                      setEditingTemplate(null);
+                      setTemplateForm({ name: '', category: 'custom', message_template: '', variables: [], recipient_types: [] });
+                      setTemplateDialogOpen(true);
+                    }} data-testid="add-template-btn">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Template
+                    </Button>
+                  </>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
