@@ -1,142 +1,138 @@
 <analysis>**original_problem_statement:**
-The user initiated the session with a list of requests:
-1.  Replace the existing WhatsApp QR code system with an integration for the Wati.io API.
-2.  Unmask the bank account numbers for Referral Partners (RPs) so they are fully visible.
-3.  Fix the payment proof functionality, ensuring proofs can be uploaded and viewed for both vendor and client payments.
+The user initiated the project with several requests, including replacing a WhatsApp QR system with Wati.io, unmasking bank account numbers, and fixing payment proof uploads.
 
-Throughout the session, the user added several more requests and bug reports:
--   **Client Document Icon:** After a client is created via OCR, the document attachment icon is not visible in the client list.
--   **Permission Override:** Create a new permission to allow specific roles to create clients without requiring a cancelled cheque.
--   **Wati.io Connection:** The provided Wati.io v3 credentials were not working.
--   **RBAC Bug:** A critical bug where permissions assigned to roles were not being correctly applied to users, resulting in Access Denied errors.
--   **Email Link URL:** Emails sent from the application were using an internal preview URL instead of the correct public-facing deployment URL.
--   **Confirmation Notes:** Sent confirmation notes were not appearing in the sent list, and the ISIN was missing from the generated note.
--   **Payment Intimation:** Client documents (CML, PAN, Cancelled Cheque) were not being attached to payment intimation emails, and an alert should also be sent via WhatsApp.
--   **DP Ready Email:** An email notification was not being sent to the client when their order status changed to DP Ready.
--   **Email Logo:** The company logo was not being displayed correctly in email templates.
--   **Search Functionality:** Add a search bar to all major data tables (Users, Inventory, Bookings, etc.) to improve usability as data grows.
+Over the course of development, the user added numerous features and bug fixes:
+-   Fixing a critical Role-Based Access Control (RBAC) bug.
+-   Implementing a custom domain for email links.
+-   Correcting issues with confirmation notes and payment intimation emails/attachments.
+-   Adding a DP Ready email notification.
+-   Implementing server-side search across all major data tables.
+-   Creating a WhatsApp bulk notification and automation system with a frontend UI.
+-   Auditing and securing endpoints with missing RBAC checks.
+-   Implementing a Rainbow Mode with 10+ selectable color themes.
+-   Fixing UI scaling issues to make the app comfortable at 100% browser zoom.
+-   Resolving a bug with invisible action buttons on the user agreement modal.
+-   Conducting a full mobile responsiveness overhaul to give the app a native mobile feel.
+-   The current request is to make the OCR extraction for client creation more robust and to provide an option for admins to re-run the OCR process on documents that may have been parsed incorrectly. The user has provided sample documents (CML, PAN, Bank Cheque) for testing.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a FastAPI backend with a React frontend. The agent has successfully addressed a majority of the user's requests. The most critical fix was a complete overhaul of the Role-Based Access Control (RBAC) system, which was fundamentally broken due to legacy code. The agent unified permission checks to a single, reliable service. Additionally, the agent integrated the Wati.io API, implemented a custom domain feature for emails, fixed numerous bugs related to email attachments and content, and resolved UI visibility issues. The application is now in a much more stable state.
+The application is a mature and stable full-stack system with a FastAPI backend and a React frontend. It features a centralized RBAC service, dynamic email service, server-side search on all major endpoints, and a comprehensive WhatsApp automation suite. The frontend includes a multi-theme Rainbow Mode, improved UI scaling for better readability at 100% zoom, and a full mobile-responsive design that provides a native-like experience, especially for dialogs.
 
 **Last working item**:
-*   **Last item agent was working:** Implementing a new feature request to add search functionality across all major data tables in the application. The agent was systematically editing the frontend React components for each page (, , , , ) to add a search input field and the necessary client-side filtering logic.
-*   **Status:** IN PROGRESS
-*   **Agent Testing Done:** N
-*   **Which testing method agent to use?** Frontend testing agent. The agent should be instructed to test each modified page (, , , , , and ) to confirm the search bar is present and correctly filters the displayed data.
-*   **User Testing Done:** N
+-   **Last item agent was working:** The agent was working on improving the robustness of the OCR document extraction process. It has reviewed the existing codebase (, ) and started analyzing the user-provided sample documents to understand their structure. The analysis of the CML (Client Master List) document is complete.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** both. The backend logic for improved OCR and the new re-run endpoint should be tested with . The new Re-run OCR button on the frontend should be verified using the frontend testing agent.
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-There are no pending bugs reported by the user. The only active item is the feature implementation that is currently in progress.
+-   **Issue 1: OCR extraction is not robust and lacks a re-run option.** (P0)
+
+    **Issues Detail:**
+    -   **Issue 1:** OCR extraction on client creation is populating fields with incorrect information. Admins also need a way to re-trigger the OCR process for a document if it fails or extracts incorrect data.
+        -   **Attempted fixes:** None yet. The agent is in the analysis phase.
+        -   **Next debug checklist:**
+            1.  Finish analyzing the remaining sample documents (PAN, Bank Cheque).
+            2.  Modify  to implement more robust data extraction logic based on the analysis of all sample documents.
+            3.  Create a new API endpoint in a relevant router like  (e.g., ) protected by an admin-level permission.
+            4.  This endpoint should call the improved OCR service to re-process the specified document and update the client's data.
+            5.  Add a Re-run OCR button in the client documents section on the frontend (), visible only to users with the appropriate permission.
+        -   **Why fix this issue and what will be achieved with the fix?** This will significantly improve data accuracy for new clients, reduce manual data entry, and empower admins to self-service correct any extraction errors.
+        -   **Status:** IN PROGRESS
+        -   **Is recurring issue?** N
+        -   **Should Test frontend/backend/both after fix?** both
+        -   **Blocked on other issue:** None.
 
 **In progress Task List**:
-*   **Task 1: Complete the Implementation of Search Functionality**
-    *   **Priority:** P0
-    *   **Where to resume:** The agent has already added client-side search code to , , , , and . The next step is to add a search input UI to the **** page, which currently uses URL search parameters but lacks a visible input field. After that, the agent should review other key pages like  to ensure comprehensive search coverage.
-    *   **What will be achieved with this?** This will fulfill the user's request for easier data navigation on pages that display large lists of records, significantly improving user experience.
-    *   **Status:** IN PROGRESS
-    *   **Should Test frontend/backend/both after fix?** Frontend
-    *   **Blocked on something:** No.
+-   **Task 1: Implement Robust OCR and Re-run Feature**
+    -   **Where to resume:** The agent has completed the analysis of the CML sample document. The next step is to analyze the PAN card and Bank Cheque samples, then proceed with implementing the code changes in  and adding the new API endpoint and frontend button.
+    -   **What will be achieved with this?** A more reliable client onboarding process and an admin tool to correct OCR errors.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on something:** No.
 
 **Upcoming and Future Tasks**
-*   **Future Task:** Consider refactoring the client-side search to server-side search for pages expected to handle very large datasets (e.g., Bookings, Clients). This would involve updating the backend APIs to accept a search query parameter to improve performance.
+-   **Future Tasks:**
+    -   **P1: Real-time Notification Dashboard:** Create a dashboard to display real-time updates from WhatsApp and other notification channels.
+    -   **P2: Wati.io Webhook Integration:** Integrate webhooks from Wati.io to get real-time message delivery status updates.
+    -   **P2: Collaboration Features:** As per the PRD, implement features for team collaboration and versioning of ideas.
 
 **Completed work in this session**
-- **RBAC System Overhaul (CRITICAL):** Fixed the root cause of permissions not being applied correctly by centralizing all permission checks to  and replacing outdated, hardcoded permission strings in , , and .
-- **Custom Domain for Email Links:** Implemented a feature in Company Master settings for users to specify a custom domain, which is now used to generate correct, absolute URLs in all outgoing emails (, ).
-- **Confirmation Notes and Payment Intimation Fixes:**
-    - Corrected logic to update confirmation note status to sent so they appear in the correct list ().
-    - Fixed the PDF generation to show the correct ISIN field ().
-    - Enhanced payment intimation emails to attach client documents (CML, PAN, Cheque) from GridFS ().
-    - Added a WhatsApp notification for payment intimations.
-- **DP Ready Email Notification:** Created and triggered a new email to be sent to clients when their booking status becomes DP Ready (, ).
-- **Wati.io v3 API Integration:** Fixed the WhatsApp connection by updating the  to use the correct v3 API endpoints ().
-- **Cancelled Cheque Override Permission:** Implemented a new permission () that allows designated roles to bypass the cancelled cheque requirement during client creation and approval.
-- **UI and Initial Bug Fixes:**
-    - Replaced the old WhatsApp QR system with a full Wati.io API integration.
-    - Unmasked bank account details for Referral Partners for authorized users.
-    - Created the missing  endpoint to fix file uploads.
-    - Resolved an issue preventing the client document icon from appearing after an OCR upload due to a caching problem.
-    - Fixed an initial backend crash related to an unexpected  argument in an email function.
+-   No tasks have been completed in this session yet. The agent has focused on analyzing the codebase and sample documents for the current task.
 
 **Earlier issues found/mentioned but not fixed**
-- All issues raised by the user during this session have been addressed or are currently in progress.
+-   None identified.
 
 **Known issue recurrence from previous fork**
-- The initial handoff mentioned an  for . The agent investigated and found this was already resolved, correctly identifying the real issue from the logs.
+-   None identified.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend:** FastAPI, MongoDB (with  ODM), GridFS for file storage.
-- **Frontend:** React, Material-UI (MUI).
-- **Authentication:** JWT-based stateless authentication.
-- **RBAC:** A database-driven Role-Based Access Control system. A major fix was implemented to remove hardcoded permissions from the config and unify all checks through the .
+-   **Backend:** FastAPI, MongoDB, APScheduler for background jobs.
+-   **Frontend:** React, TailwindCSS, Shadcn/UI.
+-   **Server-Side Search:** Implemented using FastAPI's  dependencies to handle , , and  parameters.
+-   **Multi-Theming:** A dynamic theme system using CSS variables managed through a React Context.
+-   **Mobile-First Responsive Design:** Extensive use of TailwindCSS responsive prefixes to adapt the layout, with a focus on a native-like experience for dialogs.
 
 **key DB schema**
-- **roles**:  - Stores the list of granular permission strings for a given role.
-- **company_master**:  - Global configuration, including the user-defined domain for emails.
-- **clients**:  - Stores client details and an array of their documents.
-- **confirmation_notes**:  - Stores details of generated confirmation notes, including their sent status.
+-   No major database schema changes were made in the last session.
 
 **changes in tech stack**
-- None.
+-   None.
 
 **All files of reference**
-- : The heart of the now-fixed RBAC system. All new permission checks should use this.
-- : Significantly updated to handle dynamic URLs via , attach files from GridFS, and send new email types.
--  & : Examples of routers where old permission checks were replaced with the new centralized service.
-- : The frontend component where the user can configure the custom domain for email links.
-- , , , , : Frontend files where client-side search was recently added.
+-   : The primary service to be modified for the OCR logic.
+-   : The page where the Re-run OCR button will be added.
+-   : To check for existing permissions or add a new one for the re-run feature.
+-   : Contains the product requirements and project history.
+-   User-provided sample documents (CML, PAN, Bank Cheque) located in the assets are critical for developing the new OCR logic.
 
 **Areas that need refactoring**:
-- The newly implemented search functionality is client-side. If performance becomes an issue on pages with thousands of entries, this should be refactored to a server-side search model where the API handles the filtering.
+-   None.
 
 **key api endpoints**
-- : Fetches the current user's details and their calculated permissions.
-- : Updates a role and its associated permissions in the database.
-- : Approves a client; now checks for the  permission.
-- : A new endpoint created to handle the upload of payment proof files.
-- : Endpoint to get and set company-wide settings, including the new .
+-   **/api/{resource}?search=...&skip=...&limit=...**: All major GET endpoints support server-side search and pagination.
+-   **/api/whatsapp/automation/config** (GET/POST): Manages WhatsApp automation settings.
+-   **/api/whatsapp/automation/run** (POST): Manually triggers all enabled automations.
+-   **/api/whatsapp/automation/logs** (GET): Retrieves logs of past automation runs.
 
 **Critical Info for New Agent**
-- **RBAC is now stable.** The single most critical task of the last session was fixing the RBAC system. The root cause was a legacy  function in  that used hardcoded config values. This has been deprecated. **All permission checks must now use the  function from **. If you see any Access Denied errors, first verify the imports and the permission string format ().
-- **Email URLs are dynamic.** Do not hardcode URLs in email templates. The system now uses a  helper in  which pulls the domain from the Company Master settings.
-- Your immediate task is to **finish implementing the search feature** on the remaining frontend pages, starting with adding a visible search bar to the  page.
+-   **Current Task:** Your immediate focus is to improve the OCR service and add a re-run feature for admins.
+-   **Resume Analysis:** The analysis of the CML document is done. You must now analyze the PAN and Bank Cheque samples to get a complete picture before coding.
+-   **Mobile Responsiveness is Key:** When creating or modifying dialogs, ensure they use the established responsive pattern (e.g., ) to render as bottom sheets on mobile.
+-   **Multi-Theme System:** All new UI components must use CSS variables (, , etc.) to support the existing multi-theme system.
+-   **Credentials:** The login  with password  should work.
 
 **documents and test reports created in this job**
-- None.
+-   
+-   
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **As the data grows for users/ inventory/ bookings and others there mist be a search option where ever possible to make access easy.** - IN PROGRESS. The agent started implementing this feature request.
-2.  **I dont see the payment proof uploaded for vendors/client, also after DP ready email...Email templates configured to show the company logo...is not corectlt configured** - COMPLETED. Agent added the DP ready email and fixed the logo URL logic.
-3.  **Conformation note sent is not being shown...ISIN is not shown...files in client master...is not getting attached in the outgoing mail. Send all such alerts on WhatsApp also** - COMPLETED. Agent fixed the note status, ISIN, added email attachments, and a WhatsApp alert.
-4.  **Emails going are returning this url and not the deployment URL...** - COMPLETED. Agent implemented the custom domain feature to fix this.
-5.  **check RBAC for each permission, when some permission is applied to roles, the same permission is not passed on to the user** - COMPLETED. This was the start of the critical RBAC bug discovery.
-6.  **permissions were changed by PE Desk, any permission assigned to roles says access denied...** - COMPLETED. This user feedback was key to confirming the RBAC bug.
-7.  **Wati API credentials... this is not connecting.** - COMPLETED. Agent fixed the Wati.io API integration to use v3.
-8.  **create an override permission for Cancelled cheque in client creation...** - COMPLETED. Agent implemented this new permission.
-9.  **when a client is created and the OCR runs... the attached icon is not visible.** - COMPLETED. Agent fixed the UI cache issue.
-10. **The whatsapp QR system is not working, please remove it and change it to Wati.io API...** - COMPLETED. This was one of the first tasks of the session.
+1.  **Proceed**: COMPLETED. User approved the agent's plan to start working on the OCR task.
 
 **Project Health Check:**
-- **Broken:** The search feature is partially implemented.
-- **Mocked:** None.
+-   **Broken:**
+    -   The OCR extraction logic is considered unreliable by the user.
+-   **Mocked:** None.
 
 **3rd Party Integrations**
-- **Wati.io API v3** (WhatsApp Messaging) — requires User API Key.
+-   **Wati.io API v3** (WhatsApp Messaging) — requires User API Key.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES
-- **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** None.
-- **Known regressions:** None. The RBAC fix resolved a major source of regressions.
+-   **Testing agent used after significant changes:** YES (in previous sessions).
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None.
+-   **Known regressions:** None.
 
 **Credentials to test flow:**
-- Use  /  for a user with high-level permissions.
+-   **Email:** 
+-   **Password:** 
 
 **What agent forgot to execute**
-- The agent was in the middle of implementing the search feature across multiple pages. It added the logic and UI for several pages but did not complete the task for all requested pages (e.g., adding a search bar to the  page) and did not perform any testing of the new search bars.</analysis>
+-   The agent is on track and has not forgotten any requested tasks. It correctly began by exploring the relevant code and analyzing the provided sample documents.</analysis>
