@@ -591,7 +591,7 @@ const Purchases = () => {
                             <Badge variant="outline" className="text-xs">Tranche #{payment.tranche_number}</Badge>
                             <span className="text-sm text-muted-foreground">{new Date(payment.payment_date).toLocaleDateString('en-IN')}</span>
                           </div>
-                          <div className="text-xl font-bold">₹{payment.amount?.toLocaleString('en-IN')}</div>
+                          <div className="text-xl font-bold">₹{payment.amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                         </div>
                         <Badge className={payment.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
                           {payment.status || 'Completed'}
