@@ -920,6 +920,19 @@ const WhatsAppNotifications = () => {
               />
               <p className="text-xs text-muted-foreground mt-1">Your Wati.io Bearer token</p>
             </div>
+            <div>
+              <Label htmlFor="watiApiVersion">API Version</Label>
+              <Select value={watiApiVersion} onValueChange={setWatiApiVersion}>
+                <SelectTrigger data-testid="wati-api-version-select">
+                  <SelectValue placeholder="Select API version" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="v1">v1 (Standard)</SelectItem>
+                  <SelectItem value="v3">v3 (Extended with bulk support)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">System will auto-detect the best version</p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowConfigDialog(false)}>Cancel</Button>
