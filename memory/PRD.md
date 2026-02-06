@@ -37,6 +37,18 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Fix - Mobile Numbers Not Visible in User Management (Feb 07, 2026)
+- **Issue:** Mobile numbers captured during user registration were not visible in the User Management page
+- **Root Cause:** Frontend was using `user.mobile` but the API returns `user.mobile_number`
+- **Solution:**
+  - Updated frontend to use correct field name `mobile_number`
+  - Updated `UserUpdate` model to include `mobile_number` and `pan_number` fields
+  - Added validation for mobile number updates (10 digits, duplicate check)
+- **Files Modified:**
+  - `/app/frontend/src/pages/UserManagement.js` - Fixed field name from `mobile` to `mobile_number`
+  - `/app/backend/routers/users.py` - Added `mobile_number` and `pan_number` to `UserUpdate` model and handler
+- **Test Status:** Verified via screenshot - mobile numbers now display correctly for users who have them
+
 #### ✅ Fix - Removed "Buying Price" from WhatsApp Template (Feb 07, 2026)
 - **Issue:** User reported "Buying Price" was still showing in the Booking Confirmation WhatsApp template
 - **Root Cause:** Database had cached old template content
