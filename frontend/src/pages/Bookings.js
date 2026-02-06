@@ -612,6 +612,81 @@ const Bookings = () => {
     }
   };
 
+  // Reveal documents from GridFS for a client
+  const handleRevealDocuments = async (clientId, clientName) => {
+    setRevealingDocs(clientId);
+    try {
+      const response = await api.post(`/clients/${clientId}/reveal-documents`);
+      const result = response.data;
+      
+      // Update cache with document count
+      setClientDocsCache(prev => ({
+        ...prev,
+        [clientId]: result.current_documents?.length || 0
+      }));
+      
+      if (result.summary.total_found > 0) {
+        if (result.summary.auto_linked > 0) {
+          toast.success(`Found ${result.summary.total_found} documents! ${result.summary.auto_linked} auto-linked to client.`);
+        } else {
+          toast.info(`Found ${result.summary.total_found} documents in GridFS for review.`);
+        }
+        
+        // Show documents dialog
+        setSelectedClientDocs({
+          clientId,
+          clientName,
+          documents: result.current_documents,
+          foundInGridFS: result.found_in_gridfs,
+          autoLinked: result.auto_linked
+        });
+        setDocsDialogOpen(true);
+      } else {
+        // Check if client already has documents
+        const currentDocs = result.current_documents?.length || 0;
+        if (currentDocs > 0) {
+          setSelectedClientDocs({
+            clientId,
+            clientName,
+            documents: result.current_documents,
+            foundInGridFS: [],
+            autoLinked: []
+          });
+          setDocsDialogOpen(true);
+          toast.info(`Client has ${currentDocs} document(s) already linked.`);
+        } else {
+          toast.warning('No documents found in GridFS for this client.');
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to search for documents');
+    } finally {
+      setRevealingDocs(null);
+    }
+  };
+
+  // Download document from GridFS
+  const handleDownloadDocument = async (clientId, filename, fileId) => {
+    try {
+      const response = await api.get(`/clients/${clientId}/documents/${filename}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Document downloaded');
+    } catch (error) {
+      toast.error('Failed to download document');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       client_id: '',
