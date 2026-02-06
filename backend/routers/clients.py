@@ -1502,6 +1502,157 @@ async def get_client_document_status(
     }
 
 
+@router.post("/clients/{client_id}/reveal-documents")
+async def reveal_documents_from_gridfs(
+    client_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view", "reveal documents"))
+):
+    """
+    Deep search GridFS to find and link any orphaned documents for a client.
+    This searches by:
+    1. entity_id in metadata (exact match)
+    2. PAN number in filename/metadata
+    3. Client name patterns
+    
+    If documents are found in GridFS but not linked to the client, this will link them.
+    """
+    from bson import ObjectId
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_name = client.get("name", "")
+    pan_number = client.get("pan_number", "")
+    current_docs = client.get("documents", [])
+    current_file_ids = set(d.get("file_id") for d in current_docs if d.get("file_id"))
+    
+    found_documents = []
+    linked_documents = []
+    
+    # Search 1: By entity_id (exact match)
+    entity_search = await db["fs.files"].find({
+        "metadata.entity_id": client_id
+    }).to_list(100)
+    
+    for f in entity_search:
+        file_id = str(f["_id"])
+        if file_id not in current_file_ids:
+            found_documents.append({
+                "file_id": file_id,
+                "filename": f.get("filename"),
+                "doc_type": f.get("metadata", {}).get("doc_type", "unknown"),
+                "upload_date": f.get("uploadDate").isoformat() if f.get("uploadDate") else None,
+                "search_method": "entity_id",
+                "metadata": f.get("metadata", {})
+            })
+    
+    # Search 2: By PAN number in filename or metadata
+    if pan_number:
+        pan_search = await db["fs.files"].find({
+            "$or": [
+                {"filename": {"$regex": pan_number, "$options": "i"}},
+                {"metadata.pan_number": pan_number.upper()}
+            ]
+        }).to_list(100)
+        
+        for f in pan_search:
+            file_id = str(f["_id"])
+            if file_id not in current_file_ids and file_id not in [d["file_id"] for d in found_documents]:
+                found_documents.append({
+                    "file_id": file_id,
+                    "filename": f.get("filename"),
+                    "doc_type": f.get("metadata", {}).get("doc_type", "unknown"),
+                    "upload_date": f.get("uploadDate").isoformat() if f.get("uploadDate") else None,
+                    "search_method": "pan_number",
+                    "metadata": f.get("metadata", {})
+                })
+    
+    # Search 3: By client_documents category with loose entity matching
+    category_search = await db["fs.files"].find({
+        "metadata.category": "client_documents"
+    }).to_list(500)
+    
+    for f in category_search:
+        file_id = str(f["_id"])
+        entity_id = f.get("metadata", {}).get("entity_id", "")
+        
+        # Check if this file's entity_id might be a partial match or old format
+        if entity_id and entity_id != client_id:
+            # Check if entity_id contains part of our client_id or vice versa
+            if client_id.startswith(entity_id[:8]) or entity_id.startswith(client_id[:8]):
+                if file_id not in current_file_ids and file_id not in [d["file_id"] for d in found_documents]:
+                    found_documents.append({
+                        "file_id": file_id,
+                        "filename": f.get("filename"),
+                        "doc_type": f.get("metadata", {}).get("doc_type", "unknown"),
+                        "upload_date": f.get("uploadDate").isoformat() if f.get("uploadDate") else None,
+                        "search_method": "partial_entity_match",
+                        "metadata": f.get("metadata", {})
+                    })
+    
+    # If documents found, offer to link them
+    if found_documents:
+        # Auto-link documents found by entity_id (most reliable)
+        for doc in found_documents:
+            if doc["search_method"] == "entity_id":
+                doc_type = doc["doc_type"]
+                
+                # Check if this doc_type already exists
+                existing = next((d for d in current_docs if d.get("doc_type") == doc_type), None)
+                
+                if not existing:
+                    new_doc = {
+                        "doc_type": doc_type,
+                        "filename": doc["filename"],
+                        "file_id": doc["file_id"],
+                        "file_url": f"/api/files/{doc['file_id']}",
+                        "upload_date": doc["upload_date"],
+                        "stored_in_gridfs": True,
+                        "revealed_at": datetime.now(timezone.utc).isoformat(),
+                        "revealed_by": current_user.get("name")
+                    }
+                    
+                    await db.clients.update_one(
+                        {"id": client_id},
+                        {"$push": {"documents": new_doc}}
+                    )
+                    linked_documents.append(new_doc)
+    
+    # Get updated client document list
+    updated_client = await db.clients.find_one({"id": client_id}, {"_id": 0, "documents": 1})
+    
+    # Create audit log
+    await create_audit_log(
+        action="REVEAL_DOCUMENTS",
+        entity_type="client",
+        entity_id=client_id,
+        user_id=current_user.get("id"),
+        user_name=current_user.get("name"),
+        user_role=current_user.get("role", 7),
+        entity_name=client_name,
+        details={
+            "found_in_gridfs": len(found_documents),
+            "auto_linked": len(linked_documents)
+        }
+    )
+    
+    return {
+        "client_id": client_id,
+        "client_name": client_name,
+        "search_completed": True,
+        "found_in_gridfs": found_documents,
+        "auto_linked": linked_documents,
+        "current_documents": updated_client.get("documents", []),
+        "summary": {
+            "total_found": len(found_documents),
+            "auto_linked": len(linked_documents),
+            "needs_manual_review": len([d for d in found_documents if d["search_method"] != "entity_id"])
+        }
+    }
+
+
 @router.post("/clients/{client_id}/clone")
 async def clone_client_vendor(
     client_id: str, 
