@@ -250,13 +250,16 @@ async def create_booking(
             detail=f"Client is suspended and cannot be used for bookings. Reason: {client.get('suspension_reason', 'No reason provided')}"
         )
     
-    # BOOKING RESTRICTION: Non-PE users can only book for clients mapped to them
+    # BOOKING RESTRICTION: Non-PE users can only book for clients mapped to them OR clients they created
     if not is_pe_level(user_role):
         mapped_employee_id = client.get("mapped_employee_id")
-        if mapped_employee_id != user_id:
+        created_by = client.get("created_by")
+        
+        # User can book if they're mapped to the client OR they created the client
+        if mapped_employee_id != user_id and created_by != user_id:
             raise HTTPException(
                 status_code=403, 
-                detail=f"You can only create bookings for clients mapped to you. This client is mapped to someone else."
+                detail=f"You can only create bookings for clients mapped to you or clients you created. This client is mapped to someone else."
             )
     
     # Verify stock exists
