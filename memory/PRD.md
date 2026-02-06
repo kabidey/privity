@@ -37,6 +37,22 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Bug Fix - Wati WhatsApp Integration (Feb 06, 2026)
+- **Bug:** Wati WhatsApp integration was not working - integration was disabled and credentials were missing
+- **Root Cause:** 
+  1. No Wati credentials were configured in the database (`system_config` collection)
+  2. Template fetching had a bug - checking for `result` key instead of `success` key
+- **Fix:**
+  1. Configured Wati API credentials in the correct database (`test_database`)
+  2. Fixed template fetching to correctly parse Wati API response
+- **Credentials Configured:**
+  - Endpoint: `https://live-mt-server.wati.io/302931`
+  - Token: User-provided Bearer token
+  - API Version: v1 (auto-detected)
+- **Files Modified:**
+  - `/app/backend/routers/whatsapp.py` - Fixed template parsing logic (lines 654-670)
+- **Test Status:** Verified - connection test passes, 59 Wati templates fetched successfully
+
 #### ✅ Feature - Atomic Client Creation with Documents (Feb 06, 2026)
 - **Request:** Prevent creating clients without documents - enforce documents are uploaded to GridFS BEFORE client creation
 - **Implementation:**
