@@ -188,6 +188,7 @@ async def update_company_master(
         "company_bank_ifsc": data.company_bank_ifsc.upper() if data.company_bank_ifsc else None,
         "company_bank_branch": data.company_bank_branch,
         "user_agreement_text": data.user_agreement_text,
+        "custom_domain": data.custom_domain.rstrip('/') if data.custom_domain else None,  # Production domain for email links
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "updated_by": current_user["name"]
     }
