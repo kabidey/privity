@@ -77,6 +77,8 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
+    mobile_number: Optional[str] = None
+    pan_number: Optional[str] = None
     role: Optional[int] = None
     is_active: Optional[bool] = None
     hierarchy_level: Optional[int] = None
