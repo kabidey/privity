@@ -238,10 +238,12 @@ async def create_full_backup(
     - Metadata about all uploaded files
     - Ready for complete system restore
     """
-    backup_id = str(uuid.uuid4())
-    backup_data = {}
-    record_counts = {}
-    total_size = 0
+    try:
+        backup_id = str(uuid.uuid4())
+        backup_data = {}
+        record_counts = {}
+        total_size = 0
+        errors = []
     
     # Get ALL collections dynamically
     all_collections = await db.list_collection_names()
