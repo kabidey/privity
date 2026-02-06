@@ -475,6 +475,14 @@ async def delete_inventory(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("inventory.delete", "delete inventory"))
 ):
+    """Delete inventory for a stock (requires inventory.delete permission)"""
+    user_role = current_user.get("role", 6)
+    
+    result = await db.inventory.delete_one({"stock_id": stock_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Inventory not found")
+    
+    return {"message": "Inventory deleted successfully"}
 
 
 # ========== PE REPORT ENDPOINT ==========
