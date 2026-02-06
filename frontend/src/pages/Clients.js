@@ -43,6 +43,7 @@ const Clients = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [rerunningOcr, setRerunningOcr] = useState(false);
   const [ocrRerunResults, setOcrRerunResults] = useState(null);
+  const [activeTabInDialog, setActiveTabInDialog] = useState('details');
   
   const [formData, setFormData] = useState({
     name: '',
