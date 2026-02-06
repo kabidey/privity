@@ -1123,7 +1123,33 @@ const Clients = () => {
             {isEmployee ? 'Manage your clients' : 'Manage clients with documents and employee mapping'}
           </p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2 w-full sm:w-auto flex-wrap">
+          {/* Export Buttons - visible to most users */}
+          {!isViewer && (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleExportClients('xlsx')}
+                className="rounded-sm"
+                data-testid="export-excel-btn"
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Export </span>Excel
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleExportClients('csv')}
+                className="rounded-sm"
+                data-testid="export-csv-btn"
+              >
+                <Download className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Export </span>CSV
+              </Button>
+            </>
+          )}
+          
           {/* Refresh button */}
           <Button 
             variant="outline" 
