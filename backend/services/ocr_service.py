@@ -422,6 +422,8 @@ async def process_document_ocr(file_path: str, doc_type: str, retry_count: int =
             prompt = get_pan_card_prompt()
         elif doc_type == "cancelled_cheque":
             prompt = get_cancelled_cheque_prompt()
+        elif doc_type in ["bank_statement", "passbook", "bank_passbook"]:
+            prompt = get_bank_statement_prompt()
         elif doc_type == "cml_copy":
             prompt = get_cml_copy_prompt()
         else:
