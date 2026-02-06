@@ -50,6 +50,10 @@ const Bookings = () => {
   const [rpMappingBooking, setRpMappingBooking] = useState(null); // Booking being mapped to RP
   const [rpMappingData, setRpMappingData] = useState({ referral_partner_id: '', rp_revenue_share_percent: 30 });
   const [updatingRpMapping, setUpdatingRpMapping] = useState(false);
+  const [revealingDocs, setRevealingDocs] = useState(null); // Track which booking's client docs are being revealed
+  const [clientDocsCache, setClientDocsCache] = useState({}); // Cache client documents count
+  const [docsDialogOpen, setDocsDialogOpen] = useState(false);
+  const [selectedClientDocs, setSelectedClientDocs] = useState(null);
   const [formData, setFormData] = useState({
     client_id: '',
     stock_id: '',
