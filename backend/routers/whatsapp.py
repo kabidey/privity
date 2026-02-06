@@ -575,34 +575,6 @@ async def disconnect_whatsapp(
     return {"message": "WhatsApp disconnected"}
 
 
-@router.post("/test-connection")
-async def test_wati_connection(
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("notifications.whatsapp_connect", "test WhatsApp connection"))
-):
-    """Test current Wati.io connection"""
-    service = await get_wati_service()
-    
-    if not service:
-        return {"connected": False, "message": "Wati.io not configured"}
-    
-    is_connected = await service.test_connection()
-    
-    if is_connected:
-        # Update status
-        await db.system_config.update_one(
-            {"config_type": "whatsapp"},
-            {"$set": {"status": "connected", "last_tested": datetime.now(timezone.utc).isoformat()}}
-        )
-        return {"connected": True, "message": "Connection successful"}
-    else:
-        await db.system_config.update_one(
-            {"config_type": "whatsapp"},
-            {"$set": {"status": "error"}}
-        )
-        return {"connected": False, "message": "Connection failed - check credentials"}
-
-
 # ============== TEMPLATES ==============
 
 DEFAULT_TEMPLATES = [
