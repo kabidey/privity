@@ -37,6 +37,24 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Bug Fixes - Client Booking & OCR Permissions (Feb 06, 2026)
+- **Bug 1: Approved client not available for booking**
+  - Fixed `can_book` logic to return `true` if user created the client OR is mapped to it
+  - Updated booking restriction to allow users to book for clients they created
+  - Users no longer need to be explicitly mapped to book for their own clients
+- **Bug 2: Re-run OCR permission not available for PE Level**
+  - Added `clients.rerun_ocr` permission explicitly to PE Manager role
+  - Added `rerun_ocr` to `ALL_PERMISSIONS['clients']` list for wildcard matching
+  - Re-run OCR buttons now visible for all PE Level users
+- **Bug 3: Documents not visible in documents dialog**
+  - Confirmed documents display correctly with: filename, upload date, OCR confidence
+  - Download button works for document retrieval
+  - Issue was due to test document being a .txt file (not actual image for OCR)
+- **Files Modified:**
+  - `/app/backend/routers/clients.py` - Updated can_book logic (lines 325-340)
+  - `/app/backend/routers/bookings.py` - Updated booking restriction (lines 254-263)
+  - `/app/backend/services/permission_service.py` - Added clients.rerun_ocr permission
+
 #### ✅ Real-time Notification Dashboard (Feb 06, 2026)
 - **New Page:** `/notifications` - Dedicated notification dashboard
 - **Stats Cards:**
