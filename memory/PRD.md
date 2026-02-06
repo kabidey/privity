@@ -37,6 +37,33 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Feature - Two-Way WhatsApp Communication (Feb 06, 2026)
+- **Request:** Create a Wati webhook for two-way communication when customers reply
+- **Implementation:**
+  - **Enhanced Webhook** (`POST /api/whatsapp/webhook`):
+    - Handles incoming messages, delivery status updates, and session status
+    - Creates/updates conversation threads automatically
+    - Links messages to clients by phone number lookup
+    - Notifies PE Desk of new incoming messages
+  - **Conversation Management Endpoints:**
+    - `GET /api/whatsapp/conversations` - List all conversations with unread counts
+    - `GET /api/whatsapp/conversations/{phone}` - Get full conversation thread
+    - `POST /api/whatsapp/conversations/{phone}/reply` - Send reply (session message)
+    - `POST /api/whatsapp/conversations/{phone}/send-template` - Send template (outside 24h window)
+    - `DELETE /api/whatsapp/conversations/{phone}` - Delete conversation
+    - `GET /api/whatsapp/webhook/info` - Get webhook URL and setup instructions
+  - **Frontend Conversation Inbox:**
+    - New "Conversations" tab in WhatsApp page with unread badge
+    - Conversation list with client name, last message, timestamps
+    - Full message thread view with inbound/outbound styling
+    - Real-time reply input with send functionality
+    - Webhook URL display with copy button for Wati setup
+- **Webhook URL to configure in Wati:** `{your-domain}/api/whatsapp/webhook`
+- **Files Modified:**
+  - `/app/backend/routers/whatsapp.py` - Complete webhook rewrite + conversation endpoints
+  - `/app/frontend/src/pages/WhatsAppNotifications.js` - Added Conversations tab with chat UI
+- **Test Status:** Verified - webhook receives messages, conversations are threaded, replies work
+
 #### ✅ Bug Fix - Wati WhatsApp Integration (Feb 06, 2026)
 - **Bug:** Wati WhatsApp integration was not working - integration was disabled and credentials were missing
 - **Root Cause:** 
