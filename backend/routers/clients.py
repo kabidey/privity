@@ -1531,3 +1531,157 @@ async def get_client_portfolio(
         "total_stocks": len(portfolio_list)
     }
 
+
+
+# ============== EXPORT ENDPOINTS ==============
+
+@router.get("/clients-export")
+async def export_clients(
+    format: str = Query("xlsx", enum=["xlsx", "csv"]),
+    is_vendor: bool = Query(False),
+    approval_status: Optional[str] = Query(None),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view", "export clients"))
+):
+    """Export clients to Excel or CSV"""
+    import io
+    from fastapi.responses import StreamingResponse
+    
+    # Build query
+    query = {"is_vendor": is_vendor}
+    if approval_status:
+        query["approval_status"] = approval_status
+    
+    # Get clients
+    clients_data = await db.clients.find(query, {"_id": 0}).sort("name", 1).to_list(10000)
+    
+    # Get mapped employees for lookup
+    users = {u["id"]: u for u in await db.users.find({}, {"_id": 0, "id": 1, "name": 1, "email": 1}).to_list(10000)}
+    
+    if format == "csv":
+        import csv
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Headers
+        headers = [
+            "OTC UCC", "Name", "PAN Number", "DP ID", "DP Type",
+            "Email", "Phone", "Address", "PIN Code",
+            "Approval Status", "Is Active", "Mapped To",
+            "Bank Account", "IFSC Code", "Bank Name",
+            "Created At", "Notes"
+        ]
+        writer.writerow(headers)
+        
+        # Data rows
+        for client in clients_data:
+            mapped_employee = users.get(client.get("mapped_employee_id"), {})
+            bank_accounts = client.get("bank_accounts", [])
+            primary_bank = bank_accounts[0] if bank_accounts else {}
+            
+            row = [
+                client.get("otc_ucc", ""),
+                client.get("name", ""),
+                client.get("pan_number", ""),
+                client.get("dp_id", ""),
+                client.get("dp_type", ""),
+                client.get("email", ""),
+                client.get("phone", client.get("mobile", "")),
+                client.get("address", ""),
+                client.get("pin_code", ""),
+                client.get("approval_status", ""),
+                "Yes" if client.get("is_active") else "No",
+                mapped_employee.get("name", ""),
+                primary_bank.get("account_number", ""),
+                primary_bank.get("ifsc_code", ""),
+                primary_bank.get("bank_name", ""),
+                client.get("created_at", ""),
+                client.get("notes", "")
+            ]
+            writer.writerow(row)
+        
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=clients_export.csv"}
+        )
+    
+    else:  # xlsx
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, Alignment, PatternFill
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Vendors" if is_vendor else "Clients"
+        
+        # Headers
+        headers = [
+            "OTC UCC", "Name", "PAN Number", "DP ID", "DP Type",
+            "Email", "Phone", "Address", "PIN Code",
+            "Approval Status", "Is Active", "Mapped To",
+            "Bank Account", "IFSC Code", "Bank Name",
+            "Created At", "Notes"
+        ]
+        
+        # Style headers
+        header_fill = PatternFill(start_color="10B981", end_color="10B981", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+        
+        # Data rows
+        for row_num, client in enumerate(clients_data, 2):
+            mapped_employee = users.get(client.get("mapped_employee_id"), {})
+            bank_accounts = client.get("bank_accounts", [])
+            primary_bank = bank_accounts[0] if bank_accounts else {}
+            
+            data = [
+                client.get("otc_ucc", ""),
+                client.get("name", ""),
+                client.get("pan_number", ""),
+                client.get("dp_id", ""),
+                client.get("dp_type", ""),
+                client.get("email", ""),
+                client.get("phone", client.get("mobile", "")),
+                client.get("address", ""),
+                client.get("pin_code", ""),
+                client.get("approval_status", ""),
+                "Yes" if client.get("is_active") else "No",
+                mapped_employee.get("name", ""),
+                primary_bank.get("account_number", ""),
+                primary_bank.get("ifsc_code", ""),
+                primary_bank.get("bank_name", ""),
+                client.get("created_at", ""),
+                client.get("notes", "")
+            ]
+            
+            for col, value in enumerate(data, 1):
+                ws.cell(row=row_num, column=col, value=value)
+        
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column].width = adjusted_width
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=clients_export.xlsx"}
+        )
