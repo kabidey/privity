@@ -791,6 +791,42 @@ async def get_templates(
     return {"local_templates": templates, "wati_templates": []}
 
 
+@router.post("/templates/refresh-system")
+async def refresh_system_templates(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_templates", "refresh system WhatsApp templates"))
+):
+    """Refresh all system templates with latest defaults (PE Desk only)"""
+    updated_count = 0
+    added_count = 0
+    
+    for template in DEFAULT_TEMPLATES:
+        existing = await db.whatsapp_templates.find_one({"id": template["id"]})
+        if existing:
+            # Update existing system template
+            await db.whatsapp_templates.update_one(
+                {"id": template["id"]},
+                {"$set": {
+                    "message_template": template["message_template"],
+                    "variables": template["variables"],
+                    "recipient_types": template.get("recipient_types", []),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            updated_count += 1
+        else:
+            # Add new system template
+            template["created_at"] = datetime.now(timezone.utc).isoformat()
+            await db.whatsapp_templates.insert_one(template)
+            added_count += 1
+    
+    return {
+        "message": f"System templates refreshed. Updated: {updated_count}, Added: {added_count}",
+        "updated": updated_count,
+        "added": added_count
+    }
+
+
 @router.post("/templates")
 async def create_template(
     template: WhatsAppTemplate,
