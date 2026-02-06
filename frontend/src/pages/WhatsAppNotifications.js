@@ -72,6 +72,15 @@ const WhatsAppNotifications = () => {
     recipient_types: []
   });
 
+  // Conversation state for two-way communication
+  const [conversations, setConversations] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [conversationMessages, setConversationMessages] = useState([]);
+  const [replyMessage, setReplyMessage] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+  const [loadingConversations, setLoadingConversations] = useState(false);
+  const [webhookInfo, setWebhookInfo] = useState(null);
+
   // Check for any WhatsApp permission to access the page
   const { isLoading, isAuthorized, hasPermission: checkPerm } = useProtectedPage({
     allowIf: ({ isPELevel, hasPermission }) => {
