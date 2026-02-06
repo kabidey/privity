@@ -874,13 +874,10 @@ const Clients = () => {
   const getDocTypeLabel = (docType) => {
     const labels = {
       'pan_card': 'PAN Card',
-      'cml_copy': 'CML Copy',
-      'pan_card': 'PAN Card',
       'cml_copy': 'CML Document',
       'cancelled_cheque': 'Bank Proof (Cheque/Statement/Passbook)',
       'bank_statement': 'Bank Statement',
       'passbook': 'Passbook',
-      'bank_declaration': 'Bank Declaration'
       'bank_declaration': 'Bank Declaration'
     };
     return labels[docType] || docType;
