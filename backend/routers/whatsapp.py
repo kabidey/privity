@@ -396,38 +396,20 @@ class WatiService:
 
 
 # Get Wati service instance
-                # Normalize response format
-                return {
-                    "result": True,
-                    "messageTemplates": data.get("templates", [])
-                }
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Wati v3 get templates error: {e.response.status_code} - {e.response.text}")
-            # Try v1 API as fallback
-            return await self._get_templates_v1()
-        except httpx.HTTPError as e:
-            logger.error(f"Wati get templates error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to get templates: {str(e)}")
+async def get_wati_service() -> Optional[WatiService]:
+    """Get configured Wati service instance"""
+    config = await db.system_config.find_one({"config_type": "whatsapp"})
+    if not config:
+        return None
     
-    async def _get_templates_v1(self) -> dict:
-        """Fallback to v1 API for getting templates"""
-        url = f"{self.endpoint}/api/v1/getMessageTemplates"
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    url, headers=self.headers, timeout=10.0
-                )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError as e:
-            logger.error(f"Wati v1 get templates error: {str(e)}")
-            return {"result": False, "messageTemplates": []}
+    api_endpoint = config.get("api_endpoint")
+    api_token = config.get("api_token")
+    api_version = config.get("api_version", "v1")
     
-    async def test_connection(self) -> bool:
-        """Test if Wati connection is working"""
-        try:
-            result = await self.get_templates()
+    if not api_endpoint or not api_token:
+        return None
+    
+    return WatiService(api_endpoint, api_token, api_version)
             # Check if we got templates or result is True
             return result.get("result", False) or len(result.get("messageTemplates", [])) > 0
         except Exception as e:
