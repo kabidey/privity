@@ -237,6 +237,7 @@ function App() {
                           <Route path="/2fa-setup" element={<TwoFactorSetupPage />} />
                           <Route path="/bi-reports" element={<BIReports />} />
                           <Route path="/whatsapp" element={<WhatsAppNotifications />} />
+                          <Route path="/notifications" element={<NotificationDashboard />} />
                         </Routes>
                         </Layout>
                         {/* Notification Permission Banner */}
