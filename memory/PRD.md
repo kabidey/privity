@@ -37,6 +37,30 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Feature - Atomic Client Creation with Documents (Feb 06, 2026)
+- **Request:** Prevent creating clients without documents - enforce documents are uploaded to GridFS BEFORE client creation
+- **Implementation:**
+  - New endpoint `POST /clients-with-documents` that:
+    1. Uploads mandatory documents (PAN Card, CML Copy) to GridFS FIRST
+    2. Verifies documents are stored successfully
+    3. Only then creates the client with document references
+    4. If document upload fails, NO client is created
+  - Frontend uses `FormData` to send client details + files in single request
+  - OCR still runs during upload as before
+- **Files Modified:**
+  - `/app/backend/routers/clients.py` - New `create_client_with_documents` endpoint (lines 700-920)
+  - `/app/frontend/src/pages/Clients.js` - Updated `handleSubmit` to use atomic endpoint (lines 634-705)
+- **Test Status:** Verified via API and screenshot - client "Test Atomic Client ATMC78714X" created with 2 documents
+
+#### ✅ Feature - Documents Tab Always Enabled for Client Editing (Feb 06, 2026)
+- **Request:** Allow PE Desk to upload documents for existing clients that were created without docs
+- **Implementation:**
+  - Enabled Documents tab in Edit Client dialog (was previously disabled)
+  - Added "Upload Documents" button in empty documents dialog for pending clients
+  - Added `activeTabInDialog` state for programmatic tab navigation
+- **Files Modified:**
+  - `/app/frontend/src/pages/Clients.js` - Lines 46, 858, 1003, 1373-1377, 2225-2258
+
 #### ✅ Feature - Production Domain URL Setting in Company Master (Feb 06, 2026)
 - **Request:** Add UI setting to configure the production domain for email links (Accept/Deny buttons)
 - **Implementation:**
