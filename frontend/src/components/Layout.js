@@ -466,9 +466,7 @@ const Layout = ({ children }) => {
             </div>
             <div className="flex items-center gap-1">
               <NotificationBell />
-              <button onClick={toggleTheme} className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700" title="Toggle theme">
-                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-              </button>
+              <ThemeSelector />
               <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600" title="Logout">
                 <LogOut className="h-4 w-4" />
               </button>
