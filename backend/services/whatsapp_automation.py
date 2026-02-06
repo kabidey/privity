@@ -280,8 +280,16 @@ async def send_bulk_broadcast(
             {"is_active": True, "phone": {"$exists": True, "$ne": None}},
             {"_id": 0, "id": 1, "name": 1, "phone": 1}
         ).to_list(10000)
+    elif recipient_type == "all_users":
+        # Internal users (employees) with mobile numbers
+        users = await db.users.find(
+            {"is_active": True, "mobile_number": {"$exists": True, "$ne": None}},
+            {"_id": 0, "id": 1, "name": 1, "mobile_number": 1}
+        ).to_list(10000)
+        # Map mobile_number to phone for consistency
+        recipients = [{"id": u["id"], "name": u["name"], "phone": u["mobile_number"]} for u in users]
     elif recipient_type == "custom" and recipient_ids:
-        # Get from all collections
+        # Get from all collections including users
         clients = await db.clients.find(
             {"id": {"$in": recipient_ids}},
             {"_id": 0, "id": 1, "name": 1, "phone": 1}
@@ -294,7 +302,13 @@ async def send_bulk_broadcast(
             {"id": {"$in": recipient_ids}},
             {"_id": 0, "id": 1, "name": 1, "phone": 1}
         ).to_list(10000)
-        recipients = clients + rps + bps
+        # Also check users collection for mobile_number
+        users = await db.users.find(
+            {"id": {"$in": recipient_ids}, "mobile_number": {"$exists": True, "$ne": None}},
+            {"_id": 0, "id": 1, "name": 1, "mobile_number": 1}
+        ).to_list(10000)
+        user_recipients = [{"id": u["id"], "name": u["name"], "phone": u["mobile_number"]} for u in users]
+        recipients = clients + rps + bps + user_recipients
     
     if not recipients:
         return {"status": "failed", "reason": "No recipients found"}
