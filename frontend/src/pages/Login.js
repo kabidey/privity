@@ -44,8 +44,8 @@ const Login = () => {
   const [captchaQuestion, setCaptchaQuestion] = useState('');
   const [captchaAnswer, setCaptchaAnswer] = useState('');
 
-  // All 69 SMIFS PE Quotes
-  const allQuotes = [
+  // All 69 SMIFS PE Quotes - Memoized to avoid re-renders
+  const allQuotes = useMemo(() => [
     "Private equity is the art of patient capital.",
     "Public markets rent shares; private equity buys ownership.",
     "We don't buy tickers; we buy businesses.",
@@ -115,7 +115,7 @@ const Login = () => {
     "In the long run, the fundamentals always win.",
     "Private Equity: Fueling the real economy.",
     "We don't just manage wealth; we steward potential.",
-  ];
+  ], []);
 
   // Keywords extracted from quotes for floating icons - expanded list
   const floatingKeywords = [
