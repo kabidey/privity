@@ -972,10 +972,12 @@ async def get_bookings(
         if stock_ids:
             search_conditions.append({"stock_id": {"$in": stock_ids}})
         
-        if "$and" not in query:
-            query["$or"] = search_conditions
+        # Combine search with existing query using $and
+        if "$or" in query:
+            # Already have visibility filter, combine with $and
+            query = {"$and": [{"$or": query["$or"]}, {"$or": search_conditions}]}
         else:
-            query["$and"].append({"$or": search_conditions})
+            query["$or"] = search_conditions
     
     # CRITICAL: Add demo data isolation filter
     # Demo users only see demo data, live users don't see demo data
