@@ -2223,7 +2223,44 @@ const Clients = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">No documents uploaded for this client.</p>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">No documents uploaded for this client.</p>
+                  {isPELevel && selectedClientDocs?.approval_status === 'pending' && (
+                    <div className="p-4 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <p className="text-sm text-amber-800 dark:text-amber-200 mb-3">
+                        <strong>This client is pending approval.</strong> Upload required documents to approve.
+                      </p>
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          setEditingClient(selectedClientDocs);
+                          setFormData({
+                            name: selectedClientDocs.name || '',
+                            email: selectedClientDocs.email || '',
+                            email_secondary: selectedClientDocs.email_secondary || '',
+                            email_tertiary: selectedClientDocs.email_tertiary || '',
+                            phone: selectedClientDocs.phone || '',
+                            mobile: selectedClientDocs.mobile || '',
+                            pan_number: selectedClientDocs.pan_number || '',
+                            dp_id: selectedClientDocs.dp_id || '',
+                            dp_type: selectedClientDocs.dp_type || 'outside',
+                            trading_ucc: selectedClientDocs.trading_ucc || '',
+                            address: selectedClientDocs.address || '',
+                            pin_code: selectedClientDocs.pin_code || '',
+                            bank_accounts: selectedClientDocs.bank_accounts || []
+                          });
+                          setDocumentsDialogOpen(false);
+                          setActiveTabInDialog('documents');
+                          setDialogOpen(true);
+                        }}
+                        className="text-amber-700 border-amber-300 hover:bg-amber-100"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Documents
+                      </Button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
