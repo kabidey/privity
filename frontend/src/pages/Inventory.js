@@ -446,6 +446,29 @@ const Inventory = () => {
                 <span className="hidden sm:inline">Export </span>CSV
               </Button>
               
+              {/* PE Report Button - Send to all users */}
+              {isPEDesk && (
+                <Button 
+                  onClick={handleSendPeReport}
+                  disabled={sendingPeReport}
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  data-testid="send-pe-report-btn"
+                >
+                  {sendingPeReport ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send PE Report
+                    </>
+                  )}
+                </Button>
+              )}
+              
               {isPELevel && (
                 <span className="text-xs font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                   PE View: Shows both WAP & LP
