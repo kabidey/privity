@@ -35,8 +35,8 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 OTP_EXPIRY_MINUTES = 10
 OTP_MAX_ATTEMPTS = 3
 
-# Frontend URL for email links
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://finance-ui-updates.preview.emergentagent.com')
+# Frontend URL for email links - Must be set in environment
+FRONTEND_URL = os.environ.get('FRONTEND_URL', '')
 
 # User Roles - Roles are independent of hierarchy
 ROLES = {
