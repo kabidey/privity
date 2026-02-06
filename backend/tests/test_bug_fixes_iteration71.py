@@ -17,7 +17,7 @@ import json
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://ocr-booking-fix.preview.emergentagent.com"
+    BASE_URL = "https://booking-mgmt-fixes.preview.emergentagent.com"
 
 class TestBugFixes:
     """Bug fix tests for iteration 71"""

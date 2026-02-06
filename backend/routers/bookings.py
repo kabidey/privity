@@ -640,7 +640,7 @@ async def approve_booking(
             frontend_url = (
                 (company_master.get("custom_domain") if company_master else None) or
                 os.environ.get('FRONTEND_URL') or 
-                os.environ.get('REACT_APP_BACKEND_URL', 'https://ocr-booking-fix.preview.emergentagent.com')
+                os.environ.get('REACT_APP_BACKEND_URL', 'https://booking-mgmt-fixes.preview.emergentagent.com')
             )
             # Remove trailing slash if present
             frontend_url = frontend_url.rstrip('/') if frontend_url else frontend_url

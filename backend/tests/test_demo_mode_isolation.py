@@ -20,7 +20,7 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://ocr-booking-fix.preview.emergentagent.com"
+    BASE_URL = "https://booking-mgmt-fixes.preview.emergentagent.com"
 
 # Standard headers to bypass bot protection
 HEADERS = {
