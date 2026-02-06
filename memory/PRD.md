@@ -37,6 +37,37 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Bug Fix - Booking Visibility for Mapped Clients (Feb 06, 2026)
+- **Bug:** Employees could only see bookings they created, not bookings for clients mapped to them
+- **Root Cause:** The booking query only filtered by `created_by`, not by client mapping
+- **Fix:** Updated booking query to include `$or` clause: show bookings created by user/team OR for clients mapped to user/team
+- **Result:** Employees now see all bookings for clients mapped to them, regardless of who created them
+- **Files Modified:**
+  - `/app/backend/routers/bookings.py` - Lines 910-937, added mapped client lookup to visibility query
+
+#### ✅ Bug Fix - Payment Status Not Updating to "Paid" (Feb 06, 2026)
+- **Bug:** After full payment and DP ready, payment status still showed "pending" instead of "paid"
+- **Root Cause:** The payment recording function only set `payment_complete: true` but not `payment_status: "paid"`
+- **Fix:** Updated payment recording to set `payment_status: "paid"` when complete, "partial" when partially paid
+- **Result:** Payment status now correctly reflects the actual payment state
+- **Files Modified:**
+  - `/app/backend/routers/bookings.py` - Line 1880, added payment_status update
+
+#### ✅ Bug Fix - Document Download from GridFS (Feb 06, 2026)
+- **Bug:** PE level users couldn't download documents even though OCR was done and documents were in GridFS
+- **Root Cause:** Document download function looked for `gridfs_id` but documents were stored with `file_id`
+- **Fix:** Updated download function to check both `file_id` (new) and `gridfs_id` (legacy) fields
+- **Result:** PE users can now download documents from GridFS
+- **Files Modified:**
+  - `/app/backend/routers/clients.py` - Lines 888-905, check file_id first, then gridfs_id
+
+#### ✅ Email Template Fix - "Landing Price" to "Selling Price" (Feb 06, 2026)
+- **Change:** Updated email templates to show "Selling Price" instead of "Landing Price"
+- **Files Modified:**
+  - `/app/backend/email_templates.py` - Updated booking_confirmation_request template
+  - `/app/backend/routers/bookings.py` - Pass selling_price variable to template
+  - `/app/backend/services/email_service.py` - Updated hardcoded templates
+
 #### ✅ Critical Bug Fix - Booking Dropdown Empty for Non-PE Users (Feb 06, 2026)
 - **Bug:** Approved clients not appearing in booking dropdown for Employee users
 - **Root Cause:** `Promise.all` in `fetchData()` included `/api/referral-partners-approved` endpoint which returns 403 for non-PE users. When this failed, the entire Promise.all failed and `setClients()` was never called.
