@@ -472,7 +472,7 @@ const Vendors = () => {
                 Add Vendor
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" aria-describedby="vendor-dialog-description">
+          <DialogContent className="sm:max-w-3xl" aria-describedby="vendor-dialog-description">
             <DialogHeader>
               <DialogTitle>{editingVendor ? 'Edit Vendor' : 'Add New Vendor'}</DialogTitle>
             </DialogHeader>
