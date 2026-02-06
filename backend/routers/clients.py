@@ -1156,12 +1156,14 @@ async def rerun_client_ocr(
     
     # Create audit log
     await create_audit_log(
-        current_user,
-        "rerun_ocr",
-        "client",
-        client_id,
-        {
-            "client_name": client.get("name"),
+        action="OCR_RERUN",
+        entity_type="client",
+        entity_id=client_id,
+        user_id=current_user.get("id"),
+        user_name=current_user.get("name"),
+        user_role=user_role,
+        entity_name=client.get("name"),
+        details={
             "documents_processed": len(results["documents_processed"]),
             "update_applied": results.get("update_applied", False)
         }
