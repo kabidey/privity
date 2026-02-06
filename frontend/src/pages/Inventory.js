@@ -405,6 +405,27 @@ const Inventory = () => {
                   {recalculating ? 'Recalculating...' : 'Recalculate Inventory'}
                 </Button>
               )}
+              
+              {/* Export Buttons */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleExportInventory('xlsx')}
+                data-testid="export-inventory-excel-btn"
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Export </span>Excel
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleExportInventory('csv')}
+                data-testid="export-inventory-csv-btn"
+              >
+                <Download className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Export </span>CSV
+              </Button>
+              
               {isPELevel && (
                 <span className="text-xs font-normal text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                   PE View: Shows both WAP & LP
