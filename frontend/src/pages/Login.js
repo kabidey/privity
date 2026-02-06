@@ -293,16 +293,33 @@ const Login = () => {
     fetchSsoConfig();
   }, []);
 
-  // Random floating icon positions
+  // Random floating icon positions - generate more icons
   const floatingIcons = useMemo(() => {
     const positions = [];
     const usedPositions = new Set();
+    const iconCount = 30; // Increased from 20 to 30
     
-    // Generate 20 unique positions
-    while (positions.length < 20) {
-      const top = 5 + Math.random() * 85;
-      const left = Math.random() < 0.5 ? 2 + Math.random() * 15 : 83 + Math.random() * 12;
-      const key = `${Math.round(top/10)}-${Math.round(left/10)}`;
+    // Generate unique positions across both sides
+    while (positions.length < iconCount) {
+      // Distribute icons: 40% left side, 40% right side, 20% scattered
+      let top, left;
+      const distribution = Math.random();
+      
+      if (distribution < 0.4) {
+        // Left side
+        top = 3 + Math.random() * 90;
+        left = 1 + Math.random() * 18;
+      } else if (distribution < 0.8) {
+        // Right side
+        top = 3 + Math.random() * 90;
+        left = 81 + Math.random() * 17;
+      } else {
+        // Scattered middle-ish (but not center)
+        top = 5 + Math.random() * 85;
+        left = Math.random() < 0.5 ? (20 + Math.random() * 10) : (70 + Math.random() * 10);
+      }
+      
+      const key = `${Math.round(top/8)}-${Math.round(left/8)}`;
       
       if (!usedPositions.has(key)) {
         usedPositions.add(key);
@@ -311,8 +328,9 @@ const Login = () => {
           ...keyword,
           top: `${top}%`,
           left: `${left}%`,
-          delay: Math.random() * 4,
-          duration: 5 + Math.random() * 3,
+          delay: Math.random() * 5,
+          duration: 4 + Math.random() * 4,
+          scale: 0.8 + Math.random() * 0.4, // Random size variation
         });
       }
     }
