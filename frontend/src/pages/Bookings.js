@@ -789,17 +789,45 @@ const Bookings = () => {
                   required
                 >
                   <SelectTrigger data-testid="booking-client-select">
-                    <SelectValue placeholder="Select approved client" />
+                    <SelectValue placeholder="Select client" />
                   </SelectTrigger>
                   <SelectContent>
+                    {/* Approved clients that can be booked */}
                     {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved' && c.can_book !== false).map((client) => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name} ({client.otc_ucc || 'N/A'})
                       </SelectItem>
                     ))}
-                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved' && c.can_book !== false).length === 0 && (
+                    
+                    {/* Pending approval clients - shown but disabled */}
+                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'pending' && c.can_book !== false).length > 0 && (
+                      <>
+                        <div className="px-2 py-2 text-xs font-semibold text-orange-600 border-t mt-1 pt-2">
+                          Pending PE Desk Approval
+                        </div>
+                        {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'pending' && c.can_book !== false).map((client) => (
+                          <SelectItem key={client.id} value={client.id} disabled className="opacity-60">
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                              {client.name} ({client.otc_ucc || 'N/A'}) - Pending
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    
+                    {/* No clients available message */}
+                    {clients.filter(c => !c.is_vendor && c.is_active && c.can_book !== false).length === 0 && (
                       <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        No clients available for booking. Only clients mapped to you can be booked.
+                        No clients available. Clients must be mapped to you to create bookings.
+                      </div>
+                    )}
+                    
+                    {/* All clients pending message */}
+                    {clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'approved' && c.can_book !== false).length === 0 && 
+                     clients.filter(c => !c.is_vendor && c.is_active && c.approval_status === 'pending' && c.can_book !== false).length > 0 && (
+                      <div className="px-2 py-3 text-xs text-orange-600 bg-orange-50 dark:bg-orange-950 border-t mt-1">
+                        All your clients are pending approval. Please wait for PE Desk to approve them before creating bookings.
                       </div>
                     )}
                   </SelectContent>
