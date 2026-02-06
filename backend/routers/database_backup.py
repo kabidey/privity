@@ -244,40 +244,41 @@ async def create_full_backup(
         record_counts = {}
         total_size = 0
         errors = []
-    
-    # Get ALL collections dynamically
-    all_collections = await db.list_collection_names()
-    # Exclude database_backups and fs.chunks (binary data that breaks JSON serialization)
-    collections_to_backup = [c for c in all_collections if c not in ["database_backups", "fs.chunks"]]
-    
-    # Backup each collection
-    for collection_name in collections_to_backup:
-        try:
-            collection = db[collection_name]
-            # For fs.files, exclude binary fields
-            if collection_name == "fs.files":
-                documents = await collection.find({}, {"_id": 0}).to_list(100000)
-                # Convert ObjectId and datetime to strings
-                for doc in documents:
-                    for key, value in list(doc.items()):
-                        if hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool, list, dict, type(None))):
-                            doc[key] = str(value)
-            else:
-                documents = await collection.find({}, {"_id": 0}).to_list(100000)
-            backup_data[collection_name] = documents
-            record_counts[collection_name] = len(documents)
-            total_size += len(json.dumps(documents, default=str))
-        except Exception as e:
-            logger.error(f"Error backing up {collection_name}: {str(e)}")
-            backup_data[collection_name] = []
-            record_counts[collection_name] = 0
-    
-    # Get file stats for metadata
-    files_count, files_size = get_files_stats(UPLOADS_DIR)
-    
-    # Get files by category
-    files_by_category = {}
-    if os.path.exists(UPLOADS_DIR):
+        
+        # Get ALL collections dynamically
+        all_collections = await db.list_collection_names()
+        # Exclude database_backups and fs.chunks (binary data that breaks JSON serialization)
+        collections_to_backup = [c for c in all_collections if c not in ["database_backups", "fs.chunks"]]
+        
+        # Backup each collection
+        for collection_name in collections_to_backup:
+            try:
+                collection = db[collection_name]
+                # For fs.files, exclude binary fields
+                if collection_name == "fs.files":
+                    documents = await collection.find({}, {"_id": 0}).to_list(100000)
+                    # Convert ObjectId and datetime to strings
+                    for doc in documents:
+                        for key, value in list(doc.items()):
+                            if hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool, list, dict, type(None))):
+                                doc[key] = str(value)
+                else:
+                    documents = await collection.find({}, {"_id": 0}).to_list(100000)
+                backup_data[collection_name] = documents
+                record_counts[collection_name] = len(documents)
+                total_size += len(json.dumps(documents, default=str))
+            except Exception as e:
+                logger.error(f"Error backing up {collection_name}: {str(e)}")
+                errors.append(f"Error backing up {collection_name}: {str(e)}")
+                backup_data[collection_name] = []
+                record_counts[collection_name] = 0
+        
+        # Get file stats for metadata
+        files_count, files_size = get_files_stats(UPLOADS_DIR)
+        
+        # Get files by category
+        files_by_category = {}
+        if os.path.exists(UPLOADS_DIR):
         for item in os.listdir(UPLOADS_DIR):
             item_path = os.path.join(UPLOADS_DIR, item)
             if os.path.isdir(item_path):
