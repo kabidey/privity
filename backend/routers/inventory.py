@@ -503,7 +503,7 @@ async def send_consolidated_pe_report(
     Includes company logo, timestamp, footer with company info and disclaimer.
     CC: pe@smifs.com
     """
-    from services.email_service import send_email_raw
+    from services.email_service import send_email
     from datetime import datetime, timezone
     
     # Get ALL inventory items
