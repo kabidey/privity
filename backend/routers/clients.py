@@ -853,7 +853,7 @@ async def download_client_document(
     _: None = Depends(require_permission("clients.view_docs", "download client documents"))
 ):
     """Download a client document from GridFS or local storage."""
-    from fastapi.responses import FileResponse, Response
+    from fastapi.responses import Response
     from services.file_storage import download_file_from_gridfs
     
     # Get client to find document
@@ -886,7 +886,7 @@ async def download_client_document(
                     "Content-Disposition": f'attachment; filename="{original_filename}"',
                 }
             )
-        except Exception as e:
+        except Exception:
             # GridFS failed, try local file
             pass
     
