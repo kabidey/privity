@@ -234,7 +234,7 @@ const Login = () => {
     sessionStorage.setItem('pe_quotes_shown', JSON.stringify(shownQuotes));
   }, [currentQuoteIndex]);
 
-  // Typewriter effect
+  // Typewriter effect - Sequential quote progression
   useEffect(() => {
     const quote = allQuotes[currentQuoteIndex];
     let charIndex = 0;
@@ -258,17 +258,19 @@ const Login = () => {
           setDisplayedText(quote.slice(0, charIndex));
           timeoutId = setTimeout(eraseChar, 20);
         } else {
-          // Get next unshown quote
+          // Move to next sequential quote
           const stored = sessionStorage.getItem('pe_quotes_shown');
-          const shownQuotes = stored ? JSON.parse(stored) : { indices: [], timestamp: Date.now() };
-          const availableIndices = allQuotes.map((_, i) => i).filter(i => !shownQuotes.indices.includes(i));
+          const shownQuotes = stored ? JSON.parse(stored) : { lastIndex: currentQuoteIndex, shownIndices: [], timestamp: Date.now() };
+          const nextIndex = (currentQuoteIndex + 1) % allQuotes.length;
           
-          if (availableIndices.length === 0) {
-            sessionStorage.setItem('pe_quotes_shown', JSON.stringify({ indices: [], timestamp: Date.now() }));
-            setCurrentQuoteIndex(Math.floor(Math.random() * allQuotes.length));
-          } else {
-            setCurrentQuoteIndex(availableIndices[Math.floor(Math.random() * availableIndices.length)]);
+          // Reset shown indices if we've completed a full cycle
+          if (shownQuotes.shownIndices.length >= allQuotes.length) {
+            shownQuotes.shownIndices = [nextIndex];
           }
+          
+          shownQuotes.lastIndex = nextIndex;
+          sessionStorage.setItem('pe_quotes_shown', JSON.stringify(shownQuotes));
+          setCurrentQuoteIndex(nextIndex);
           setIsTyping(true);
         }
       };
