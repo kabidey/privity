@@ -962,6 +962,214 @@ async def ocr_preview(
             temp_path.unlink()
 
 
+@router.post("/clients/{client_id}/rerun-ocr")
+async def rerun_client_ocr(
+    client_id: str,
+    doc_types: Optional[List[str]] = Query(None, description="Specific document types to re-run OCR for. If not provided, runs on all documents."),
+    update_client: bool = Query(False, description="If true, update client data with new OCR results"),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.edit", "re-run OCR on client documents"))
+):
+    """
+    Re-run OCR on client documents.
+    
+    This endpoint allows admins to re-trigger OCR processing on uploaded documents,
+    useful when the initial OCR extraction was incorrect or incomplete.
+    
+    - PE Level users can re-run OCR and optionally update client data
+    - Returns comparison of old vs new OCR results
+    """
+    from services.ocr_service import rerun_ocr_for_client, compare_ocr_with_client_data
+    from services.file_storage import get_file_from_gridfs
+    
+    user_role = current_user.get("role", 6)
+    
+    # Only PE Level can re-run OCR
+    if not is_pe_level(user_role):
+        raise HTTPException(
+            status_code=403,
+            detail="Only PE Desk or PE Manager can re-run OCR on documents"
+        )
+    
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    documents = client.get("documents", [])
+    if not documents:
+        raise HTTPException(status_code=400, detail="No documents found for this client")
+    
+    # Filter documents by type if specified
+    if doc_types:
+        target_docs = [d for d in documents if d.get("doc_type") in doc_types]
+        if not target_docs:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"No documents found with types: {', '.join(doc_types)}"
+            )
+    else:
+        target_docs = documents
+    
+    results = {
+        "client_id": client_id,
+        "client_name": client.get("name"),
+        "rerun_at": datetime.now(timezone.utc).isoformat(),
+        "documents_processed": [],
+        "old_vs_new": {},
+        "update_applied": False,
+        "errors": []
+    }
+    
+    import tempfile
+    
+    for doc in target_docs:
+        doc_type = doc.get("doc_type")
+        file_id = doc.get("file_id")
+        old_ocr = doc.get("ocr_data", {})
+        
+        if not file_id:
+            results["errors"].append(f"No file_id found for {doc_type}")
+            continue
+        
+        try:
+            # Retrieve file from GridFS
+            file_data = await get_file_from_gridfs(file_id)
+            if not file_data:
+                results["errors"].append(f"Could not retrieve file for {doc_type} from storage")
+                continue
+            
+            # Save to temp file for OCR processing
+            file_ext = doc.get("filename", "file.jpg").split(".")[-1] or "jpg"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_ext}") as tmp:
+                tmp.write(file_data)
+                tmp_path = tmp.name
+            
+            try:
+                # Run OCR
+                new_ocr = await process_document_ocr(tmp_path, doc_type)
+                
+                # Store comparison
+                results["old_vs_new"][doc_type] = {
+                    "old_data": old_ocr.get("extracted_data", {}) if isinstance(old_ocr, dict) else {},
+                    "new_data": new_ocr.get("extracted_data", {}),
+                    "old_confidence": old_ocr.get("confidence", 0) if isinstance(old_ocr, dict) else 0,
+                    "new_confidence": new_ocr.get("confidence", 0)
+                }
+                
+                results["documents_processed"].append({
+                    "doc_type": doc_type,
+                    "old_confidence": old_ocr.get("confidence", 0) if isinstance(old_ocr, dict) else 0,
+                    "new_confidence": new_ocr.get("confidence", 0),
+                    "status": new_ocr.get("status", "unknown")
+                })
+                
+                # Update document OCR data in database
+                await db.clients.update_one(
+                    {"id": client_id, "documents.doc_type": doc_type},
+                    {
+                        "$set": {
+                            "documents.$.ocr_data": new_ocr,
+                            "documents.$.ocr_rerun_at": datetime.now(timezone.utc).isoformat(),
+                            "documents.$.ocr_rerun_by": current_user.get("id")
+                        }
+                    }
+                )
+                
+            finally:
+                # Clean up temp file
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+                    
+        except Exception as e:
+            results["errors"].append(f"Error processing {doc_type}: {str(e)}")
+    
+    # Optionally update client data with new OCR results
+    if update_client and results["documents_processed"]:
+        updates = {}
+        
+        # Extract data from CML
+        cml_data = results["old_vs_new"].get("cml_copy", {}).get("new_data", {})
+        if cml_data:
+            if cml_data.get("client_name"):
+                updates["name"] = cml_data["client_name"]
+            if cml_data.get("pan_number"):
+                updates["pan_number"] = cml_data["pan_number"]
+            if cml_data.get("email"):
+                updates["email"] = cml_data["email"]
+            if cml_data.get("mobile"):
+                updates["mobile"] = cml_data["mobile"]
+            if cml_data.get("address"):
+                updates["address"] = cml_data["address"]
+            if cml_data.get("pin_code"):
+                updates["pin_code"] = cml_data["pin_code"]
+            
+            # Construct full DP ID
+            dp_id = cml_data.get("dp_id", "")
+            client_id_from_cml = cml_data.get("client_id", "")
+            if dp_id and client_id_from_cml:
+                updates["dp_id"] = f"{dp_id}{client_id_from_cml}"
+            elif cml_data.get("full_dp_client_id"):
+                updates["dp_id"] = cml_data["full_dp_client_id"].replace("-", "")
+        
+        # Extract data from PAN card
+        pan_data = results["old_vs_new"].get("pan_card", {}).get("new_data", {})
+        if pan_data:
+            if pan_data.get("pan_number") and not updates.get("pan_number"):
+                updates["pan_number"] = pan_data["pan_number"]
+            if pan_data.get("name") and not updates.get("name"):
+                updates["name"] = pan_data["name"]
+        
+        # Extract bank data from cancelled cheque
+        cheque_data = results["old_vs_new"].get("cancelled_cheque", {}).get("new_data", {})
+        if cheque_data:
+            # Add or update bank account
+            if cheque_data.get("account_number") and cheque_data.get("ifsc_code"):
+                new_bank = {
+                    "bank_name": cheque_data.get("bank_name", ""),
+                    "account_number": cheque_data["account_number"],
+                    "ifsc_code": cheque_data["ifsc_code"],
+                    "branch_name": cheque_data.get("branch_name", ""),
+                    "account_holder_name": cheque_data.get("account_holder_name", ""),
+                    "source": "cancelled_cheque_rerun"
+                }
+                
+                # Check if this bank account already exists
+                existing_banks = client.get("bank_accounts", [])
+                bank_exists = any(b.get("account_number") == new_bank["account_number"] for b in existing_banks)
+                
+                if not bank_exists:
+                    await db.clients.update_one(
+                        {"id": client_id},
+                        {"$push": {"bank_accounts": new_bank}}
+                    )
+        
+        if updates:
+            updates["ocr_updated_at"] = datetime.now(timezone.utc).isoformat()
+            updates["ocr_updated_by"] = current_user.get("id")
+            
+            await db.clients.update_one(
+                {"id": client_id},
+                {"$set": updates}
+            )
+            results["update_applied"] = True
+            results["fields_updated"] = list(updates.keys())
+    
+    # Create audit log
+    await create_audit_log(
+        current_user,
+        "rerun_ocr",
+        "client",
+        client_id,
+        {
+            "client_name": client.get("name"),
+            "documents_processed": len(results["documents_processed"]),
+            "update_applied": results.get("update_applied", False)
+        }
+    )
+    
+    return results
+
+
 @router.get("/clients/{client_id}/document-status")
 async def get_client_document_status(
     client_id: str,
