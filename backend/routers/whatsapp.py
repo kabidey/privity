@@ -349,12 +349,12 @@ async def save_wati_config(
     
     # Create service and test connection
     service = WatiService(api_endpoint, api_token)
-    is_connected = await service.test_connection()
+    connection_result = await service.test_connection()
     
-    if not is_connected:
+    if not connection_result.get("connected"):
         raise HTTPException(
             status_code=400, 
-            detail="Failed to connect to Wati.io. Please check your API endpoint and token."
+            detail=f"Failed to connect to Wati.io: {connection_result.get('message', 'Unknown error')}"
         )
     
     # Save config
