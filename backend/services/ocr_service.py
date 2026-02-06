@@ -104,20 +104,55 @@ def get_pan_card_prompt() -> str:
 DOCUMENT LAYOUT REFERENCE (Indian PAN Card):
 - TOP: "INCOME TAX DEPARTMENT" / "आयकर विभाग" and "GOVT. OF INDIA"
 - LEFT SIDE: Contains text fields in vertical arrangement
-- RIGHT SIDE: Photograph of cardholder
-- BOTTOM: PAN number in LARGE FONT
+- CENTER: "Permanent Account Number Card" / "स्थायी खाता संख्या कार्ड"
+- RIGHT SIDE: Photograph of cardholder, signature
+- BOTTOM: PAN number in LARGE BOLD FONT
 
 REQUIRED FIELDS TO EXTRACT:
 
-1. **PAN Number** (CRITICAL):
+1. **PAN Number** (MOST CRITICAL):
    - Located at BOTTOM of card in LARGE, BOLD characters
-   - Format: EXACTLY 10 characters - 5 LETTERS + 4 DIGITS + 1 LETTER
-   - Example: BLOPS6942P, AABPM1234Q
-   - The first 5 chars are ALWAYS letters (A-Z)
-   - The next 4 chars are ALWAYS digits (0-9)
-   - The last char is ALWAYS a letter (A-Z)
+   - EXACTLY 10 characters in format: AAAAA9999A
+   - First 3 letters: Based on region (e.g., BLO, AAB, DEL)
+   - 4th letter: Holder type (P=Person, C=Company, H=HUF, F=Firm)
+   - 5th letter: First letter of surname
+   - Next 4: Sequential digits (0001-9999)
+   - Last letter: Alphabetic check character
+   - Examples: BLOPS6942P, AABPM1234Q, DEFPC5678R
+   - VALIDATION: Must match regex ^[A-Z]{5}[0-9]{4}[A-Z]$
 
-2. **Name**:
+2. **Name** (IMPORTANT):
+   - Usually on lines labeled "Name / नाम" 
+   - Full name as printed on card
+   - Should be in CAPITAL letters
+   - Example: "SUPRABHAT SEN", "RAJESH KUMAR SHARMA"
+
+3. **Father's Name**:
+   - Line labeled "Father's Name / पिता का नाम"
+   - Full name of father
+   - Example: "LATE SUBHASH CHANDRA SEN"
+
+4. **Date of Birth**:
+   - Line labeled "Date of Birth / जन्म तिथि"
+   - Format: DD/MM/YYYY
+   - Example: "15/08/1985"
+
+CRITICAL VALIDATION RULES:
+- PAN number MUST be exactly 10 characters
+- PAN format: 5 letters + 4 digits + 1 letter (AAAAA9999A)
+- 4th letter indicates type: P=Individual, C=Company, H=HUF, F=Firm, A=AOP, T=Trust
+- Name should be in English (transliteration of Hindi if needed)
+- If DOB format is different, convert to DD/MM/YYYY
+
+Return ONLY this JSON structure:
+{
+    "pan_number": "BLOPS6942P",
+    "name": "SUPRABHAT SEN",
+    "fathers_name": "LATE SUBHASH CHANDRA SEN",
+    "date_of_birth": "15/08/1985"
+}
+
+CRITICAL: Return ONLY raw JSON, no explanations, no markdown, no code blocks."""
    - The cardholder's name (NOT the father's name)
    - Usually appears AFTER "Name" label
    - In CAPITAL LETTERS
