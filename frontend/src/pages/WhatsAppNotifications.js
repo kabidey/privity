@@ -564,12 +564,220 @@ const WhatsAppNotifications = () => {
       )}
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="templates" className="space-y-4">
+      <Tabs defaultValue="conversations" className="space-y-4" onValueChange={(val) => {
+        if (val === 'conversations') fetchConversations();
+      }}>
         <TabsList>
+          <TabsTrigger value="conversations" className="flex items-center gap-2">
+            <Inbox className="w-4 h-4" />
+            Conversations
+            {conversations.filter(c => c.unread_count > 0).length > 0 && (
+              <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 text-xs flex items-center justify-center">
+                {conversations.filter(c => c.unread_count > 0).length}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           {canViewHistory && <TabsTrigger value="history">Message History</TabsTrigger>}
           {canConfig && <TabsTrigger value="automation">Automation</TabsTrigger>}
         </TabsList>
+
+        {/* Conversations Tab - Two-Way Communication */}
+        <TabsContent value="conversations">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Conversation List */}
+            <Card className="lg:col-span-1">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Inbox</CardTitle>
+                  <Button variant="ghost" size="sm" onClick={fetchConversations} disabled={loadingConversations}>
+                    <RefreshCw className={`w-4 h-4 ${loadingConversations ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* Webhook Setup Info */}
+                <div className="px-4 pb-3 border-b">
+                  <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 text-sm">
+                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-medium mb-1">
+                      <Info className="w-4 h-4" />
+                      Webhook URL for Wati
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <code className="text-xs bg-white dark:bg-gray-900 px-2 py-1 rounded flex-1 truncate">
+                        {webhookInfo?.webhook_url || `${window.location.origin}/api/whatsapp/webhook`}
+                      </code>
+                      <Button variant="ghost" size="sm" onClick={copyWebhookUrl} className="h-7 w-7 p-0">
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Conversation List */}
+                <div className="max-h-[500px] overflow-y-auto">
+                  {loadingConversations ? (
+                    <div className="flex items-center justify-center py-8">
+                      <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : conversations.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>No conversations yet</p>
+                      <p className="text-xs mt-1">Messages will appear here when customers reply</p>
+                    </div>
+                  ) : (
+                    conversations.map((conv) => (
+                      <div
+                        key={conv.id || conv.phone_number}
+                        className={`p-3 border-b cursor-pointer hover:bg-muted/50 transition-colors ${
+                          selectedConversation?.phone_number === conv.phone_number ? 'bg-muted' : ''
+                        }`}
+                        onClick={() => loadConversationThread(conv.phone_number)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium truncate">
+                                {conv.client_name !== 'Unknown' ? conv.client_name : conv.phone_number}
+                              </span>
+                              {conv.unread_count > 0 && (
+                                <Badge variant="destructive" className="h-5 min-w-[20px] text-xs">
+                                  {conv.unread_count}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground truncate">{conv.last_message}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {conv.last_message_at ? new Date(conv.last_message_at).toLocaleString() : ''}
+                            </p>
+                          </div>
+                          {conv.session_active && (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              Active
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Conversation Thread */}
+            <Card className="lg:col-span-2">
+              {selectedConversation ? (
+                <>
+                  <CardHeader className="pb-3 border-b">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="lg:hidden"
+                          onClick={() => setSelectedConversation(null)}
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                        </Button>
+                        <div>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Phone className="w-4 h-4" />
+                            {selectedConversation.client_name !== 'Unknown' 
+                              ? selectedConversation.client_name 
+                              : selectedConversation.phone_number}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedConversation.phone_number}
+                            {selectedConversation.session_active && (
+                              <Badge variant="outline" className="ml-2 text-xs bg-green-50 text-green-700">
+                                24h Session Active
+                              </Badge>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {/* Messages */}
+                    <div className="h-[350px] overflow-y-auto p-4 space-y-3 bg-gray-50 dark:bg-gray-900">
+                      {conversationMessages.map((msg, idx) => (
+                        <div
+                          key={msg.id || idx}
+                          className={`flex ${msg.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[80%] rounded-lg px-3 py-2 ${
+                              msg.direction === 'outbound'
+                                ? 'bg-green-600 text-white'
+                                : 'bg-white dark:bg-gray-800 border'
+                            }`}
+                          >
+                            <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                            <div className={`text-xs mt-1 ${
+                              msg.direction === 'outbound' ? 'text-green-100' : 'text-muted-foreground'
+                            }`}>
+                              {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''}
+                              {msg.sent_by && <span className="ml-2">• {msg.sent_by}</span>}
+                              {msg.status && msg.direction === 'outbound' && (
+                                <span className="ml-2">
+                                  {msg.status === 'sent' && '✓'}
+                                  {msg.status === 'delivered' && '✓✓'}
+                                  {msg.status === 'read' && '✓✓'}
+                                  {msg.status === 'failed' && '✗'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Reply Input */}
+                    <div className="p-4 border-t">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Type a reply..."
+                          value={replyMessage}
+                          onChange={(e) => setReplyMessage(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendReply()}
+                          disabled={sendingReply || !isConnected}
+                          data-testid="reply-input"
+                        />
+                        <Button 
+                          onClick={handleSendReply} 
+                          disabled={!replyMessage.trim() || sendingReply || !isConnected}
+                          className="bg-green-600 hover:bg-green-700"
+                          data-testid="send-reply-btn"
+                        >
+                          {sendingReply ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                      {!selectedConversation.session_active && (
+                        <p className="text-xs text-amber-600 mt-2">
+                          ⚠️ 24-hour session may have expired. Use a template message to re-engage.
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </>
+              ) : (
+                <CardContent className="flex items-center justify-center h-[500px]">
+                  <div className="text-center text-muted-foreground">
+                    <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium">Select a conversation</p>
+                    <p className="text-sm">Choose a conversation from the list to view messages</p>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          </div>
+        </TabsContent>
 
         <TabsContent value="templates">
           <Card>
