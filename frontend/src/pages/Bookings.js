@@ -114,6 +114,9 @@ const Bookings = () => {
 
   const fetchData = async () => {
     try {
+      // Clear stale client cache before fetching - ensures fresh data for bookings
+      localStorage.removeItem('privity_cache_clients');
+      
       const [bookingsRes, clientsRes, stocksRes, inventoryRes, rpRes] = await Promise.all([
         api.get('/bookings'),
         api.get('/clients'),
