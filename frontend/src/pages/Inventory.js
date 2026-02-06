@@ -155,6 +155,35 @@ const Inventory = () => {
     return { type: 'down', color: 'bg-red-100 text-red-700 border-red-300', icon: ArrowDown };
   };
 
+  // Export inventory to Excel/CSV
+  const handleExportInventory = async (format = 'xlsx') => {
+    try {
+      const response = await api.get(`/inventory/inventory-export?format=${format}`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], {
+        type: format === 'xlsx' 
+          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+          : 'text/csv'
+      });
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inventory_export_${new Date().toISOString().split('T')[0]}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`Inventory exported to ${format.toUpperCase()} successfully`);
+    } catch (error) {
+      toast.error('Failed to export inventory');
+      console.error('Export error:', error);
+    }
+  };
+
   const handleDeleteInventory = async (stockId, stockSymbol) => {
     if (!window.confirm(`Are you sure you want to delete inventory for ${stockSymbol}? This will remove all inventory records for this stock.`)) {
       return;
