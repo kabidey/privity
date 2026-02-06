@@ -37,6 +37,28 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Robust OCR & Re-run Feature (Feb 06, 2026)
+- **Enhanced OCR Prompts:** Improved extraction prompts for PAN Card, Cancelled Cheque, and CML documents
+  - PAN Card: Better field location guidance, format validation (5 letters + 4 digits + 1 letter)
+  - Cancelled Cheque: Detailed layout reference for IFSC, Account Number, Bank Name extraction
+  - CML Copy: Comprehensive CDSL/NSDL format detection with DP ID, Client ID, bank details extraction
+- **New API Endpoint:** `POST /api/clients/{client_id}/rerun-ocr`
+  - Supports `doc_types` query param to re-run specific documents
+  - Supports `update_client=true` to update client data with new OCR results
+  - Returns comparison of old vs new OCR results with confidence scores
+  - Creates audit log entry for each re-run action
+- **Frontend Integration:**
+  - "Re-run OCR" button in Documents dialog header (PE Level only)
+  - "Re-run & Update Data" button to both re-run and update client data
+  - Individual document re-run button (RefreshCw icon) for each document
+  - OCR Confidence percentage display for each document
+  - OCR Re-run Results section showing confidence transition after re-run
+  - OCR re-run timestamp display when document has been re-run
+- **Files Modified:**
+  - `/app/backend/services/ocr_service.py` - Enhanced prompts and post-processing
+  - `/app/backend/routers/clients.py` - Added rerun_client_ocr endpoint (lines 985-1170)
+  - `/app/frontend/src/pages/Clients.js` - Added handleRerunOcr and updated Documents dialog
+
 #### ✅ Rainbow Theme System (Feb 06, 2026)
 - Implemented 10 colorful themes beyond basic white/dark mode
 - **Light Themes (7):**
