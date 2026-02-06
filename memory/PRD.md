@@ -57,8 +57,19 @@ Build a Share Booking System for managing client share bookings, inventory track
   - `/app/frontend/src/App.js` - Added route
 
 #### ✅ Wati.io Webhook Integration (Feb 06, 2026)
+- **Dual API Support (v1 and v3):**
+  - v1 API: Standard endpoints for templates and messages
+  - v3 API: Extended API with bulk messaging support
+  - Auto-detection of best API version during connection
+  - Fallback mechanism: tries v1 first, falls back to v3 if needed
+- **API Configuration:**
+  - API Endpoint URL input
+  - API Token (Bearer) input
+  - API Version selector (v1/v3)
+  - Connection test with detailed error messages
 - **New Endpoints:**
   - `POST /api/whatsapp/webhook` - Receives delivery status webhooks from Wati.io
+  - `POST /api/whatsapp/test-connection` - Test API connection
   - `GET /api/whatsapp/delivery-stats` - Returns message delivery statistics
   - `GET /api/whatsapp/webhook/events` - View webhook event history
   - `GET /api/whatsapp/incoming-messages` - View incoming WhatsApp messages
@@ -67,10 +78,11 @@ Build a Share Booking System for managing client share bookings, inventory track
   - Tracks message delivery status (sent, delivered, read, failed)
   - Stores incoming messages for review
   - Notifies PE Desk of failed messages
-  - Webhook URL: `{domain}/api/whatsapp/webhook`
+  - Shows webhook URL for configuration in Wati dashboard
 - **Files Modified:**
-  - `/app/backend/routers/whatsapp.py` - Added webhook endpoints
+  - `/app/backend/routers/whatsapp.py` - Complete WatiService rewrite with dual API support
   - `/app/backend/middleware/bot_protection.py` - Whitelisted webhook path
+  - `/app/frontend/src/pages/WhatsAppNotifications.js` - Added API version selector
 
 #### ✅ Export Functionality Enhancements (Feb 06, 2026)
 - **Clients Page Export:**
