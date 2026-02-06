@@ -37,6 +37,18 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Rounding Fix - All Prices/Payments to 2 Decimal Places (Feb 06, 2026)
+- **Bug:** Payment amounts showing extreme decimals (e.g., ₹21374.999999999996)
+- **Fix:** Applied `round(..., 2)` to all financial calculations:
+  - Purchases: total_amount, total_paid, remaining, price_per_share
+  - Bookings: total_amount, total_paid, profit_loss
+- **Frontend:** Updated `toLocaleString()` calls to use `minimumFractionDigits: 2, maximumFractionDigits: 2`
+- **Files Modified:**
+  - `/app/backend/routers/purchases.py` - Rounded total_amount, total_paid, price_per_share, remaining
+  - `/app/backend/routers/bookings.py` - Rounded total_amount, total_paid, profit_loss
+  - `/app/frontend/src/pages/Purchases.js` - Updated getRemainingAmount, payment displays
+  - `/app/frontend/src/pages/Inventory.js` - Fixed price display in LP history chart
+
 #### ✅ Bug Fixes - Client Booking & OCR Permissions (Feb 06, 2026)
 - **Bug 1: Approved client not available for booking**
   - Fixed `can_book` logic to return `true` if user created the client OR is mapped to it
