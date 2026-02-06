@@ -1008,7 +1008,14 @@ const Clients = () => {
       );
     }
     if (client.approval_status === 'pending') {
-      return <Badge variant="outline" className="text-orange-600 border-orange-600"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+      return (
+        <div className="flex flex-col gap-1">
+          <Badge variant="outline" className="text-orange-600 border-orange-600 bg-orange-50">
+            <Clock className="h-3 w-3 mr-1" />Pending Approval
+          </Badge>
+          <span className="text-xs text-orange-600">Cannot book until approved</span>
+        </div>
+      );
     }
     if (client.approval_status === 'rejected') {
       return <Badge variant="outline" className="text-red-600 border-red-600"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
