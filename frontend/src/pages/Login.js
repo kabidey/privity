@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { PublicClientApplication } from '@azure/msal-browser';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { TrendingUp, AlertCircle, Loader2, Building2, Mail, ArrowLeft, Code, Quote, Phone, Play, Sparkles, Shield, Users, BarChart3, Briefcase, Target, Rocket, Award, Globe, Lock, ChevronRight, DollarSign, PieChart, LineChart, Zap } from 'lucide-react';
+import { TrendingUp, AlertCircle, Loader2, Building2, Mail, ArrowLeft, Phone, Play, Sparkles, Shield, Users, BarChart3, Briefcase, Target, Rocket, Award, Globe, ChevronRight, DollarSign, PieChart, LineChart, Zap, Gem, Crown, Coins, Landmark, Scale, Timer, Eye, Lock, Key, Compass, Anchor, Flame, Star, Heart, Diamond, Layers, Box, Gift, Lightbulb, Brain, Cpu, Database, Server, Cloud, Wifi, Activity, Percent, Hash, AtSign, Command, Terminal, Code, FileText, Folder, Archive, Package, Truck, ShoppingCart, CreditCard, Wallet, PiggyBank, Banknote, Receipt, Calculator, ClipboardList, FileCheck, FilePlus, FileSearch, Search, Filter, SlidersHorizontal, Settings, Wrench, Tool, Hammer, Scissors, Paintbrush, Palette, Image, Camera, Video, Music, Headphones, Speaker, Mic, Radio, Tv, Monitor, Smartphone, Tablet, Watch, Battery, Power, Plug, Usb, HardDrive, Save, Download, Upload, Share, Send, MessageSquare, MessageCircle, Bell, BellRing, AlertTriangle, Info, HelpCircle, CheckCircle, XCircle, MinusCircle, PlusCircle, Plus, Minus, X, Check, RefreshCw, RotateCw, RotateCcw, Repeat, Shuffle, FastForward, Rewind, SkipForward, SkipBack, Pause, Square, Circle, Triangle, Pentagon, Hexagon, Octagon, ArrowUp, ArrowDown, ArrowRight, ChevronUp, ChevronDown, ChevronLeft, ChevronsUp, ChevronsDown, ChevronsLeft, ChevronsRight, MoveUp, MoveDown, MoveLeft, MoveRight, Maximize, Minimize, Expand, Shrink, ZoomIn, ZoomOut, Move, Crosshair, Navigation, Map, MapPin, Flag, Bookmark, Tag, Tags, Ticket, Calendar, Clock, Hourglass, Sun, Moon, CloudSun, CloudMoon, CloudRain, CloudSnow, CloudLightning, Wind, Droplet, Droplets, Umbrella, Thermometer, Flame as Fire, Snowflake, Leaf, Tree, Flower, Sprout, Apple, Cherry, Grape, Lemon, Banana, Carrot, Cookie, Pizza, Coffee, Wine, Beer, Utensils, ChefHat, Soup, Egg, Milk, Cake, IceCream, Candy, Popcorn } from 'lucide-react';
 import { getMsalConfig, getLoginRequest } from '../config/msalConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getFullVersion } from '../version';
@@ -44,88 +44,167 @@ const Login = () => {
   const [captchaQuestion, setCaptchaQuestion] = useState('');
   const [captchaAnswer, setCaptchaAnswer] = useState('');
 
-  // Extended Private Equity Quotes - SMIFS PE Mantras
-  const peQuotes = [
-    { quote: "Private equity is the art of patient capital.", author: "SMIFS PE", icon: Target },
-    { quote: "Public markets rent shares; private equity buys ownership.", author: "SMIFS PE", icon: Building2 },
-    { quote: "We don't buy tickers; we buy businesses.", author: "SMIFS PE", icon: Briefcase },
-    { quote: "Liquidity is a luxury; illiquidity is a strategy.", author: "SMIFS PE", icon: Shield },
-    { quote: "In private markets, time is a tool, not a constraint.", author: "SMIFS PE", icon: TrendingUp },
-    { quote: "Volatility is the price of liquidity; stability is the reward of the lock-in.", author: "SMIFS PE", icon: LineChart },
-    { quote: "True value is created in the dark, away from the daily ticker.", author: "SMIFS PE", icon: Sparkles },
-    { quote: "Private equity doesn't predict the future; it engineers it.", author: "SMIFS PE", icon: Rocket },
-    { quote: "You cannot fix a company while checking its stock price every minute.", author: "SMIFS PE", icon: Target },
-    { quote: "Public markets react; private markets act.", author: "SMIFS PE", icon: Zap },
-    { quote: "The illiquidity premium is the payment for patience.", author: "SMIFS PE", icon: DollarSign },
-    { quote: "Alpha is found where the spotlight isn't shining.", author: "SMIFS PE", icon: Award },
-    { quote: "Efficient markets are for saving; inefficient markets are for earning.", author: "SMIFS PE", icon: PieChart },
-    { quote: "Wealth is built in private; it is merely revealed in public.", author: "SMIFS PE", icon: Globe },
-    { quote: "Price is what you pay; structure is how you protect it.", author: "SMIFS PE", icon: Shield },
-    { quote: "You make your profit on the buy, you realize it on the sell.", author: "SMIFS PE", icon: TrendingUp },
-    { quote: "Valuation is an opinion; cash flow is a fact.", author: "SMIFS PE", icon: BarChart3 },
-    { quote: "Don't catch falling knives; buy the floor.", author: "SMIFS PE", icon: Target },
-    { quote: "A great company at a bad price is a bad investment.", author: "SMIFS PE", icon: DollarSign },
-    { quote: "Due diligence is the art of asking the question nobody wants to answer.", author: "SMIFS PE", icon: Shield },
-    { quote: "Growth covers mistakes; leverage magnifies them.", author: "SMIFS PE", icon: LineChart },
-    { quote: "Buy the complexity, sell the simplicity.", author: "SMIFS PE", icon: Sparkles },
-    { quote: "The best deals are often the hardest to close.", author: "SMIFS PE", icon: Award },
-    { quote: "Cynicism protects capital; optimism grows it.", author: "SMIFS PE", icon: Shield },
-    { quote: "Entry multiple is destiny.", author: "SMIFS PE", icon: Target },
-    { quote: "Leverage is a good servant but a terrible master.", author: "SMIFS PE", icon: BarChart3 },
-    { quote: "Never fall in love with the deal; fall in love with the economics.", author: "SMIFS PE", icon: DollarSign },
-    { quote: "Risk comes from not knowing what you are doing.", author: "SMIFS PE", icon: Shield },
-    { quote: "In PE, 'cheap' is expensive if it can't be fixed.", author: "SMIFS PE", icon: Briefcase },
-    { quote: "Bet on the jockey, not just the horse.", author: "SMIFS PE", icon: Rocket },
-    { quote: "Financial engineering is a tactic; operational improvement is a strategy.", author: "SMIFS PE", icon: Target },
-    { quote: "Alignment of interest is the most powerful force in finance.", author: "SMIFS PE", icon: Users },
-    { quote: "Skin in the game changes the game.", author: "SMIFS PE", icon: Zap },
-    { quote: "A spreadsheet cannot manage a workforce.", author: "SMIFS PE", icon: Users },
-    { quote: "Change is hard in public; it is essential in private.", author: "SMIFS PE", icon: Rocket },
-    { quote: "Hope is not a strategy; execution is.", author: "SMIFS PE", icon: Target },
-    { quote: "EBITDA is an opinion; Free Cash Flow is reality.", author: "SMIFS PE", icon: DollarSign },
-    { quote: "Transformation requires a runway, not a tightrope.", author: "SMIFS PE", icon: Rocket },
-    { quote: "Strong boards don't just monitor; they mentor.", author: "SMIFS PE", icon: Users },
-    { quote: "Cost cutting buys you time; revenue growth buys you a future.", author: "SMIFS PE", icon: TrendingUp },
-    { quote: "Culture eats strategy for breakfast, even in a leveraged buyout.", author: "SMIFS PE", icon: Award },
-    { quote: "Turnarounds don't happen in a straight line.", author: "SMIFS PE", icon: LineChart },
-    { quote: "The goal is not to be bigger; the goal is to be better.", author: "SMIFS PE", icon: Target },
-    { quote: "Incentives dictate behavior; get the cap table right.", author: "SMIFS PE", icon: PieChart },
-    { quote: "If you aren't growing, you're dying—slowly.", author: "SMIFS PE", icon: TrendingUp },
-    { quote: "Scale breaks systems; fix the system before you scale.", author: "SMIFS PE", icon: Shield },
-    { quote: "M&A is like marriage: easy to get into, expensive to get out of.", author: "SMIFS PE", icon: Briefcase },
-    { quote: "Synergies are easy to model but hard to capture.", author: "SMIFS PE", icon: BarChart3 },
-    { quote: "Bolt-ons are the unsung heroes of multiple expansion.", author: "SMIFS PE", icon: Rocket },
-    { quote: "Organic growth proves the concept; inorganic growth proves the platform.", author: "SMIFS PE", icon: TrendingUp },
-    { quote: "Focus on the core; outsource the noise.", author: "SMIFS PE", icon: Target },
-    { quote: "Revenue is vanity, profit is sanity, cash is king.", author: "SMIFS PE", icon: DollarSign },
-    { quote: "A platform is worth more than the sum of its parts.", author: "SMIFS PE", icon: Globe },
-    { quote: "Don't just capture market share; create market value.", author: "SMIFS PE", icon: TrendingUp },
-    { quote: "Every entry must have an exit strategy.", author: "SMIFS PE", icon: Target },
-    { quote: "You don't sell when you want to; you sell when the market wants to buy.", author: "SMIFS PE", icon: BarChart3 },
-    { quote: "IPOs are a branding event; strategic sales are a synergy event.", author: "SMIFS PE", icon: Award },
-    { quote: "Multiple expansion is luck; earnings growth is skill.", author: "SMIFS PE", icon: LineChart },
-    { quote: "The J-Curve is steep, but the view from the top is worth it.", author: "SMIFS PE", icon: TrendingUp },
-    { quote: "Leaving money on the table is better than holding the bag.", author: "SMIFS PE", icon: DollarSign },
-    { quote: "An exit is not the end; it's the validation of the thesis.", author: "SMIFS PE", icon: Award },
-    { quote: "Returns are realized in cash, not in mark-to-market reports.", author: "SMIFS PE", icon: DollarSign },
-    { quote: "Don't wait for the perfect exit; look for the good one.", author: "SMIFS PE", icon: Target },
-    { quote: "A great exit makes you forget the hard years.", author: "SMIFS PE", icon: Sparkles },
-    { quote: "Capital goes where it is welcome and stays where it is well treated.", author: "SMIFS PE", icon: Globe },
-    { quote: "Reputation takes twenty years to build and five minutes to ruin.", author: "SMIFS PE", icon: Shield },
-    { quote: "In the long run, the fundamentals always win.", author: "SMIFS PE", icon: TrendingUp },
-    { quote: "Private Equity: Fueling the real economy.", author: "SMIFS PE", icon: Rocket },
-    { quote: "We don't just manage wealth; we steward potential.", author: "SMIFS PE", icon: Sparkles },
+  // All 69 SMIFS PE Quotes
+  const allQuotes = [
+    "Private equity is the art of patient capital.",
+    "Public markets rent shares; private equity buys ownership.",
+    "We don't buy tickers; we buy businesses.",
+    "Liquidity is a luxury; illiquidity is a strategy.",
+    "In private markets, time is a tool, not a constraint.",
+    "Volatility is the price of liquidity; stability is the reward of the lock-in.",
+    "True value is created in the dark, away from the daily ticker.",
+    "Private equity doesn't predict the future; it engineers it.",
+    "You cannot fix a company while checking its stock price every minute.",
+    "Public markets react; private markets act.",
+    "The illiquidity premium is the payment for patience.",
+    "Alpha is found where the spotlight isn't shining.",
+    "Efficient markets are for saving; inefficient markets are for earning.",
+    "Wealth is built in private; it is merely revealed in public.",
+    "Price is what you pay; structure is how you protect it.",
+    "You make your profit on the buy, you realize it on the sell.",
+    "Valuation is an opinion; cash flow is a fact.",
+    "Don't catch falling knives; buy the floor.",
+    "A great company at a bad price is a bad investment.",
+    "Due diligence is the art of asking the question nobody wants to answer.",
+    "Growth covers mistakes; leverage magnifies them.",
+    "Buy the complexity, sell the simplicity.",
+    "The best deals are often the hardest to close.",
+    "Cynicism protects capital; optimism grows it.",
+    "Entry multiple is destiny.",
+    "Leverage is a good servant but a terrible master.",
+    "Never fall in love with the deal; fall in love with the economics.",
+    "Risk comes from not knowing what you are doing.",
+    "In PE, 'cheap' is expensive if it can't be fixed.",
+    "Bet on the jockey, not just the horse.",
+    "Financial engineering is a tactic; operational improvement is a strategy.",
+    "Alignment of interest is the most powerful force in finance.",
+    "Skin in the game changes the game.",
+    "A spreadsheet cannot manage a workforce.",
+    "Change is hard in public; it is essential in private.",
+    "Hope is not a strategy; execution is.",
+    "EBITDA is an opinion; Free Cash Flow is reality.",
+    "Transformation requires a runway, not a tightrope.",
+    "Strong boards don't just monitor; they mentor.",
+    "Cost cutting buys you time; revenue growth buys you a future.",
+    "Culture eats strategy for breakfast, even in a leveraged buyout.",
+    "Turnarounds don't happen in a straight line.",
+    "The goal is not to be bigger; the goal is to be better.",
+    "Incentives dictate behavior; get the cap table right.",
+    "If you aren't growing, you're dying—slowly.",
+    "Scale breaks systems; fix the system before you scale.",
+    "M&A is like marriage: easy to get into, expensive to get out of.",
+    "Synergies are easy to model but hard to capture.",
+    "Bolt-ons are the unsung heroes of multiple expansion.",
+    "Organic growth proves the concept; inorganic growth proves the platform.",
+    "Focus on the core; outsource the noise.",
+    "Revenue is vanity, profit is sanity, cash is king.",
+    "A platform is worth more than the sum of its parts.",
+    "Don't just capture market share; create market value.",
+    "Every entry must have an exit strategy.",
+    "You don't sell when you want to; you sell when the market wants to buy.",
+    "IPOs are a branding event; strategic sales are a synergy event.",
+    "Multiple expansion is luck; earnings growth is skill.",
+    "The J-Curve is steep, but the view from the top is worth it.",
+    "Leaving money on the table is better than holding the bag.",
+    "An exit is not the end; it's the validation of the thesis.",
+    "Returns are realized in cash, not in mark-to-market reports.",
+    "Don't wait for the perfect exit; look for the good one.",
+    "A great exit makes you forget the hard years.",
+    "Capital goes where it is welcome and stays where it is well treated.",
+    "Reputation takes twenty years to build and five minutes to ruin.",
+    "In the long run, the fundamentals always win.",
+    "Private Equity: Fueling the real economy.",
+    "We don't just manage wealth; we steward potential.",
   ];
 
-  // Typewriter animation state
+  // Keywords extracted from quotes for floating icons
+  const floatingKeywords = [
+    { word: "CAPITAL", icon: DollarSign },
+    { word: "OWNERSHIP", icon: Key },
+    { word: "BUSINESS", icon: Briefcase },
+    { word: "STRATEGY", icon: Target },
+    { word: "VALUE", icon: Gem },
+    { word: "PATIENCE", icon: Timer },
+    { word: "GROWTH", icon: TrendingUp },
+    { word: "ALPHA", icon: Crown },
+    { word: "WEALTH", icon: Coins },
+    { word: "CASH FLOW", icon: Banknote },
+    { word: "LEVERAGE", icon: Scale },
+    { word: "RISK", icon: Shield },
+    { word: "EXECUTION", icon: Rocket },
+    { word: "CULTURE", icon: Users },
+    { word: "SYNERGY", icon: Layers },
+    { word: "PLATFORM", icon: Globe },
+    { word: "EXIT", icon: Award },
+    { word: "RETURNS", icon: PieChart },
+    { word: "FUNDAMENTALS", icon: Landmark },
+    { word: "POTENTIAL", icon: Sparkles },
+    { word: "DILIGENCE", icon: Search },
+    { word: "ECONOMICS", icon: BarChart3 },
+    { word: "PROFIT", icon: LineChart },
+    { word: "ALIGNMENT", icon: Compass },
+    { word: "TRANSFORM", icon: Zap },
+    { word: "MENTOR", icon: Brain },
+    { word: "REVENUE", icon: Activity },
+    { word: "SCALE", icon: Maximize },
+    { word: "M&A", icon: Layers },
+    { word: "MARKET", icon: Globe },
+  ];
+
+  // Random theme generator for surprise effect
+  const themes = useMemo(() => [
+    { primary: 'emerald', secondary: 'teal', accent: 'green', gradient: 'from-slate-950 via-emerald-950 to-slate-900' },
+    { primary: 'cyan', secondary: 'blue', accent: 'sky', gradient: 'from-slate-950 via-cyan-950 to-slate-900' },
+    { primary: 'violet', secondary: 'purple', accent: 'fuchsia', gradient: 'from-slate-950 via-violet-950 to-slate-900' },
+    { primary: 'amber', secondary: 'orange', accent: 'yellow', gradient: 'from-slate-950 via-amber-950 to-slate-900' },
+    { primary: 'rose', secondary: 'pink', accent: 'red', gradient: 'from-slate-950 via-rose-950 to-slate-900' },
+    { primary: 'emerald', secondary: 'lime', accent: 'green', gradient: 'from-gray-950 via-emerald-950 to-gray-900' },
+  ], []);
+
+  // Select random theme on mount
+  const [currentTheme] = useState(() => themes[Math.floor(Math.random() * themes.length)]);
+
+  // Quote rotation with 15-minute no-repeat window
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(() => {
+    const stored = sessionStorage.getItem('pe_quotes_shown');
+    const shownQuotes = stored ? JSON.parse(stored) : { indices: [], timestamp: Date.now() };
+    
+    // Reset if 15 minutes passed
+    if (Date.now() - shownQuotes.timestamp > 15 * 60 * 1000) {
+      sessionStorage.setItem('pe_quotes_shown', JSON.stringify({ indices: [], timestamp: Date.now() }));
+      return Math.floor(Math.random() * allQuotes.length);
+    }
+    
+    // Find unshown quote
+    const availableIndices = allQuotes.map((_, i) => i).filter(i => !shownQuotes.indices.includes(i));
+    if (availableIndices.length === 0) {
+      // All shown, reset
+      sessionStorage.setItem('pe_quotes_shown', JSON.stringify({ indices: [], timestamp: Date.now() }));
+      return Math.floor(Math.random() * allQuotes.length);
+    }
+    
+    return availableIndices[Math.floor(Math.random() * availableIndices.length)];
+  });
+
+  // Typewriter state
   const [displayedText, setDisplayedText] = useState('');
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(true);
   const [showCursor, setShowCursor] = useState(true);
 
+  // Track shown quotes
+  useEffect(() => {
+    const stored = sessionStorage.getItem('pe_quotes_shown');
+    const shownQuotes = stored ? JSON.parse(stored) : { indices: [], timestamp: Date.now() };
+    
+    if (!shownQuotes.indices.includes(currentQuoteIndex)) {
+      shownQuotes.indices.push(currentQuoteIndex);
+      sessionStorage.setItem('pe_quotes_shown', JSON.stringify(shownQuotes));
+    }
+  }, [currentQuoteIndex]);
+
   // Typewriter effect
   useEffect(() => {
-    const quote = peQuotes[currentQuoteIndex].quote;
+    const quote = allQuotes[currentQuoteIndex];
     let charIndex = 0;
     let timeoutId;
     
@@ -134,11 +213,9 @@ const Login = () => {
         if (charIndex <= quote.length) {
           setDisplayedText(quote.slice(0, charIndex));
           charIndex++;
-          timeoutId = setTimeout(typeChar, 50);
+          timeoutId = setTimeout(typeChar, 40);
         } else {
-          setTimeout(() => {
-            setIsTyping(false);
-          }, 3000);
+          setTimeout(() => setIsTyping(false), 4000);
         }
       };
       typeChar();
@@ -147,9 +224,19 @@ const Login = () => {
         if (charIndex > 0) {
           charIndex--;
           setDisplayedText(quote.slice(0, charIndex));
-          timeoutId = setTimeout(eraseChar, 30);
+          timeoutId = setTimeout(eraseChar, 20);
         } else {
-          setCurrentQuoteIndex((prev) => (prev + 1) % peQuotes.length);
+          // Get next unshown quote
+          const stored = sessionStorage.getItem('pe_quotes_shown');
+          const shownQuotes = stored ? JSON.parse(stored) : { indices: [], timestamp: Date.now() };
+          const availableIndices = allQuotes.map((_, i) => i).filter(i => !shownQuotes.indices.includes(i));
+          
+          if (availableIndices.length === 0) {
+            sessionStorage.setItem('pe_quotes_shown', JSON.stringify({ indices: [], timestamp: Date.now() }));
+            setCurrentQuoteIndex(Math.floor(Math.random() * allQuotes.length));
+          } else {
+            setCurrentQuoteIndex(availableIndices[Math.floor(Math.random() * availableIndices.length)]);
+          }
           setIsTyping(true);
         }
       };
@@ -158,23 +245,20 @@ const Login = () => {
     }
     
     return () => clearTimeout(timeoutId);
-  }, [currentQuoteIndex, isTyping]);
+  }, [currentQuoteIndex, isTyping, allQuotes]);
 
-  // Cursor blink effect
+  // Cursor blink
   useEffect(() => {
-    const cursorInterval = setInterval(() => {
-      setShowCursor(prev => !prev);
-    }, 530);
-    return () => clearInterval(cursorInterval);
+    const interval = setInterval(() => setShowCursor(prev => !prev), 530);
+    return () => clearInterval(interval);
   }, []);
 
-  // Fetch SSO config on mount
+  // SSO config
   useEffect(() => {
     const fetchSsoConfig = async () => {
       try {
         const response = await api.get('/auth/sso/config');
         setSsoConfig(response.data);
-        
         if (response.data?.enabled) {
           const msalConfig = getMsalConfig(response.data);
           const msal = new PublicClientApplication(msalConfig);
@@ -186,6 +270,32 @@ const Login = () => {
       }
     };
     fetchSsoConfig();
+  }, []);
+
+  // Random floating icon positions
+  const floatingIcons = useMemo(() => {
+    const positions = [];
+    const usedPositions = new Set();
+    
+    // Generate 20 unique positions
+    while (positions.length < 20) {
+      const top = 5 + Math.random() * 85;
+      const left = Math.random() < 0.5 ? 2 + Math.random() * 15 : 83 + Math.random() * 12;
+      const key = `${Math.round(top/10)}-${Math.round(left/10)}`;
+      
+      if (!usedPositions.has(key)) {
+        usedPositions.add(key);
+        const keyword = floatingKeywords[positions.length % floatingKeywords.length];
+        positions.push({
+          ...keyword,
+          top: `${top}%`,
+          left: `${left}%`,
+          delay: Math.random() * 4,
+          duration: 5 + Math.random() * 3,
+        });
+      }
+    }
+    return positions;
   }, []);
 
   const handleChange = (e) => {
@@ -229,7 +339,6 @@ const Login = () => {
         toast.success('Registration submitted! Awaiting approval.');
       }
     } catch (error) {
-      console.error('Login error:', error);
       const errorResponse = error.response?.data;
       const errorDetail = errorResponse?.detail;
       
@@ -244,16 +353,7 @@ const Login = () => {
         setCaptchaQuestion(captchaData?.captcha_question || '');
         toast.warning('Please answer the security question');
       } else {
-        let message = 'An error occurred';
-        if (typeof errorDetail === 'string') {
-          message = errorDetail;
-        } else if (errorDetail?.message) {
-          message = errorDetail.message;
-        } else if (error.response?.status === 0 || error.code === 'ERR_NETWORK') {
-          message = 'Network error. Please check your connection.';
-        } else if (error.response?.status === 500) {
-          message = 'Server error. Please try again later.';
-        }
+        let message = typeof errorDetail === 'string' ? errorDetail : errorDetail?.message || 'An error occurred';
         toast.error(message);
       }
     } finally {
@@ -266,7 +366,6 @@ const Login = () => {
       toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
-    
     setUpdatingMobile(true);
     try {
       await api.put('/auth/update-mobile', { mobile: mobileUpdateNumber });
@@ -281,21 +380,15 @@ const Login = () => {
   };
 
   const handleSsoLogin = async () => {
-    if (!msalInstance || !ssoConfig) {
-      toast.error('SSO is not configured');
-      return;
-    }
-    
+    if (!msalInstance || !ssoConfig) return toast.error('SSO not configured');
     setSsoLoading(true);
     try {
       const loginRequest = getLoginRequest(ssoConfig);
       const response = await msalInstance.loginPopup(loginRequest);
-      
       const ssoResponse = await api.post('/auth/sso/callback', {
         access_token: response.accessToken,
         id_token: response.idToken,
       });
-      
       const { token, user } = ssoResponse.data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
@@ -313,7 +406,6 @@ const Login = () => {
       toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
-    
     setLoading(true);
     try {
       await api.post('/auth/bp-otp/request', { mobile: formData.mobile_number });
@@ -331,14 +423,9 @@ const Login = () => {
       toast.error('Please enter the 6-digit OTP');
       return;
     }
-    
     setLoading(true);
     try {
-      const response = await api.post('/auth/bp-otp/verify', {
-        mobile: formData.mobile_number,
-        otp: bpOtp,
-      });
-      
+      const response = await api.post('/auth/bp-otp/verify', { mobile: formData.mobile_number, otp: bpOtp });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
@@ -364,153 +451,136 @@ const Login = () => {
     }
   };
 
-  const CurrentIcon = peQuotes[currentQuoteIndex].icon;
+  // Theme-based color classes
+  const themeColors = {
+    iconBg: `from-${currentTheme.primary}-500/20 to-${currentTheme.secondary}-500/20`,
+    iconBorder: `border-${currentTheme.primary}-500/20`,
+    iconText: `text-${currentTheme.primary}-400`,
+    labelText: `text-${currentTheme.primary}-400/60`,
+    glowOrb1: `bg-${currentTheme.primary}-500/10`,
+    glowOrb2: `bg-${currentTheme.secondary}-500/10`,
+    buttonGradient: `from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`,
+    buttonHover: `hover:from-${currentTheme.primary}-600 hover:to-${currentTheme.secondary}-600`,
+  };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900">
-      {/* Animated Background Elements */}
+    <div className={`min-h-screen relative overflow-hidden bg-gradient-to-br ${currentTheme.gradient}`}>
+      {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Floating orbs */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-green-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        {/* Glowing orbs */}
+        <div className={`absolute top-20 left-10 w-72 h-72 bg-${currentTheme.primary}-500/10 rounded-full blur-3xl animate-pulse`}></div>
+        <div className={`absolute bottom-20 right-10 w-96 h-96 bg-${currentTheme.secondary}-500/10 rounded-full blur-3xl animate-pulse`} style={{animationDelay: '1s'}}></div>
+        <div className={`absolute top-1/2 left-1/3 w-64 h-64 bg-${currentTheme.accent}-500/5 rounded-full blur-3xl animate-pulse`} style={{animationDelay: '2s'}}></div>
         
         {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:60px_60px]"></div>
+        <div className={`absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:60px_60px]`}></div>
         
-        {/* Floating icons - Private Equity mantras */}
-        <div className="absolute top-[15%] left-[8%] animate-float" style={{animationDelay: '0s'}}>
-          <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-4 rounded-2xl backdrop-blur-sm border border-emerald-500/20">
-            <TrendingUp className="w-8 h-8 text-emerald-400" />
+        {/* Floating Icons - Hidden on mobile, visible on lg+ */}
+        {floatingIcons.map((item, idx) => (
+          <div 
+            key={idx}
+            className="absolute hidden lg:block animate-float"
+            style={{
+              top: item.top,
+              left: item.left,
+              animationDelay: `${item.delay}s`,
+              animationDuration: `${item.duration}s`,
+            }}
+          >
+            <div className={`bg-gradient-to-br from-${currentTheme.primary}-500/20 to-${currentTheme.secondary}-500/20 p-3 rounded-xl backdrop-blur-sm border border-${currentTheme.primary}-500/20 shadow-lg shadow-${currentTheme.primary}-500/10`}>
+              <item.icon className={`w-6 h-6 text-${currentTheme.primary}-400`} />
+            </div>
+            <p className={`text-${currentTheme.primary}-400/50 text-[10px] mt-1 text-center font-semibold tracking-wider`}>{item.word}</p>
           </div>
-          <p className="text-emerald-400/60 text-xs mt-2 text-center font-medium">GROWTH</p>
-        </div>
-        
-        <div className="absolute top-[25%] right-[12%] animate-float" style={{animationDelay: '0.5s'}}>
-          <div className="bg-gradient-to-br from-teal-500/20 to-cyan-500/20 p-4 rounded-2xl backdrop-blur-sm border border-teal-500/20">
-            <Shield className="w-8 h-8 text-teal-400" />
-          </div>
-          <p className="text-teal-400/60 text-xs mt-2 text-center font-medium">TRUST</p>
-        </div>
-        
-        <div className="absolute top-[45%] left-[5%] animate-float" style={{animationDelay: '1s'}}>
-          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 p-4 rounded-2xl backdrop-blur-sm border border-green-500/20">
-            <Target className="w-8 h-8 text-green-400" />
-          </div>
-          <p className="text-green-400/60 text-xs mt-2 text-center font-medium">PRECISION</p>
-        </div>
-        
-        <div className="absolute top-[55%] right-[8%] animate-float" style={{animationDelay: '1.5s'}}>
-          <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 p-4 rounded-2xl backdrop-blur-sm border border-emerald-500/20">
-            <Rocket className="w-8 h-8 text-emerald-400" />
-          </div>
-          <p className="text-emerald-400/60 text-xs mt-2 text-center font-medium">MOMENTUM</p>
-        </div>
-        
-        <div className="absolute bottom-[25%] left-[10%] animate-float" style={{animationDelay: '2s'}}>
-          <div className="bg-gradient-to-br from-cyan-500/20 to-teal-500/20 p-4 rounded-2xl backdrop-blur-sm border border-cyan-500/20">
-            <Award className="w-8 h-8 text-cyan-400" />
-          </div>
-          <p className="text-cyan-400/60 text-xs mt-2 text-center font-medium">EXCELLENCE</p>
-        </div>
-        
-        <div className="absolute bottom-[30%] right-[15%] animate-float" style={{animationDelay: '2.5s'}}>
-          <div className="bg-gradient-to-br from-teal-500/20 to-emerald-500/20 p-4 rounded-2xl backdrop-blur-sm border border-teal-500/20">
-            <Globe className="w-8 h-8 text-teal-400" />
-          </div>
-          <p className="text-teal-400/60 text-xs mt-2 text-center font-medium">GLOBAL</p>
-        </div>
-        
-        <div className="absolute top-[70%] left-[20%] animate-float" style={{animationDelay: '3s'}}>
-          <div className="bg-gradient-to-br from-green-500/20 to-cyan-500/20 p-4 rounded-2xl backdrop-blur-sm border border-green-500/20">
-            <BarChart3 className="w-8 h-8 text-green-400" />
-          </div>
-          <p className="text-green-400/60 text-xs mt-2 text-center font-medium">ANALYTICS</p>
-        </div>
-        
-        <div className="absolute top-[10%] left-[40%] animate-float" style={{animationDelay: '1.2s'}}>
-          <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-4 rounded-2xl backdrop-blur-sm border border-emerald-500/20">
-            <DollarSign className="w-8 h-8 text-emerald-400" />
-          </div>
-          <p className="text-emerald-400/60 text-xs mt-2 text-center font-medium">WEALTH</p>
-        </div>
-        
-        <div className="absolute bottom-[15%] right-[35%] animate-float" style={{animationDelay: '0.8s'}}>
-          <div className="bg-gradient-to-br from-teal-500/20 to-green-500/20 p-4 rounded-2xl backdrop-blur-sm border border-teal-500/20">
-            <Briefcase className="w-8 h-8 text-teal-400" />
-          </div>
-          <p className="text-teal-400/60 text-xs mt-2 text-center font-medium">EXPERTISE</p>
-        </div>
+        ))}
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8">
-        {/* Top Logo */}
+        
+        {/* Nameplate Logo - Bolted Effect */}
         <div className="mb-6 animate-fade-in">
-          <div className="bg-white/95 rounded-2xl p-4 shadow-2xl shadow-emerald-500/20 backdrop-blur-sm">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_8c5c41a7-4474-44d9-8a72-5476f60329b4/artifacts/eineo77y_SMIFS%20%26%20PRIVITY%20Logo.png" 
-              alt="SMIFS & Privity Logo" 
-              className="h-12 w-auto"
-              data-testid="smifs-privity-logo"
-            />
+          <div className="relative">
+            {/* Outer metal frame */}
+            <div className="absolute -inset-2 bg-gradient-to-b from-gray-400 via-gray-300 to-gray-500 rounded-2xl shadow-2xl"></div>
+            {/* Inner bevel */}
+            <div className="absolute -inset-1 bg-gradient-to-b from-gray-600 via-gray-500 to-gray-700 rounded-xl"></div>
+            {/* Main plate */}
+            <div className="relative bg-gradient-to-b from-white via-gray-50 to-gray-100 rounded-lg p-4 shadow-inner border border-gray-300">
+              {/* Bolts */}
+              <div className="absolute top-2 left-2 w-3 h-3 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 shadow-inner border border-gray-500">
+                <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-gray-300 to-gray-500"></div>
+                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-600 transform -translate-y-1/2"></div>
+              </div>
+              <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 shadow-inner border border-gray-500">
+                <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-gray-300 to-gray-500"></div>
+                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-600 transform -translate-y-1/2 rotate-45"></div>
+              </div>
+              <div className="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 shadow-inner border border-gray-500">
+                <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-gray-300 to-gray-500"></div>
+                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-600 transform -translate-y-1/2 -rotate-45"></div>
+              </div>
+              <div className="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 shadow-inner border border-gray-500">
+                <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-gray-300 to-gray-500"></div>
+                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-600 transform -translate-y-1/2"></div>
+              </div>
+              {/* Logo */}
+              <img 
+                src="https://customer-assets.emergentagent.com/job_8c5c41a7-4474-44d9-8a72-5476f60329b4/artifacts/eineo77y_SMIFS%20%26%20PRIVITY%20Logo.png" 
+                alt="SMIFS & Privity" 
+                className="h-12 w-auto relative z-10 drop-shadow-sm"
+                data-testid="logo"
+              />
+            </div>
+            {/* Shadow underneath */}
+            <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-3/4 h-4 bg-black/30 blur-md rounded-full"></div>
           </div>
         </div>
 
-        {/* Typewriter Quote Section */}
-        <div className="mb-8 text-center max-w-2xl animate-fade-in" style={{animationDelay: '0.2s'}}>
-          <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-500/30 backdrop-blur-sm border border-emerald-500/30">
-              <CurrentIcon className="w-6 h-6 text-emerald-400" />
-            </div>
-          </div>
+        {/* Typewriter Quote */}
+        <div className="mb-8 text-center max-w-2xl px-4 animate-fade-in" style={{animationDelay: '0.2s'}}>
           <div className="min-h-[80px] flex items-center justify-center">
-            <blockquote className="text-xl md:text-2xl font-light text-white/90 leading-relaxed" data-testid="typewriter-quote">
+            <blockquote className="text-lg sm:text-xl md:text-2xl font-light text-white/90 leading-relaxed" data-testid="quote">
               &ldquo;{displayedText}
-              <span className={`inline-block w-0.5 h-6 bg-emerald-400 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>&rdquo;
+              <span className={`inline-block w-0.5 h-5 sm:h-6 bg-${currentTheme.primary}-400 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>&rdquo;
             </blockquote>
           </div>
-          <cite className="text-emerald-400/80 text-sm mt-3 block font-medium">
-            — {peQuotes[currentQuoteIndex].author}
+          <cite className={`text-${currentTheme.primary}-400/80 text-sm mt-3 block font-semibold tracking-wide`}>
+            — SMIFS PE
           </cite>
         </div>
 
         {/* Login Card */}
         <div className="w-full max-w-md animate-fade-in" style={{animationDelay: '0.4s'}}>
-          <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl shadow-black/20" data-testid="login-card">
+          <Card className={`bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl shadow-${currentTheme.primary}-500/10`} data-testid="login-card">
             <CardHeader className="space-y-1 pb-4">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="h-1 w-12 bg-gradient-to-r from-transparent to-emerald-500 rounded-full"></div>
-                <Sparkles className="w-5 h-5 text-emerald-400" />
-                <div className="h-1 w-12 bg-gradient-to-l from-transparent to-emerald-500 rounded-full"></div>
+                <div className={`h-1 w-12 bg-gradient-to-r from-transparent to-${currentTheme.primary}-500 rounded-full`}></div>
+                <Sparkles className={`w-5 h-5 text-${currentTheme.primary}-400`} />
+                <div className={`h-1 w-12 bg-gradient-to-l from-transparent to-${currentTheme.primary}-500 rounded-full`}></div>
               </div>
               <CardTitle className="text-2xl font-bold text-center text-white">
                 {isLogin ? 'Welcome Back' : 'Join Privity'}
               </CardTitle>
               <CardDescription className="text-center text-white/60">
-                {isLogin ? 'Enter your credentials to access PE opportunities' : 'Start your private equity journey today'}
+                {isLogin ? 'Access exclusive PE opportunities' : 'Start your private equity journey'}
               </CardDescription>
             </CardHeader>
             
             <CardContent className="space-y-4">
-              {/* Registration Success */}
               {registrationSuccess ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
+                  <div className={`p-4 bg-${currentTheme.primary}-500/20 border border-${currentTheme.primary}-500/30 rounded-xl`}>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-500/30 rounded-full">
-                        <Mail className="w-5 h-5 text-emerald-400" />
-                      </div>
+                      <Mail className={`w-5 h-5 text-${currentTheme.primary}-400`} />
                       <div>
                         <p className="font-medium text-white">Registration Submitted!</p>
-                        <p className="text-sm text-white/60">Your request for {registeredEmail} is pending approval.</p>
+                        <p className="text-sm text-white/60">{registeredEmail} is pending approval.</p>
                       </div>
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => { setRegistrationSuccess(false); setIsLogin(true); }}
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
-                  >
+                  <Button onClick={() => { setRegistrationSuccess(false); setIsLogin(true); }}
+                    className={`w-full bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back to Login
                   </Button>
                 </div>
@@ -519,196 +589,107 @@ const Login = () => {
                   <div className="p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl">
                     <div className="flex items-center gap-3">
                       <Phone className="w-5 h-5 text-amber-400" />
-                      <p className="text-white/80 text-sm">Please update your mobile number to continue</p>
+                      <p className="text-white/80 text-sm">Update your mobile to continue</p>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-white/80">Mobile Number</Label>
-                    <Input
-                      type="tel"
-                      placeholder="Enter 10-digit mobile number"
-                      value={mobileUpdateNumber}
-                      onChange={(e) => setMobileUpdateNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                      data-testid="mobile-update-input"
-                    />
-                  </div>
-                  <Button 
-                    onClick={handleMobileUpdate} 
-                    disabled={updatingMobile}
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                  >
-                    {updatingMobile ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    Update & Continue
+                  <Input type="tel" placeholder="10-digit mobile" value={mobileUpdateNumber}
+                    onChange={(e) => setMobileUpdateNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    className="bg-white/10 border-white/20 text-white" data-testid="mobile-input" />
+                  <Button onClick={handleMobileUpdate} disabled={updatingMobile}
+                    className={`w-full bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
+                    {updatingMobile ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Update & Continue
                   </Button>
                 </div>
               ) : (
                 <>
-                  {/* Login Type Tabs */}
                   {isLogin && (
                     <Tabs value={loginType} onValueChange={setLoginType} className="mb-4">
                       <TabsList className="grid w-full grid-cols-2 bg-white/10">
-                        <TabsTrigger value="employee" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/60">
+                        <TabsTrigger value="employee" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-white/60`}>
                           <Building2 className="w-4 h-4 mr-2" /> Employee
                         </TabsTrigger>
-                        <TabsTrigger value="partner" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/60">
+                        <TabsTrigger value="partner" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-white/60`}>
                           <Users className="w-4 h-4 mr-2" /> Partner
                         </TabsTrigger>
                       </TabsList>
                     </Tabs>
                   )}
 
-                  {/* Employee Login Form */}
                   {loginType === 'employee' && (
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div className="space-y-2">
                         <Label className="text-white/80">Email</Label>
-                        <Input
-                          type="email"
-                          name="email"
-                          placeholder="you@company.com"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-500 focus:ring-emerald-500/20"
-                          data-testid="email-input"
-                        />
+                        <Input type="email" name="email" placeholder="you@company.com" value={formData.email}
+                          onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/40" data-testid="email" />
                       </div>
-                      
                       <div className="space-y-2">
                         <Label className="text-white/80">Password</Label>
-                        <Input
-                          type="password"
-                          name="password"
-                          placeholder="••••••••"
-                          value={formData.password}
-                          onChange={handleChange}
-                          required
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-500 focus:ring-emerald-500/20"
-                          data-testid="password-input"
-                        />
+                        <Input type="password" name="password" placeholder="••••••••" value={formData.password}
+                          onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/40" data-testid="password" />
                       </div>
                       
                       {!isLogin && (
                         <>
                           <div className="space-y-2">
                             <Label className="text-white/80">Full Name</Label>
-                            <Input
-                              type="text"
-                              name="name"
-                              placeholder="Your full name"
-                              value={formData.name}
-                              onChange={handleChange}
-                              required
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                              data-testid="name-input"
-                            />
+                            <Input type="text" name="name" placeholder="Your name" value={formData.name}
+                              onChange={handleChange} required className="bg-white/10 border-white/20 text-white" data-testid="name" />
                           </div>
                           <div className="space-y-2">
                             <Label className="text-white/80">PAN Number</Label>
-                            <Input
-                              type="text"
-                              name="pan_number"
-                              placeholder="ABCDE1234F"
-                              value={formData.pan_number}
+                            <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                               onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
-                              maxLength={10}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/40 font-mono"
-                              data-testid="pan-input"
-                            />
+                              maxLength={10} className="bg-white/10 border-white/20 text-white font-mono" data-testid="pan" />
                           </div>
                         </>
                       )}
                       
-                      {/* CAPTCHA */}
                       {captchaRequired && (
                         <div className="space-y-2 p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl">
                           <Label className="text-amber-300 flex items-center gap-2">
-                            <AlertCircle className="w-4 h-4" /> Security Question
+                            <AlertCircle className="w-4 h-4" /> {captchaQuestion}
                           </Label>
-                          <p className="text-white/80 text-sm">{captchaQuestion}</p>
-                          <Input
-                            type="text"
-                            placeholder="Your answer"
-                            value={captchaAnswer}
-                            onChange={(e) => setCaptchaAnswer(e.target.value)}
-                            className="bg-white/10 border-white/20 text-white"
-                            data-testid="captcha-answer"
-                          />
+                          <Input type="text" placeholder="Answer" value={captchaAnswer}
+                            onChange={(e) => setCaptchaAnswer(e.target.value)} className="bg-white/10 border-white/20 text-white" />
                         </div>
                       )}
                       
-                      <Button 
-                        type="submit" 
-                        disabled={loading}
-                        className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold text-base shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:shadow-emerald-500/40 hover:scale-[1.02]"
-                        data-testid="submit-btn"
-                      >
-                        {loading ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <>
-                            {isLogin ? 'Sign In' : 'Create Account'}
-                            <ChevronRight className="w-5 h-5 ml-2" />
-                          </>
-                        )}
+                      <Button type="submit" disabled={loading}
+                        className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500 hover:from-${currentTheme.primary}-600 hover:to-${currentTheme.secondary}-600 text-white font-semibold shadow-lg shadow-${currentTheme.primary}-500/25 transition-all hover:scale-[1.02]`}
+                        data-testid="submit">
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{isLogin ? 'Sign In' : 'Create Account'}<ChevronRight className="w-5 h-5 ml-2" /></>}
                       </Button>
                     </form>
                   )}
 
-                  {/* Partner OTP Login */}
                   {loginType === 'partner' && isLogin && (
                     <div className="space-y-4">
                       {!bpOtpSent ? (
                         <>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Registered Mobile Number</Label>
-                            <Input
-                              type="tel"
-                              placeholder="10-digit mobile number"
-                              value={formData.mobile_number}
+                            <Label className="text-white/80">Registered Mobile</Label>
+                            <Input type="tel" placeholder="10-digit mobile" value={formData.mobile_number}
                               onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                              data-testid="bp-mobile-input"
-                            />
+                              className="bg-white/10 border-white/20 text-white" data-testid="bp-mobile" />
                           </div>
-                          <Button 
-                            onClick={handleBpOtpRequest}
-                            disabled={loading}
-                            className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                          >
+                          <Button onClick={handleBpOtpRequest} disabled={loading}
+                            className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send OTP'}
                           </Button>
                         </>
                       ) : (
                         <>
-                          <div className="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-center">
-                            <p className="text-emerald-300 text-sm">OTP sent to {formData.mobile_number}</p>
+                          <div className={`p-3 bg-${currentTheme.primary}-500/20 border border-${currentTheme.primary}-500/30 rounded-xl text-center`}>
+                            <p className={`text-${currentTheme.primary}-300 text-sm`}>OTP sent to {formData.mobile_number}</p>
                           </div>
-                          <div className="space-y-2">
-                            <Label className="text-white/80">Enter OTP</Label>
-                            <Input
-                              type="text"
-                              placeholder="6-digit OTP"
-                              value={bpOtp}
-                              onChange={(e) => setBpOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                              maxLength={6}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-center text-xl tracking-widest font-mono"
-                              data-testid="bp-otp-input"
-                            />
-                          </div>
-                          <Button 
-                            onClick={handleBpOtpVerify}
-                            disabled={loading}
-                            className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                          >
+                          <Input type="text" placeholder="6-digit OTP" value={bpOtp}
+                            onChange={(e) => setBpOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} maxLength={6}
+                            className="bg-white/10 border-white/20 text-white text-center text-xl tracking-widest font-mono" data-testid="otp" />
+                          <Button onClick={handleBpOtpVerify} disabled={loading}
+                            className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Login'}
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            onClick={() => setBpOtpSent(false)}
-                            className="w-full text-white/60 hover:text-white hover:bg-white/10"
-                          >
+                          <Button variant="ghost" onClick={() => setBpOtpSent(false)} className="w-full text-white/60 hover:text-white">
                             <ArrowLeft className="w-4 h-4 mr-2" /> Change Number
                           </Button>
                         </>
@@ -716,39 +697,22 @@ const Login = () => {
                     </div>
                   )}
 
-                  {/* SSO Login */}
                   {ssoConfig?.enabled && isLogin && loginType === 'employee' && (
                     <>
                       <div className="relative my-4">
-                        <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t border-white/20"></span>
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-transparent px-2 text-white/40">Or continue with</span>
-                        </div>
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/20"></span></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-transparent px-2 text-white/40">Or</span></div>
                       </div>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={handleSsoLogin}
-                        disabled={ssoLoading}
-                        className="w-full border-white/20 text-white hover:bg-white/10"
-                      >
-                        {ssoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Building2 className="w-4 h-4 mr-2" />}
-                        Microsoft SSO
+                      <Button variant="outline" onClick={handleSsoLogin} disabled={ssoLoading} className="w-full border-white/20 text-white hover:bg-white/10">
+                        {ssoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Building2 className="w-4 h-4 mr-2" />} Microsoft SSO
                       </Button>
                     </>
                   )}
 
-                  {/* Toggle Login/Register */}
                   {loginType === 'employee' && (
                     <div className="text-center pt-2">
-                      <button 
-                        type="button"
-                        onClick={() => setIsLogin(!isLogin)}
-                        className="text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors"
-                        data-testid="toggle-auth"
-                      >
+                      <button type="button" onClick={() => setIsLogin(!isLogin)}
+                        className={`text-${currentTheme.primary}-400 hover:text-${currentTheme.primary}-300 text-sm font-medium`} data-testid="toggle">
                         {isLogin ? "Don't have an account? Register" : "Already have an account? Sign in"}
                       </button>
                     </div>
@@ -758,51 +722,31 @@ const Login = () => {
             </CardContent>
           </Card>
 
-          {/* Demo Mode Button */}
           <div className="mt-4 text-center">
-            <Button
-              variant="ghost"
-              onClick={handleDemoMode}
-              disabled={demoLoading}
-              className="text-white/50 hover:text-white hover:bg-white/10"
-              data-testid="demo-mode-btn"
-            >
-              {demoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-              Try Demo Mode
+            <Button variant="ghost" onClick={handleDemoMode} disabled={demoLoading} className="text-white/50 hover:text-white hover:bg-white/10" data-testid="demo">
+              {demoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />} Try Demo
             </Button>
           </div>
         </div>
 
         {/* Footer */}
         <div className="mt-8 text-center animate-fade-in" style={{animationDelay: '0.6s'}}>
-          <p className="text-white/40 text-xs">
-            © 2026 SMIFS Private Equity. All rights reserved.
-          </p>
-          <p className="text-white/30 text-xs mt-1">
-            Powered by Privity | v{getFullVersion()}
-          </p>
+          <p className="text-white/40 text-xs">© 2026 SMIFS Private Equity. All rights reserved.</p>
+          <p className="text-white/30 text-xs mt-1">Powered by Privity | v{getFullVersion()}</p>
         </div>
       </div>
 
-      {/* Custom CSS for animations */}
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(5deg); }
+          50% { transform: translateY(-15px) rotate(3deg); }
         }
-        
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        
-        .animate-fade-in {
-          animation: fade-in 0.8s ease-out forwards;
-        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
       `}</style>
     </div>
   );
