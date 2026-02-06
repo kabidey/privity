@@ -353,10 +353,12 @@ async def get_purchases(
         p["stock_symbol"] = p.get("stock_symbol") or (stock["symbol"] if stock else "Unknown")
         
         # Calculate payment status
-        total_paid = payments_by_purchase.get(p["id"], 0)
-        total_amount = p.get("total_amount", 0)
+        total_paid = round(payments_by_purchase.get(p["id"], 0), 2)
+        total_amount = round(p.get("total_amount", 0), 2)
         
         p["total_paid"] = total_paid
+        p["total_amount"] = total_amount
+        p["price_per_share"] = round(p.get("price_per_share", 0), 2)
         
         if total_paid >= total_amount:
             p["payment_status"] = "completed"
