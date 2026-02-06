@@ -2240,6 +2240,89 @@ const Bookings = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Client Documents Dialog */}
+      <Dialog open={docsDialogOpen} onOpenChange={setDocsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5" />
+              Client Documents
+            </DialogTitle>
+            <DialogDescription>
+              Documents for {selectedClientDocs?.clientName || 'Client'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {selectedClientDocs?.documents?.length > 0 ? (
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm text-muted-foreground">Linked Documents ({selectedClientDocs.documents.length})</h4>
+                {selectedClientDocs.documents.map((doc, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 border rounded-lg bg-green-50 dark:bg-green-950">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium text-sm">{doc.doc_type?.replace(/_/g, ' ').toUpperCase()}</p>
+                        <p className="text-xs text-muted-foreground">{doc.filename}</p>
+                        {doc.upload_date && (
+                          <p className="text-xs text-muted-foreground">Uploaded: {new Date(doc.upload_date).toLocaleDateString()}</p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadDocument(selectedClientDocs.clientId, doc.filename, doc.file_id)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p>No documents found for this client.</p>
+              </div>
+            )}
+            
+            {selectedClientDocs?.autoLinked?.length > 0 && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h4 className="font-medium text-sm text-blue-800 dark:text-blue-200 mb-2">
+                  ✨ Auto-Linked from GridFS ({selectedClientDocs.autoLinked.length})
+                </h4>
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  These documents were found in GridFS and automatically linked to this client.
+                </p>
+              </div>
+            )}
+            
+            {selectedClientDocs?.foundInGridFS?.filter(d => d.search_method !== 'entity_id').length > 0 && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-800">
+                <h4 className="font-medium text-sm text-amber-800 dark:text-amber-200 mb-2">
+                  ⚠️ Possible Matches Found ({selectedClientDocs.foundInGridFS.filter(d => d.search_method !== 'entity_id').length})
+                </h4>
+                <p className="text-xs text-amber-700 dark:text-amber-300 mb-2">
+                  These documents may belong to this client (manual review needed):
+                </p>
+                {selectedClientDocs.foundInGridFS.filter(d => d.search_method !== 'entity_id').map((doc, idx) => (
+                  <div key={idx} className="text-xs py-1">
+                    • {doc.filename} (found by: {doc.search_method})
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDocsDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
