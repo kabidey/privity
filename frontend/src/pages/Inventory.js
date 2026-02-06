@@ -620,17 +620,6 @@ const Inventory = () => {
                         {isPEDesk && (
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
-                              {/* PE Report Button */}
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                onClick={() => openPeReportDialog(item)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                title="Send PE Report"
-                                data-testid={`pe-report-${item.stock_id}`}
-                              >
-                                <Send className="h-4 w-4" />
-                              </Button>
                               {/* Delete Button */}
                               <Button 
                                 variant="ghost" 
