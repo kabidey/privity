@@ -348,7 +348,7 @@ const Login = () => {
       }
     }
     return positions;
-  }, []);
+  }, [floatingKeywords]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
