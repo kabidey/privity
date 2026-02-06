@@ -506,13 +506,7 @@ const Layout = ({ children }) => {
           </div>
           <div className="flex items-center gap-1">
             <NotificationBell />
-            <button
-              onClick={toggleTheme}
-              className="p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              data-testid="mobile-theme-toggle"
-            >
-              {theme === 'light' ? <Moon className="h-5 w-5 text-gray-600" /> : <Sun className="h-5 w-5 text-gray-300" />}
-            </button>
+            <ThemeSelector />
             <button
               onClick={() => {
                 console.log('Menu button clicked!');
