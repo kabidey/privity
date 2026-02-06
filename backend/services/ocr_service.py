@@ -216,59 +216,103 @@ NO explanations, NO markdown code blocks, ONLY the raw JSON object."""
 
 
 def get_cml_copy_prompt() -> str:
-    """Get optimized prompt for CML document OCR"""
-    return """You are analyzing a CML (Client Master List) document from an Indian Depository. Extract ALL information carefully.
+    """Get optimized prompt for CML document OCR - Enhanced for CDSL/NSDL documents"""
+    return """You are an expert OCR specialist analyzing an Indian CML (Client Master List) document from a Depository Participant. Extract ALL client information with EXTREME precision.
 
 DOCUMENT TYPES:
-1. CDSL CML: Has "CDSL" logo, DP ID like "12010600", Client ID like "05604331"
-2. NSDL CML: Has "NSDL" logo, DP ID like "IN301629", Client ID like "10242225"
+1. **CDSL CML**: Has "CDSL" or "Central Depository Services" branding
+   - DP ID format: 8 DIGITS (e.g., 12010600)
+   - Client ID format: 8 DIGITS (e.g., 05604331)
+   - BO ID = DP ID + Client ID (16 digits)
 
-FIELD LOCATIONS AND EXTRACTION RULES:
+2. **NSDL CML**: Has "NSDL" or "National Securities Depository" branding
+   - DP ID format: "IN" + 6 characters (e.g., IN301629)
+   - Client ID format: 8 digits (e.g., 10242225)
 
-1. DP ID: Look for "DP ID" or "DP Id" field
-   - CDSL format: 8 digits (e.g., 12010600)
-   - NSDL format: "IN" + 6 chars (e.g., IN301629)
+DOCUMENT LAYOUT REFERENCE:
+- TOP: DP Name, DP ID, Client ID, CML Type indicator
+- LEFT SECTION: Personal details (Name, PAN, DOB, etc.)
+- MIDDLE SECTION: Address details (Correspondence, Permanent)
+- RIGHT SECTION: Bank details, Account information
+- BOTTOM: Nominee details, POA information
 
-2. Client ID: Look for "Client ID", "Client Id", "CL ID" field
+REQUIRED FIELDS TO EXTRACT:
+
+1. **CML Type**: "CDSL" or "NSDL" (check branding/header)
+
+2. **DP ID** (CRITICAL):
+   - CDSL: 8 digits (e.g., "12010600")
+   - NSDL: "IN" + 6 chars (e.g., "IN301629")
+   - Labeled as "DP ID" or "DP Id"
+
+3. **Client ID** (CRITICAL):
    - Usually 8 digits
+   - Labeled as "Client ID", "Client Id", "CL ID"
+   - Example: "05604331"
 
-3. Client Name (CRITICAL):
+4. **Client Name** (CRITICAL):
    - Look for "First Holder Name" or "Name" field
-   - This is the PRIMARY account holder, NOT the father's name
-   - May include title like "MR", "MRS" - extract without title
-   - Example: If you see "MR SUPRABHAT SEN", extract as "SUPRABHAT SEN"
+   - This is the PRIMARY account holder
+   - May include title (MR, MRS, SHRI) - extract WITHOUT title
+   - Example: If you see "MR SUPRABHAT SEN", extract "SUPRABHAT SEN"
+   - Do NOT confuse with father's name
 
-4. PAN Number: Look for "PAN" field
-   - 10 characters: 5 letters + 4 digits + 1 letter
+5. **PAN Number**:
+   - Look for "PAN" or "First Holder PAN" field
+   - Format: 5 letters + 4 digits + 1 letter (10 chars total)
    - Example: BLOPS6942P
 
-5. Date of Birth: Look for "DOB" or "Date of Birth"
+6. **Date of Birth**:
+   - Look for "DOB" or "Date Of Birth" field
    - Format: DD/MM/YYYY
+   - Example: 30/08/1968
 
-6. Email: Look for "Email" or "E-mail" field
-   - May be partially masked with #
+7. **Email**:
+   - Look for "Email" or "E-mail" field
+   - May be partially masked with # symbols - extract visible parts
+   - Example: 68SUPSEN@GMAIL.COM
 
-7. Mobile: Look for "Mobile", "SMS Mobile", "Phone" field
-   - 10 digit number, may be partially masked
+8. **Mobile Number**:
+   - Look for "Mobile", "SMS Mobile", "Phone/Fax" field
+   - Should be 10 digits
+   - May include country code (+91) - extract without it
+   - Example: 9836205656
 
-8. Address: Combine "Correspondence Address" or "Address" fields
-   - Include city, state, PIN
+9. **Address**:
+   - Combine lines from "Correspondence Address" section
+   - Include street, area, city, state
+   - Example: "A/15 BAGHAJATIN REGENT ESTATE, KOLKATA, WEST BENGAL"
 
-9. PIN Code: 6 digit postal code
+10. **PIN Code**:
+    - 6 digit postal code
+    - Usually part of address or separate field
+    - Example: 700092
 
-10. BANK DETAILS (VERY IMPORTANT):
-    - CML may have MULTIPLE bank accounts
-    - Extract the PRIMARY/DEFAULT bank account details
-    - Look for "Bank A/C No", "Account No" field
-    - Bank Name: May be identified by IFSC code (HDFC, SBI, etc.)
-    - IFSC: Look for "IFSC" or "IFSC Code" - 11 characters
-    
-    IMPORTANT: The bank account in CML may differ from cancelled cheque!
-    Extract exactly what's shown in the CML document.
+11. **Bank Account Number** (from CML bank section):
+    - Look for "Bank A/C No." or "Account No" field
+    - May be different from cancelled cheque
+    - Example: 04781050009281
 
-Return ONLY a JSON object:
+12. **IFSC Code**:
+    - Look for "IFSC" or "IFSC Code" field
+    - 11 characters: AAAA0NNNNNN
+    - Example: HDFC0000478
+
+13. **Bank Name**:
+    - May be implicit from IFSC or explicitly mentioned
+    - Example: HDFC BANK
+
+CRITICAL RULES:
+- Extract client name WITHOUT titles (MR, MRS, SHRI, SMT, DR)
+- DP ID + Client ID forms the BO ID
+- Mobile should be 10 digits only (no country code)
+- PAN must be exactly 10 characters
+- The CML bank details may differ from cancelled cheque - extract what's in CML
+- Return null for fields not clearly visible
+
+Return ONLY this JSON structure:
 {
-    "cml_type": "CDSL or NSDL",
+    "cml_type": "CDSL",
     "dp_id": "12010600",
     "client_id": "05604331",
     "bo_id": "1201060005604331",
@@ -286,7 +330,7 @@ Return ONLY a JSON object:
     "branch_name": null
 }
 
-NO explanations, NO markdown, ONLY the JSON object."""
+NO explanations, NO markdown code blocks, ONLY the raw JSON object."""
 
 
 async def process_document_ocr(file_path: str, doc_type: str, retry_count: int = 0) -> Optional[Dict[str, Any]]:
