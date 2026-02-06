@@ -1954,7 +1954,23 @@ const Clients = () => {
                             <span className="text-xs">{client.documents.length}</span>
                           </Button>
                         ) : (
-                          <span className="text-xs text-muted-foreground">-</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRevealDocuments(client.id, client.name)}
+                            disabled={revealingDocs === client.id}
+                            className="text-amber-600 hover:text-amber-700"
+                            title="Search GridFS for documents"
+                          >
+                            {revealingDocs === client.id ? (
+                              <RefreshCw className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <Search className="h-4 w-4 mr-1" />
+                                <span className="text-xs">Reveal</span>
+                              </>
+                            )}
+                          </Button>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
