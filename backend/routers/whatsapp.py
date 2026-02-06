@@ -482,17 +482,26 @@ async def get_whatsapp_config(
 
 @router.post("/config")
 async def save_wati_config(
-    api_endpoint: str = Query(..., description="Wati API endpoint URL"),
-    api_token: str = Query(..., description="Wati API access token"),
+    api_endpoint: str = Query(..., description="Wati API endpoint URL (e.g., https://live-mt-server.wati.io)"),
+    api_token: str = Query(..., description="Wati API access token (Bearer token)"),
+    api_version: str = Query("v1", description="API version to use (v1 or v3)"),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("notifications.whatsapp_connect", "configure WhatsApp"))
 ):
-    """Save Wati.io API configuration and test connection"""
+    """
+    Save Wati.io API configuration and test connection
+    
+    Supports both v1 and v3 APIs:
+    - v1: Standard API endpoints
+    - v3: Extended API with bulk messaging support
+    
+    The system will auto-detect which API version works during connection test.
+    """
     # Clean the endpoint
     api_endpoint = api_endpoint.rstrip('/')
     
     # Create service and test connection
-    service = WatiService(api_endpoint, api_token)
+    service = WatiService(api_endpoint, api_token, api_version)
     connection_result = await service.test_connection()
     
     if not connection_result.get("connected"):
@@ -501,6 +510,9 @@ async def save_wati_config(
             detail=f"Failed to connect to Wati.io: {connection_result.get('message', 'Unknown error')}"
         )
     
+    # Get detected API version from connection test
+    detected_version = connection_result.get("api_version", api_version)
+    
     # Save config
     await db.system_config.update_one(
         {"config_type": "whatsapp"},
@@ -508,6 +520,7 @@ async def save_wati_config(
             "config_type": "whatsapp",
             "api_endpoint": api_endpoint,
             "api_token": api_token,
+            "api_version": detected_version,
             "enabled": True,
             "status": "connected",
             "connected_at": datetime.now(timezone.utc).isoformat(),
@@ -524,10 +537,14 @@ async def save_wati_config(
         user_id=current_user["id"],
         user_name=current_user["name"],
         user_role=current_user.get("role", 6),
-        details={"api_endpoint": api_endpoint}
+        details={"api_endpoint": api_endpoint, "api_version": detected_version}
     )
     
-    return {"message": "Wati.io connected successfully", "status": "connected"}
+    return {
+        "message": "Wati.io connected successfully", 
+        "status": "connected",
+        "api_version": detected_version
+    }
 
 
 @router.post("/disconnect")
