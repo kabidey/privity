@@ -478,6 +478,8 @@ async def process_document_ocr(file_path: str, doc_type: str, retry_count: int =
                 extracted_data, confidence = post_process_pan_card(extracted_data)
             elif doc_type == "cancelled_cheque":
                 extracted_data, confidence = post_process_cancelled_cheque(extracted_data)
+            elif doc_type in ["bank_statement", "passbook", "bank_passbook"]:
+                extracted_data, confidence = post_process_bank_statement(extracted_data)
             elif doc_type == "cml_copy":
                 extracted_data, confidence = post_process_cml(extracted_data)
             else:
