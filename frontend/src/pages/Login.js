@@ -524,9 +524,10 @@ const Login = () => {
               left: item.left,
               animationDelay: `${item.delay}s`,
               animationDuration: `${item.duration}s`,
+              transform: `scale(${item.scale})`,
             }}
           >
-            <div className={`bg-gradient-to-br from-${currentTheme.primary}-500/20 to-${currentTheme.secondary}-500/20 p-3 rounded-xl backdrop-blur-sm border border-${currentTheme.primary}-500/20 shadow-lg shadow-${currentTheme.primary}-500/10`}>
+            <div className={`bg-gradient-to-br from-${currentTheme.primary}-500/20 to-${currentTheme.secondary}-500/20 p-3 rounded-xl backdrop-blur-sm border border-${currentTheme.primary}-500/20 shadow-lg shadow-${currentTheme.primary}-500/10 transition-all duration-300 hover:scale-110`}>
               <item.icon className={`w-6 h-6 text-${currentTheme.primary}-400`} />
             </div>
             <p className={`text-${currentTheme.primary}-400/50 text-[10px] mt-1 text-center font-semibold tracking-wider`}>{item.word}</p>
