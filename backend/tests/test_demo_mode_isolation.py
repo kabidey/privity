@@ -20,7 +20,7 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://finance-ui-updates.preview.emergentagent.com"
+    BASE_URL = "https://smart-extract-7.preview.emergentagent.com"
 
 # Standard headers to bypass bot protection
 HEADERS = {

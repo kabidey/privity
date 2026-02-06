@@ -20,7 +20,7 @@ from datetime import datetime
 # Get BASE_URL from environment
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://finance-ui-updates.preview.emergentagent.com"
+    BASE_URL = "https://smart-extract-7.preview.emergentagent.com"
 
 # Test credentials
 PE_DESK_ADMIN = {"email": "admin@privity.com", "password": "Admin@123"}
