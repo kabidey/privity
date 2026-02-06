@@ -854,6 +854,7 @@ const Clients = () => {
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
     setOcrResults({});
+    setActiveTabInDialog('details'); // Reset to details tab by default
     setWizardStep(2); // Skip document upload step when editing
     setDialogOpen(true);
   };
