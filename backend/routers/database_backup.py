@@ -242,17 +242,28 @@ async def create_full_backup(
     
     # Get ALL collections dynamically
     all_collections = await db.list_collection_names()
-    collections_to_backup = [c for c in all_collections if c != "database_backups"]
+    # Exclude database_backups and fs.chunks (binary data that breaks JSON serialization)
+    collections_to_backup = [c for c in all_collections if c not in ["database_backups", "fs.chunks"]]
     
     # Backup each collection
     for collection_name in collections_to_backup:
         try:
             collection = db[collection_name]
-            documents = await collection.find({}, {"_id": 0}).to_list(100000)
+            # For fs.files, exclude binary fields
+            if collection_name == "fs.files":
+                documents = await collection.find({}, {"_id": 0}).to_list(100000)
+                # Convert ObjectId and datetime to strings
+                for doc in documents:
+                    for key, value in list(doc.items()):
+                        if hasattr(value, '__str__') and not isinstance(value, (str, int, float, bool, list, dict, type(None))):
+                            doc[key] = str(value)
+            else:
+                documents = await collection.find({}, {"_id": 0}).to_list(100000)
             backup_data[collection_name] = documents
             record_counts[collection_name] = len(documents)
             total_size += len(json.dumps(documents, default=str))
         except Exception as e:
+            logger.error(f"Error backing up {collection_name}: {str(e)}")
             backup_data[collection_name] = []
             record_counts[collection_name] = 0
     
