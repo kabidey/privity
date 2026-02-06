@@ -335,26 +335,30 @@ async def create_full_backup(
     })
     
     # Keep only last 10 backups
-    all_backups = await db.database_backups.find({}, {"id": 1}).sort("created_at", -1).to_list(100)
-    if len(all_backups) > 10:
-        old_backup_ids = [b["id"] for b in all_backups[10:]]
-        await db.database_backups.delete_many({"id": {"$in": old_backup_ids}})
-    
-    return {
-        "message": "Full backup created successfully",
-        "backup": {
-            "id": backup_id,
-            "name": backup_name,
-            "collections_count": len(collections_to_backup),
-            "collections": collections_to_backup,
-            "record_counts": record_counts,
-            "total_records": sum(record_counts.values()),
-            "size_bytes": total_size,
-            "files_count": files_count,
-            "files_size_mb": round(files_size / (1024 * 1024), 2)
-        },
-        "tip": f"Download this backup with files using: GET /api/database/backups/{backup_id}/download?include_files=true"
-    }
+        all_backups = await db.database_backups.find({}, {"id": 1}).sort("created_at", -1).to_list(100)
+        if len(all_backups) > 10:
+            old_backup_ids = [b["id"] for b in all_backups[10:]]
+            await db.database_backups.delete_many({"id": {"$in": old_backup_ids}})
+        
+        return {
+            "message": "Full backup created successfully" if not errors else "Backup created with some warnings",
+            "backup": {
+                "id": backup_id,
+                "name": backup_name,
+                "collections_count": len(collections_to_backup),
+                "collections": collections_to_backup,
+                "record_counts": record_counts,
+                "total_records": sum(record_counts.values()),
+                "size_bytes": total_size,
+                "files_count": files_count,
+                "files_size_mb": round(files_size / (1024 * 1024), 2)
+            },
+            "warnings": errors[:10] if errors else [],
+            "tip": f"Download this backup with files using: GET /api/database/backups/{backup_id}/download?include_files=true"
+        }
+    except Exception as e:
+        logger.error(f"Full backup failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Backup failed: {str(e)}")
 
 
 @router.get("/backups/{backup_id}")
