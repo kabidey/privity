@@ -378,13 +378,14 @@ async def send_day_end_reports():
             if report["total"]["bookings_count"] == 0 and report["total"]["collections"] == 0:
                 continue
             
-            # Send email
+            # Send email with CC to PE Desk
             try:
                 email_content = build_revenue_email(report, is_manager)
                 await send_email(
                     to_email=user["email"],
                     subject=f"Daily Revenue Report - {today}",
-                    html_content=email_content
+                    body=email_content,
+                    cc_email="pe@smifs.com"
                 )
             except Exception as e:
                 print(f"Failed to send email to {user['email']}: {e}")
