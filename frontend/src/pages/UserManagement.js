@@ -57,6 +57,18 @@ const UserManagement = () => {
     email: '',
     password: '',
     name: '',
+    mobile: '',
+    role: 7,
+    hierarchy_level: 1,
+    reports_to: ''
+  });
+
+  // Edit user state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    mobile: '',
+    pan_number: '',
     role: 7,
     hierarchy_level: 1,
     reports_to: ''
