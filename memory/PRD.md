@@ -37,6 +37,59 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Real-time Notification Dashboard (Feb 06, 2026)
+- **New Page:** `/notifications` - Dedicated notification dashboard
+- **Stats Cards:**
+  - Unread Notifications count
+  - Messages Sent (7 days)
+  - Delivery Rate percentage
+  - Failed Messages count
+- **Features:**
+  - Real-time notification list with read/unread status
+  - Search and filter notifications
+  - Mark individual or all notifications as read
+  - Delete notifications
+  - Tabs for PE Level: Incoming Messages, Delivery Status, Automation Logs
+  - Auto-refresh every 30 seconds
+- **Files Created/Modified:**
+  - `/app/frontend/src/pages/NotificationDashboard.js` - New page
+  - `/app/frontend/src/components/Layout.js` - Added sidebar menu item
+  - `/app/frontend/src/App.js` - Added route
+
+#### ✅ Wati.io Webhook Integration (Feb 06, 2026)
+- **New Endpoints:**
+  - `POST /api/whatsapp/webhook` - Receives delivery status webhooks from Wati.io
+  - `GET /api/whatsapp/delivery-stats` - Returns message delivery statistics
+  - `GET /api/whatsapp/webhook/events` - View webhook event history
+  - `GET /api/whatsapp/incoming-messages` - View incoming WhatsApp messages
+  - `PUT /api/whatsapp/incoming-messages/{id}/read` - Mark message as read
+- **Features:**
+  - Tracks message delivery status (sent, delivered, read, failed)
+  - Stores incoming messages for review
+  - Notifies PE Desk of failed messages
+  - Webhook URL: `{domain}/api/whatsapp/webhook`
+- **Files Modified:**
+  - `/app/backend/routers/whatsapp.py` - Added webhook endpoints
+  - `/app/backend/middleware/bot_protection.py` - Whitelisted webhook path
+
+#### ✅ Export Functionality Enhancements (Feb 06, 2026)
+- **Clients Page Export:**
+  - Export Excel button (downloads .xlsx)
+  - Export CSV button (downloads .csv)
+  - Includes: OTC UCC, Name, PAN, DP ID, Email, Phone, Address, Bank details, Status
+- **Inventory Page Export:**
+  - Export Excel button
+  - Export CSV button
+  - Includes: Stock Symbol, Name, Available/Reserved Qty, WAP, Total Value
+- **New Endpoints:**
+  - `GET /api/clients-export?format=xlsx|csv`
+  - `GET /api/inventory/export?format=xlsx|csv`
+- **Files Modified:**
+  - `/app/backend/routers/clients.py` - Added export endpoint
+  - `/app/backend/routers/inventory.py` - Added export endpoint
+  - `/app/frontend/src/pages/Clients.js` - Added export buttons
+  - `/app/frontend/src/pages/Inventory.js` - Added export buttons
+
 #### ✅ Robust OCR & Re-run Feature (Feb 06, 2026)
 - **Enhanced OCR Prompts:** Improved extraction prompts for PAN Card, Cancelled Cheque, and CML documents
   - PAN Card: Better field location guidance, format validation (5 letters + 4 digits + 1 letter)
