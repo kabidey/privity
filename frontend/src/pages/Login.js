@@ -117,7 +117,7 @@ const Login = () => {
     "We don't just manage wealth; we steward potential.",
   ];
 
-  // Keywords extracted from quotes for floating icons
+  // Keywords extracted from quotes for floating icons - expanded list
   const floatingKeywords = [
     { word: "CAPITAL", icon: DollarSign },
     { word: "OWNERSHIP", icon: Key },
@@ -149,6 +149,27 @@ const Login = () => {
     { word: "SCALE", icon: Maximize },
     { word: "M&A", icon: Layers },
     { word: "MARKET", icon: Globe },
+    // Additional keywords from quotes
+    { word: "LIQUIDITY", icon: Droplet },
+    { word: "STABILITY", icon: Anchor },
+    { word: "VOLATILITY", icon: Activity },
+    { word: "EQUITY", icon: PieChart },
+    { word: "INVESTMENT", icon: Wallet },
+    { word: "PORTFOLIO", icon: Folder },
+    { word: "THESIS", icon: FileText },
+    { word: "BUYOUT", icon: ShoppingCart },
+    { word: "IPO", icon: Rocket },
+    { word: "EARNINGS", icon: Calculator },
+    { word: "J-CURVE", icon: LineChart },
+    { word: "CAP TABLE", icon: ClipboardList },
+    { word: "DUE DILIG", icon: FileSearch },
+    { word: "EBITDA", icon: Hash },
+    { word: "MULTIPLE", icon: Percent },
+    { word: "BOLT-ON", icon: Plug },
+    { word: "ORGANIC", icon: Leaf },
+    { word: "INORGANIC", icon: Package },
+    { word: "BOARD", icon: Users },
+    { word: "STEWARD", icon: Star },
   ];
 
   // Random theme generator for surprise effect
