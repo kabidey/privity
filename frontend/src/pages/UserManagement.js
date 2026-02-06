@@ -226,7 +226,7 @@ const UserManagement = () => {
     setSelectedUser(user);
     setEditFormData({
       name: user.name || '',
-      mobile: user.mobile || '',
+      mobile_number: user.mobile_number || '',
       pan_number: user.pan_number || '',
       role: user.role || 7,
       hierarchy_level: user.hierarchy_level || 1,
