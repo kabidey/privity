@@ -435,7 +435,7 @@ const UserManagement = () => {
                             user.name?.toLowerCase().includes(query) ||
                             user.email?.toLowerCase().includes(query) ||
                             user.pan_number?.toLowerCase().includes(query) ||
-                            user.mobile?.toLowerCase().includes(query) ||
+                            user.mobile_number?.toLowerCase().includes(query) ||
                             (roles[user.role]?.name || '').toLowerCase().includes(query)
                           );
                         })
@@ -443,7 +443,7 @@ const UserManagement = () => {
                         <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
                           <TableCell className="font-medium">{user.name}</TableCell>
                           <TableCell className="text-sm">{user.email}</TableCell>
-                          <TableCell className="text-sm font-mono">{user.mobile || '-'}</TableCell>
+                          <TableCell className="text-sm font-mono">{user.mobile_number || '-'}</TableCell>
                           <TableCell className="font-mono text-xs">{user.pan_number || '-'}</TableCell>
                           <TableCell>
                             <Select
