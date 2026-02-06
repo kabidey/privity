@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
-import { Package, TrendingUp, TrendingDown, AlertTriangle, Trash2, Edit2, Check, X, DollarSign, RefreshCw, ArrowUpDown, LineChart, ArrowUp, ArrowDown, Minus, Search } from 'lucide-react';
+import { Package, TrendingUp, TrendingDown, AlertTriangle, Trash2, Edit2, Check, X, DollarSign, RefreshCw, ArrowUpDown, LineChart, ArrowUp, ArrowDown, Minus, Search, FileSpreadsheet, Download } from 'lucide-react';
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
