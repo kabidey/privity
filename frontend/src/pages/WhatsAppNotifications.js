@@ -16,7 +16,8 @@ import { useProtectedPage } from '../hooks/useProtectedPage';
 import { 
   MessageCircle, RefreshCw, Plus, Send, Edit, Trash2,
   Phone, CheckCircle, XCircle, Clock, Users, Building2, UserCheck,
-  Smartphone, Link2, Unlink, AlertTriangle, History, Settings, Key
+  Smartphone, Link2, Unlink, AlertTriangle, History, Settings, Key,
+  MessageSquare, ArrowLeft, Copy, Info, Inbox
 } from 'lucide-react';
 
 const WhatsAppNotifications = () => {
