@@ -268,7 +268,7 @@ async def get_clients(
         # PE Level sees everything
         if is_vendor is not None:
             query["is_vendor"] = is_vendor
-    elif user_role == 6:
+    elif user_role == 4:
         # Viewer sees all (read-only)
         if is_vendor is not None:
             query["is_vendor"] = is_vendor
