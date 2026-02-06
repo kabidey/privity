@@ -155,64 +155,124 @@ def get_cancelled_cheque_prompt() -> str:
     return """You are an expert OCR specialist analyzing an Indian Bank Cheque/Cancelled Cheque. Extract ALL banking information with EXTREME precision.
 
 DOCUMENT LAYOUT REFERENCE (Indian Bank Cheque):
-- TOP LEFT: Bank Logo and Bank Name
+- TOP LEFT: Bank Logo and Bank Name (Look for logos of HDFC, ICICI, SBI, AXIS, KOTAK etc.)
 - BELOW LOGO: Branch Address (full address including PIN code)
 - BELOW ADDRESS: IFSC Code (labeled "RTGS/NEFT IFSC:" or similar)
-- LEFT SIDE: Account Number (A/c. No. or Account No.)
-- CENTER: Payee details, Amount fields
-- BOTTOM LEFT/CENTER: Account Holder Name(s)
-- BOTTOM: MICR line (special font with cheque number, IFSC elements)
+- LEFT SIDE: Account Number (A/c. No. or Account No.) - DIGITS ONLY
+- CENTER: "Pay" line, Amount fields, Date
+- BOTTOM LEFT/CENTER: Account Holder Name(s) printed above signature line
+- BOTTOM: MICR line (special magnetic ink font with numbers)
 
-REQUIRED FIELDS TO EXTRACT:
+CRITICAL EXTRACTION RULES:
 
-1. **Account Number** (CRITICAL):
-   - Located on LEFT side, often in a box
-   - Labeled as "A/c. No." or "Account No."
-   - Usually 10-16 DIGITS ONLY
-   - May also appear in MICR line at bottom
-   - Example: 50100439991690, 04781050009281
+1. **Account Number** (MOST IMPORTANT):
+   - Located on LEFT side in a box or near top
+   - Labeled as "A/c. No.", "Account No.", "A/C NO"
+   - ONLY DIGITS - typically 10 to 16 digits
+   - Do NOT include cheque number (6 digits at bottom)
+   - Do NOT include MICR codes
+   - Example formats: 50100439991690, 04781050009281, 1234567890123
 
 2. **IFSC Code** (CRITICAL):
-   - Located BELOW branch address
+   - Located BELOW branch address OR in the header area
    - Format: EXACTLY 11 characters
-   - First 4 = Bank code (letters)
-   - 5th char = Always "0" (zero)
-   - Last 6 = Branch code (alphanumeric)
-   - Example: HDFC0004283, SBIN0001234
-   - Look for "RTGS/NEFT IFSC:" or "IFSC Code:"
+   - Pattern: 4 LETTERS + 0 (zero) + 6 ALPHANUMERIC
+   - Examples: HDFC0004283, SBIN0001234, ICIC0000478
+   - Look for labels: "RTGS/NEFT IFSC:", "IFSC Code:", "IFSC:"
 
 3. **Bank Name**:
-   - Prominently displayed at TOP LEFT
-   - Examples: HDFC BANK, ICICI BANK, STATE BANK OF INDIA, AXIS BANK
+   - Usually in LARGE text at TOP with bank logo
+   - Common banks: HDFC BANK, ICICI BANK, STATE BANK OF INDIA, AXIS BANK, KOTAK MAHINDRA BANK
 
 4. **Branch Name/Address**:
-   - Full branch address below bank name
-   - Include complete address with city and PIN code
-   - Example: "1/2 CENTRAL PARK, PREMISES NO. 98, RAJA S C MALLICK ROAD, KOLKATA-700032"
+   - Complete address below bank name
+   - Include street, area, city, PIN code
+   - Example: "1/2 CENTRAL PARK, RAJA S C MALLICK ROAD, KOLKATA-700032"
 
-5. **Account Holder Name(s)** (CRITICAL):
-   - Located at BOTTOM of cheque, above signature line
-   - May have multiple names separated by "/" for joint accounts
+5. **Account Holder Name(s)** (IMPORTANT):
+   - Located at BOTTOM of cheque, ABOVE signature line
+   - May show multiple names for joint accounts (separated by "/" or "&")
    - Example: "JNANASHREE SARMA / SUPRABHAT SEN"
-   - Extract ALL names exactly as printed
+   - This is who owns the account
 
-CRITICAL RULES:
-- Account number is ONLY digits - remove any spaces or dashes
-- IFSC is ALWAYS 11 characters with format: AAAA0NNNNNN
-- For joint accounts, preserve all names with "/" separator
-- Return null for fields you cannot clearly read
-- Do NOT confuse cheque number with account number
+VALIDATION:
+- Account number: Only digits, 9-18 characters
+- IFSC: 11 chars, first 4 letters, 5th is "0", last 6 alphanumeric
+- Names should be in CAPITAL letters usually
 
 Return ONLY this JSON structure:
 {
     "account_number": "50100439991690",
     "ifsc_code": "HDFC0004283",
     "bank_name": "HDFC BANK",
-    "branch_name": "1/2 CENTRAL PARK, PREMISES NO. 98, RAJA S C MALLICK ROAD, KOLKATA-700032",
+    "branch_name": "1/2 CENTRAL PARK, RAJA S C MALLICK ROAD, KOLKATA-700032",
     "account_holder_name": "JNANASHREE SARMA / SUPRABHAT SEN"
 }
 
-NO explanations, NO markdown code blocks, ONLY the raw JSON object."""
+CRITICAL: Return ONLY raw JSON, no explanations, no markdown, no code blocks."""
+
+
+def get_bank_statement_prompt() -> str:
+    """Get optimized prompt for Bank Statement/Passbook OCR - Extract bank details"""
+    return """You are an expert OCR specialist analyzing an Indian Bank Statement or Passbook. Extract ALL banking information with EXTREME precision.
+
+DOCUMENT TYPES:
+1. **Bank Statement**: Printed document showing transactions
+2. **Passbook**: Small booklet with account details and transactions
+3. **Account Statement**: Digital/printed monthly statement
+
+LOOK FOR THESE SECTIONS:
+- HEADER: Bank logo, bank name, branch details
+- ACCOUNT DETAILS: Account number, IFSC, account type
+- CUSTOMER INFO: Account holder name, address
+- TRANSACTIONS: List of debits/credits (we don't need these)
+
+REQUIRED FIELDS TO EXTRACT:
+
+1. **Account Number** (CRITICAL):
+   - Usually at TOP in account details section
+   - Labeled: "Account Number", "A/C No.", "Account No"
+   - ONLY DIGITS - 10 to 16 digits typically
+   - Example: 50100439991690
+
+2. **IFSC Code** (CRITICAL):
+   - Located in header or account details section
+   - Format: 4 LETTERS + 0 + 6 ALPHANUMERIC (11 chars total)
+   - Example: HDFC0004283, SBIN0001234
+
+3. **Bank Name**:
+   - In header, usually with logo
+   - Examples: HDFC BANK, STATE BANK OF INDIA, ICICI BANK
+
+4. **Branch Name**:
+   - Full branch address
+   - May include city and PIN code
+
+5. **Account Holder Name** (CRITICAL):
+   - Customer name at TOP of statement
+   - May show "Primary Holder" or "Account Holder"
+   - Could be joint accounts with multiple names
+
+6. **Account Type**:
+   - SAVINGS, CURRENT, SALARY
+   - Usually near account number
+
+VALIDATION RULES:
+- Account number: ONLY digits, 9-18 characters
+- IFSC: EXACTLY 11 chars, pattern AAAA0NNNNNN
+- If you see masked numbers (XXXX), extract the visible parts
+
+Return ONLY this JSON structure:
+{
+    "account_number": "50100439991690",
+    "ifsc_code": "HDFC0004283",
+    "bank_name": "HDFC BANK",
+    "branch_name": "KOLKATA MAIN BRANCH",
+    "account_holder_name": "SUPRABHAT SEN",
+    "account_type": "SAVINGS"
+}
+
+CRITICAL: Return ONLY raw JSON, no explanations, no markdown, no code blocks."""
 
 
 def get_cml_copy_prompt() -> str:
