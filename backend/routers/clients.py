@@ -697,6 +697,234 @@ async def update_client_employee_mapping(
     return {"message": f"Client mapped to {employee['name']} successfully"}
 
 
+# Create client with documents atomically
+@router.post("/clients-with-documents")
+async def create_client_with_documents(
+    name: str = Form(...),
+    email: str = Form(None),
+    email_secondary: str = Form(None),
+    email_tertiary: str = Form(None),
+    phone: str = Form(None),
+    mobile: str = Form(None),
+    pan_number: str = Form(...),
+    dp_id: str = Form(None),
+    dp_type: str = Form("outside"),
+    trading_ucc: str = Form(None),
+    address: str = Form(None),
+    pin_code: str = Form(None),
+    is_vendor: bool = Form(False),
+    is_proprietor: bool = Form(False),
+    has_name_mismatch: bool = Form(False),
+    bank_accounts: str = Form("[]"),  # JSON string
+    pan_card: UploadFile = File(...),
+    cml_copy: UploadFile = File(...),
+    cancelled_cheque: UploadFile = File(None),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.create", "create client"))
+):
+    """
+    Create a client with mandatory documents in a single atomic operation.
+    Documents are uploaded to GridFS FIRST, then the client is created.
+    If any step fails, no client is created.
+    """
+    import json
+    
+    user_role = current_user.get("role", 5)
+    
+    # Check for duplicate PAN
+    existing = await db.clients.find_one(
+        {"pan_number": pan_number.upper(), "is_active": True},
+        {"_id": 0, "name": 1, "otc_ucc": 1}
+    )
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A client with PAN {pan_number.upper()} already exists: {existing.get('name')} ({existing.get('otc_ucc')})"
+        )
+    
+    # Check if PAN belongs to a system user
+    existing_user_pan = await db.users.find_one(
+        {"pan_number": pan_number.upper()},
+        {"_id": 0, "name": 1, "email": 1}
+    )
+    if existing_user_pan:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot create client: This PAN belongs to system user {existing_user_pan.get('name')}"
+        )
+    
+    # Generate IDs
+    client_id = str(uuid.uuid4())
+    otc_ucc = await generate_otc_ucc()
+    
+    # STEP 1: Upload documents to GridFS FIRST
+    documents = []
+    upload_errors = []
+    
+    async def upload_doc_to_gridfs(file: UploadFile, doc_type: str) -> dict:
+        """Upload a single document to GridFS and return the document record."""
+        try:
+            content = await file.read()
+            file_ext = Path(file.filename).suffix
+            filename = f"{doc_type}_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}{file_ext}"
+            
+            # Upload to GridFS
+            file_id = await upload_file_to_gridfs(
+                content,
+                filename,
+                file.content_type or "application/octet-stream",
+                {
+                    "category": "client_documents",
+                    "entity_id": client_id,
+                    "doc_type": doc_type,
+                    "uploaded_by": current_user.get("id"),
+                    "uploaded_by_name": current_user.get("name")
+                }
+            )
+            
+            if not file_id:
+                raise Exception(f"Failed to store {doc_type} in GridFS")
+            
+            # Save locally for OCR processing
+            client_dir = UPLOAD_DIR / client_id
+            client_dir.mkdir(exist_ok=True)
+            file_path = client_dir / filename
+            
+            async with aiofiles.open(file_path, 'wb') as f:
+                await f.write(content)
+            
+            # Process OCR
+            ocr_data = await process_document_ocr(str(file_path), doc_type)
+            
+            return {
+                "doc_type": doc_type,
+                "filename": filename,
+                "original_filename": file.filename,
+                "file_id": file_id,
+                "file_url": get_file_url(file_id),
+                "file_path": str(file_path),
+                "upload_date": datetime.now(timezone.utc).isoformat(),
+                "ocr_data": ocr_data,
+                "stored_in_gridfs": True
+            }
+        except Exception as e:
+            upload_errors.append(f"{doc_type}: {str(e)}")
+            return None
+    
+    # Upload mandatory documents
+    pan_doc = await upload_doc_to_gridfs(pan_card, "pan_card")
+    if pan_doc:
+        documents.append(pan_doc)
+    
+    cml_doc = await upload_doc_to_gridfs(cml_copy, "cml_copy")
+    if cml_doc:
+        documents.append(cml_doc)
+    
+    # Upload optional cancelled cheque
+    if cancelled_cheque and cancelled_cheque.filename:
+        cheque_doc = await upload_doc_to_gridfs(cancelled_cheque, "cancelled_cheque")
+        if cheque_doc:
+            documents.append(cheque_doc)
+    
+    # STEP 2: Verify all mandatory documents were uploaded
+    doc_types_uploaded = [d["doc_type"] for d in documents]
+    if "pan_card" not in doc_types_uploaded or "cml_copy" not in doc_types_uploaded:
+        # Clean up any uploaded files from GridFS
+        for doc in documents:
+            try:
+                from services.file_storage import delete_file_from_gridfs
+                await delete_file_from_gridfs(doc["file_id"])
+            except:
+                pass
+        
+        error_msg = "Failed to upload mandatory documents to storage. "
+        if upload_errors:
+            error_msg += f"Errors: {', '.join(upload_errors)}"
+        raise HTTPException(status_code=500, detail=error_msg)
+    
+    # STEP 3: Create the client with document references
+    approval_status = "approved" if is_pe_level(user_role) else "pending"
+    
+    # Parse bank accounts
+    try:
+        bank_accounts_list = json.loads(bank_accounts) if bank_accounts else []
+    except:
+        bank_accounts_list = []
+    
+    client_doc = {
+        "id": client_id,
+        "otc_ucc": otc_ucc,
+        "name": name,
+        "email": email,
+        "email_secondary": email_secondary,
+        "email_tertiary": email_tertiary,
+        "phone": phone,
+        "mobile": mobile,
+        "pan_number": pan_number.upper(),
+        "dp_id": dp_id,
+        "dp_type": dp_type,
+        "trading_ucc": trading_ucc,
+        "address": address,
+        "pin_code": pin_code,
+        "is_vendor": is_vendor,
+        "is_proprietor": is_proprietor,
+        "has_name_mismatch": has_name_mismatch,
+        "bank_accounts": bank_accounts_list,
+        "documents": documents,  # Documents are already stored in GridFS
+        "approval_status": approval_status,
+        "approved_by": current_user["id"] if is_pe_level(user_role) else None,
+        "approved_at": datetime.now(timezone.utc).isoformat() if is_pe_level(user_role) else None,
+        "is_active": True,
+        "is_suspended": False,
+        "suspension_reason": None,
+        "suspended_at": None,
+        "suspended_by": None,
+        "mapped_employee_id": current_user["id"],
+        "mapped_employee_name": current_user["name"],
+        "mapped_employee_email": current_user.get("email"),
+        "is_cloned": False,
+        "cloned_from_id": None,
+        "cloned_from_type": None,
+        "created_by": current_user["id"],
+        "created_by_name": current_user["name"],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.clients.insert_one(client_doc)
+    
+    # Create audit log
+    await create_audit_log(
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        action="create_client_with_docs",
+        entity_type="client",
+        entity_id=client_id,
+        details={
+            "name": name,
+            "pan_number": pan_number.upper(),
+            "documents_count": len(documents),
+            "documents_stored_in_gridfs": True
+        }
+    )
+    
+    # Notify PE Desk if client needs approval
+    if approval_status == "pending":
+        await notify_roles(
+            [1, 2],  # PE Desk and PE Manager
+            f"New client '{name}' pending approval",
+            "client_pending",
+            {"client_id": client_id, "client_name": name}
+        )
+    
+    return {
+        "id": client_id,
+        "otc_ucc": otc_ucc,
+        "message": f"Client created with {len(documents)} documents stored in GridFS",
+        "documents_count": len(documents),
+        "approval_status": approval_status
+    }
+
+
 # Document Management Endpoints
 @router.post("/clients/{client_id}/documents")
 async def upload_client_document(
