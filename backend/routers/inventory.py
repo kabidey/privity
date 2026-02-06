@@ -413,3 +413,136 @@ async def recalculate_all_inventory(current_user: dict = Depends(get_current_use
         "message": f"Inventory recalculated for {results['recalculated']} of {results['total_stocks']} stocks",
         "details": results
     }
+
+
+# ============== EXPORT ENDPOINT ==============
+
+@router.get("/inventory-export")
+async def export_inventory(
+    format: str = Query("xlsx", enum=["xlsx", "csv"]),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.view", "export inventory"))
+):
+    """Export inventory to Excel or CSV"""
+    import io
+    from fastapi.responses import StreamingResponse
+    
+    # Get inventory with stock details
+    inventory_data = await db.inventory.find({}, {"_id": 0}).to_list(10000)
+    
+    # Get stocks for lookup
+    stocks = {s["id"]: s for s in await db.stocks.find({}, {"_id": 0, "id": 1, "name": 1, "symbol": 1, "face_value": 1}).to_list(10000)}
+    
+    if format == "csv":
+        import csv
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Headers
+        headers = [
+            "Stock Symbol", "Stock Name", "Available Qty", "Reserved Qty",
+            "Total Qty", "Weighted Avg Price", "Total Value", "Face Value",
+            "Last Updated"
+        ]
+        writer.writerow(headers)
+        
+        # Data rows
+        for inv in inventory_data:
+            stock = stocks.get(inv.get("stock_id"), {})
+            available = inv.get("available_quantity", 0)
+            reserved = inv.get("reserved_quantity", 0)
+            total = available + reserved
+            avg_price = inv.get("weighted_average_price", 0)
+            total_value = total * avg_price
+            
+            row = [
+                stock.get("symbol", ""),
+                stock.get("name", ""),
+                available,
+                reserved,
+                total,
+                round(avg_price, 2),
+                round(total_value, 2),
+                stock.get("face_value", ""),
+                inv.get("updated_at", "")
+            ]
+            writer.writerow(row)
+        
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=inventory_export.csv"}
+        )
+    
+    else:  # xlsx
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, Alignment, PatternFill
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Inventory"
+        
+        # Headers
+        headers = [
+            "Stock Symbol", "Stock Name", "Available Qty", "Reserved Qty",
+            "Total Qty", "Weighted Avg Price", "Total Value", "Face Value",
+            "Last Updated"
+        ]
+        
+        # Style headers
+        header_fill = PatternFill(start_color="10B981", end_color="10B981", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center")
+        
+        # Data rows
+        for row_num, inv in enumerate(inventory_data, 2):
+            stock = stocks.get(inv.get("stock_id"), {})
+            available = inv.get("available_quantity", 0)
+            reserved = inv.get("reserved_quantity", 0)
+            total = available + reserved
+            avg_price = inv.get("weighted_average_price", 0)
+            total_value = total * avg_price
+            
+            data = [
+                stock.get("symbol", ""),
+                stock.get("name", ""),
+                available,
+                reserved,
+                total,
+                round(avg_price, 2),
+                round(total_value, 2),
+                stock.get("face_value", ""),
+                inv.get("updated_at", "")
+            ]
+            
+            for col, value in enumerate(data, 1):
+                ws.cell(row=row_num, column=col, value=value)
+        
+        # Adjust column widths
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column].width = adjusted_width
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=inventory_export.xlsx"}
+        )
