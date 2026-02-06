@@ -1363,14 +1363,17 @@ const Clients = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Cancelled Cheque Upload */}
+                  {/* Cancelled Cheque / Bank Statement / Passbook Upload */}
                   <Card className={`border-2 ${ocrCompleted.cancelled_cheque ? 'border-green-500' : docFiles.cancelled_cheque ? 'border-blue-500' : 'border-dashed'}`}>
                     <CardHeader className="pb-2 px-3">
                       <CardTitle className="text-sm flex items-center gap-2">
                         <FileText className="h-4 w-4 flex-shrink-0" />
-                        Cancelled Cheque *
+                        Bank Proof {canSkipCancelledCheque ? '(Optional)' : '*'}
                         {ocrCompleted.cancelled_cheque && <Check className="h-4 w-4 text-green-500 flex-shrink-0" />}
                       </CardTitle>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Cancelled Cheque, Bank Statement, or Passbook
+                      </p>
                     </CardHeader>
                     <CardContent className="px-3 pb-3">
                       <div className="space-y-2">
@@ -1388,12 +1391,12 @@ const Clients = () => {
                         {processingOcr.cancelled_cheque && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Loader2 className="h-3 w-3 animate-spin" />
-                            Processing OCR...
+                            Extracting bank details...
                           </div>
                         )}
                         {ocrResults.cancelled_cheque && (
                           <p className="text-xs text-green-600">
-                            ✓ Bank account extracted
+                            ✓ Bank details extracted: {ocrResults.cancelled_cheque.bank_name || 'Account found'}
                           </p>
                         )}
                       </div>
