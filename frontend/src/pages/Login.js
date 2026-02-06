@@ -222,15 +222,16 @@ const Login = () => {
   const [isTyping, setIsTyping] = useState(true);
   const [showCursor, setShowCursor] = useState(true);
 
-  // Track shown quotes
+  // Track shown quotes - Sequential update
   useEffect(() => {
     const stored = sessionStorage.getItem('pe_quotes_shown');
-    const shownQuotes = stored ? JSON.parse(stored) : { indices: [], timestamp: Date.now() };
+    const shownQuotes = stored ? JSON.parse(stored) : { lastIndex: -1, shownIndices: [], timestamp: Date.now() };
     
-    if (!shownQuotes.indices.includes(currentQuoteIndex)) {
-      shownQuotes.indices.push(currentQuoteIndex);
-      sessionStorage.setItem('pe_quotes_shown', JSON.stringify(shownQuotes));
+    shownQuotes.lastIndex = currentQuoteIndex;
+    if (!shownQuotes.shownIndices.includes(currentQuoteIndex)) {
+      shownQuotes.shownIndices.push(currentQuoteIndex);
     }
+    sessionStorage.setItem('pe_quotes_shown', JSON.stringify(shownQuotes));
   }, [currentQuoteIndex]);
 
   // Typewriter effect
