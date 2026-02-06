@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const NotificationDashboard = () => {
-  const { user } = useAuth();
+  const { currentUser: user } = useCurrentUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   
