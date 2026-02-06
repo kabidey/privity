@@ -1,0 +1,95 @@
+{
+  "summary": "Custom Domain Feature for Company Master - All tests passed. The feature allows PE Desk to configure a Production Domain URL that is used in booking confirmation emails (Accept/Deny buttons).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_custom_domain_feature.py",
+    "/app/test_reports/pytest/custom_domain_feature_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: company_master.py line 193 - custom_domain trailing slash is removed on save",
+    "VERIFIED: company_master.py lines 145-168 - GET response includes custom_domain field",
+    "VERIFIED: bookings.py lines 633-647 - Booking approval fetches company_master and uses custom_domain with correct priority fallback",
+    "VERIFIED: bookings.py lines 674-675 - accept_url and deny_url use the resolved frontend_url from custom_domain",
+    "VERIFIED: CompanyMaster.js lines 668-689 - Email Link Settings UI correctly displays Production Domain URL field"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_custom_domain_feature.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Custom domain feature is fully working. Value https://privity.production-example.com is set in Company Master and will be used for booking confirmation email links.",
+  "features_tested": {
+    "company_master_ui_custom_domain_field": {
+      "status": "PASS",
+      "details": "Company Master page shows 'Email Link Settings' section with 'Production Domain URL' field under Bank Account Details. Field has data-testid='custom-domain-input' and helpful description text."
+    },
+    "custom_domain_save_and_persist": {
+      "status": "PASS",
+      "details": "PUT /api/company-master correctly saves custom_domain field. Trailing slashes are removed (https://domain.com/ -> https://domain.com). Value persists after page refresh."
+    },
+    "custom_domain_in_booking_approval": {
+      "status": "PASS",
+      "details": "Booking approval flow (bookings.py lines 633-647) reads custom_domain from Company Master first before falling back to FRONTEND_URL env variable. The accept_url and deny_url in confirmation emails use this resolved URL."
+    },
+    "fallback_behavior": {
+      "status": "VERIFIED_IN_CODE",
+      "details": "Code correctly falls back to FRONTEND_URL env variable if custom_domain is not set (null/empty). Priority order: 1) custom_domain, 2) FRONTEND_URL, 3) REACT_APP_BACKEND_URL, 4) default"
+    }
+  },
+  "api_tests_performed": [
+    {
+      "endpoint": "GET /api/company-master",
+      "result": "PASS - Returns custom_domain field with value 'https://privity.production-example.com'"
+    },
+    {
+      "endpoint": "PUT /api/company-master with custom_domain",
+      "result": "PASS - Saves custom_domain, removes trailing slash"
+    },
+    {
+      "endpoint": "PUT /api/company-master with empty custom_domain",
+      "result": "PASS - Clears custom_domain (sets to null)"
+    }
+  ],
+  "ui_tests_performed": [
+    {
+      "test": "Company Master page loads with Email Link Settings section",
+      "result": "PASS"
+    },
+    {
+      "test": "Production Domain URL field displays current value",
+      "result": "PASS - Shows 'https://privity.production-example.com'"
+    },
+    {
+      "test": "Save button saves custom_domain",
+      "result": "PASS - Toast message 'Company master settings saved successfully'"
+    },
+    {
+      "test": "Value persists after page refresh",
+      "result": "PASS"
+    },
+    {
+      "test": "Trailing slash removed on save",
+      "result": "PASS - Entered 'https://privity.new-test-domain.com/' saved as 'https://privity.new-test-domain.com'"
+    }
+  ],
+  "test_credentials_used": {
+    "pe_desk": {
+      "email": "pedesk@smifs.com",
+      "password": "password"
+    }
+  }
+}
