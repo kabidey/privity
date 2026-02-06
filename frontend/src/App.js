@@ -56,6 +56,7 @@ import TwoFactorSetupPage from './pages/TwoFactorSetupPage';
 import RoleManagement from './pages/RoleManagement';
 import BIReports from './pages/BIReports';
 import WhatsAppNotifications from './pages/WhatsAppNotifications';
+import NotificationDashboard from './pages/NotificationDashboard';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
