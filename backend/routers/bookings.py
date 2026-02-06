@@ -654,8 +654,8 @@ async def approve_booking(
                         "stock_symbol": stock["symbol"] if stock else "N/A",
                         "stock_name": stock["name"] if stock else "",
                         "quantity": booking["quantity"],
-                        "buying_price": f"{booking.get('buying_price', 0):,.2f}",
-                        "total_value": f"{(booking.get('buying_price', 0) * booking.get('quantity', 0)):,.2f}",
+                        "selling_price": f"{booking.get('selling_price', 0):,.2f}",
+                        "total_value": f"{(booking.get('selling_price', 0) * booking.get('quantity', 0)):,.2f}",
                         "approved_by": current_user["name"],
                         "accept_url": f"{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/accept",
                         "deny_url": f"{frontend_url}/booking-confirm/{booking_id}/{confirmation_token}/deny"
