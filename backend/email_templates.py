@@ -136,7 +136,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
-        "variables": ["client_name", "booking_number", "otc_ucc", "stock_symbol", "stock_name", "quantity", "buying_price", "total_value", "approved_by", "accept_url", "deny_url"],
+        "variables": ["client_name", "booking_number", "otc_ucc", "stock_symbol", "stock_name", "quantity", "selling_price", "total_value", "approved_by", "accept_url", "deny_url"],
         "is_active": True
     },
     "booking_pending_loss_review": {
