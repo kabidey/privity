@@ -12,10 +12,15 @@ import { getMsalConfig, getLoginRequest } from '../config/msalConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getFullVersion } from '../version';
 import { useDemo } from '../contexts/DemoContext';
+import useContentProtection from '../hooks/useContentProtection';
 
 const Login = () => {
   const navigate = useNavigate();
   const { enterDemoMode } = useDemo();
+  
+  // Enable content protection
+  useContentProtection();
+  
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
