@@ -415,8 +415,8 @@ const Login = () => {
           </div>
           <div className="min-h-[80px] flex items-center justify-center">
             <blockquote className="text-xl md:text-2xl font-light text-white/90 leading-relaxed" data-testid="typewriter-quote">
-              "{displayedText}
-              <span className={`inline-block w-0.5 h-6 bg-emerald-400 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>"
+              &ldquo;{displayedText}
+              <span className={`inline-block w-0.5 h-6 bg-emerald-400 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>&rdquo;
             </blockquote>
           </div>
           <cite className="text-emerald-400/80 text-sm mt-3 block font-medium">
