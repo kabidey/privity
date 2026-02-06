@@ -645,6 +645,7 @@ const Layout = ({ children }) => {
         onClose={() => setShowChangelog(false)} 
       />
     </div>
+    </ContentProtection>
   );
 };
 
