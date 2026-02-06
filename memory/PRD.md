@@ -37,6 +37,18 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 06, 2026)
 
+#### ✅ Fix - Removed "Buying Price" from WhatsApp Template (Feb 07, 2026)
+- **Issue:** User reported "Buying Price" was still showing in the Booking Confirmation WhatsApp template
+- **Root Cause:** Database had cached old template content
+- **Solution:**
+  - Created `/api/whatsapp/templates/refresh-system` endpoint to force-update system templates
+  - Added "Refresh System" button to the Templates UI
+  - Executed refresh to update database with latest template content
+- **Files Modified:**
+  - `/app/backend/routers/whatsapp.py` - Added refresh-system endpoint
+  - `/app/frontend/src/pages/WhatsAppNotifications.js` - Added Refresh System button
+- **Test Status:** Verified via screenshot - Booking Confirmation template now shows only "Selling Price"
+
 #### ✅ Feature - Comprehensive Content Protection System (Feb 06, 2026)
 - **Request:** Implement security measures to prevent content copying and screen capture across the entire app
 - **Implementation:**
