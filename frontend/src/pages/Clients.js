@@ -44,6 +44,9 @@ const Clients = () => {
   const [rerunningOcr, setRerunningOcr] = useState(false);
   const [ocrRerunResults, setOcrRerunResults] = useState(null);
   const [activeTabInDialog, setActiveTabInDialog] = useState('details');
+  const [revealingDocs, setRevealingDocs] = useState(null);
+  const [revealedDocsDialog, setRevealedDocsDialog] = useState(false);
+  const [revealedDocsData, setRevealedDocsData] = useState(null);
   
   const [formData, setFormData] = useState({
     name: '',
