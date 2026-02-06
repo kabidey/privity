@@ -1074,7 +1074,7 @@ async def get_broadcasts(
     }
 
 
-# ============== WATI WEBHOOK ENDPOINTS ==============
+# ============== WATI WEBHOOK ENDPOINTS - TWO-WAY COMMUNICATION ==============
 
 class WebhookPayload(BaseModel):
     """Wati.io Webhook payload model"""
@@ -1092,28 +1092,71 @@ class WebhookPayload(BaseModel):
         extra = "allow"
 
 
+class ReplyToMessageRequest(BaseModel):
+    """Request model for replying to a message"""
+    phone_number: str
+    message: str
+    conversation_id: Optional[str] = None
+
+
+class ConversationMessage(BaseModel):
+    """Message within a conversation"""
+    message_id: str
+    direction: str  # "inbound" or "outbound"
+    text: str
+    timestamp: str
+    status: Optional[str] = None
+    sender_name: Optional[str] = None
+
+
 @router.post("/webhook")
 async def wati_webhook(payload: dict):
     """
-    Wati.io Webhook endpoint for receiving delivery status updates.
-    Configure this URL in your Wati.io dashboard under Settings > Webhooks.
+    Wati.io Webhook endpoint for receiving messages and delivery status updates.
     
-    Webhook URL: {your_domain}/api/whatsapp/webhook
+    **Configure this URL in your Wati.io dashboard:**
+    1. Go to Settings > Webhooks in your Wati dashboard
+    2. Add webhook URL: `{your_domain}/api/whatsapp/webhook`
+    3. Enable events: Message Received, Message Status Updates
+    
+    **Webhook URL:** `https://your-domain.com/api/whatsapp/webhook`
+    
+    **Supported Events:**
+    - `message` / `message_received` - Incoming messages from customers
+    - `message_status` / `status_update` - Delivery status (sent, delivered, read, failed)
+    - `session_status` - Session window status updates
     """
     try:
+        # Extract common fields - Wati sends different formats
         event_type = payload.get("eventType", payload.get("type", "unknown"))
-        wa_id = payload.get("waId", payload.get("from", ""))
-        message_id = payload.get("id", payload.get("messageId", ""))
-        status = payload.get("status", "")
-        timestamp = payload.get("timestamp", datetime.now(timezone.utc).isoformat())
         
-        # Store webhook event
+        # Handle nested data structure from Wati
+        # Wati can send: {waId, text, ...} or {data: {waId, text, ...}}
+        data = payload.get("data", payload)
+        
+        wa_id = data.get("waId", data.get("from", data.get("whatsappNumber", "")))
+        message_id = data.get("id", data.get("messageId", data.get("localMessageId", "")))
+        text = data.get("text", data.get("body", data.get("message", "")))
+        status = data.get("status", payload.get("status", ""))
+        timestamp = data.get("timestamp", data.get("created", datetime.now(timezone.utc).isoformat()))
+        conversation_id = data.get("conversationId", data.get("ticketId", ""))
+        message_type = data.get("type", "text")
+        
+        # Normalize phone number
+        if wa_id:
+            wa_id = ''.join(filter(str.isdigit, str(wa_id)))
+            if wa_id and not wa_id.startswith('91') and len(wa_id) == 10:
+                wa_id = '91' + wa_id
+        
+        # Store webhook event for debugging/audit
         webhook_event = {
             "id": str(uuid.uuid4()),
             "event_type": event_type,
             "wa_id": wa_id,
             "message_id": message_id,
+            "text": text[:500] if text else "",  # Truncate for storage
             "status": status,
+            "conversation_id": conversation_id,
             "payload": payload,
             "received_at": datetime.now(timezone.utc).isoformat(),
             "processed": False
@@ -1122,15 +1165,19 @@ async def wati_webhook(payload: dict):
         await db.whatsapp_webhook_events.insert_one(webhook_event.copy())
         
         # Process based on event type
-        if event_type in ["message_status", "status_update"] or status:
-            # Update message log with delivery status
+        # Incoming message events
+        if event_type in ["message", "message_received", "incoming", "whatsapp_message"]:
+            await process_incoming_message_v2(wa_id, message_id, text, message_type, timestamp, conversation_id, payload)
+        
+        # Delivery status events
+        elif event_type in ["message_status", "status_update", "delivery"] or status:
             await process_delivery_status(message_id, status, wa_id, timestamp)
         
-        elif event_type in ["message_received", "incoming"]:
-            # Store incoming message
-            await process_incoming_message(payload)
+        # Session status events (24-hour window)
+        elif event_type in ["session_status", "session"]:
+            await process_session_status(wa_id, payload)
         
-        # Create notification for PE Desk about important events
+        # Handle failed messages - notify PE Desk
         if status == "failed" or event_type == "message_failed":
             from services.notification_service import notify_roles
             await notify_roles(
@@ -1141,7 +1188,7 @@ async def wati_webhook(payload: dict):
                 data={"wa_id": wa_id, "message_id": message_id, "payload": payload}
             )
         
-        # Mark as processed
+        # Mark webhook as processed
         await db.whatsapp_webhook_events.update_one(
             {"id": webhook_event["id"]},
             {"$set": {"processed": True, "processed_at": datetime.now(timezone.utc).isoformat()}}
@@ -1151,7 +1198,7 @@ async def wati_webhook(payload: dict):
     
     except Exception as e:
         logger.error(f"Webhook processing error: {str(e)}")
-        # Store the error but return 200 to prevent retries
+        # Store the error but return 200 to prevent Wati retries
         await db.whatsapp_webhook_events.insert_one({
             "id": str(uuid.uuid4()),
             "event_type": "error",
@@ -1160,12 +1207,58 @@ async def wati_webhook(payload: dict):
             "received_at": datetime.now(timezone.utc).isoformat(),
             "processed": False
         })
+        # Always return 200 to acknowledge receipt
         return {"status": "error", "message": str(e)}
+
+
+@router.get("/webhook/info")
+async def get_webhook_info(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_view", "view webhook info"))
+):
+    """
+    Get webhook configuration information for setting up in Wati dashboard.
+    Returns the webhook URL and setup instructions.
+    """
+    # Get the custom domain from company master or use frontend URL
+    company_master = await db.company_master.find_one({"_id": "company_settings"})
+    base_url = None
+    
+    if company_master and company_master.get("custom_domain"):
+        base_url = company_master["custom_domain"]
+    else:
+        base_url = os.environ.get("FRONTEND_URL", os.environ.get("REACT_APP_BACKEND_URL", ""))
+    
+    webhook_url = f"{base_url}/api/whatsapp/webhook" if base_url else "/api/whatsapp/webhook"
+    
+    return {
+        "webhook_url": webhook_url,
+        "setup_instructions": {
+            "step_1": "Log in to your Wati.io dashboard",
+            "step_2": "Navigate to Settings > Webhooks",
+            "step_3": "Click 'Add Webhook' or 'Create New'",
+            "step_4": f"Enter the webhook URL: {webhook_url}",
+            "step_5": "Enable the following events:",
+            "events_to_enable": [
+                "Message Received (for incoming messages)",
+                "Message Status Updates (for delivery tracking)",
+                "Session Status (optional, for 24-hour window tracking)"
+            ],
+            "step_6": "Save the webhook configuration",
+            "step_7": "Test by sending a message to your WhatsApp Business number"
+        },
+        "supported_events": [
+            {"event": "message / message_received", "description": "Incoming messages from customers"},
+            {"event": "message_status / status_update", "description": "Delivery status updates (sent, delivered, read, failed)"},
+            {"event": "session_status", "description": "24-hour session window status"}
+        ],
+        "note": "Ensure your server is publicly accessible for Wati to send webhooks"
+    }
 
 
 async def process_delivery_status(message_id: str, status: str, wa_id: str, timestamp: str):
     """Process delivery status update from webhook"""
-    if not message_id:
+    if not message_id and not wa_id:
         return
     
     # Update the message log entry
@@ -1176,43 +1269,444 @@ async def process_delivery_status(message_id: str, status: str, wa_id: str, time
         "delivery_status.updated_at": datetime.now(timezone.utc).isoformat()
     }
     
-    await db.whatsapp_message_logs.update_one(
-        {"$or": [{"message_id": message_id}, {"local_message_id": message_id}]},
-        {"$set": update_data}
-    )
+    # Try to find by message_id first
+    if message_id:
+        result = await db.whatsapp_messages.update_one(
+            {"$or": [
+                {"wati_message_id": message_id}, 
+                {"id": message_id},
+                {"message_id": message_id}
+            ]},
+            {"$set": update_data}
+        )
+        if result.modified_count > 0:
+            return
     
-    # Also update by phone number if message_id not found
-    await db.whatsapp_message_logs.update_one(
-        {"phone_number": {"$regex": wa_id.replace("+", "").replace("91", "")}},
-        {"$set": update_data},
+    # Also update conversation messages
+    if wa_id:
+        await db.whatsapp_conversations.update_one(
+            {"phone_number": {"$regex": wa_id[-10:]}},
+            {"$set": {
+                "last_status": status,
+                "last_status_at": timestamp,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+
+
+async def process_session_status(wa_id: str, payload: dict):
+    """Process session status updates (24-hour window)"""
+    session_active = payload.get("sessionActive", payload.get("data", {}).get("sessionActive", False))
+    
+    await db.whatsapp_conversations.update_one(
+        {"phone_number": {"$regex": wa_id[-10:] if wa_id else ""}},
+        {"$set": {
+            "session_active": session_active,
+            "session_updated_at": datetime.now(timezone.utc).isoformat()
+        }},
         upsert=False
     )
 
 
-async def process_incoming_message(payload: dict):
-    """Process incoming WhatsApp message"""
+async def process_incoming_message_v2(wa_id: str, message_id: str, text: str, message_type: str, 
+                                       timestamp: str, conversation_id: str, payload: dict):
+    """
+    Process incoming WhatsApp message with conversation threading.
+    Creates or updates a conversation thread for two-way communication.
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Try to find associated client by phone number
+    client = None
+    client_name = "Unknown"
+    if wa_id:
+        phone_search = wa_id[-10:] if len(wa_id) >= 10 else wa_id
+        client = await db.clients.find_one({
+            "$or": [
+                {"phone": {"$regex": phone_search}},
+                {"mobile": {"$regex": phone_search}},
+                {"contact_number": {"$regex": phone_search}}
+            ]
+        })
+        if client:
+            client_name = client.get("name", client.get("client_name", "Unknown"))
+    
+    # Create the message record
     incoming_message = {
         "id": str(uuid.uuid4()),
-        "wa_id": payload.get("waId", payload.get("from", "")),
-        "message_id": payload.get("id", ""),
-        "text": payload.get("text", payload.get("body", "")),
-        "type": payload.get("type", "text"),
-        "timestamp": payload.get("timestamp", datetime.now(timezone.utc).isoformat()),
-        "received_at": datetime.now(timezone.utc).isoformat(),
-        "read": False
+        "wa_id": wa_id,
+        "message_id": message_id,
+        "conversation_id": conversation_id,
+        "text": text or "",
+        "type": message_type,
+        "direction": "inbound",
+        "timestamp": timestamp,
+        "received_at": now,
+        "read": False,
+        "client_id": client.get("id") if client else None,
+        "client_name": client_name,
+        "metadata": {
+            "raw_payload": payload
+        }
     }
     
     await db.whatsapp_incoming_messages.insert_one(incoming_message.copy())
     
-    # Notify PE Desk
+    # Update or create conversation thread
+    conversation = await db.whatsapp_conversations.find_one({"phone_number": wa_id})
+    
+    if conversation:
+        # Add message to existing conversation
+        await db.whatsapp_conversations.update_one(
+            {"phone_number": wa_id},
+            {
+                "$push": {
+                    "messages": {
+                        "id": incoming_message["id"],
+                        "direction": "inbound",
+                        "text": text[:500] if text else "",
+                        "timestamp": timestamp,
+                        "message_id": message_id
+                    }
+                },
+                "$set": {
+                    "last_message": text[:100] if text else "",
+                    "last_message_at": timestamp,
+                    "unread_count": conversation.get("unread_count", 0) + 1,
+                    "updated_at": now,
+                    "session_active": True  # Message received means session is active
+                }
+            }
+        )
+    else:
+        # Create new conversation thread
+        new_conversation = {
+            "id": str(uuid.uuid4()),
+            "phone_number": wa_id,
+            "wati_conversation_id": conversation_id,
+            "client_id": client.get("id") if client else None,
+            "client_name": client_name,
+            "messages": [{
+                "id": incoming_message["id"],
+                "direction": "inbound",
+                "text": text[:500] if text else "",
+                "timestamp": timestamp,
+                "message_id": message_id
+            }],
+            "last_message": text[:100] if text else "",
+            "last_message_at": timestamp,
+            "unread_count": 1,
+            "session_active": True,
+            "created_at": now,
+            "updated_at": now
+        }
+        await db.whatsapp_conversations.insert_one(new_conversation)
+    
+    # Notify PE Desk about new message
     from services.notification_service import notify_roles
     await notify_roles(
-        roles=[1, 2],
+        roles=[1, 2],  # PE Desk and PE Manager
         notif_type="whatsapp_incoming",
-        title="New WhatsApp Message",
-        message=f"New message from {incoming_message['wa_id']}: {incoming_message['text'][:50]}...",
-        data=incoming_message
+        title=f"WhatsApp: {client_name}",
+        message=f"{text[:100]}..." if text and len(text) > 100 else (text or "Media message"),
+        data={
+            "wa_id": wa_id,
+            "message_id": message_id,
+            "conversation_id": conversation_id,
+            "client_name": client_name
+        }
     )
+
+
+# ============== TWO-WAY CONVERSATION ENDPOINTS ==============
+
+@router.get("/conversations")
+async def get_conversations(
+    limit: int = Query(50, ge=1, le=200),
+    skip: int = Query(0, ge=0),
+    unread_only: bool = Query(False),
+    search: Optional[str] = Query(None),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view WhatsApp conversations"))
+):
+    """
+    Get all WhatsApp conversation threads.
+    Conversations are grouped by phone number for easy two-way communication.
+    """
+    query = {}
+    
+    if unread_only:
+        query["unread_count"] = {"$gt": 0}
+    
+    if search:
+        query["$or"] = [
+            {"phone_number": {"$regex": search, "$options": "i"}},
+            {"client_name": {"$regex": search, "$options": "i"}},
+            {"last_message": {"$regex": search, "$options": "i"}}
+        ]
+    
+    conversations = await db.whatsapp_conversations.find(
+        query, {"_id": 0, "messages": {"$slice": -5}}  # Only return last 5 messages
+    ).sort("last_message_at", -1).skip(skip).limit(limit).to_list(limit)
+    
+    total = await db.whatsapp_conversations.count_documents(query)
+    total_unread = await db.whatsapp_conversations.count_documents({"unread_count": {"$gt": 0}})
+    
+    return {
+        "conversations": conversations,
+        "total": total,
+        "total_unread": total_unread,
+        "limit": limit,
+        "skip": skip
+    }
+
+
+@router.get("/conversations/{phone_number}")
+async def get_conversation_thread(
+    phone_number: str,
+    limit: int = Query(100, ge=1, le=500),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_history", "view WhatsApp conversation"))
+):
+    """
+    Get full conversation thread with a specific phone number.
+    Includes all inbound and outbound messages.
+    """
+    # Normalize phone number
+    phone = ''.join(filter(str.isdigit, phone_number))
+    if not phone.startswith('91') and len(phone) == 10:
+        phone = '91' + phone
+    
+    conversation = await db.whatsapp_conversations.find_one(
+        {"phone_number": {"$regex": phone[-10:]}},
+        {"_id": 0}
+    )
+    
+    if not conversation:
+        # Try to create from existing messages
+        messages = await db.whatsapp_incoming_messages.find(
+            {"wa_id": {"$regex": phone[-10:]}},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(limit).to_list(limit)
+        
+        if not messages:
+            raise HTTPException(status_code=404, detail="No conversation found with this number")
+        
+        # Return ad-hoc conversation from messages
+        return {
+            "phone_number": phone,
+            "client_name": messages[0].get("client_name", "Unknown") if messages else "Unknown",
+            "messages": [
+                {
+                    "id": m.get("id"),
+                    "direction": "inbound",
+                    "text": m.get("text", ""),
+                    "timestamp": m.get("timestamp"),
+                    "message_id": m.get("message_id")
+                } for m in reversed(messages)
+            ],
+            "session_active": True,
+            "unread_count": len([m for m in messages if not m.get("read", False)])
+        }
+    
+    # Mark conversation as read
+    await db.whatsapp_conversations.update_one(
+        {"phone_number": {"$regex": phone[-10:]}},
+        {"$set": {"unread_count": 0, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Also mark individual messages as read
+    await db.whatsapp_incoming_messages.update_many(
+        {"wa_id": {"$regex": phone[-10:]}, "read": False},
+        {"$set": {"read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return conversation
+
+
+@router.post("/conversations/{phone_number}/reply")
+async def reply_to_conversation(
+    phone_number: str,
+    request: ReplyToMessageRequest,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_send", "reply to WhatsApp message"))
+):
+    """
+    Reply to a WhatsApp conversation.
+    Sends a message and adds it to the conversation thread.
+    
+    Note: Within 24-hour session window, sends as session message.
+    Outside window, requires a template message.
+    """
+    service = await get_wati_service()
+    if not service:
+        raise HTTPException(status_code=400, detail="WhatsApp not configured. Please set up Wati.io API credentials.")
+    
+    # Normalize phone number
+    phone = ''.join(filter(str.isdigit, phone_number))
+    if not phone.startswith('91') and len(phone) == 10:
+        phone = '91' + phone
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Try to send as session message (within 24-hour window)
+    result = await service.send_session_message(phone, request.message)
+    
+    # Create outbound message record
+    outbound_message = {
+        "id": str(uuid.uuid4()),
+        "phone_number": phone,
+        "message": request.message,
+        "direction": "outbound",
+        "status": "sent" if result.get("result") else "failed",
+        "wati_message_id": result.get("localMessageId"),
+        "sent_at": now,
+        "sent_by": current_user["id"],
+        "sent_by_name": current_user["name"],
+        "conversation_id": request.conversation_id
+    }
+    
+    await db.whatsapp_messages.insert_one(outbound_message.copy())
+    
+    # Update conversation thread
+    await db.whatsapp_conversations.update_one(
+        {"phone_number": {"$regex": phone[-10:]}},
+        {
+            "$push": {
+                "messages": {
+                    "id": outbound_message["id"],
+                    "direction": "outbound",
+                    "text": request.message[:500],
+                    "timestamp": now,
+                    "status": "sent" if result.get("result") else "failed",
+                    "sent_by": current_user["name"]
+                }
+            },
+            "$set": {
+                "last_message": request.message[:100],
+                "last_message_at": now,
+                "updated_at": now
+            }
+        },
+        upsert=True
+    )
+    
+    if result.get("result"):
+        return {
+            "success": True,
+            "message": "Reply sent successfully",
+            "message_id": outbound_message["id"],
+            "wati_message_id": result.get("localMessageId")
+        }
+    else:
+        # If session message fails, it might be outside 24-hour window
+        error_msg = result.get("error", "Unknown error")
+        return {
+            "success": False,
+            "message": f"Failed to send reply. {error_msg}",
+            "hint": "If outside 24-hour window, use a template message instead.",
+            "error": error_msg
+        }
+
+
+@router.post("/conversations/{phone_number}/send-template")
+async def send_template_in_conversation(
+    phone_number: str,
+    template_name: str = Query(..., description="Name of the Wati template to send"),
+    parameters: Optional[List[str]] = Query(None, description="Template parameter values"),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_send", "send WhatsApp template"))
+):
+    """
+    Send a template message in a conversation.
+    Use this when outside the 24-hour session window.
+    
+    Templates must be pre-approved in your Wati dashboard.
+    """
+    service = await get_wati_service()
+    if not service:
+        raise HTTPException(status_code=400, detail="WhatsApp not configured.")
+    
+    # Normalize phone number
+    phone = ''.join(filter(str.isdigit, phone_number))
+    if not phone.startswith('91') and len(phone) == 10:
+        phone = '91' + phone
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    result = await service.send_template_message(
+        phone,
+        template_name,
+        parameters or [],
+        f"conversation_reply_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
+    
+    # Record the message
+    outbound_message = {
+        "id": str(uuid.uuid4()),
+        "phone_number": phone,
+        "template_name": template_name,
+        "parameters": parameters,
+        "direction": "outbound",
+        "status": "sent" if result.get("success") else "failed",
+        "wati_message_id": result.get("localMessageId"),
+        "sent_at": now,
+        "sent_by": current_user["id"],
+        "sent_by_name": current_user["name"]
+    }
+    
+    await db.whatsapp_messages.insert_one(outbound_message.copy())
+    
+    # Update conversation
+    await db.whatsapp_conversations.update_one(
+        {"phone_number": {"$regex": phone[-10:]}},
+        {
+            "$push": {
+                "messages": {
+                    "id": outbound_message["id"],
+                    "direction": "outbound",
+                    "text": f"[Template: {template_name}]",
+                    "timestamp": now,
+                    "status": "sent" if result.get("success") else "failed",
+                    "sent_by": current_user["name"]
+                }
+            },
+            "$set": {
+                "last_message": f"[Template: {template_name}]",
+                "last_message_at": now,
+                "updated_at": now
+            }
+        },
+        upsert=True
+    )
+    
+    if result.get("success"):
+        return {
+            "success": True,
+            "message": "Template sent successfully",
+            "message_id": outbound_message["id"]
+        }
+    else:
+        raise HTTPException(status_code=400, detail=result.get("error", "Failed to send template"))
+
+
+@router.delete("/conversations/{phone_number}")
+async def delete_conversation(
+    phone_number: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_config", "delete WhatsApp conversation"))
+):
+    """Delete a conversation thread (PE Desk only)"""
+    phone = ''.join(filter(str.isdigit, phone_number))
+    
+    result = await db.whatsapp_conversations.delete_one(
+        {"phone_number": {"$regex": phone[-10:]}}
+    )
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    return {"message": "Conversation deleted successfully"}
 
 
 @router.get("/webhook/events")
