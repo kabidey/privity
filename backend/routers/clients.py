@@ -894,13 +894,14 @@ async def create_client_with_documents(
     
     # Create audit log
     await create_audit_log(
-        user_id=current_user["id"],
-        user_name=current_user["name"],
         action="create_client_with_docs",
         entity_type="client",
         entity_id=client_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 7),
+        entity_name=name,
         details={
-            "name": name,
             "pan_number": pan_number.upper(),
             "documents_count": len(documents),
             "documents_stored_in_gridfs": True
