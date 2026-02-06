@@ -673,10 +673,10 @@ async def send_consolidated_pe_report(
         user_email = user.get("email")
         if user_email:
             try:
-                await send_email_raw(
+                await send_email(
                     to_email=user_email,
                     subject=subject,
-                    html_content=html_content,
+                    body=html_content,
                     cc_email="pe@smifs.com"
                 )
                 results["emails_sent"] += 1
