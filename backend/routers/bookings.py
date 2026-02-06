@@ -919,7 +919,21 @@ async def get_bookings(
     else:
         # Use hierarchy to determine visibility - includes Employee role
         team_ids = await get_team_user_ids(user_id, include_self=True)
-        query["created_by"] = {"$in": team_ids}
+        
+        # Get client IDs mapped to this user or their team
+        mapped_clients = await db.clients.find(
+            {"mapped_employee_id": {"$in": team_ids}},
+            {"_id": 0, "id": 1}
+        ).to_list(10000)
+        mapped_client_ids = [c["id"] for c in mapped_clients]
+        
+        # Show bookings that are either:
+        # 1. Created by user/team, OR
+        # 2. For clients mapped to user/team
+        query["$or"] = [
+            {"created_by": {"$in": team_ids}},
+            {"client_id": {"$in": mapped_client_ids}} if mapped_client_ids else {"_never_match_": True}
+        ]
     
     # Apply filters
     if status:
