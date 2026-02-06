@@ -723,11 +723,11 @@ const Inventory = () => {
                           <div
                             className={`w-full rounded-t ${isUp ? 'bg-green-500' : 'bg-red-500'} transition-all hover:opacity-80`}
                             style={{ height: `${Math.max(height, 5)}%` }}
-                            title={`₹${entry.new_price} on ${new Date(entry.updated_at).toLocaleDateString()}`}
+                            title={`₹${entry.new_price?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} on ${new Date(entry.updated_at).toLocaleDateString()}`}
                           />
                           {/* Tooltip on hover */}
                           <div className="absolute bottom-full mb-2 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                            ₹{entry.new_price.toLocaleString('en-IN')}
+                            ₹{entry.new_price?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             <br />
                             {new Date(entry.updated_at).toLocaleDateString()}
                           </div>
