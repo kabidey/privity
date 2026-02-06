@@ -15,6 +15,7 @@ import io
 import zipfile
 import shutil
 import base64
+import logging
 
 from database import db
 from routers.auth import get_current_user
@@ -25,6 +26,7 @@ from services.permission_service import (
     require_permission
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/database", tags=["Database Management"])
 
 
