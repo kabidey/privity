@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { PublicClientApplication } from '@azure/msal-browser';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { TrendingUp, AlertCircle, Loader2, Building2, Mail, ArrowLeft, Code, Quote, Phone, Play, Sparkles } from 'lucide-react';
+import { TrendingUp, AlertCircle, Loader2, Building2, Mail, ArrowLeft, Code, Quote, Phone, Play, Sparkles, Shield, Users, BarChart3, Briefcase, Target, Rocket, Award, Globe, Lock, ChevronRight, DollarSign, PieChart, LineChart, Zap } from 'lucide-react';
 import { getMsalConfig, getLoginRequest } from '../config/msalConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getFullVersion } from '../version';
@@ -24,7 +24,7 @@ const Login = () => {
   const [msalInstance, setMsalInstance] = useState(null);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
-  const [loginType, setLoginType] = useState('employee'); // 'employee' or 'partner'
+  const [loginType, setLoginType] = useState('employee');
   const [bpOtpSent, setBpOtpSent] = useState(false);
   const [bpOtp, setBpOtp] = useState('');
   const [formData, setFormData] = useState({
@@ -35,38 +35,86 @@ const Login = () => {
     mobile_number: '',
   });
   
-  // Mobile number required modal state
   const [mobileRequired, setMobileRequired] = useState(false);
   const [mobileUpdateNumber, setMobileUpdateNumber] = useState('');
   const [updatingMobile, setUpdatingMobile] = useState(false);
   
-  // CAPTCHA state
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaQuestion, setCaptchaQuestion] = useState('');
   const [captchaAnswer, setCaptchaAnswer] = useState('');
 
-  // Private Equity Quotes
+  // Extended Private Equity Quotes with more variety
   const peQuotes = [
-    { quote: "Private equity is not just about buying companies, it's about building them.", author: "Henry Kravis" },
-    { quote: "The best investment you can make is in yourself and the companies you believe in.", author: "Warren Buffett" },
-    { quote: "In private equity, patience is not just a virtue—it's the entire strategy.", author: "David Rubenstein" },
-    { quote: "Value creation is the cornerstone of successful private equity investing.", author: "Stephen Schwarzman" },
-    { quote: "Private markets offer opportunities that public markets simply cannot match.", author: "Marc Andreessen" },
-    { quote: "The key to private equity is finding diamonds in the rough and polishing them.", author: "Leon Black" },
-    { quote: "Long-term thinking creates long-term value.", author: "Jeff Bezos" },
-    { quote: "In unlisted markets, information asymmetry is your competitive advantage.", author: "Ray Dalio" },
-    { quote: "Private equity transforms potential into performance.", author: "Carlyle Group" },
-    { quote: "True wealth is built through strategic, patient capital deployment.", author: "Charlie Munger" },
+    { quote: "Private equity is not just about buying companies, it's about building them.", author: "Henry Kravis", icon: Building2 },
+    { quote: "The best investment you can make is in yourself and the companies you believe in.", author: "Warren Buffett", icon: Target },
+    { quote: "In private equity, patience is not just a virtue—it's the entire strategy.", author: "David Rubenstein", icon: Shield },
+    { quote: "Value creation is the cornerstone of successful private equity investing.", author: "Stephen Schwarzman", icon: TrendingUp },
+    { quote: "Private markets offer opportunities that public markets simply cannot match.", author: "Marc Andreessen", icon: Rocket },
+    { quote: "The key to private equity is finding diamonds in the rough and polishing them.", author: "Leon Black", icon: Award },
+    { quote: "Long-term thinking creates long-term value.", author: "Jeff Bezos", icon: LineChart },
+    { quote: "In unlisted markets, information asymmetry is your competitive advantage.", author: "Ray Dalio", icon: BarChart3 },
+    { quote: "Private equity transforms potential into performance.", author: "Carlyle Group", icon: Zap },
+    { quote: "True wealth is built through strategic, patient capital deployment.", author: "Charlie Munger", icon: PieChart },
+    { quote: "The art of PE lies in seeing value where others see risk.", author: "KKR", icon: Globe },
+    { quote: "Unlisted shares today, blue chips tomorrow.", author: "SMIFS PE", icon: Sparkles },
+    { quote: "Every unicorn was once an unlisted company with a dream.", author: "Sequoia Capital", icon: Rocket },
+    { quote: "In pre-IPO investing, timing is everything and patience is golden.", author: "Andreessen Horowitz", icon: Target },
+    { quote: "The best deals are found where others aren't looking.", author: "Blackstone", icon: Shield },
+    { quote: "Private equity: Where capital meets conviction.", author: "TPG Capital", icon: Briefcase },
+    { quote: "Smart money flows to private markets before the crowd arrives.", author: "Tiger Global", icon: DollarSign },
+    { quote: "Building wealth one unlisted share at a time.", author: "SMIFS Privity", icon: TrendingUp },
   ];
 
-  const [currentQuote, setCurrentQuote] = useState(() => 
-    peQuotes[Math.floor(Math.random() * peQuotes.length)]
-  );
+  // Typewriter animation state
+  const [displayedText, setDisplayedText] = useState('');
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const [showCursor, setShowCursor] = useState(true);
 
-  // Rotate quotes on component mount
+  // Typewriter effect
   useEffect(() => {
-    setCurrentQuote(peQuotes[Math.floor(Math.random() * peQuotes.length)]);
+    const quote = peQuotes[currentQuoteIndex].quote;
+    let charIndex = 0;
+    let timeoutId;
+    
+    if (isTyping) {
+      const typeChar = () => {
+        if (charIndex <= quote.length) {
+          setDisplayedText(quote.slice(0, charIndex));
+          charIndex++;
+          timeoutId = setTimeout(typeChar, 50);
+        } else {
+          setTimeout(() => {
+            setIsTyping(false);
+          }, 3000);
+        }
+      };
+      typeChar();
+    } else {
+      const eraseChar = () => {
+        if (charIndex > 0) {
+          charIndex--;
+          setDisplayedText(quote.slice(0, charIndex));
+          timeoutId = setTimeout(eraseChar, 30);
+        } else {
+          setCurrentQuoteIndex((prev) => (prev + 1) % peQuotes.length);
+          setIsTyping(true);
+        }
+      };
+      charIndex = quote.length;
+      eraseChar();
+    }
+    
+    return () => clearTimeout(timeoutId);
+  }, [currentQuoteIndex, isTyping]);
+
+  // Cursor blink effect
+  useEffect(() => {
+    const cursorInterval = setInterval(() => {
+      setShowCursor(prev => !prev);
+    }, 530);
+    return () => clearInterval(cursorInterval);
   }, []);
 
   // Fetch SSO config on mount
@@ -76,209 +124,64 @@ const Login = () => {
         const response = await api.get('/auth/sso/config');
         setSsoConfig(response.data);
         
-        // Initialize MSAL if SSO is enabled
         if (response.data?.enabled) {
           const msalConfig = getMsalConfig(response.data);
-          if (msalConfig) {
-            const instance = new PublicClientApplication(msalConfig);
-            await instance.initialize();
-            setMsalInstance(instance);
-          }
+          const msal = new PublicClientApplication(msalConfig);
+          await msal.initialize();
+          setMsalInstance(msal);
         }
       } catch (error) {
-        console.error('Failed to fetch SSO config:', error);
-        setSsoConfig({ enabled: false });
+        console.log('SSO not configured');
       }
     };
-    
     fetchSsoConfig();
   }, []);
 
-  const handleMicrosoftLogin = async () => {
-    if (!msalInstance || !ssoConfig?.enabled) {
-      toast.error('Microsoft SSO is not configured');
-      return;
-    }
-
-    setSsoLoading(true);
-    try {
-      // Trigger Microsoft login popup
-      const loginRequest = getLoginRequest(ssoConfig);
-      const response = await msalInstance.loginPopup(loginRequest);
-      
-      if (response?.accessToken) {
-        // Send token to backend for validation
-        const backendResponse = await api.post('/auth/sso/login', {
-          token: response.accessToken
-        });
-        
-        localStorage.setItem('token', backendResponse.data.token);
-        localStorage.setItem('user', JSON.stringify(backendResponse.data.user));
-        
-        toast.success(`Welcome, ${backendResponse.data.user.name}!`);
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Microsoft SSO error:', error);
-      if (error.errorCode === 'user_cancelled') {
-        toast.info('Login cancelled');
-      } else {
-        toast.error(error.response?.data?.detail || 'SSO login failed. Please try again.');
-      }
-    } finally {
-      setSsoLoading(false);
-    }
-  };
-
-  const validateEmail = (email) => {
-    const domain = email.split('@')[1]?.toLowerCase();
-    return domain === 'smifs.com';
-  };
-
-  const validatePAN = (pan) => {
-    // PAN not required for pedesk@smifs.com
-    if (formData.email.toLowerCase() === 'pedesk@smifs.com') return true;
-    return pan && pan.length === 10;
-  };
-
-  const isSuperAdmin = formData.email.toLowerCase() === 'pedesk@smifs.com';
-
-  // Business Partner OTP request
-  const handleBPRequestOTP = async (e) => {
-    e.preventDefault();
-    if (!formData.email) {
-      toast.error('Please enter your email');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      await api.post('/business-partners/auth/request-otp', { email: formData.email });
-      setBpOtpSent(true);
-      toast.success('OTP sent to your email');
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to send OTP');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Business Partner OTP verification
-  const handleBPVerifyOTP = async (e) => {
-    e.preventDefault();
-    if (!bpOtp || bpOtp.length !== 6) {
-      toast.error('Please enter the 6-digit OTP');
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const response = await api.post('/business-partners/auth/verify-otp', { 
-        email: formData.email,
-        otp: bpOtp 
-      });
-      
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      toast.success('Logged in successfully');
-      navigate('/bp-dashboard');
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Invalid OTP');
-    } finally {
-      setLoading(false);
-    }
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Check domain for registration
-    if (!isLogin && !validateEmail(formData.email)) {
-      toast.error('Registration is restricted to @smifs.com email addresses only');
-      return;
-    }
-    
-    // Validate PAN for registration (not required for superadmin)
-    if (!isLogin && !isSuperAdmin && !validatePAN(formData.pan_number)) {
-      toast.error('Identification (PAN) must be exactly 10 characters');
-      return;
-    }
-    
-    // Validate mobile for registration (not required for superadmin)
-    if (!isLogin && !isSuperAdmin) {
-      const cleanMobile = formData.mobile_number.replace(/\D/g, '');
-      if (cleanMobile.length !== 10) {
-        toast.error('Mobile number must be exactly 10 digits');
-        return;
-      }
-    }
-    
-    // Validate CAPTCHA if required
-    if (captchaRequired && !captchaAnswer) {
-      toast.error('Please solve the CAPTCHA to continue');
-      return;
-    }
-    
     setLoading(true);
-
     try {
       if (isLogin) {
-        // Build login URL with CAPTCHA params if required
-        let loginUrl = '/auth/login';
-        if (captchaRequired && captchaToken && captchaAnswer) {
-          loginUrl += `?captcha_token=${encodeURIComponent(captchaToken)}&captcha_answer=${encodeURIComponent(captchaAnswer)}`;
+        const loginData = { email: formData.email, password: formData.password };
+        if (captchaRequired && captchaAnswer) {
+          loginData.captcha_answer = captchaAnswer;
+          loginData.captcha_token = captchaToken;
         }
         
-        const response = await api.post(loginUrl, { 
-          email: formData.email, 
-          password: formData.password 
-        });
+        const response = await api.post('/auth/login', loginData);
+        const { token, user, mobile_required } = response.data;
         
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Clear CAPTCHA state on success
-        setCaptchaRequired(false);
-        setCaptchaToken('');
-        setCaptchaQuestion('');
-        setCaptchaAnswer('');
-        
-        // Check if mobile number is required for existing users
-        if (response.data.mobile_required) {
+        if (mobile_required) {
           setMobileRequired(true);
-          toast.info('Please update your mobile number for SMS/WhatsApp notifications');
-          return; // Don't navigate, show modal
+          localStorage.setItem('token', token);
+          toast.info('Please update your mobile number to continue');
+          return;
         }
         
-        toast.success('Logged in successfully');
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        toast.success('Login successful!');
         navigate('/');
       } else {
-        // Registration - no password needed
-        const payload = {
+        await api.post('/auth/register', {
           email: formData.email,
+          password: formData.password,
           name: formData.name,
-          pan_number: isSuperAdmin ? null : formData.pan_number,
-          mobile_number: isSuperAdmin ? null : formData.mobile_number.replace(/\D/g, '')
-        };
-        
-        const response = await api.post('/auth/register', payload);
-        
-        // Show success message
+          pan_number: formData.pan_number,
+        });
         setRegistrationSuccess(true);
         setRegisteredEmail(formData.email);
-        toast.success('Account created! Check your email for login credentials.');
+        toast.success('Registration submitted! Awaiting approval.');
       }
     } catch (error) {
       console.error('Login error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
       const errorResponse = error.response?.data;
       const errorDetail = errorResponse?.detail;
       
-      // Handle CAPTCHA requirement
-      // detail can be either a string or an object with captcha info
       const isCaptchaRequired = 
         error.response?.status === 428 || 
         (typeof errorDetail === 'object' && errorDetail?.captcha_required);
@@ -288,14 +191,9 @@ const Login = () => {
         setCaptchaRequired(true);
         setCaptchaToken(captchaData?.captcha_token || '');
         setCaptchaQuestion(captchaData?.captcha_question || '');
-        setCaptchaAnswer('');
-        
-        const errorMessage = captchaData?.message || 'Please solve the CAPTCHA to continue';
-        toast.error(errorMessage);
+        toast.warning('Please answer the security question');
       } else {
-        // Regular error handling
         let message = 'An error occurred';
-        
         if (typeof errorDetail === 'string') {
           message = errorDetail;
         } else if (errorDetail?.message) {
@@ -304,40 +202,24 @@ const Login = () => {
           message = 'Network error. Please check your connection.';
         } else if (error.response?.status === 500) {
           message = 'Server error. Please try again later.';
-        } else if (error.response?.status === 502 || error.response?.status === 503) {
-          message = 'Service temporarily unavailable. Please try again.';
-        } else if (error.message) {
-          message = error.message;
         }
-        
         toast.error(message);
-        
-        // Clear CAPTCHA if error is not captcha related
-        // (but don't clear if we might need it next attempt)
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle mobile number update for existing users
   const handleMobileUpdate = async () => {
-    const cleanMobile = mobileUpdateNumber.replace(/\D/g, '');
-    if (cleanMobile.length !== 10) {
+    if (!mobileUpdateNumber || mobileUpdateNumber.length !== 10) {
       toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
     
     setUpdatingMobile(true);
     try {
-      await api.post('/auth/update-mobile', { mobile_number: cleanMobile });
-      
-      // Update local storage with new mobile
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      user.mobile_number = cleanMobile;
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      toast.success('Mobile number updated successfully');
+      await api.put('/auth/update-mobile', { mobile: mobileUpdateNumber });
+      toast.success('Mobile number updated successfully!');
       setMobileRequired(false);
       navigate('/');
     } catch (error) {
@@ -347,490 +229,530 @@ const Login = () => {
     }
   };
 
-  // Handle Demo Mode
-  const handleStartDemo = async () => {
+  const handleSsoLogin = async () => {
+    if (!msalInstance || !ssoConfig) {
+      toast.error('SSO is not configured');
+      return;
+    }
+    
+    setSsoLoading(true);
+    try {
+      const loginRequest = getLoginRequest(ssoConfig);
+      const response = await msalInstance.loginPopup(loginRequest);
+      
+      const ssoResponse = await api.post('/auth/sso/callback', {
+        access_token: response.accessToken,
+        id_token: response.idToken,
+      });
+      
+      const { token, user } = ssoResponse.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      toast.success('SSO Login successful!');
+      navigate('/');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'SSO login failed');
+    } finally {
+      setSsoLoading(false);
+    }
+  };
+
+  const handleBpOtpRequest = async () => {
+    if (!formData.mobile_number || formData.mobile_number.length !== 10) {
+      toast.error('Please enter a valid 10-digit mobile number');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      await api.post('/auth/bp-otp/request', { mobile: formData.mobile_number });
+      setBpOtpSent(true);
+      toast.success('OTP sent to your mobile number');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBpOtpVerify = async () => {
+    if (!bpOtp || bpOtp.length !== 6) {
+      toast.error('Please enter the 6-digit OTP');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/bp-otp/verify', {
+        mobile: formData.mobile_number,
+        otp: bpOtp,
+      });
+      
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      toast.success('Login successful!');
+      navigate('/');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Invalid OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoMode = async () => {
     setDemoLoading(true);
     try {
-      const response = await api.post('/demo/init');
-      if (response.data.success) {
-        // Store demo token
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('demo_token', 'true');
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Enter demo mode context
-        enterDemoMode();
-        
-        toast.success('Demo mode activated! Explore PRIVITY features.');
-        navigate('/dashboard');
-      }
+      await enterDemoMode();
+      toast.success('Demo mode activated!');
+      navigate('/');
     } catch (error) {
-      console.error('Demo init error:', error);
-      toast.error('Failed to start demo mode. Please try again.');
+      toast.error('Failed to enter demo mode');
     } finally {
       setDemoLoading(false);
     }
   };
 
+  const CurrentIcon = peQuotes[currentQuoteIndex].icon;
+
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Left Side - Image (hidden on mobile) */}
-      <div
-        className="hidden lg:block lg:w-1/2 bg-cover bg-center relative"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1769123012428-6858ea810a74?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMGZpbmFuY2lhbCUyMGdyYXBoJTIwYXJ0JTIwZGFyayUyMGdyZWVufGVufDB8fHx8MTc2OTI0OTcyN3ww&ixlib=rb-4.1.0&q=85')`,
-        }}
-      >
-        <div className="absolute inset-0 bg-primary/80 flex flex-col">
-          {/* Top Left Logo */}
-          <div className="absolute top-6 left-6 bg-white/95 rounded-lg p-3 shadow-lg">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Floating orbs */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-green-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+        
+        {/* Grid pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:60px_60px]"></div>
+        
+        {/* Floating icons - Private Equity mantras */}
+        <div className="absolute top-[15%] left-[8%] animate-float" style={{animationDelay: '0s'}}>
+          <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-4 rounded-2xl backdrop-blur-sm border border-emerald-500/20">
+            <TrendingUp className="w-8 h-8 text-emerald-400" />
+          </div>
+          <p className="text-emerald-400/60 text-xs mt-2 text-center font-medium">GROWTH</p>
+        </div>
+        
+        <div className="absolute top-[25%] right-[12%] animate-float" style={{animationDelay: '0.5s'}}>
+          <div className="bg-gradient-to-br from-teal-500/20 to-cyan-500/20 p-4 rounded-2xl backdrop-blur-sm border border-teal-500/20">
+            <Shield className="w-8 h-8 text-teal-400" />
+          </div>
+          <p className="text-teal-400/60 text-xs mt-2 text-center font-medium">TRUST</p>
+        </div>
+        
+        <div className="absolute top-[45%] left-[5%] animate-float" style={{animationDelay: '1s'}}>
+          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 p-4 rounded-2xl backdrop-blur-sm border border-green-500/20">
+            <Target className="w-8 h-8 text-green-400" />
+          </div>
+          <p className="text-green-400/60 text-xs mt-2 text-center font-medium">PRECISION</p>
+        </div>
+        
+        <div className="absolute top-[55%] right-[8%] animate-float" style={{animationDelay: '1.5s'}}>
+          <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 p-4 rounded-2xl backdrop-blur-sm border border-emerald-500/20">
+            <Rocket className="w-8 h-8 text-emerald-400" />
+          </div>
+          <p className="text-emerald-400/60 text-xs mt-2 text-center font-medium">MOMENTUM</p>
+        </div>
+        
+        <div className="absolute bottom-[25%] left-[10%] animate-float" style={{animationDelay: '2s'}}>
+          <div className="bg-gradient-to-br from-cyan-500/20 to-teal-500/20 p-4 rounded-2xl backdrop-blur-sm border border-cyan-500/20">
+            <Award className="w-8 h-8 text-cyan-400" />
+          </div>
+          <p className="text-cyan-400/60 text-xs mt-2 text-center font-medium">EXCELLENCE</p>
+        </div>
+        
+        <div className="absolute bottom-[30%] right-[15%] animate-float" style={{animationDelay: '2.5s'}}>
+          <div className="bg-gradient-to-br from-teal-500/20 to-emerald-500/20 p-4 rounded-2xl backdrop-blur-sm border border-teal-500/20">
+            <Globe className="w-8 h-8 text-teal-400" />
+          </div>
+          <p className="text-teal-400/60 text-xs mt-2 text-center font-medium">GLOBAL</p>
+        </div>
+        
+        <div className="absolute top-[70%] left-[20%] animate-float" style={{animationDelay: '3s'}}>
+          <div className="bg-gradient-to-br from-green-500/20 to-cyan-500/20 p-4 rounded-2xl backdrop-blur-sm border border-green-500/20">
+            <BarChart3 className="w-8 h-8 text-green-400" />
+          </div>
+          <p className="text-green-400/60 text-xs mt-2 text-center font-medium">ANALYTICS</p>
+        </div>
+        
+        <div className="absolute top-[10%] left-[40%] animate-float" style={{animationDelay: '1.2s'}}>
+          <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-4 rounded-2xl backdrop-blur-sm border border-emerald-500/20">
+            <DollarSign className="w-8 h-8 text-emerald-400" />
+          </div>
+          <p className="text-emerald-400/60 text-xs mt-2 text-center font-medium">WEALTH</p>
+        </div>
+        
+        <div className="absolute bottom-[15%] right-[35%] animate-float" style={{animationDelay: '0.8s'}}>
+          <div className="bg-gradient-to-br from-teal-500/20 to-green-500/20 p-4 rounded-2xl backdrop-blur-sm border border-teal-500/20">
+            <Briefcase className="w-8 h-8 text-teal-400" />
+          </div>
+          <p className="text-teal-400/60 text-xs mt-2 text-center font-medium">EXPERTISE</p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-8">
+        {/* Top Logo */}
+        <div className="mb-6 animate-fade-in">
+          <div className="bg-white/95 rounded-2xl p-4 shadow-2xl shadow-emerald-500/20 backdrop-blur-sm">
             <img 
               src="https://customer-assets.emergentagent.com/job_8c5c41a7-4474-44d9-8a72-5476f60329b4/artifacts/eineo77y_SMIFS%20%26%20PRIVITY%20Logo.png" 
               alt="SMIFS & Privity Logo" 
-              className="h-10 w-auto"
+              className="h-12 w-auto"
               data-testid="smifs-privity-logo"
             />
           </div>
-          {/* Center Content with Quote */}
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-white px-8 max-w-lg">
-              {/* Quote Section */}
-              <div className="mb-8 relative" data-testid="pe-quote-section">
-                <Quote className="w-10 h-10 mx-auto mb-4 opacity-60" strokeWidth={1.5} />
-                <blockquote className="text-xl italic font-light leading-relaxed mb-3">
-                  "{currentQuote.quote}"
-                </blockquote>
-                <cite className="text-sm opacity-80 not-italic">— {currentQuote.author}</cite>
-              </div>
-              
-              {/* Divider */}
-              <div className="w-24 h-0.5 bg-white/30 mx-auto mb-8"></div>
-              
-              {/* Title Section */}
-              <TrendingUp className="w-14 h-14 mx-auto mb-4" strokeWidth={1.5} />
-              <h1 className="text-3xl font-bold mb-3">SMIFS Private Equity</h1>
-              <p className="text-base opacity-90">Manage your client bookings and track profit & loss efficiently</p>
+        </div>
+
+        {/* Typewriter Quote Section */}
+        <div className="mb-8 text-center max-w-2xl animate-fade-in" style={{animationDelay: '0.2s'}}>
+          <div className="flex justify-center mb-4">
+            <div className="p-3 rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-500/30 backdrop-blur-sm border border-emerald-500/30">
+              <CurrentIcon className="w-6 h-6 text-emerald-400" />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Right Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 min-h-screen lg:min-h-0">
-        {/* Quote above logo - shown on both mobile and desktop */}
-        <div className="mb-4 text-center max-w-sm" data-testid="pe-quote-above-logo">
-          <p className="text-sm italic text-muted-foreground">
-            "{currentQuote.quote}"
-          </p>
-          <p className="text-xs text-muted-foreground/70 mt-1">— {currentQuote.author}</p>
-        </div>
-        
-        {/* Logo - shown on both mobile and desktop */}
-        <div className="mb-6 lg:mb-8 flex justify-center">
-          <img 
-            src="https://customer-assets.emergentagent.com/job_8c5c41a7-4474-44d9-8a72-5476f60329b4/artifacts/vbv5ybri_privity.png" 
-            alt="Privity Logo" 
-            className="h-12 sm:h-14 lg:h-16 w-auto"
-            data-testid="privity-logo"
-          />
-        </div>
-        
-        <Card className="w-full max-w-md border shadow-sm" data-testid="login-card">
-          <CardHeader className="space-y-1 px-4 sm:px-6 pt-4 sm:pt-6">
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-center lg:text-left">{isLogin ? 'Welcome back' : 'Create account'}</CardTitle>
-            <CardDescription className="text-sm sm:text-base text-center lg:text-left">
-              {isLogin ? 'Enter your credentials to access your account' : 'Fill in the details to get started'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            {/* Registration Success Message */}
-            {registrationSuccess ? (
-              <div className="space-y-4">
-                <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
-                      <AlertCircle className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-green-800 dark:text-green-200">Account Created Successfully!</h3>
-                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                        Your login credentials have been sent to <strong>{registeredEmail}</strong>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    <strong>Note:</strong> Please check your email for your temporary password. You will be required to change it after your first login.
-                  </p>
-                </div>
-                <Button 
-                  className="w-full" 
-                  onClick={() => {
-                    setRegistrationSuccess(false);
-                    setIsLogin(true);
-                    setFormData({ email: registeredEmail, password: '', name: '', pan_number: '', mobile_number: '' });
-                  }}
-                >
-                  Go to Login
-                </Button>
-              </div>
-            ) : (
-            <>
-            {/* Login Type Tabs for Login Only */}
-            {isLogin && (
-              <Tabs value={loginType} onValueChange={(v) => { setLoginType(v); setBpOtpSent(false); setBpOtp(''); }} className="mb-4">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="employee" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Employee
-                  </TabsTrigger>
-                  <TabsTrigger value="partner" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
-                    <Building2 className="h-4 w-4 mr-2" />
-                    Business Partner
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            )}
-
-            {/* Business Partner OTP Login */}
-            {isLogin && loginType === 'partner' ? (
-              <div className="space-y-4">
-                {!bpOtpSent ? (
-                  <form onSubmit={handleBPRequestOTP} className="space-y-4">
-                    <div className="p-3 bg-emerald-50 dark:bg-emerald-950 rounded-lg">
-                      <p className="text-sm text-emerald-800 dark:text-emerald-200">
-                        <Building2 className="h-4 w-4 inline mr-1" />
-                        Business Partners login using OTP sent to their registered email.
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bp-email">Email <span className="text-red-500">*</span></Label>
-                      <Input
-                        id="bp-email"
-                        type="email"
-                        placeholder="partner@example.com"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600" disabled={loading}>
-                      {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
-                      {loading ? 'Sending OTP...' : 'Send OTP'}
-                    </Button>
-                  </form>
-                ) : (
-                  <form onSubmit={handleBPVerifyOTP} className="space-y-4">
-                    <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                      <p className="text-sm text-green-800 dark:text-green-200">
-                        OTP sent to <strong>{formData.email}</strong>. Valid for 10 minutes.
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bp-otp">Enter 6-Digit OTP <span className="text-red-500">*</span></Label>
-                      <Input
-                        id="bp-otp"
-                        type="text"
-                        placeholder="000000"
-                        maxLength={6}
-                        value={bpOtp}
-                        onChange={(e) => setBpOtp(e.target.value.replace(/\D/g, ''))}
-                        className="text-center text-2xl tracking-widest font-mono"
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600" disabled={loading}>
-                      {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                      {loading ? 'Verifying...' : 'Verify OTP & Login'}
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      className="w-full" 
-                      onClick={() => { setBpOtpSent(false); setBpOtp(''); }}
-                    >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Change Email
-                    </Button>
-                  </form>
-                )}
-              </div>
-            ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <>
-                  <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                    <p className="text-xs text-blue-800 dark:text-blue-200">
-                      Registration is restricted to <strong>@smifs.com</strong> email addresses. Password will be sent to your email.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
-                    <Input
-                      id="name"
-                      data-testid="name-input"
-                      placeholder="John Doe"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required={!isLogin}
-                    />
-                  </div>
-                  {!isSuperAdmin && (
-                    <div className="space-y-2">
-                      <Label htmlFor="pan_number">Identification (PAN) <span className="text-red-500">*</span></Label>
-                      <Input
-                        id="pan_number"
-                        data-testid="pan-input"
-                        placeholder="ABCDE1234F"
-                        maxLength={10}
-                        value={formData.pan_number}
-                        onChange={(e) => setFormData({ ...formData, pan_number: e.target.value.toUpperCase() })}
-                        required={!isLogin && !isSuperAdmin}
-                      />
-                      <p className="text-xs text-muted-foreground">Required for identity verification</p>
-                    </div>
-                  )}
-                  {!isSuperAdmin && (
-                    <div className="space-y-2">
-                      <Label htmlFor="mobile_number">Mobile Number <span className="text-red-500">*</span></Label>
-                      <Input
-                        id="mobile_number"
-                        data-testid="mobile-input"
-                        placeholder="9876543210"
-                        maxLength={10}
-                        value={formData.mobile_number}
-                        onChange={(e) => setFormData({ ...formData, mobile_number: e.target.value.replace(/\D/g, '') })}
-                        required={!isLogin && !isSuperAdmin}
-                      />
-                      <p className="text-xs text-muted-foreground">For SMS/WhatsApp notifications</p>
-                    </div>
-                  )}
-                </>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
-                <Input
-                  id="email"
-                  data-testid="email-input"
-                  type="email"
-                  placeholder={isLogin ? "you@example.com" : "you@smifs.com"}
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-              {isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password <span className="text-red-500">*</span></Label>
-                  <Input
-                    id="password"
-                    data-testid="password-input"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                  />
-                </div>
-              )}
-              
-              {/* CAPTCHA Section */}
-              {isLogin && captchaRequired && (
-                <div className="space-y-2 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="h-4 w-4 text-amber-600" />
-                    <span className="text-sm font-medium text-amber-800 dark:text-amber-200">Security Verification Required</span>
-                  </div>
-                  <Label htmlFor="captcha" className="text-amber-800 dark:text-amber-200">
-                    {captchaQuestion}
-                  </Label>
-                  <Input
-                    id="captcha"
-                    data-testid="captcha-input"
-                    type="text"
-                    placeholder="Enter your answer"
-                    value={captchaAnswer}
-                    onChange={(e) => setCaptchaAnswer(e.target.value)}
-                    className="bg-white dark:bg-gray-800"
-                    required
-                  />
-                  <p className="text-xs text-amber-600 dark:text-amber-400">
-                    Solve the math problem to verify you're human
-                  </p>
-                </div>
-              )}
-              
-              <Button
-                type="submit"
-                data-testid="submit-button"
-                className="w-full rounded-sm"
-                disabled={loading}
-              >
-                {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
-              </Button>
-              {isLogin && (
-                <div className="text-center">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    data-testid="forgot-password-link"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-              )}
-              
-              {/* Microsoft SSO Login */}
-              {isLogin && ssoConfig?.enabled && (
-                <>
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">
-                        Or continue with
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleMicrosoftLogin}
-                    disabled={ssoLoading}
-                    data-testid="microsoft-sso-button"
-                  >
-                    {ssoLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <svg className="mr-2 h-4 w-4" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-                        <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
-                        <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
-                        <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
-                      </svg>
-                    )}
-                    {ssoLoading ? 'Signing in...' : 'Sign in with Microsoft'}
-                  </Button>
-                </>
-              )}
-            </form>
-            )}
-            </>
-            )}
-
-            {/* Toggle between Sign In / Sign Up - only for Employee login */}
-            {!registrationSuccess && loginType === 'employee' && (
-            <div className="mt-4 text-center text-sm">
-              <button
-                type="button"
-                data-testid="toggle-auth-mode"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setFormData({ email: '', password: '', name: '', pan_number: '', mobile_number: '' });
-                }}
-                className="text-primary hover:underline"
-              >
-                {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-              </button>
-            </div>
-            )}
-          </CardContent>
-        </Card>
-        
-        {/* Version and Credit */}
-        <div className="mt-6 text-center space-y-1">
-          <p className="text-sm text-muted-foreground">
-            Version {getFullVersion()}
-          </p>
-          <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-            <Code className="h-3 w-3" />
-            Vive Coding by{' '}
-            <span className="text-emerald-600 font-medium">
-              Somnath Dey
-            </span>
-          </p>
-        </div>
-
-        {/* Demo Mode Button */}
-        <div className="mt-6 w-full max-w-md">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 rounded-lg blur opacity-25"></div>
-            <button
-              onClick={handleStartDemo}
-              disabled={demoLoading}
-              className="relative w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group"
-              data-testid="demo-mode-btn"
-            >
-              {demoLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Initializing Demo...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  <div className="text-left">
-                    <div className="flex items-center gap-2">
-                      <span>Try Employee Demo</span>
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <p className="text-xs font-normal opacity-90">Experience the Employee workflow</p>
-                  </div>
-                </>
-              )}
-            </button>
+          <div className="min-h-[80px] flex items-center justify-center">
+            <blockquote className="text-xl md:text-2xl font-light text-white/90 leading-relaxed" data-testid="typewriter-quote">
+              "{displayedText}
+              <span className={`inline-block w-0.5 h-6 bg-emerald-400 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>"
+            </blockquote>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            No login required • Explore features with sample data
-          </p>
+          <cite className="text-emerald-400/80 text-sm mt-3 block font-medium">
+            — {peQuotes[currentQuoteIndex].author}
+          </cite>
         </div>
-      </div>
 
-      {/* Mobile Number Required Modal */}
-      {mobileRequired && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Phone className="h-5 w-5 text-emerald-600" />
-                Mobile Number Required
+        {/* Login Card */}
+        <div className="w-full max-w-md animate-fade-in" style={{animationDelay: '0.4s'}}>
+          <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl shadow-black/20" data-testid="login-card">
+            <CardHeader className="space-y-1 pb-4">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="h-1 w-12 bg-gradient-to-r from-transparent to-emerald-500 rounded-full"></div>
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+                <div className="h-1 w-12 bg-gradient-to-l from-transparent to-emerald-500 rounded-full"></div>
+              </div>
+              <CardTitle className="text-2xl font-bold text-center text-white">
+                {isLogin ? 'Welcome Back' : 'Join Privity'}
               </CardTitle>
-              <CardDescription>
-                Please enter your mobile number to continue. This is required for SMS/WhatsApp notifications.
+              <CardDescription className="text-center text-white/60">
+                {isLogin ? 'Enter your credentials to access PE opportunities' : 'Start your private equity journey today'}
               </CardDescription>
             </CardHeader>
+            
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Mobile Number (10 digits)</Label>
-                <Input
-                  type="tel"
-                  placeholder="9876543210"
-                  maxLength={10}
-                  value={mobileUpdateNumber}
-                  onChange={(e) => setMobileUpdateNumber(e.target.value.replace(/\D/g, ''))}
-                  data-testid="mobile-update-input"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Your mobile number will be used for important updates about bookings, payments, and transfers.
-                </p>
-              </div>
-              <Button 
-                onClick={handleMobileUpdate} 
-                disabled={updatingMobile || mobileUpdateNumber.length !== 10}
-                className="w-full"
-                data-testid="update-mobile-btn"
-              >
-                {updatingMobile ? 'Updating...' : 'Continue'}
-              </Button>
+              {/* Registration Success */}
+              {registrationSuccess ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-emerald-500/20 border border-emerald-500/30 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-500/30 rounded-full">
+                        <Mail className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">Registration Submitted!</p>
+                        <p className="text-sm text-white/60">Your request for {registeredEmail} is pending approval.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => { setRegistrationSuccess(false); setIsLogin(true); }}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" /> Back to Login
+                  </Button>
+                </div>
+              ) : mobileRequired ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-amber-400" />
+                      <p className="text-white/80 text-sm">Please update your mobile number to continue</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-white/80">Mobile Number</Label>
+                    <Input
+                      type="tel"
+                      placeholder="Enter 10-digit mobile number"
+                      value={mobileUpdateNumber}
+                      onChange={(e) => setMobileUpdateNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                      data-testid="mobile-update-input"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleMobileUpdate} 
+                    disabled={updatingMobile}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                  >
+                    {updatingMobile ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    Update & Continue
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {/* Login Type Tabs */}
+                  {isLogin && (
+                    <Tabs value={loginType} onValueChange={setLoginType} className="mb-4">
+                      <TabsList className="grid w-full grid-cols-2 bg-white/10">
+                        <TabsTrigger value="employee" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/60">
+                          <Building2 className="w-4 h-4 mr-2" /> Employee
+                        </TabsTrigger>
+                        <TabsTrigger value="partner" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-white/60">
+                          <Users className="w-4 h-4 mr-2" /> Partner
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  )}
+
+                  {/* Employee Login Form */}
+                  {loginType === 'employee' && (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-white/80">Email</Label>
+                        <Input
+                          type="email"
+                          name="email"
+                          placeholder="you@company.com"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          data-testid="email-input"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-white/80">Password</Label>
+                        <Input
+                          type="password"
+                          name="password"
+                          placeholder="••••••••"
+                          value={formData.password}
+                          onChange={handleChange}
+                          required
+                          className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-500 focus:ring-emerald-500/20"
+                          data-testid="password-input"
+                        />
+                      </div>
+                      
+                      {!isLogin && (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-white/80">Full Name</Label>
+                            <Input
+                              type="text"
+                              name="name"
+                              placeholder="Your full name"
+                              value={formData.name}
+                              onChange={handleChange}
+                              required
+                              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                              data-testid="name-input"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white/80">PAN Number</Label>
+                            <Input
+                              type="text"
+                              name="pan_number"
+                              placeholder="ABCDE1234F"
+                              value={formData.pan_number}
+                              onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
+                              maxLength={10}
+                              className="bg-white/10 border-white/20 text-white placeholder:text-white/40 font-mono"
+                              data-testid="pan-input"
+                            />
+                          </div>
+                        </>
+                      )}
+                      
+                      {/* CAPTCHA */}
+                      {captchaRequired && (
+                        <div className="space-y-2 p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl">
+                          <Label className="text-amber-300 flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4" /> Security Question
+                          </Label>
+                          <p className="text-white/80 text-sm">{captchaQuestion}</p>
+                          <Input
+                            type="text"
+                            placeholder="Your answer"
+                            value={captchaAnswer}
+                            onChange={(e) => setCaptchaAnswer(e.target.value)}
+                            className="bg-white/10 border-white/20 text-white"
+                            data-testid="captcha-answer"
+                          />
+                        </div>
+                      )}
+                      
+                      <Button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold text-base shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:shadow-emerald-500/40 hover:scale-[1.02]"
+                        data-testid="submit-btn"
+                      >
+                        {loading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <>
+                            {isLogin ? 'Sign In' : 'Create Account'}
+                            <ChevronRight className="w-5 h-5 ml-2" />
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  )}
+
+                  {/* Partner OTP Login */}
+                  {loginType === 'partner' && isLogin && (
+                    <div className="space-y-4">
+                      {!bpOtpSent ? (
+                        <>
+                          <div className="space-y-2">
+                            <Label className="text-white/80">Registered Mobile Number</Label>
+                            <Input
+                              type="tel"
+                              placeholder="10-digit mobile number"
+                              value={formData.mobile_number}
+                              onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
+                              className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                              data-testid="bp-mobile-input"
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleBpOtpRequest}
+                            disabled={loading}
+                            className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                          >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send OTP'}
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-center">
+                            <p className="text-emerald-300 text-sm">OTP sent to {formData.mobile_number}</p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-white/80">Enter OTP</Label>
+                            <Input
+                              type="text"
+                              placeholder="6-digit OTP"
+                              value={bpOtp}
+                              onChange={(e) => setBpOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                              maxLength={6}
+                              className="bg-white/10 border-white/20 text-white placeholder:text-white/40 text-center text-xl tracking-widest font-mono"
+                              data-testid="bp-otp-input"
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleBpOtpVerify}
+                            disabled={loading}
+                            className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                          >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Login'}
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            onClick={() => setBpOtpSent(false)}
+                            className="w-full text-white/60 hover:text-white hover:bg-white/10"
+                          >
+                            <ArrowLeft className="w-4 h-4 mr-2" /> Change Number
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SSO Login */}
+                  {ssoConfig?.enabled && isLogin && loginType === 'employee' && (
+                    <>
+                      <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t border-white/20"></span>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-transparent px-2 text-white/40">Or continue with</span>
+                        </div>
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={handleSsoLogin}
+                        disabled={ssoLoading}
+                        className="w-full border-white/20 text-white hover:bg-white/10"
+                      >
+                        {ssoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Building2 className="w-4 h-4 mr-2" />}
+                        Microsoft SSO
+                      </Button>
+                    </>
+                  )}
+
+                  {/* Toggle Login/Register */}
+                  {loginType === 'employee' && (
+                    <div className="text-center pt-2">
+                      <button 
+                        type="button"
+                        onClick={() => setIsLogin(!isLogin)}
+                        className="text-emerald-400 hover:text-emerald-300 text-sm font-medium transition-colors"
+                        data-testid="toggle-auth"
+                      >
+                        {isLogin ? "Don't have an account? Register" : "Already have an account? Sign in"}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
+
+          {/* Demo Mode Button */}
+          <div className="mt-4 text-center">
+            <Button
+              variant="ghost"
+              onClick={handleDemoMode}
+              disabled={demoLoading}
+              className="text-white/50 hover:text-white hover:bg-white/10"
+              data-testid="demo-mode-btn"
+            >
+              {demoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+              Try Demo Mode
+            </Button>
+          </div>
         </div>
-      )}
+
+        {/* Footer */}
+        <div className="mt-8 text-center animate-fade-in" style={{animationDelay: '0.6s'}}>
+          <p className="text-white/40 text-xs">
+            © 2026 SMIFS Private Equity. All rights reserved.
+          </p>
+          <p className="text-white/30 text-xs mt-1">
+            Powered by Privity | v{getFullVersion()}
+          </p>
+        </div>
+      </div>
+
+      {/* Custom CSS for animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.8s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
