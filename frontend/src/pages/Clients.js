@@ -788,7 +788,12 @@ const Clients = () => {
   const handleApprove = async (clientId, approve) => {
     try {
       await api.put(`/clients/${clientId}/approve?approve=${approve}`);
-      toast.success(approve ? 'Client approved' : 'Client rejected');
+      toast.success(approve ? 'Client approved - now available for bookings!' : 'Client rejected');
+      
+      // Clear all client caches to ensure immediate visibility
+      localStorage.removeItem('privity_cache_clients');
+      sessionStorage.removeItem('clientsCache');
+      
       fetchClients();
       fetchPendingClients();
     } catch (error) {
