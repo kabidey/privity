@@ -513,6 +513,19 @@ const UserManagement = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
+                              {/* Edit Button - PE Desk only */}
+                              {isPEDesk && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditDialog(user)}
+                                  title="Edit User"
+                                  data-testid={`edit-${user.id}`}
+                                  className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              )}
                               {/* Hierarchy Management Button - for all users except Business Partners */}
                               {user.role !== 6 && (
                                 <Button
