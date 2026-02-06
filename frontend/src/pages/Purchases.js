@@ -560,15 +560,15 @@ const Purchases = () => {
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground block">Total Amount</span>
-                    <span className="font-bold text-lg">₹{paymentsDialog.purchase.total_amount?.toLocaleString('en-IN')}</span>
+                    <span className="font-bold text-lg">₹{paymentsDialog.purchase.total_amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground block">Paid</span>
-                    <span className="font-bold text-lg text-green-600">₹{(paymentsDialog.purchase.total_paid || 0).toLocaleString('en-IN')}</span>
+                    <span className="font-bold text-lg text-green-600">₹{(paymentsDialog.purchase.total_paid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div>
                     <span className="text-muted-foreground block">Remaining</span>
-                    <span className="font-bold text-lg text-orange-600">₹{getRemainingAmount(paymentsDialog.purchase).toLocaleString('en-IN')}</span>
+                    <span className="font-bold text-lg text-orange-600">₹{getRemainingAmount(paymentsDialog.purchase).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>
