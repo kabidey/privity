@@ -144,6 +144,74 @@ const WhatsAppNotifications = () => {
     }
   };
 
+  // Fetch conversations for two-way communication
+  const fetchConversations = async () => {
+    setLoadingConversations(true);
+    try {
+      const [convRes, webhookRes] = await Promise.all([
+        api.get('/whatsapp/conversations'),
+        api.get('/whatsapp/webhook/info').catch(() => ({ data: null }))
+      ]);
+      setConversations(convRes.data.conversations || []);
+      if (webhookRes.data) {
+        setWebhookInfo(webhookRes.data);
+      }
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+    } finally {
+      setLoadingConversations(false);
+    }
+  };
+
+  // Load conversation thread
+  const loadConversationThread = async (phoneNumber) => {
+    try {
+      const res = await api.get(`/whatsapp/conversations/${phoneNumber}`);
+      setSelectedConversation(res.data);
+      setConversationMessages(res.data.messages || []);
+      // Refresh conversation list to update unread counts
+      fetchConversations();
+    } catch (error) {
+      toast.error('Failed to load conversation');
+    }
+  };
+
+  // Send reply in conversation
+  const handleSendReply = async () => {
+    if (!replyMessage.trim() || !selectedConversation) return;
+    
+    setSendingReply(true);
+    try {
+      const res = await api.post(`/whatsapp/conversations/${selectedConversation.phone_number}/reply`, {
+        phone_number: selectedConversation.phone_number,
+        message: replyMessage
+      });
+      
+      if (res.data.success) {
+        toast.success('Reply sent!');
+        setReplyMessage('');
+        // Reload conversation
+        loadConversationThread(selectedConversation.phone_number);
+      } else {
+        toast.error(res.data.message || 'Failed to send reply');
+        if (res.data.hint) {
+          toast.info(res.data.hint);
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send reply');
+    } finally {
+      setSendingReply(false);
+    }
+  };
+
+  // Copy webhook URL
+  const copyWebhookUrl = () => {
+    const url = webhookInfo?.webhook_url || `${window.location.origin}/api/whatsapp/webhook`;
+    navigator.clipboard.writeText(url);
+    toast.success('Webhook URL copied to clipboard!');
+  };
+
   const handleConnectWati = async () => {
     if (!watiEndpoint || !watiToken) {
       toast.error('Please enter both API endpoint and token');
