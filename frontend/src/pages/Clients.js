@@ -1966,7 +1966,7 @@ const Clients = () => {
 
       {/* Documents View Dialog */}
       <Dialog open={documentsDialogOpen} onOpenChange={setDocumentsDialogOpen}>
-        <DialogContent className="sm:max-w-2xl" aria-describedby="docs-desc">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" aria-describedby="docs-desc">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FolderOpen className="h-5 w-5" />
@@ -1976,10 +1976,103 @@ const Clients = () => {
           <p id="docs-desc" className="sr-only">View and download client documents</p>
           {selectedClientDocs && (
             <div className="space-y-4">
-              <div className="border-b pb-3">
-                <p className="font-semibold">{selectedClientDocs.name}</p>
-                <p className="text-sm text-muted-foreground">OTC UCC: {selectedClientDocs.otc_ucc}</p>
+              <div className="border-b pb-3 flex justify-between items-start">
+                <div>
+                  <p className="font-semibold">{selectedClientDocs.name}</p>
+                  <p className="text-sm text-muted-foreground">OTC UCC: {selectedClientDocs.otc_ucc}</p>
+                </div>
+                {/* Re-run OCR Button - PE Level Only */}
+                {isPELevel && selectedClientDocs.documents && selectedClientDocs.documents.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRerunOcr(selectedClientDocs.id)}
+                      disabled={rerunningOcr}
+                      data-testid="rerun-ocr-btn"
+                      className="text-purple-600 hover:text-purple-700"
+                    >
+                      {rerunningOcr ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                          Re-run OCR
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleRerunOcr(selectedClientDocs.id, null, true)}
+                      disabled={rerunningOcr}
+                      data-testid="rerun-ocr-update-btn"
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      {rerunningOcr ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-1" />
+                          Re-run & Update Data
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
+              
+              {/* OCR Re-run Results */}
+              {ocrRerunResults && (
+                <div className="p-4 bg-purple-50 dark:bg-purple-950 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-4 w-4 text-purple-600" />
+                    <span className="font-semibold text-purple-800 dark:text-purple-200">OCR Re-run Results</span>
+                    {ocrRerunResults.update_applied && (
+                      <Badge className="bg-green-500 text-white">Data Updated</Badge>
+                    )}
+                  </div>
+                  
+                  {ocrRerunResults.documents_processed && ocrRerunResults.documents_processed.length > 0 && (
+                    <div className="space-y-2 mb-3">
+                      {ocrRerunResults.documents_processed.map((doc, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-sm p-2 bg-white dark:bg-gray-800 rounded">
+                          <span className="font-medium">{getDocTypeLabel(doc.doc_type)}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Confidence:</span>
+                            <span className={`font-semibold ${doc.new_confidence >= 70 ? 'text-green-600' : doc.new_confidence >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
+                              {doc.old_confidence}% → {doc.new_confidence}%
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {ocrRerunResults.fields_updated && ocrRerunResults.fields_updated.length > 0 && (
+                    <p className="text-sm text-green-700 dark:text-green-300">
+                      <strong>Fields updated:</strong> {ocrRerunResults.fields_updated.filter(f => f !== 'ocr_updated_at' && f !== 'ocr_updated_by').join(', ')}
+                    </p>
+                  )}
+                  
+                  {ocrRerunResults.errors && ocrRerunResults.errors.length > 0 && (
+                    <div className="mt-2 text-sm text-red-600 dark:text-red-400">
+                      <strong>Errors:</strong>
+                      <ul className="list-disc list-inside">
+                        {ocrRerunResults.errors.map((err, idx) => (
+                          <li key={idx}>{err}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
               
               {selectedClientDocs.documents && selectedClientDocs.documents.length > 0 ? (
                 <div className="space-y-3">
@@ -1994,7 +2087,20 @@ const Clients = () => {
                           <p className="text-xs text-muted-foreground">{doc.filename}</p>
                           <p className="text-xs text-muted-foreground">
                             Uploaded: {new Date(doc.upload_date).toLocaleDateString()}
+                            {doc.ocr_rerun_at && (
+                              <span className="ml-2 text-purple-600">
+                                (OCR re-run: {new Date(doc.ocr_rerun_at).toLocaleDateString()})
+                              </span>
+                            )}
                           </p>
+                          {doc.ocr_data?.confidence !== undefined && (
+                            <p className="text-xs">
+                              <span className="text-muted-foreground">OCR Confidence: </span>
+                              <span className={`font-semibold ${doc.ocr_data.confidence >= 70 ? 'text-green-600' : doc.ocr_data.confidence >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                {doc.ocr_data.confidence}%
+                              </span>
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -2009,6 +2115,18 @@ const Clients = () => {
                             title="View OCR Data"
                           >
                             <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {isPELevel && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleRerunOcr(selectedClientDocs.id, [doc.doc_type])}
+                            disabled={rerunningOcr}
+                            title="Re-run OCR for this document"
+                            className="text-purple-600 hover:text-purple-700"
+                          >
+                            <RefreshCw className={`h-4 w-4 ${rerunningOcr ? 'animate-spin' : ''}`} />
                           </Button>
                         )}
                         {!isViewer && (
