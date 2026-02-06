@@ -974,7 +974,7 @@ async def rerun_client_ocr(
     doc_types: Optional[List[str]] = Query(None, description="Specific document types to re-run OCR for. If not provided, runs on all documents."),
     update_client: bool = Query(False, description="If true, update client data with new OCR results"),
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("clients.edit", "re-run OCR on client documents"))
+    _: None = Depends(require_permission("clients.rerun_ocr", "re-run OCR on client documents"))
 ):
     """
     Re-run OCR on client documents.
