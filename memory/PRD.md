@@ -37,6 +37,15 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 07, 2026)
 
+#### ✅ Bug Fix - OTP Registration Missing Password Field (Feb 07, 2026)
+- **Issue:** OTP registration endpoint returned 500 Internal Server Error
+- **Root Cause:** UserCreate Pydantic model was missing `password` field, causing AttributeError when accessing `user_data.password`
+- **Solution:** Added `password: Optional[str] = None` to UserCreate model in `/app/backend/models/__init__.py`
+- **Additional Fix:** Added password validation (required, min 8 chars) in auth.py
+- **Test Created:** `/app/backend/tests/test_registration_otp_flow.py` with 21 comprehensive tests
+- **Test Report:** `/app/test_reports/iteration_76.json`
+- **Verification:** All API and UI tests pass (100% success rate)
+
 #### ✅ Fix - Notification Dashboard Blank Screen (Feb 07, 2026)
 - **Issue:** Clicking on Notification was causing a blank screen
 - **Root Cause:** Incorrect destructuring in NotificationDashboard.js - `const { currentUser: user }` should be `const { user }`
