@@ -2364,17 +2364,28 @@ async def mark_dp_transferred(
             "dp_type": dp_type,
             "quantity": booking.get("quantity"),
             "stock_id": booking.get("stock_id"),
-            "client_id": booking.get("client_id")
+            "client_id": booking.get("client_id"),
+            "contract_note_generated": contract_note is not None,
+            "contract_note_number": contract_note.get("contract_note_number") if contract_note else None
         },
         entity_name=booking.get("booking_number", booking_id)
     )
     
-    return {
+    response = {
         "message": f"Stock transferred via {dp_type}. Client notified about T+2 settlement.",
         "dp_type": dp_type,
         "quantity": booking.get("quantity"),
         "transferred_at": transfer_time.isoformat()
     }
+    
+    if contract_note:
+        response["contract_note"] = {
+            "id": contract_note.get("id"),
+            "number": contract_note.get("contract_note_number"),
+            "status": "generated"
+        }
+    
+    return response
 
 
 
