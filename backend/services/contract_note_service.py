@@ -339,7 +339,7 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     
     seller_data = [
         [Paragraph("<b>Name</b>", label_style), Paragraph(company_name, value_style)],
-        [Paragraph("<b>PAN</b>", label_style), Paragraph(company.get("company_pan", "N/A"), value_style)],
+        [Paragraph("<b>PAN</b>", label_style), Paragraph(company.get("company_pan") or "N/A", value_style)],
     ]
     
     # Add seller demat info
