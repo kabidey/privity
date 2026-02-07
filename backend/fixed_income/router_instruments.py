@@ -515,3 +515,192 @@ async def get_price_from_yield(
     except Exception as e:
         logger.error(f"Error calculating price from yield: {e}")
         raise HTTPException(status_code=500, detail=f"Calculation error: {str(e)}")
+
+
+# ==================== BULK UPLOAD ====================
+
+@router.post("/bulk-upload", response_model=dict)
+async def bulk_upload_instruments(
+    file: bytes,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("fixed_income.create", "bulk upload instruments"))
+):
+    """
+    Bulk upload instruments from CSV.
+    
+    Expected CSV columns:
+    - isin (required)
+    - issuer_name (required)
+    - instrument_type (default: NCD)
+    - face_value (required)
+    - issue_date (required, format: YYYY-MM-DD)
+    - maturity_date (required, format: YYYY-MM-DD)
+    - coupon_rate (required)
+    - coupon_frequency (default: annual)
+    - day_count_convention (default: ACT/365)
+    - credit_rating (default: UNRATED)
+    - rating_agency
+    - current_market_price
+    - lot_size (default: 1)
+    """
+    import csv
+    import io
+    import uuid
+    
+    try:
+        # Parse CSV
+        content = file.decode('utf-8')
+        reader = csv.DictReader(io.StringIO(content))
+        
+        created = 0
+        updated = 0
+        errors = []
+        
+        for row_num, row in enumerate(reader, start=2):
+            try:
+                isin = row.get('isin', '').strip().upper()
+                if not isin:
+                    errors.append(f"Row {row_num}: Missing ISIN")
+                    continue
+                
+                # Check if exists
+                existing = await db.fi_instruments.find_one({"isin": isin})
+                
+                instrument_data = {
+                    "isin": isin,
+                    "issuer_name": row.get('issuer_name', '').strip(),
+                    "issuer_code": row.get('issuer_code', '').strip().upper() or None,
+                    "instrument_type": row.get('instrument_type', 'NCD').strip().upper(),
+                    "face_value": row.get('face_value', '1000').strip(),
+                    "issue_date": row.get('issue_date', '').strip(),
+                    "maturity_date": row.get('maturity_date', '').strip(),
+                    "coupon_rate": row.get('coupon_rate', '0').strip(),
+                    "coupon_frequency": row.get('coupon_frequency', 'annual').strip().lower(),
+                    "day_count_convention": row.get('day_count_convention', 'ACT/365').strip(),
+                    "credit_rating": row.get('credit_rating', 'UNRATED').strip().upper(),
+                    "rating_agency": row.get('rating_agency', '').strip() or None,
+                    "current_market_price": row.get('current_market_price', '').strip() or None,
+                    "lot_size": int(row.get('lot_size', '1').strip() or 1),
+                    "is_active": True,
+                    "updated_at": datetime.now()
+                }
+                
+                # Validate required fields
+                if not instrument_data["issuer_name"]:
+                    errors.append(f"Row {row_num}: Missing issuer_name")
+                    continue
+                if not instrument_data["issue_date"]:
+                    errors.append(f"Row {row_num}: Missing issue_date")
+                    continue
+                if not instrument_data["maturity_date"]:
+                    errors.append(f"Row {row_num}: Missing maturity_date")
+                    continue
+                
+                if existing:
+                    # Update
+                    await db.fi_instruments.update_one(
+                        {"isin": isin},
+                        {"$set": instrument_data}
+                    )
+                    updated += 1
+                else:
+                    # Create
+                    instrument_data["id"] = str(uuid.uuid4())
+                    instrument_data["created_at"] = datetime.now()
+                    instrument_data["created_by"] = current_user.get("id")
+                    instrument_data["created_by_name"] = current_user.get("name")
+                    await db.fi_instruments.insert_one(instrument_data)
+                    created += 1
+                    
+            except Exception as e:
+                errors.append(f"Row {row_num}: {str(e)}")
+                continue
+        
+        logger.info(f"Bulk upload: {created} created, {updated} updated, {len(errors)} errors by {current_user.get('name')}")
+        
+        return {
+            "message": "Bulk upload completed",
+            "created": created,
+            "updated": updated,
+            "errors": errors[:10] if errors else []  # Return first 10 errors
+        }
+        
+    except Exception as e:
+        logger.error(f"Bulk upload failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Bulk upload failed: {str(e)}")
+
+
+@router.get("/download-template")
+async def download_template():
+    """Download CSV template for bulk upload"""
+    import io
+    import csv
+    from fastapi.responses import StreamingResponse
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header row
+    writer.writerow([
+        "isin", "issuer_name", "issuer_code", "instrument_type", "face_value",
+        "issue_date", "maturity_date", "coupon_rate", "coupon_frequency",
+        "day_count_convention", "credit_rating", "rating_agency",
+        "current_market_price", "lot_size"
+    ])
+    
+    # Example row
+    writer.writerow([
+        "INE123A01234", "Example Company Ltd", "EXMPL", "NCD", "1000",
+        "2024-01-15", "2027-01-15", "9.50", "annual",
+        "ACT/365", "AA+", "CRISIL",
+        "1050.00", "1"
+    ])
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=fi_instruments_template.csv"}
+    )
+
+
+# ==================== BULK MARKET DATA UPDATE ====================
+
+@router.post("/bulk-market-data", response_model=dict)
+async def bulk_update_market_data(
+    data: List[InstrumentMarketData],
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("fixed_income.edit", "bulk update market data"))
+):
+    """
+    Bulk update market data for multiple instruments.
+    Used for real-time market data integration.
+    """
+    updated = 0
+    errors = []
+    
+    for item in data:
+        try:
+            result = await db.fi_instruments.update_one(
+                {"isin": item.isin},
+                {"$set": {
+                    "current_market_price": str(item.current_market_price),
+                    "last_traded_price": str(item.last_traded_price) if item.last_traded_price else None,
+                    "last_traded_date": item.last_traded_date.isoformat() if item.last_traded_date else None,
+                    "updated_at": datetime.now()
+                }}
+            )
+            if result.matched_count > 0:
+                updated += 1
+            else:
+                errors.append(f"ISIN {item.isin} not found")
+        except Exception as e:
+            errors.append(f"ISIN {item.isin}: {str(e)}")
+    
+    return {
+        "message": "Bulk market data update completed",
+        "updated": updated,
+        "errors": errors
+    }
+
