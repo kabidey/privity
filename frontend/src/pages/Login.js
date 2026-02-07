@@ -799,7 +799,7 @@ const Login = () => {
                       <div className="space-y-2">
                         <Label className="text-white">Password</Label>
                         <Input type="password" name="password" placeholder="••••••••" value={formData.password}
-                          onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/40" data-testid="password" />
+                          onChange={handleChange} required className="bg-white/10 border-white/30 text-white placeholder:text-white/60" data-testid="password" />
                       </div>
                       
                       {isLogin && (
