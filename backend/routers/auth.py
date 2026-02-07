@@ -19,7 +19,7 @@ from config import (
 )
 from models import (
     UserCreate, UserLogin, User, TokenResponse, ChangePassword,
-    PasswordResetRequest, PasswordResetVerify
+    PasswordResetRequest, PasswordResetVerify, OTPVerifyRequest
 )
 from utils.auth import (
     hash_password, verify_password, create_token, get_current_user
