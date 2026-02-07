@@ -239,6 +239,15 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "connect-src 'self' wss: https:;"
         )
         
+        # Cache-Control headers to prevent browser caching of API responses
+        # This ensures users always get fresh data after deployments
+        path = request.url.path
+        if path.startswith("/api/"):
+            # API responses should not be cached
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        
         # Remove server identification
         if "server" in response.headers:
             del response.headers["server"]
