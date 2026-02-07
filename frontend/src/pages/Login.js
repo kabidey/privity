@@ -694,6 +694,12 @@ const Login = () => {
                               onChange={handleChange} required className="bg-white/10 border-white/20 text-white" data-testid="name" />
                           </div>
                           <div className="space-y-2">
+                            <Label className="text-white/80">Mobile Number</Label>
+                            <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
+                              onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
+                              maxLength={10} required className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
+                          </div>
+                          <div className="space-y-2">
                             <Label className="text-white/80">PAN Number</Label>
                             <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                               onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
