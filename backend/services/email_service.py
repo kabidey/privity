@@ -115,6 +115,108 @@ async def get_mapped_employee_email(client_id: str) -> Optional[str]:
     return None
 
 
+def get_all_client_emails(client: dict) -> List[str]:
+    """
+    Get all email addresses for a client/vendor.
+    Returns list of all valid emails (primary, secondary, tertiary).
+    """
+    emails = []
+    
+    # Primary email
+    if client.get("email"):
+        emails.append(client["email"])
+    
+    # Secondary email
+    if client.get("email_secondary"):
+        emails.append(client["email_secondary"])
+    
+    # Tertiary email
+    if client.get("email_tertiary"):
+        emails.append(client["email_tertiary"])
+    
+    # Additional emails (if stored as list)
+    if client.get("additional_emails") and isinstance(client["additional_emails"], list):
+        for email in client["additional_emails"]:
+            if email and email not in emails:
+                emails.append(email)
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_emails = []
+    for email in emails:
+        email_lower = email.lower().strip()
+        if email_lower and email_lower not in seen:
+            seen.add(email_lower)
+            unique_emails.append(email)
+    
+    return unique_emails
+
+
+async def send_to_all_client_emails(
+    client: dict,
+    subject: str,
+    body: str,
+    cc_email: Optional[str] = None,
+    attachment: Optional[bytes] = None,
+    attachment_name: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Send email to all registered email addresses for a client/vendor.
+    
+    Args:
+        client: Client/vendor dict containing email fields
+        subject: Email subject
+        body: Email HTML body
+        cc_email: Optional CC email address
+        attachment: Optional attachment bytes
+        attachment_name: Optional attachment filename
+    
+    Returns:
+        Dict with results of all email sends
+    """
+    emails = get_all_client_emails(client)
+    
+    if not emails:
+        logging.warning(f"No emails found for client {client.get('name', 'Unknown')}")
+        return {
+            "success": False,
+            "sent": 0,
+            "failed": 0,
+            "emails": [],
+            "message": "No email addresses found for this client"
+        }
+    
+    results = {
+        "success": True,
+        "sent": 0,
+        "failed": 0,
+        "emails": [],
+        "errors": []
+    }
+    
+    for email in emails:
+        try:
+            await send_email(
+                to_email=email,
+                subject=subject,
+                body=body,
+                cc_email=cc_email,
+                attachment=attachment,
+                attachment_name=attachment_name
+            )
+            results["sent"] += 1
+            results["emails"].append(email)
+        except Exception as e:
+            results["failed"] += 1
+            results["errors"].append({"email": email, "error": str(e)})
+            logging.error(f"Failed to send email to {email}: {e}")
+    
+    results["success"] = results["sent"] > 0
+    results["message"] = f"Sent to {results['sent']}/{len(emails)} email addresses"
+    
+    return results
+
+
 def wrap_email_with_branding(body: str, company_info: dict) -> str:
     """Wrap email body with company logo header and footer"""
     
