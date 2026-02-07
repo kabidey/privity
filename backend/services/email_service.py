@@ -670,7 +670,7 @@ async def send_otp_email(to_email: str, otp: str, user_name: str = "User"):
 
 
 async def send_booking_notification_email(
-    client_email: str,
+    client: dict,  # Accept full client dict for multiple emails
     client_name: str,
     stock_symbol: str,
     stock_name: str,
@@ -679,7 +679,7 @@ async def send_booking_notification_email(
     booking_number: str,
     cc_email: Optional[str] = None
 ):
-    """Send booking creation notification email"""
+    """Send booking creation notification email to ALL client emails"""
     subject = f"New Booking Order - {stock_symbol} | {booking_number}"
     body = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -711,7 +711,21 @@ async def send_booking_notification_email(
         <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
     </div>
     """
-    await send_email(client_email, subject, body, cc_email)
+    
+    # Support both old (string email) and new (client dict) calling patterns
+    if isinstance(client, str):
+        # Legacy call with just email string
+        await send_email(client, subject, body, cc_email)
+    else:
+        # New call with full client dict - send to all emails
+        all_emails = get_all_client_emails(client)
+        first = True
+        for email in all_emails:
+            try:
+                await send_email(email, subject, body, cc_email if first else None)
+                first = False
+            except Exception as e:
+                logging.error(f"Failed to send booking notification to {email}: {e}")
 
 
 async def send_booking_approval_email(
