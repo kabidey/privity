@@ -37,6 +37,88 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 07, 2026)
 
+#### ✅ Fixed Income Trading Module (Feb 07, 2026)
+**Complete new module for NCD/Bond trading with same RBAC hierarchy**
+
+**Core Components Created:**
+1. **Security Master** (`/app/backend/fixed_income/router_instruments.py`)
+   - ISIN, Issuer, Face Value, Issue/Maturity dates
+   - Coupon Rate, Frequency (Monthly/Quarterly/Semi-Annual/Annual)
+   - Day Count Conventions (30/360, ACT/ACT, ACT/360, ACT/365)
+   - Credit Ratings, Put/Call options
+   - Live market pricing with accrued interest & YTM
+
+2. **Calculation Engine** (`/app/backend/fixed_income/calculations.py`)
+   - `calculate_accrued_interest()` - Multiple day count conventions
+   - `calculate_ytm()` - Newton-Raphson iterative solver
+   - `price_from_yield()` - Reverse calculation
+   - `calculate_dirty_price()` - Clean + Accrued Interest
+   - `calculate_duration()` / `calculate_modified_duration()`
+   - `generate_cash_flow_schedule()` - All future payments
+   - All calculations use `Decimal` for financial precision
+
+3. **Order Management System** (`/app/backend/fixed_income/router_orders.py`)
+   - Primary/Secondary market orders
+   - Deal Sheet generation with full pricing
+   - Client approval workflow (Email notification)
+   - Payment tracking
+   - Settlement management (Deal Booked → Approved → Paid → Settled)
+
+4. **Reports & Analytics** (`/app/backend/fixed_income/router_reports.py`)
+   - Holdings Report with Mark-to-Market
+   - Cash Flow Calendar (upcoming coupon/principal)
+   - Maturity Schedule
+   - Portfolio Analytics (rating distribution, concentration)
+   - CSV Export
+
+**RBAC Integration:**
+- PE Desk/Manager: Full access (`fixed_income.*`)
+- Finance: View + Payment recording
+- Employee: View + Order creation
+- Viewer: Read-only access
+- Business Partner: Limited view
+
+**API Endpoints:**
+```
+# Security Master
+GET/POST    /api/fixed-income/instruments
+GET/PUT/DEL /api/fixed-income/instruments/{id}
+PATCH       /api/fixed-income/instruments/{id}/market-data
+POST        /api/fixed-income/instruments/calculate-pricing
+POST        /api/fixed-income/instruments/price-from-yield
+
+# Order Management
+GET/POST    /api/fixed-income/orders
+GET         /api/fixed-income/orders/{id}
+POST        /api/fixed-income/orders/{id}/send-deal-sheet
+POST        /api/fixed-income/orders/{id}/approve
+POST        /api/fixed-income/orders/{id}/reject
+POST        /api/fixed-income/orders/{id}/record-payment
+POST        /api/fixed-income/orders/{id}/initiate-settlement
+POST        /api/fixed-income/orders/{id}/complete-settlement
+
+# Reports
+GET         /api/fixed-income/reports/holdings
+GET         /api/fixed-income/reports/cash-flow-calendar
+GET         /api/fixed-income/reports/maturity-schedule
+GET         /api/fixed-income/reports/transactions
+GET         /api/fixed-income/reports/analytics/portfolio-summary
+GET         /api/fixed-income/reports/export/holdings-csv
+GET         /api/fixed-income/reports/export/cash-flow-csv
+```
+
+**Files Created:**
+- `/app/backend/fixed_income/__init__.py`
+- `/app/backend/fixed_income/models.py`
+- `/app/backend/fixed_income/calculations.py`
+- `/app/backend/fixed_income/router_instruments.py`
+- `/app/backend/fixed_income/router_orders.py`
+- `/app/backend/fixed_income/router_reports.py`
+
+**Files Modified:**
+- `/app/backend/services/permission_service.py` - Added FI permissions
+- `/app/backend/server.py` - Registered FI routers
+
 #### ✅ Conformation Note Redesign (Feb 07, 2026)
 - **Issue:** User reported text overlapping issues and wanted the document renamed to "Conformation Note" with better aesthetics
 - **Solution:** Complete redesign of the PDF generation with:
