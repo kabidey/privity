@@ -302,11 +302,11 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     # ==================== BUYER DETAILS ====================
     elements.append(Paragraph("BUYER DETAILS", section_title))
     
-    client_name = client.get("name", "N/A") if client else "N/A"
-    client_pan = client.get("pan_number", "N/A") if client else "N/A"
-    client_address = client.get("address", "N/A") if client else "N/A"
+    client_name = safe_str(client.get("name") if client else None)
+    client_pan = safe_str(client.get("pan_number") if client else None)
+    client_address = safe_str(client.get("address") if client else None)
     # Truncate long addresses
-    if len(client_address) > 60:
+    if client_address != "N/A" and len(client_address) > 60:
         client_address = client_address[:60] + "..."
     
     buyer_data = [
@@ -318,12 +318,15 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     # Add demat details if available
     if client:
         dp_info_parts = []
-        if client.get("dp_name"):
-            dp_info_parts.append(f"DP: {client.get('dp_name')}")
-        if client.get("dp_id"):
-            dp_info_parts.append(f"DP ID: {client.get('dp_id')}")
-        if client.get("client_id") or client.get("otc_ucc"):
-            dp_info_parts.append(f"Client ID: {client.get('client_id') or client.get('otc_ucc')}")
+        dp_name = client.get("dp_name")
+        dp_id = client.get("dp_id")
+        cli_id = client.get("client_id") or client.get("otc_ucc")
+        if dp_name:
+            dp_info_parts.append(f"DP: {dp_name}")
+        if dp_id:
+            dp_info_parts.append(f"DP ID: {dp_id}")
+        if cli_id:
+            dp_info_parts.append(f"Client ID: {cli_id}")
         
         if dp_info_parts:
             buyer_data.append([
