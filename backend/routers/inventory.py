@@ -562,11 +562,19 @@ async def send_consolidated_pe_report(
         lp = item.get("landing_price", 0)
         lp_formatted = f"₹{lp:,.2f}" if lp and lp > 0 else '<span style="color: #9ca3af;">Not Set</span>'
         
+        # Show availability status
+        avail_qty = item.get("available_quantity", 0)
+        if avail_qty > 0:
+            availability = f'<span style="color: #059669; font-weight: 500;">Available</span>'
+        else:
+            availability = f'<span style="color: #dc2626; font-weight: 500;">Out of Stock</span>'
+        
         table_rows += f"""
         <tr style="background-color: {bg_color};">
             <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; font-family: 'Courier New', monospace; font-weight: 600; color: #064E3B;">{item.get('stock_symbol', 'N/A')}</td>
             <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; color: #374151;">{item.get('stock_name', 'N/A')}</td>
             <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #059669; font-size: 15px;">{lp_formatted}</td>
+            <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: center; font-size: 13px;">{availability}</td>
         </tr>
         """
     
