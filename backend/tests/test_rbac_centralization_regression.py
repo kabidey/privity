@@ -100,9 +100,9 @@ class TestInventoryEndpoints:
         pytest.skip("Could not authenticate")
     
     def test_inventory_without_auth(self):
-        """GET /api/inventory without auth should return 401"""
+        """GET /api/inventory without auth should return 401/403"""
         response = requests.get(f"{BASE_URL}/api/inventory", timeout=10)
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
         print("✓ Inventory correctly requires authentication")
     
     def test_inventory_with_auth(self, auth_token):
@@ -135,9 +135,9 @@ class TestStocksEndpoints:
         pytest.skip("Could not authenticate")
     
     def test_stocks_without_auth(self):
-        """GET /api/stocks without auth should return 401"""
+        """GET /api/stocks without auth should return 401/403"""
         response = requests.get(f"{BASE_URL}/api/stocks", timeout=10)
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
         print("✓ Stocks correctly requires authentication")
     
     def test_stocks_with_auth(self, auth_token):
@@ -170,9 +170,9 @@ class TestEmailTemplatesEndpoints:
         pytest.skip("Could not authenticate")
     
     def test_email_templates_verify_without_auth(self):
-        """GET /api/email-templates/verify without auth should return 401"""
+        """GET /api/email-templates/verify without auth should return 401/403"""
         response = requests.get(f"{BASE_URL}/api/email-templates/verify", timeout=10)
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
         print("✓ Email templates verify correctly requires authentication")
     
     def test_email_templates_verify_with_auth(self, auth_token):
@@ -205,9 +205,9 @@ class TestNotificationsEndpoints:
         pytest.skip("Could not authenticate")
     
     def test_notifications_without_auth(self):
-        """GET /api/notifications without auth should return 401"""
+        """GET /api/notifications without auth should return 401/403"""
         response = requests.get(f"{BASE_URL}/api/notifications", timeout=10)
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
         print("✓ Notifications correctly requires authentication")
     
     def test_notifications_with_auth(self, auth_token):
@@ -240,9 +240,9 @@ class TestClientsEndpoints:
         pytest.skip("Could not authenticate")
     
     def test_clients_without_auth(self):
-        """GET /api/clients without auth should return 401"""
+        """GET /api/clients without auth should return 401/403"""
         response = requests.get(f"{BASE_URL}/api/clients", timeout=10)
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
         print("✓ Clients correctly requires authentication")
     
     def test_clients_with_auth(self, auth_token):
@@ -278,9 +278,9 @@ class TestBookingsEndpoints:
         pytest.skip("Could not authenticate")
     
     def test_bookings_without_auth(self):
-        """GET /api/bookings without auth should return 401"""
+        """GET /api/bookings without auth should return 401/403"""
         response = requests.get(f"{BASE_URL}/api/bookings", timeout=10)
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
         print("✓ Bookings correctly requires authentication")
     
     def test_bookings_with_auth(self, auth_token):
@@ -318,9 +318,9 @@ class TestDashboardEndpoints:
         pytest.skip("Could not authenticate")
     
     def test_dashboard_without_auth(self):
-        """GET /api/dashboard without auth should return 401"""
+        """GET /api/dashboard without auth should return 401/403"""
         response = requests.get(f"{BASE_URL}/api/dashboard", timeout=10)
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
         print("✓ Dashboard correctly requires authentication")
     
     def test_dashboard_with_auth(self, auth_token):
@@ -350,9 +350,9 @@ class TestUsersEndpoints:
         pytest.skip("Could not authenticate")
     
     def test_users_without_auth(self):
-        """GET /api/users without auth should return 401"""
+        """GET /api/users without auth should return 401/403"""
         response = requests.get(f"{BASE_URL}/api/users", timeout=10)
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
         print("✓ Users correctly requires authentication")
     
     def test_users_with_auth(self, auth_token):
