@@ -8,4 +8,5 @@ export { default as LoginForm } from './LoginForm';
 export { default as RegistrationForm } from './RegistrationForm';
 export { default as PartnerLogin } from './PartnerLogin';
 export { default as OtpInput } from './OtpInput';
+export { default as CacheClearPrompt } from './CacheClearPrompt';
 export * from './constants';
