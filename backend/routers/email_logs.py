@@ -10,16 +10,11 @@ from pydantic import BaseModel
 from database import db
 from utils.auth import get_current_user
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level
 )
 
 router = APIRouter(prefix="/email-logs", tags=["Email Logs"])
-
-
-# Helper function for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 class EmailLog(BaseModel):
