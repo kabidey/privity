@@ -1910,49 +1910,35 @@ async def send_stock_transferred_email(
     </div>
     """
     
-    # Get additional client emails
-    additional_emails = []
-    if client.get("secondary_email"):
-        additional_emails.append(client["secondary_email"])
-    if client.get("tertiary_email"):
-        additional_emails.append(client["tertiary_email"])
+    # Send to ALL client emails using the unified function
+    all_emails = get_all_client_emails(client)
     
-    # Send primary email
-    await send_email(
-        client_email,
-        subject,
-        body,
-        cc_email=cc_email,
-        template_key="stock_transferred",
-        variables={
-            "booking_number": booking_number,
-            "client_name": client_name,
-            "stock_symbol": stock_symbol,
-            "quantity": quantity,
-            "dp_type": dp_type,
-            "t2_date": formatted_t2_date
-        },
-        related_entity_type="booking",
-        related_entity_id=booking_id
-    )
+    if not all_emails:
+        logging.warning(f"Cannot send transfer notification - no email for client {client.get('id')}")
+        return
     
-    # Send to additional client emails
-    for email in additional_emails:
-        if email and email != client_email:
+    # First email gets CC
+    first_email = True
+    for email in all_emails:
+        try:
             await send_email(
                 email,
                 subject,
                 body,
+                cc_email=cc_email if first_email else None,
                 template_key="stock_transferred",
                 variables={
                     "booking_number": booking_number,
                     "client_name": client_name,
                     "stock_symbol": stock_symbol,
                     "quantity": quantity,
-                    "dp_type": dp_type
+                    "dp_type": dp_type,
+                    "t2_date": formatted_t2_date
                 },
                 related_entity_type="booking",
                 related_entity_id=booking_id
             )
-    
-    logging.info(f"Stock transfer notification sent for booking {booking_number} to {client_email}")
+            logging.info(f"Stock transfer notification sent for booking {booking_number} to {email}")
+            first_email = False
+        except Exception as e:
+            logging.error(f"Failed to send stock transfer email to {email}: {e}")
