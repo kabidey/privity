@@ -736,7 +736,7 @@ const Login = () => {
               <CardTitle className="text-2xl font-bold text-center text-white">
                 {isLogin ? 'Welcome Back' : 'Join Privity'}
               </CardTitle>
-              <CardDescription className="text-center text-white/60">
+              <CardDescription className="text-center text-white/80">
                 {isLogin ? 'Access exclusive PE opportunities' : 'Start your private equity journey'}
               </CardDescription>
             </CardHeader>
