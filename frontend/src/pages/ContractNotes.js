@@ -69,7 +69,7 @@ const ContractNotes = () => {
       setNotes(response.data.notes);
       setTotal(response.data.total);
     } catch (error) {
-      toast.error('Failed to load contract notes');
+      toast.error('Failed to load confirmation notes');
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,7 @@ const ContractNotes = () => {
       
       toast.success('Contract note downloaded');
     } catch (error) {
-      toast.error('Failed to download contract note');
+      toast.error('Failed to download confirmation note');
     }
   };
 
@@ -124,7 +124,7 @@ const ContractNotes = () => {
   };
 
   const handleRegenerate = async (noteId) => {
-    if (!window.confirm('Are you sure you want to regenerate this contract note? The existing PDF will be replaced.')) {
+    if (!window.confirm('Are you sure you want to regenerate this confirmation note? The existing PDF will be replaced.')) {
       return;
     }
     
@@ -134,14 +134,14 @@ const ContractNotes = () => {
       toast.success(response.data.message);
       fetchNotes(); // Refresh to show updated data
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to regenerate contract note');
+      toast.error(error.response?.data?.detail || 'Failed to regenerate confirmation note');
     } finally {
       setRegenerating(null);
     }
   };
 
   const handleGenerateMissing = async () => {
-    if (!window.confirm('Generate contract notes for all completed DP transfers that are missing notes?\n\nThis may take a moment.')) {
+    if (!window.confirm('Generate confirmation notes for all completed DP transfers that are missing notes?\n\nThis may take a moment.')) {
       return;
     }
     
@@ -151,11 +151,11 @@ const ContractNotes = () => {
       const { results } = response.data;
       
       if (results.generated > 0) {
-        toast.success(`Generated ${results.generated} missing contract notes`);
+        toast.success(`Generated ${results.generated} missing confirmation notes`);
       } else if (results.already_have_cn > 0) {
-        toast.info('All transferred bookings already have contract notes');
+        toast.info('All transferred bookings already have confirmation notes');
       } else {
-        toast.info('No bookings found that need contract notes');
+        toast.info('No bookings found that need confirmation notes');
       }
       
       if (results.failed > 0) {
@@ -376,7 +376,7 @@ const ContractNotes = () => {
                 {notes.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                      No contract notes found
+                      No confirmation notes found
                     </TableCell>
                   </TableRow>
                 ) : (
