@@ -25,7 +25,9 @@ DEFAULT_ROLES = {
             "inventory.*", "purchases.*", "vendors.*", "finance.view",
             "finance.view_reports", "users.view", "business_partners.*",
             "referral_partners.*", "reports.*", "dp.*", "revenue.*",
-            "research.*", "contract_notes.*"
+            "research.*", "contract_notes.*",
+            # Fixed Income permissions
+            "fixed_income.*"
         ]
     },
     3: {  # Finance
@@ -34,7 +36,10 @@ DEFAULT_ROLES = {
             "dashboard.view", "bookings.view", "bookings.view_all",
             "bookings.record_payment", "finance.*", "reports.view",
             "reports.view_reports", "purchases.view", "purchases.record_payment",
-            "revenue.rp_view", "revenue.employee_view"
+            "revenue.rp_view", "revenue.employee_view",
+            # Fixed Income - view and payment
+            "fixed_income.view", "fixed_income.report_view", 
+            "fixed_income.payment_record"
         ]
     },
     4: {  # Viewer
@@ -44,7 +49,9 @@ DEFAULT_ROLES = {
             "clients.view", "stocks.view", "inventory.view",
             "purchases.view", "vendors.view", "finance.view",
             "users.view", "business_partners.view", "referral_partners.view",
-            "reports.view", "research.view", "revenue.rp_view", "revenue.employee_view"
+            "reports.view", "research.view", "revenue.rp_view", "revenue.employee_view",
+            # Fixed Income - view only
+            "fixed_income.view", "fixed_income.order_view", "fixed_income.report_view"
         ]
     },
     5: {  # Partners Desk
@@ -52,14 +59,19 @@ DEFAULT_ROLES = {
         "permissions": [
             "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "business_partners.*",
-            "referral_partners.view", "revenue.rp_view"
+            "referral_partners.view", "revenue.rp_view",
+            # Fixed Income - view and order creation
+            "fixed_income.view", "fixed_income.order_view", 
+            "fixed_income.order_create", "fixed_income.report_view"
         ]
     },
     6: {  # Business Partner
         "name": "Business Partner",
         "permissions": [
             "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
-            "clients.view", "clients.create"
+            "clients.view", "clients.create",
+            # Fixed Income - limited view
+            "fixed_income.view", "fixed_income.order_view", "fixed_income.report_view"
         ]
     },
     7: {  # Employee
@@ -68,7 +80,11 @@ DEFAULT_ROLES = {
             "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "clients.edit",
             "stocks.view", "inventory.view", "revenue.rp_view",
-            "revenue.employee_view", "revenue.team_view", "research.view"
+            "revenue.employee_view", "revenue.team_view", "research.view",
+            # Fixed Income - view and order creation
+            "fixed_income.view", "fixed_income.order_view", 
+            "fixed_income.order_create", "fixed_income.order_send",
+            "fixed_income.report_view"
         ]
     }
 }
