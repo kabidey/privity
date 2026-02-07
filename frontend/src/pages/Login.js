@@ -751,6 +751,14 @@ const Login = () => {
                           onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/40" data-testid="password" />
                       </div>
                       
+                      {isLogin && (
+                        <div className="flex justify-end">
+                          <a href="/forgot-password" className={`text-${currentTheme.primary}-400 text-sm hover:text-${currentTheme.primary}-300 hover:underline`}>
+                            Forgot Password?
+                          </a>
+                        </div>
+                      )}
+                      
                       {!isLogin && (
                         <>
                           {registrationStep === 'form' ? (
