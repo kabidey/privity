@@ -391,45 +391,66 @@ const Login = () => {
         toast.success('Login successful!');
         navigate('/');
       } else {
-        // Registration - validate domain
-        const email = formData.email.toLowerCase();
-        const allowedDomains = ['smifs.com', 'smifs.co.in'];
-        const emailDomain = email.split('@')[1];
-        
-        if (!allowedDomains.includes(emailDomain)) {
-          toast.error('Registration is only allowed for @smifs.com or @smifs.co.in email addresses');
-          setLoading(false);
-          return;
+        // OTP-Based Registration Flow
+        if (registrationStep === 'form') {
+          // Step 1: Validate and request OTP
+          const email = formData.email.toLowerCase();
+          const allowedDomains = ['smifs.com', 'smifs.co.in'];
+          const emailDomain = email.split('@')[1];
+          
+          if (!allowedDomains.includes(emailDomain)) {
+            toast.error('Registration is only allowed for @smifs.com or @smifs.co.in email addresses');
+            setLoading(false);
+            return;
+          }
+          
+          // Validate mobile number (required)
+          const cleanMobile = formData.mobile_number?.replace(/\D/g, '') || '';
+          if (cleanMobile.length !== 10) {
+            toast.error('Please enter a valid 10-digit mobile number');
+            setLoading(false);
+            return;
+          }
+          
+          // Validate PAN number (required, format: ABCDE1234F)
+          const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+          const cleanPan = formData.pan_number?.toUpperCase().trim() || '';
+          if (!cleanPan || !panRegex.test(cleanPan)) {
+            toast.error('Please enter a valid PAN number (e.g., ABCDE1234F)');
+            setLoading(false);
+            return;
+          }
+          
+          // Request OTP
+          await api.post('/auth/register/request-otp', {
+            email: formData.email,
+            password: formData.password,
+            name: formData.name,
+            mobile_number: cleanMobile,
+            pan_number: cleanPan,
+          });
+          
+          setRegistrationStep('otp');
+          setOtpTimer(600); // 10 minutes in seconds
+          toast.success(`OTP sent to ${formData.email}. Please check your inbox.`);
+        } else if (registrationStep === 'otp') {
+          // Step 2: Verify OTP and complete registration
+          if (!registrationOtp || registrationOtp.length !== 6) {
+            toast.error('Please enter the 6-digit OTP');
+            setLoading(false);
+            return;
+          }
+          
+          await api.post('/auth/register/verify-otp', null, {
+            params: { email: formData.email, otp: registrationOtp }
+          });
+          
+          setRegistrationSuccess(true);
+          setRegisteredEmail(formData.email);
+          setRegistrationStep('form');
+          setRegistrationOtp('');
+          toast.success('Registration successful! You can now login.');
         }
-        
-        // Validate mobile number (required)
-        const cleanMobile = formData.mobile_number?.replace(/\D/g, '') || '';
-        if (cleanMobile.length !== 10) {
-          toast.error('Please enter a valid 10-digit mobile number');
-          setLoading(false);
-          return;
-        }
-        
-        // Validate PAN number (required, format: ABCDE1234F)
-        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-        const cleanPan = formData.pan_number?.toUpperCase().trim() || '';
-        if (!cleanPan || !panRegex.test(cleanPan)) {
-          toast.error('Please enter a valid PAN number (e.g., ABCDE1234F)');
-          setLoading(false);
-          return;
-        }
-        
-        // Send registration with mobile number
-        await api.post('/auth/register', {
-          email: formData.email,
-          password: formData.password,
-          name: formData.name,
-          mobile_number: cleanMobile,
-          pan_number: cleanPan,
-        });
-        setRegistrationSuccess(true);
-        setRegisteredEmail(formData.email);
-        toast.success('Registration submitted! Awaiting approval.');
       }
     } catch (error) {
       const errorResponse = error.response?.data;
