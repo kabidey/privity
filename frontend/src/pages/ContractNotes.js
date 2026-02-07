@@ -140,6 +140,36 @@ const ContractNotes = () => {
     }
   };
 
+  const handleGenerateMissing = async () => {
+    if (!window.confirm('Generate contract notes for all completed DP transfers that are missing notes?\n\nThis may take a moment.')) {
+      return;
+    }
+    
+    setGeneratingMissing(true);
+    try {
+      const response = await api.post('/contract-notes/generate-missing');
+      const { results } = response.data;
+      
+      if (results.generated > 0) {
+        toast.success(`Generated ${results.generated} missing contract notes`);
+      } else if (results.already_have_cn > 0) {
+        toast.info('All transferred bookings already have contract notes');
+      } else {
+        toast.info('No bookings found that need contract notes');
+      }
+      
+      if (results.failed > 0) {
+        toast.warning(`${results.failed} notes failed to generate`);
+      }
+      
+      fetchNotes(); // Refresh list
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to generate missing notes');
+    } finally {
+      setGeneratingMissing(false);
+    }
+  };
+
   const viewNoteDetail = (note) => {
     setSelectedNote(note);
     setDetailOpen(true);
