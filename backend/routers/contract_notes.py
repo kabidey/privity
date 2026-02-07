@@ -416,7 +416,9 @@ async def regenerate_contract_note(
     """
     Regenerate an existing contract note PDF
     Useful when client/stock details have been updated
+    Stronger regeneration with multiple fallback methods
     """
+    from services.file_storage import upload_file_to_gridfs, get_file_url
     
     note = await db.contract_notes.find_one({"id": note_id}, {"_id": 0})
     if not note:
@@ -428,34 +430,69 @@ async def regenerate_contract_note(
         raise HTTPException(status_code=404, detail="Associated booking not found")
     
     try:
-        # Delete old PDF file
+        # Delete old PDF file if exists
         old_pdf_path = f"/app{note.get('pdf_url', '')}"
-        if os.path.exists(old_pdf_path):
-            os.remove(old_pdf_path)
+        if old_pdf_path and os.path.exists(old_pdf_path):
+            try:
+                os.remove(old_pdf_path)
+            except Exception as e:
+                logger.warning(f"Failed to delete old PDF: {e}")
         
-        # Regenerate PDF
+        # Regenerate PDF with fresh data
         pdf_buffer = await generate_contract_note_pdf(booking)
+        pdf_content = pdf_buffer.getvalue()
         
-        # Save new PDF
+        if not pdf_content or len(pdf_content) < 100:
+            raise ValueError("Generated PDF is empty or too small")
+        
+        # Create directories
         cn_dir = "/app/uploads/contract_notes"
         os.makedirs(cn_dir, exist_ok=True)
         
         cn_number = note.get("contract_note_number", "CN")
-        filename = f"CN_{cn_number.replace('/', '_')}_{booking_id[:8]}.pdf"
+        filename = f"CN_{cn_number.replace('/', '_')}_{booking_id[:8]}_regen.pdf"
         filepath = os.path.join(cn_dir, filename)
         
+        # Save to disk
         with open(filepath, "wb") as f:
-            f.write(pdf_buffer.getvalue())
+            f.write(pdf_content)
+        
+        # Also upload to GridFS for backup
+        try:
+            file_id = await upload_file_to_gridfs(
+                pdf_content,
+                filename,
+                "application/pdf",
+                {
+                    "category": "contract_notes",
+                    "entity_id": booking_id,
+                    "contract_note_number": cn_number,
+                    "regenerated": True,
+                    "created_by": current_user["id"]
+                }
+            )
+            gridfs_url = get_file_url(file_id)
+        except Exception as e:
+            logger.warning(f"GridFS upload failed during regeneration: {e}")
+            file_id = None
+            gridfs_url = None
         
         # Update contract note record
+        update_data = {
+            "pdf_url": f"/uploads/contract_notes/{filename}",
+            "regenerated_at": datetime.now(timezone.utc).isoformat(),
+            "regenerated_by": current_user["id"],
+            "regenerated_by_name": current_user["name"],
+            "regeneration_count": note.get("regeneration_count", 0) + 1
+        }
+        
+        if file_id:
+            update_data["file_id"] = file_id
+            update_data["gridfs_url"] = gridfs_url
+        
         await db.contract_notes.update_one(
             {"id": note_id},
-            {"$set": {
-                "pdf_url": f"/uploads/contract_notes/{filename}",
-                "regenerated_at": datetime.now(timezone.utc).isoformat(),
-                "regenerated_by": current_user["id"],
-                "regenerated_by_name": current_user["name"]
-            }}
+            {"$set": update_data}
         )
         
         # Create audit log
@@ -467,14 +504,21 @@ async def regenerate_contract_note(
             user_name=current_user["name"],
             user_role=current_user.get("role", 6),
             entity_name=cn_number,
-            details={"booking_id": booking_id}
+            details={
+                "booking_id": booking_id,
+                "pdf_size_bytes": len(pdf_content),
+                "gridfs_backup": file_id is not None
+            }
         )
         
         return {
+            "success": True,
             "message": "Contract note regenerated successfully",
             "contract_note_number": cn_number,
-            "pdf_url": f"/uploads/contract_notes/{filename}"
+            "pdf_url": f"/uploads/contract_notes/{filename}",
+            "pdf_size": len(pdf_content)
         }
     
     except Exception as e:
+        logger.error(f"Failed to regenerate contract note {note_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to regenerate contract note: {str(e)}")
