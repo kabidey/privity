@@ -304,16 +304,13 @@ async def request_registration_otp(user_data: UserCreate, request: Request = Non
 
 
 @router.post("/register/verify-otp")
-async def verify_registration_otp(data: dict):
+async def verify_registration_otp(data: OTPVerifyRequest):
     """
     Step 2 of OTP-based registration.
     Verifies OTP and creates the user account.
     """
-    email = data.get("email", "").lower()
-    otp = data.get("otp", "")
-    
-    if not email or not otp:
-        raise HTTPException(status_code=400, detail="Email and OTP are required")
+    email = data.email.lower()
+    otp = data.otp
     
     email_lower = email.lower()
     
