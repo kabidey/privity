@@ -35,7 +35,44 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## What's Been Implemented
 
-### Latest Updates (Feb 06, 2026)
+### Latest Updates (Feb 07, 2026)
+
+#### ✅ Feature - Browser Cache-Busting Solution (Feb 07, 2026)
+- **Issue:** Users were not seeing new enhancements after deployment due to aggressive browser/service worker caching
+- **Implementation:**
+  - Updated service worker to use network-first strategy for JS/CSS bundles
+  - Added `ALWAYS_NETWORK_PATTERNS` to force fresh fetches for React bundles and index.html
+  - Added auto-reload when service worker detects update (SW_UPDATED message handler in App.js)
+  - Added Cache-Control headers (`no-cache, no-store, must-revalidate`) to all API responses
+  - Bumped service worker version to 6.3.0 to force cache invalidation
+- **Files Modified:**
+  - `/app/frontend/public/service-worker.js` - Network-first for critical assets
+  - `/app/frontend/src/App.js` - Added SW update listener and auto-reload
+  - `/app/backend/middleware/security.py` - Added Cache-Control headers to API responses
+- **Test Status:** Verified - Cache-Control headers present in API responses
+
+#### ✅ Feature - Data Quality Cleanup System (Feb 07, 2026)
+- **Issue:** Database contained orphaned inventory records and items with missing landing prices
+- **Implementation:**
+  - Created `/app/backend/scripts/data_cleanup.py` - Comprehensive cleanup script
+  - Added `GET /api/inventory/data-quality/report` endpoint - Shows data health metrics
+  - Added `POST /api/inventory/data-quality/cleanup` endpoint - Runs cleanup with dry-run option
+  - Cleanup operations:
+    1. Delete orphaned inventory records (stock_symbol = "Unknown")
+    2. Set missing landing_price from WAP or stock master data
+    3. Validate and update inventory-stock references
+- **Results:** Health score improved from 24.6% to 76.2%
+  - 20 orphaned records deleted
+  - 1 missing LP fixed (21 items already had WAP fallback working)
+  - Inventory count cleaned from 25 to 5 valid records
+- **Files Created:**
+  - `/app/backend/scripts/data_cleanup.py` - Data cleanup module
+  - `/app/backend/scripts/__init__.py` - Package init
+- **Files Modified:**
+  - `/app/backend/routers/inventory.py` - Added data quality endpoints
+- **Test Status:** Verified via API - Data cleanup executed successfully
+
+### Previous Updates (Feb 06-07, 2026)
 
 #### ✅ Fix - Mobile Numbers Not Visible in User Management (Feb 07, 2026)
 - **Issue:** Mobile numbers captured during user registration were not visible in the User Management page
