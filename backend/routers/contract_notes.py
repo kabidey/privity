@@ -4,6 +4,7 @@ Handles confirmation note generation and management
 Generated after DP transfer and sent to clients
 """
 import os
+import io
 import logging
 from typing import Optional
 from datetime import datetime, timezone
