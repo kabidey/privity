@@ -14,14 +14,9 @@ from datetime import datetime, timezone
 import logging
 
 from database import db
-from config import ROLES
 from utils.auth import get_current_user, verify_password
 from services.totp_service import TwoFactorManager, TOTPService, BackupCodeService
 from services.audit_service import create_audit_log
-from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission
-)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth/2fa", tags=["Two-Factor Authentication"])

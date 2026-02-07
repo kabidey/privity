@@ -180,7 +180,7 @@ class TestRevenueReport:
         # Check report structure - should have user, date, own, total fields or error message
         if "error" not in data:
             assert "user" in data or "own" in data or "total" in data, f"Unexpected report structure: {data.keys()}"
-            print(f"✓ Revenue report returned successfully")
+            print("✓ Revenue report returned successfully")
         else:
             print(f"✓ Revenue report endpoint working, returned: {data}")
     
@@ -193,7 +193,7 @@ class TestRevenueReport:
         
         # Should either return report or error but not crash
         assert isinstance(data, dict), "Response should be a dictionary"
-        print(f"✓ Revenue report with date parameter works")
+        print("✓ Revenue report with date parameter works")
 
 
 class TestActivityAlertServiceImport:

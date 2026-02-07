@@ -9,10 +9,8 @@ import qrcode
 import io
 import base64
 import secrets
-import string
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from datetime import datetime, timezone
-import hashlib
 import bcrypt
 
 # Configuration

@@ -106,7 +106,7 @@ class TestDemoModeIsolation:
         """Test that demo token is valid and works for API calls"""
         assert demo_token is not None, "Demo token should not be None"
         assert len(demo_token) > 20, "Demo token should be a valid JWT"
-        print(f"PASS: Demo token obtained successfully")
+        print("PASS: Demo token obtained successfully")
     
     # ============== Demo User Data Isolation Tests ==============
     
@@ -366,7 +366,7 @@ class TestDemoModeIsolation:
             # After cleanup, demo data counts should be 0
             assert demo_data.get("clients", 0) == 0, f"Demo clients not cleaned up: {demo_data.get('clients')}"
             assert demo_data.get("bookings", 0) == 0, f"Demo bookings not cleaned up: {demo_data.get('bookings')}"
-            print(f"PASS: Verified demo data counts are 0 after cleanup")
+            print("PASS: Verified demo data counts are 0 after cleanup")
 
 
 class TestDemoIsolationEdgeCases:
@@ -498,7 +498,7 @@ class TestDemoModeCleanup:
         )
         
         if response.status_code == 200:
-            print(f"FINAL: Demo data cleaned up successfully")
+            print("FINAL: Demo data cleaned up successfully")
         else:
             print(f"WARNING: Demo cleanup returned status {response.status_code}")
 

@@ -4,10 +4,9 @@ Blocks search engine crawlers, bots, and various attack patterns
 """
 import re
 import time
-import hashlib
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 from fastapi import Request
 from fastapi.responses import JSONResponse, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -344,7 +343,7 @@ class AttackDetector:
         """Detect command injection attempt"""
         for pattern in cls.COMMAND_INJECTION_PATTERNS:
             if re.search(pattern, value, re.IGNORECASE):
-                return True, f"Command injection detected"
+                return True, "Command injection detected"
         return False, ""
     
     @classmethod
@@ -360,7 +359,7 @@ class AttackDetector:
         """Detect SSRF attempt"""
         for pattern in cls.SSRF_PATTERNS:
             if re.search(pattern, value, re.IGNORECASE):
-                return True, f"SSRF attempt detected"
+                return True, "SSRF attempt detected"
         return False, ""
 
 

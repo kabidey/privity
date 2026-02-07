@@ -2,13 +2,10 @@
 Payments Router - Handles payment proof uploads and payment-related operations
 """
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from typing import Optional
 from datetime import datetime, timezone
 import uuid
-import os
 from pathlib import Path
 
-from database import db
 from utils.auth import get_current_user
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import require_permission

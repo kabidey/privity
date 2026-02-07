@@ -5,8 +5,7 @@ Main FastAPI Application Server
 This is the main entry point for the application.
 All business logic endpoints are organized in modular routers under /routers/
 """
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from starlette.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
@@ -22,7 +21,6 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # Import configuration
-from config import UPLOAD_DIR
 
 # Import database
 from database import db, client, create_indexes
@@ -614,8 +612,7 @@ app.add_middleware(RequestValidationMiddleware)
 
 from middleware.bot_protection import (
     BotProtectionMiddleware,
-    ROBOTS_TXT_CONTENT,
-    get_threat_statistics
+    ROBOTS_TXT_CONTENT
 )
 
 # Block bots, crawlers, and various attacks

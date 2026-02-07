@@ -112,7 +112,7 @@ class TestDashboard:
         data = response.json()
         assert "status_distribution" in data
         assert "approval_distribution" in data
-        print(f"✓ Dashboard analytics loaded")
+        print("✓ Dashboard analytics loaded")
     
     def test_pe_dashboard(self):
         """Test PE-specific dashboard"""
@@ -130,7 +130,7 @@ class TestDashboard:
         data = response.json()
         assert "receivables" in data
         assert "payables" in data
-        print(f"✓ Finance Dashboard loaded")
+        print("✓ Finance Dashboard loaded")
 
 
 class TestClients:
@@ -625,7 +625,7 @@ class TestCompanyMaster:
         response = requests.get(f"{BASE_URL}/api/company", headers=self.headers)
         assert response.status_code == 200
         data = response.json()
-        print(f"✓ Company info retrieved")
+        print("✓ Company info retrieved")
 
 
 class TestReports:
@@ -646,7 +646,7 @@ class TestReports:
         response = requests.get(f"{BASE_URL}/api/reports/summary", headers=self.headers)
         # Reports endpoint may return 200 or 404 if no data
         assert response.status_code in [200, 404]
-        print(f"✓ Reports summary endpoint accessible")
+        print("✓ Reports summary endpoint accessible")
 
 
 class TestPurchases:
@@ -684,7 +684,7 @@ class TestPEManagerAccess:
         if response.status_code == 200:
             data = response.json()
             assert data["user"]["role"] == 2
-            print(f"✓ PE Manager login successful")
+            print("✓ PE Manager login successful")
             return data["token"]
         else:
             pytest.skip("PE Manager user not found")

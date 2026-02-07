@@ -20,15 +20,11 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from database import db
-from config import is_viewer, check_viewer_restriction, ROLES
+from config import check_viewer_restriction
 from models import BookingCreate, Booking, BookingWithDetails
 from utils.auth import get_current_user
 from services.permission_service import (
-    check_permission,
-    check_permission as check_dynamic_permission,
-    has_permission,
-    require_permission,
-    is_pe_level_dynamic
+    require_permission
 )
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
@@ -39,7 +35,7 @@ from services.inventory_service import (
     release_inventory_reservation,
     check_stock_availability
 )
-from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
+from utils.demo_isolation import add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(tags=["Bookings"])
 

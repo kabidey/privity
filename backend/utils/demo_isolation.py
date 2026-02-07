@@ -6,10 +6,7 @@ Demo users should ONLY see data marked with is_demo=True.
 Live users should NEVER see data marked with is_demo=True.
 """
 
-from functools import wraps
-from fastapi import HTTPException, Depends
-from typing import Optional
-from utils.auth import get_current_user
+from fastapi import HTTPException
 
 DEMO_USER_ID = "demo_user_privity"
 

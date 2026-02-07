@@ -6,10 +6,8 @@ for the same stock without creating race conditions or overselling inventory.
 """
 import asyncio
 import aiohttp
-import json
 import time
 from typing import List, Tuple
-import sys
 
 API_URL = "https://login-ui-revamp-5.preview.emergentagent.com"
 
@@ -107,20 +105,20 @@ async def run_concurrent_bookings(
         successes = [r for r in results if r[0]]
         failures = [r for r in results if not r[0]]
         
-        print(f"\nResults:")
+        print("\nResults:")
         print(f"  Successful bookings: {len(successes)}")
         print(f"  Failed bookings: {len(failures)}")
         
         # Show details
         if successes:
-            print(f"\n  Successful booking numbers:")
+            print("\n  Successful booking numbers:")
             for success, msg, num in successes[:10]:
                 print(f"    #{num}: {msg}")
             if len(successes) > 10:
                 print(f"    ... and {len(successes) - 10} more")
         
         if failures:
-            print(f"\n  Failure reasons:")
+            print("\n  Failure reasons:")
             failure_reasons = {}
             for fail, msg, num in failures:
                 if msg not in failure_reasons:
@@ -133,7 +131,7 @@ async def run_concurrent_bookings(
         final_inv = await get_inventory(session, token, stock_id)
         final_available = final_inv.get("available_quantity", 0)
         
-        print(f"\nInventory changes:")
+        print("\nInventory changes:")
         print(f"  Initial available: {initial_available}")
         print(f"  Final available: {final_available}")
         print(f"  Units consumed: {initial_available - final_available}")
@@ -144,7 +142,7 @@ async def run_concurrent_bookings(
         expected_consumed = len(successes) * quantity_per_booking
         
         if units_consumed == expected_consumed:
-            print(f"\n✅ PASS: Inventory correctly tracked (no race condition)")
+            print("\n✅ PASS: Inventory correctly tracked (no race condition)")
         else:
             print(f"\n❌ FAIL: Inventory mismatch! Consumed {units_consumed} but {expected_consumed} expected")
         

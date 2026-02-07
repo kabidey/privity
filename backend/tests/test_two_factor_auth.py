@@ -231,7 +231,7 @@ class TestTwoFactorAuth:
         status_data = status_response.json()
         assert status_data["enabled"] == True, "2FA should be enabled after verify-setup"
         
-        print(f"✓ 2FA verify-setup success: 2FA is now enabled")
+        print("✓ 2FA verify-setup success: 2FA is now enabled")
         
         # Store secret for later tests
         self.__class__.active_secret = secret

@@ -11,7 +11,6 @@ Tests for:
 import pytest
 import requests
 import os
-import uuid
 from datetime import datetime
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
@@ -244,7 +243,7 @@ class TestEmployeeCommissionFeature:
         assert test_commission["employee_commission_amount"] == 450, f"Commission should be 450, got {test_commission['employee_commission_amount']}"
         
         print(f"SUCCESS: Found {len(commissions)} commissions")
-        print(f"SUCCESS: Test commission verified with correct values")
+        print("SUCCESS: Test commission verified with correct values")
     
     def test_07_get_employee_commissions_summary(self):
         """Test GET /api/finance/employee-commissions/summary returns aggregated stats"""
@@ -295,7 +294,7 @@ class TestEmployeeCommissionFeature:
         
         assert booking.get("employee_commission_status") == "paid", f"Commission status should be 'paid', got {booking.get('employee_commission_status')}"
         
-        print(f"SUCCESS: Commission marked as paid")
+        print("SUCCESS: Commission marked as paid")
     
     def test_09_commission_summary_reflects_paid_status(self):
         """Verify commission summary reflects paid status"""

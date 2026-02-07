@@ -67,7 +67,7 @@ class TestPEAdminReportsAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Reports Endpoints - PE Admin Access ===")
+        print("\n=== Testing Reports Endpoints - PE Admin Access ===")
         print(f"BASE_URL: {BASE_URL}")
         
         response = requests.post(
@@ -76,7 +76,7 @@ class TestPEAdminReportsAccess:
         )
         if response.status_code == 200:
             cls.pe_token = response.json().get("token")
-            print(f"✓ PE Admin login successful")
+            print("✓ PE Admin login successful")
         else:
             print(f"✗ PE Admin login failed: {response.status_code}")
     
@@ -92,7 +92,7 @@ class TestPEAdminReportsAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "items" in data or "summary" in data, "Response should contain items or summary"
-        print(f"✓ /api/reports/pnl - 200 OK")
+        print("✓ /api/reports/pnl - 200 OK")
     
     def test_reports_export_excel(self):
         """PE Admin can access /api/reports/export/excel (requires reports.export)"""
@@ -102,7 +102,7 @@ class TestPEAdminReportsAccess:
         response = requests.get(f"{BASE_URL}/api/reports/export/excel", headers=self.get_headers())
         # Should return 200 with Excel file or empty data
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/reports/export/excel - 200 OK")
+        print("✓ /api/reports/export/excel - 200 OK")
     
     def test_reports_export_pdf(self):
         """PE Admin can access /api/reports/export/pdf (requires reports.export)"""
@@ -111,7 +111,7 @@ class TestPEAdminReportsAccess:
         
         response = requests.get(f"{BASE_URL}/api/reports/export/pdf", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/reports/export/pdf - 200 OK")
+        print("✓ /api/reports/export/pdf - 200 OK")
     
     def test_reports_pe_desk_hit(self):
         """PE Admin can access /api/reports/pe-desk-hit (requires reports.pe_hit)"""
@@ -122,7 +122,7 @@ class TestPEAdminReportsAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "report_type" in data, "Response should contain report_type"
-        print(f"✓ /api/reports/pe-desk-hit - 200 OK")
+        print("✓ /api/reports/pe-desk-hit - 200 OK")
 
 
 class TestPEAdminResearchAccess:
@@ -133,7 +133,7 @@ class TestPEAdminResearchAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Research Endpoints - PE Admin Access ===")
+        print("\n=== Testing Research Endpoints - PE Admin Access ===")
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
@@ -152,7 +152,7 @@ class TestPEAdminResearchAccess:
         
         response = requests.get(f"{BASE_URL}/api/research/reports", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/research/reports - 200 OK")
+        print("✓ /api/research/reports - 200 OK")
     
     def test_research_stats(self):
         """PE Admin can access /api/research/stats (requires research.view)"""
@@ -163,7 +163,7 @@ class TestPEAdminResearchAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "total_reports" in data, "Response should contain total_reports"
-        print(f"✓ /api/research/stats - 200 OK")
+        print("✓ /api/research/stats - 200 OK")
 
 
 class TestPEAdminRevenueDashboardAccess:
@@ -174,7 +174,7 @@ class TestPEAdminRevenueDashboardAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Revenue Dashboard Endpoints - PE Admin Access ===")
+        print("\n=== Testing Revenue Dashboard Endpoints - PE Admin Access ===")
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
@@ -195,7 +195,7 @@ class TestPEAdminRevenueDashboardAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "total_rps" in data or "rp_details" in data, "Response should contain RP data"
-        print(f"✓ /api/rp-revenue - 200 OK")
+        print("✓ /api/rp-revenue - 200 OK")
     
     def test_employee_revenue_dashboard(self):
         """PE Admin can access /api/employee-revenue (requires revenue.employee_view)"""
@@ -206,7 +206,7 @@ class TestPEAdminRevenueDashboardAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "total_employees" in data or "employee_details" in data, "Response should contain employee data"
-        print(f"✓ /api/employee-revenue - 200 OK")
+        print("✓ /api/employee-revenue - 200 OK")
     
     def test_my_team(self):
         """PE Admin can access /api/my-team (requires revenue.team_view)"""
@@ -217,7 +217,7 @@ class TestPEAdminRevenueDashboardAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "team_members" in data or "total" in data, "Response should contain team data"
-        print(f"✓ /api/my-team - 200 OK")
+        print("✓ /api/my-team - 200 OK")
 
 
 class TestPEAdminKillSwitchAccess:
@@ -228,7 +228,7 @@ class TestPEAdminKillSwitchAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Kill Switch Endpoints - PE Admin Access ===")
+        print("\n=== Testing Kill Switch Endpoints - PE Admin Access ===")
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
@@ -249,7 +249,7 @@ class TestPEAdminKillSwitchAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "is_active" in data, "Response should contain is_active"
-        print(f"✓ /api/kill-switch/status - 200 OK")
+        print("✓ /api/kill-switch/status - 200 OK")
     
     # Note: We don't actually activate the kill switch in tests as it would freeze the system
 
@@ -262,7 +262,7 @@ class TestPEAdminAnalyticsAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Analytics Endpoints - PE Admin Access ===")
+        print("\n=== Testing Analytics Endpoints - PE Admin Access ===")
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
@@ -283,7 +283,7 @@ class TestPEAdminAnalyticsAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "total_bookings" in data, "Response should contain total_bookings"
-        print(f"✓ /api/analytics/summary - 200 OK")
+        print("✓ /api/analytics/summary - 200 OK")
     
     def test_analytics_stock_performance(self):
         """PE Admin can access /api/analytics/stock-performance (requires analytics.performance)"""
@@ -292,7 +292,7 @@ class TestPEAdminAnalyticsAccess:
         
         response = requests.get(f"{BASE_URL}/api/analytics/stock-performance", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/analytics/stock-performance - 200 OK")
+        print("✓ /api/analytics/stock-performance - 200 OK")
     
     def test_analytics_employee_performance(self):
         """PE Admin can access /api/analytics/employee-performance (requires analytics.performance)"""
@@ -301,7 +301,7 @@ class TestPEAdminAnalyticsAccess:
         
         response = requests.get(f"{BASE_URL}/api/analytics/employee-performance", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/analytics/employee-performance - 200 OK")
+        print("✓ /api/analytics/employee-performance - 200 OK")
     
     def test_analytics_sector_distribution(self):
         """PE Admin can access /api/analytics/sector-distribution (requires analytics.view)"""
@@ -310,7 +310,7 @@ class TestPEAdminAnalyticsAccess:
         
         response = requests.get(f"{BASE_URL}/api/analytics/sector-distribution", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/analytics/sector-distribution - 200 OK")
+        print("✓ /api/analytics/sector-distribution - 200 OK")
     
     def test_analytics_daily_trend(self):
         """PE Admin can access /api/analytics/daily-trend (requires analytics.view)"""
@@ -319,7 +319,7 @@ class TestPEAdminAnalyticsAccess:
         
         response = requests.get(f"{BASE_URL}/api/analytics/daily-trend", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/analytics/daily-trend - 200 OK")
+        print("✓ /api/analytics/daily-trend - 200 OK")
 
 
 class TestPEAdminDatabaseBackupAccess:
@@ -330,7 +330,7 @@ class TestPEAdminDatabaseBackupAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Database Backup Endpoints - PE Admin Access ===")
+        print("\n=== Testing Database Backup Endpoints - PE Admin Access ===")
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
@@ -349,7 +349,7 @@ class TestPEAdminDatabaseBackupAccess:
         
         response = requests.get(f"{BASE_URL}/api/database/backups", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/database/backups - 200 OK")
+        print("✓ /api/database/backups - 200 OK")
     
     def test_database_stats(self):
         """PE Admin can access /api/database/stats (requires database_backup.view)"""
@@ -360,7 +360,7 @@ class TestPEAdminDatabaseBackupAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "collections" in data, "Response should contain collections"
-        print(f"✓ /api/database/stats - 200 OK")
+        print("✓ /api/database/stats - 200 OK")
     
     def test_clearable_collections(self):
         """PE Admin can access /api/database/clearable-collections (requires database_backup.clear)"""
@@ -371,7 +371,7 @@ class TestPEAdminDatabaseBackupAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "collections" in data, "Response should contain collections"
-        print(f"✓ /api/database/clearable-collections - 200 OK")
+        print("✓ /api/database/clearable-collections - 200 OK")
 
 
 class TestPEAdminFinanceAccess:
@@ -382,7 +382,7 @@ class TestPEAdminFinanceAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Finance Endpoints - PE Admin Access ===")
+        print("\n=== Testing Finance Endpoints - PE Admin Access ===")
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
@@ -401,7 +401,7 @@ class TestPEAdminFinanceAccess:
         
         response = requests.get(f"{BASE_URL}/api/finance/payments", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/finance/payments - 200 OK")
+        print("✓ /api/finance/payments - 200 OK")
     
     def test_finance_summary(self):
         """PE Admin can access /api/finance/summary (requires finance.view)"""
@@ -412,7 +412,7 @@ class TestPEAdminFinanceAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "total_received" in data, "Response should contain total_received"
-        print(f"✓ /api/finance/summary - 200 OK")
+        print("✓ /api/finance/summary - 200 OK")
     
     def test_finance_refund_requests(self):
         """PE Admin can access /api/finance/refund-requests (requires finance.refunds)"""
@@ -421,7 +421,7 @@ class TestPEAdminFinanceAccess:
         
         response = requests.get(f"{BASE_URL}/api/finance/refund-requests", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/finance/refund-requests - 200 OK")
+        print("✓ /api/finance/refund-requests - 200 OK")
     
     def test_finance_tcs_payments(self):
         """PE Admin can access /api/finance/tcs-payments (requires finance.view_tcs)"""
@@ -430,7 +430,7 @@ class TestPEAdminFinanceAccess:
         
         response = requests.get(f"{BASE_URL}/api/finance/tcs-payments", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/finance/tcs-payments - 200 OK")
+        print("✓ /api/finance/tcs-payments - 200 OK")
     
     def test_finance_rp_payments(self):
         """PE Admin can access /api/finance/rp-payments (requires referral_partners.view_payouts)"""
@@ -439,7 +439,7 @@ class TestPEAdminFinanceAccess:
         
         response = requests.get(f"{BASE_URL}/api/finance/rp-payments", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/finance/rp-payments - 200 OK")
+        print("✓ /api/finance/rp-payments - 200 OK")
     
     def test_finance_bp_payments(self):
         """PE Admin can access /api/finance/bp-payments (requires business_partners.view_payouts)"""
@@ -448,7 +448,7 @@ class TestPEAdminFinanceAccess:
         
         response = requests.get(f"{BASE_URL}/api/finance/bp-payments", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/finance/bp-payments - 200 OK")
+        print("✓ /api/finance/bp-payments - 200 OK")
     
     def test_finance_employee_commissions(self):
         """PE Admin can access /api/finance/employee-commissions (requires finance.view)"""
@@ -457,7 +457,7 @@ class TestPEAdminFinanceAccess:
         
         response = requests.get(f"{BASE_URL}/api/finance/employee-commissions", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/finance/employee-commissions - 200 OK")
+        print("✓ /api/finance/employee-commissions - 200 OK")
 
 
 class TestPEAdminRolesAccess:
@@ -468,7 +468,7 @@ class TestPEAdminRolesAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Roles Endpoints - PE Admin Access ===")
+        print("\n=== Testing Roles Endpoints - PE Admin Access ===")
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
@@ -500,7 +500,7 @@ class TestPEAdminRolesAccess:
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
         data = response.json()
         assert "dashboard" in data, "Response should contain dashboard permissions"
-        print(f"✓ /api/roles/permissions - 200 OK")
+        print("✓ /api/roles/permissions - 200 OK")
 
 
 class TestPEAdminUsersAccess:
@@ -511,7 +511,7 @@ class TestPEAdminUsersAccess:
     @classmethod
     def setup_class(cls):
         """Login PE Admin"""
-        print(f"\n=== Testing Users Endpoints - PE Admin Access ===")
+        print("\n=== Testing Users Endpoints - PE Admin Access ===")
         
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
@@ -530,7 +530,7 @@ class TestPEAdminUsersAccess:
         
         response = requests.get(f"{BASE_URL}/api/users", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/users - 200 OK")
+        print("✓ /api/users - 200 OK")
     
     def test_users_employees(self):
         """PE Admin can access /api/users/employees (requires users.view)"""
@@ -539,7 +539,7 @@ class TestPEAdminUsersAccess:
         
         response = requests.get(f"{BASE_URL}/api/users/employees", headers=self.get_headers())
         assert response.status_code == 200, f"Failed: {response.status_code} - {response.text}"
-        print(f"✓ /api/users/employees - 200 OK")
+        print("✓ /api/users/employees - 200 OK")
 
 
 # ============== RESTRICTED ROLE DENIAL TESTS ==============
@@ -552,13 +552,13 @@ class TestViewerDeniedReportsAccess:
     @classmethod
     def setup_class(cls):
         """Login Viewer"""
-        print(f"\n=== Testing Reports Endpoints - Viewer Denial ===")
+        print("\n=== Testing Reports Endpoints - Viewer Denial ===")
         
         cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
         if cls.viewer_token:
-            print(f"✓ Viewer login successful")
+            print("✓ Viewer login successful")
         else:
-            print(f"✗ Viewer login failed")
+            print("✗ Viewer login failed")
     
     def get_headers(self):
         return {"Authorization": f"Bearer {self.viewer_token}", "Content-Type": "application/json"}
@@ -570,7 +570,7 @@ class TestViewerDeniedReportsAccess:
         
         response = requests.get(f"{BASE_URL}/api/reports/pe-desk-hit", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/reports/pe-desk-hit (403)")
+        print("✓ Viewer correctly denied /api/reports/pe-desk-hit (403)")
 
 
 class TestViewerDeniedKillSwitchAccess:
@@ -581,7 +581,7 @@ class TestViewerDeniedKillSwitchAccess:
     @classmethod
     def setup_class(cls):
         """Login Viewer"""
-        print(f"\n=== Testing Kill Switch Endpoints - Viewer Denial ===")
+        print("\n=== Testing Kill Switch Endpoints - Viewer Denial ===")
         
         cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
     
@@ -595,7 +595,7 @@ class TestViewerDeniedKillSwitchAccess:
         
         response = requests.post(f"{BASE_URL}/api/kill-switch/activate", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/kill-switch/activate (403)")
+        print("✓ Viewer correctly denied /api/kill-switch/activate (403)")
     
     def test_viewer_denied_kill_switch_deactivate(self):
         """Viewer should be denied /api/kill-switch/deactivate (requires system.kill_switch)"""
@@ -615,7 +615,7 @@ class TestViewerDeniedDatabaseAccess:
     @classmethod
     def setup_class(cls):
         """Login Viewer"""
-        print(f"\n=== Testing Database Endpoints - Viewer Denial ===")
+        print("\n=== Testing Database Endpoints - Viewer Denial ===")
         
         cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
     
@@ -629,7 +629,7 @@ class TestViewerDeniedDatabaseAccess:
         
         response = requests.get(f"{BASE_URL}/api/database/backups", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/database/backups (403)")
+        print("✓ Viewer correctly denied /api/database/backups (403)")
     
     def test_viewer_denied_database_stats(self):
         """Viewer should be denied /api/database/stats (requires database_backup.view)"""
@@ -638,7 +638,7 @@ class TestViewerDeniedDatabaseAccess:
         
         response = requests.get(f"{BASE_URL}/api/database/stats", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/database/stats (403)")
+        print("✓ Viewer correctly denied /api/database/stats (403)")
     
     def test_viewer_denied_database_clear(self):
         """Viewer should be denied /api/database/clear (requires database_backup.clear)"""
@@ -647,7 +647,7 @@ class TestViewerDeniedDatabaseAccess:
         
         response = requests.delete(f"{BASE_URL}/api/database/clear", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/database/clear (403)")
+        print("✓ Viewer correctly denied /api/database/clear (403)")
     
     def test_viewer_denied_create_backup(self):
         """Viewer should be denied POST /api/database/backups (requires database_backup.create)"""
@@ -660,7 +660,7 @@ class TestViewerDeniedDatabaseAccess:
             headers=self.get_headers()
         )
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied POST /api/database/backups (403)")
+        print("✓ Viewer correctly denied POST /api/database/backups (403)")
 
 
 class TestViewerDeniedRolesAccess:
@@ -671,7 +671,7 @@ class TestViewerDeniedRolesAccess:
     @classmethod
     def setup_class(cls):
         """Login Viewer"""
-        print(f"\n=== Testing Roles Endpoints - Viewer Denial ===")
+        print("\n=== Testing Roles Endpoints - Viewer Denial ===")
         
         cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
     
@@ -685,7 +685,7 @@ class TestViewerDeniedRolesAccess:
         
         response = requests.get(f"{BASE_URL}/api/roles", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/roles (403)")
+        print("✓ Viewer correctly denied /api/roles (403)")
     
     def test_viewer_denied_create_role(self):
         """Viewer should be denied POST /api/roles (requires roles.create)"""
@@ -698,7 +698,7 @@ class TestViewerDeniedRolesAccess:
             headers=self.get_headers()
         )
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied POST /api/roles (403)")
+        print("✓ Viewer correctly denied POST /api/roles (403)")
 
 
 class TestViewerDeniedUserManagement:
@@ -709,7 +709,7 @@ class TestViewerDeniedUserManagement:
     @classmethod
     def setup_class(cls):
         """Login Viewer"""
-        print(f"\n=== Testing User Management Endpoints - Viewer Denial ===")
+        print("\n=== Testing User Management Endpoints - Viewer Denial ===")
         
         cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
     
@@ -732,7 +732,7 @@ class TestViewerDeniedUserManagement:
             headers=self.get_headers()
         )
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied POST /api/users (403)")
+        print("✓ Viewer correctly denied POST /api/users (403)")
 
 
 class TestViewerDeniedClientApproval:
@@ -743,7 +743,7 @@ class TestViewerDeniedClientApproval:
     @classmethod
     def setup_class(cls):
         """Login Viewer"""
-        print(f"\n=== Testing Client Approval Endpoints - Viewer Denial ===")
+        print("\n=== Testing Client Approval Endpoints - Viewer Denial ===")
         
         cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
     
@@ -757,7 +757,7 @@ class TestViewerDeniedClientApproval:
         
         response = requests.get(f"{BASE_URL}/api/clients/pending-approval", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/clients/pending-approval (403)")
+        print("✓ Viewer correctly denied /api/clients/pending-approval (403)")
     
     def test_viewer_denied_approve_client(self):
         """Viewer should be denied PUT /api/clients/{id}/approve (requires client_approval.approve)"""
@@ -770,7 +770,7 @@ class TestViewerDeniedClientApproval:
             headers=self.get_headers()
         )
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied PUT /api/clients/approve (403)")
+        print("✓ Viewer correctly denied PUT /api/clients/approve (403)")
 
 
 class TestViewerDeniedBookingApproval:
@@ -781,7 +781,7 @@ class TestViewerDeniedBookingApproval:
     @classmethod
     def setup_class(cls):
         """Login Viewer"""
-        print(f"\n=== Testing Booking Approval Endpoints - Viewer Denial ===")
+        print("\n=== Testing Booking Approval Endpoints - Viewer Denial ===")
         
         cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
     
@@ -799,7 +799,7 @@ class TestViewerDeniedBookingApproval:
             headers=self.get_headers()
         )
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied PUT /api/bookings/approve (403)")
+        print("✓ Viewer correctly denied PUT /api/bookings/approve (403)")
     
     def test_viewer_denied_void_booking(self):
         """Viewer should be denied PUT /api/bookings/{id}/void (requires bookings.delete)"""
@@ -812,7 +812,7 @@ class TestViewerDeniedBookingApproval:
             headers=self.get_headers()
         )
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied PUT /api/bookings/void (403)")
+        print("✓ Viewer correctly denied PUT /api/bookings/void (403)")
     
     def test_viewer_denied_dp_ready_bookings(self):
         """Viewer should be denied /api/bookings/dp-ready (requires dp.view_receivables)"""
@@ -821,7 +821,7 @@ class TestViewerDeniedBookingApproval:
         
         response = requests.get(f"{BASE_URL}/api/bookings/dp-ready", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/bookings/dp-ready (403)")
+        print("✓ Viewer correctly denied /api/bookings/dp-ready (403)")
     
     def test_viewer_denied_dp_transferred_bookings(self):
         """Viewer should be denied /api/bookings/dp-transferred (requires dp.view_transfers)"""
@@ -830,7 +830,7 @@ class TestViewerDeniedBookingApproval:
         
         response = requests.get(f"{BASE_URL}/api/bookings/dp-transferred", headers=self.get_headers())
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied /api/bookings/dp-transferred (403)")
+        print("✓ Viewer correctly denied /api/bookings/dp-transferred (403)")
 
 
 class TestViewerDeniedResearchUpload:
@@ -841,7 +841,7 @@ class TestViewerDeniedResearchUpload:
     @classmethod
     def setup_class(cls):
         """Login Viewer"""
-        print(f"\n=== Testing Research Upload Endpoints - Viewer Denial ===")
+        print("\n=== Testing Research Upload Endpoints - Viewer Denial ===")
         
         cls.viewer_token = login_with_retry(VIEWER_EMAIL, VIEWER_PASSWORD)
     
@@ -858,7 +858,7 @@ class TestViewerDeniedResearchUpload:
             headers=self.get_headers()
         )
         assert response.status_code == 403, f"Expected 403, got {response.status_code} - {response.text}"
-        print(f"✓ Viewer correctly denied DELETE /api/research/reports (403)")
+        print("✓ Viewer correctly denied DELETE /api/research/reports (403)")
 
 
 if __name__ == "__main__":

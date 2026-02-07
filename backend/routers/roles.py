@@ -7,13 +7,11 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timezone
-import uuid
 
 from database import db
 from routers.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
 

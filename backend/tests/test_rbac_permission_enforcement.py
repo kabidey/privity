@@ -39,7 +39,7 @@ class TestRBACPermissionEnforcement:
         )
         if response.status_code == 200:
             cls.pe_desk_token = response.json().get("token")
-            print(f"✓ PE Desk login successful")
+            print("✓ PE Desk login successful")
         else:
             print(f"✗ PE Desk login failed: {response.status_code} - {response.text}")
         
@@ -52,7 +52,7 @@ class TestRBACPermissionEnforcement:
         )
         if response.status_code == 200:
             cls.viewer_token = response.json().get("token")
-            print(f"✓ Viewer login successful")
+            print("✓ Viewer login successful")
         else:
             print(f"✗ Viewer login failed: {response.status_code} - {response.text}")
     

@@ -97,7 +97,7 @@ class TestDPTypeAndTradingUCC:
         assert response.status_code == 400, f"Expected 400 error but got {response.status_code}: {response.text}"
         data = response.json()
         assert "Trading UCC is required" in data.get("detail", ""), f"Expected Trading UCC error: {data}"
-        print(f"✓ Correctly rejected client with DP Type 'SMIFS' without Trading UCC")
+        print("✓ Correctly rejected client with DP Type 'SMIFS' without Trading UCC")
     
     def test_create_client_dp_smifs_with_trading_ucc(self, pe_desk_token):
         """Create client with DP Type = 'SMIFS' and Trading UCC - should succeed"""
@@ -161,7 +161,7 @@ class TestClientModificationRestrictions:
         
         response = requests.put(f"{BASE_URL}/api/clients/{test_client['id']}", json=update_data, headers=headers)
         assert response.status_code == 403, f"Expected 403 but got {response.status_code}: {response.text}"
-        print(f"✓ Employee correctly blocked from updating client (403)")
+        print("✓ Employee correctly blocked from updating client (403)")
     
     def test_employee_cannot_delete_client(self, employee_token, test_client):
         """Employee should NOT be able to delete client via API (403 error)"""
@@ -169,7 +169,7 @@ class TestClientModificationRestrictions:
         
         response = requests.delete(f"{BASE_URL}/api/clients/{test_client['id']}", headers=headers)
         assert response.status_code == 403, f"Expected 403 but got {response.status_code}: {response.text}"
-        print(f"✓ Employee correctly blocked from deleting client (403)")
+        print("✓ Employee correctly blocked from deleting client (403)")
     
     def test_pe_desk_can_update_client(self, pe_desk_token, test_client):
         """PE Desk should be able to update client"""
@@ -185,7 +185,7 @@ class TestClientModificationRestrictions:
         assert response.status_code == 200, f"PE Desk update failed: {response.text}"
         data = response.json()
         assert data["name"] == f"Updated_{test_client['name']}"
-        print(f"✓ PE Desk successfully updated client")
+        print("✓ PE Desk successfully updated client")
     
     def test_pe_desk_can_delete_client(self, pe_desk_token):
         """PE Desk should be able to delete client"""
@@ -205,12 +205,12 @@ class TestClientModificationRestrictions:
         # Now delete it
         response = requests.delete(f"{BASE_URL}/api/clients/{client_id}", headers=headers)
         assert response.status_code == 200, f"PE Desk delete failed: {response.text}"
-        print(f"✓ PE Desk successfully deleted client")
+        print("✓ PE Desk successfully deleted client")
         
         # Verify deletion
         get_response = requests.get(f"{BASE_URL}/api/clients/{client_id}", headers=headers)
         assert get_response.status_code == 404, "Client should not exist after deletion"
-        print(f"✓ Verified client no longer exists")
+        print("✓ Verified client no longer exists")
 
 
 class TestClientSearch:
@@ -299,7 +299,7 @@ class TestDPTypeDisplay:
         data = get_response.json()
         assert data["dp_type"] == "smifs", f"Expected dp_type 'smifs' but got '{data.get('dp_type')}'"
         assert data["trading_ucc"] == f"UCC{unique_id.upper()}"
-        print(f"✓ DP Type 'SMIFS' correctly stored and returned with Trading UCC")
+        print("✓ DP Type 'SMIFS' correctly stored and returned with Trading UCC")
     
     def test_dp_type_outside_displayed(self, pe_desk_token):
         """Verify DP Type 'Outside' is correctly stored and returned"""
@@ -321,7 +321,7 @@ class TestDPTypeDisplay:
         assert get_response.status_code == 200
         data = get_response.json()
         assert data["dp_type"] == "outside", f"Expected dp_type 'outside' but got '{data.get('dp_type')}'"
-        print(f"✓ DP Type 'Outside' correctly stored and returned")
+        print("✓ DP Type 'Outside' correctly stored and returned")
 
 
 class TestCleanup:

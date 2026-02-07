@@ -13,22 +13,19 @@ import aiofiles
 from pathlib import Path
 
 from database import db
-from config import ROLES, UPLOAD_DIR
+from config import UPLOAD_DIR
 from models import ClientCreate, Client, BankAccount, ClientSuspensionRequest
 from utils.auth import get_current_user
 from services.permission_service import (
-    check_permission,
-    check_permission as check_dynamic_permission,
     has_permission,
-    require_permission,
-    is_pe_level_dynamic
+    require_permission
 )
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
-from services.email_service import send_templated_email, send_email, get_email_template
+from services.email_service import send_email, get_email_template
 from services.ocr_service import process_document_ocr
 from services.file_storage import upload_file_to_gridfs, get_file_url
-from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
+from utils.demo_isolation import add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(tags=["Clients"])
 
@@ -1272,7 +1269,6 @@ async def rerun_client_ocr(
     - PE Level users can re-run OCR and optionally update client data
     - Returns comparison of old vs new OCR results
     """
-    from services.ocr_service import rerun_ocr_for_client, compare_ocr_with_client_data
     from services.file_storage import get_file_from_gridfs
     
     user_role = current_user.get("role", 6)
@@ -1566,7 +1562,6 @@ async def reveal_documents_from_gridfs(
     
     If documents are found in GridFS but not linked to the client, this will link them.
     """
-    from bson import ObjectId
     
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
@@ -2048,7 +2043,7 @@ async def export_clients(
         return StreamingResponse(
             iter([output.getvalue()]),
             media_type="text/csv",
-            headers={"Content-Disposition": f"attachment; filename=clients_export.csv"}
+            headers={"Content-Disposition": "attachment; filename=clients_export.csv"}
         )
     
     else:  # xlsx
@@ -2127,5 +2122,5 @@ async def export_clients(
         return StreamingResponse(
             iter([output.getvalue()]),
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename=clients_export.xlsx"}
+            headers={"Content-Disposition": "attachment; filename=clients_export.xlsx"}
         )

@@ -232,7 +232,7 @@ class TestHierarchyFeature:
         assert updated_user is not None, "Updated user not found in hierarchy"
         assert updated_user.get("hierarchy_level") == 2, f"Expected hierarchy_level=2, got {updated_user.get('hierarchy_level')}"
         
-        print(f"SUCCESS: Updated user hierarchy to level 2 (Manager)")
+        print("SUCCESS: Updated user hierarchy to level 2 (Manager)")
     
     # ============== Test 7: Get Team Subordinates ==============
     def test_get_team_subordinates(self):
@@ -302,7 +302,7 @@ class TestHierarchyFeature:
         assert "reports_to" in result, "Response should contain reports_to"
         assert result["reports_to"] == manager["id"], f"Expected reports_to={manager['id']}"
         
-        print(f"SUCCESS: Assigned employee to manager via assign-manager endpoint")
+        print("SUCCESS: Assigned employee to manager via assign-manager endpoint")
     
     # ============== Test 10: Get User Subordinates ==============
     def test_get_user_subordinates(self):
@@ -462,7 +462,7 @@ class TestHierarchyDataVisibility:
         updated_client = get_client_response.json()
         assert updated_client.get("mapped_employee_id") == employee["id"], "Client should be mapped to employee"
         
-        print(f"SUCCESS: Client mapped to employee successfully")
+        print("SUCCESS: Client mapped to employee successfully")
 
 
 class TestHierarchyEditRestrictions:
@@ -736,7 +736,7 @@ class TestHierarchyServiceFunctions:
         assert emp["id"] in mgr_sub_ids, "Manager should see Employee as subordinate"
         assert len(mgr_subordinates) == 1, f"Manager should only see 1 subordinate, got {len(mgr_subordinates)}"
         
-        print(f"SUCCESS: Manager sees only 1 subordinate (Employee)")
+        print("SUCCESS: Manager sees only 1 subordinate (Employee)")
 
 
 if __name__ == "__main__":

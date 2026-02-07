@@ -2,7 +2,7 @@
 Kill Switch Router
 Emergency system freeze functionality - PE Desk only
 """
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 import uuid
@@ -10,8 +10,6 @@ import uuid
 from database import db
 from routers.auth import get_current_user
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
 

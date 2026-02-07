@@ -2,7 +2,6 @@
 Scheduler Service
 Handles scheduled jobs like day-end reports at 6 PM IST
 """
-import asyncio
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -134,8 +133,8 @@ def init_scheduler():
     scheduler.start()
     
     print(f"[{datetime.now(IST)}] Scheduler started with IST timezone")
-    print(f"Day-end reports scheduled for 6:00 PM IST daily")
-    print(f"WhatsApp automations scheduled for 10:00 AM IST daily")
+    print("Day-end reports scheduled for 6:00 PM IST daily")
+    print("WhatsApp automations scheduled for 10:00 AM IST daily")
     
     # Print next run times
     for job in scheduler.get_jobs():

@@ -2,7 +2,7 @@
 Inventory Router
 Handles inventory management endpoints
 """
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel
@@ -12,11 +12,9 @@ from database import db
 from models import Inventory as InventoryModel
 from utils.auth import get_current_user
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
-from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
+from utils.demo_isolation import add_demo_filter
 
 logger = logging.getLogger(__name__)
 
@@ -864,7 +862,7 @@ async def run_data_cleanup(
     
     PE Desk/Manager only.
     """
-    from scripts.data_cleanup import run_full_cleanup, generate_data_quality_report
+    from scripts.data_cleanup import generate_data_quality_report
     from database import db as database
     from services.audit_service import create_audit_log
     

@@ -6,9 +6,8 @@ Uses ip-api.com (free, no API key required)
 import aiohttp
 import asyncio
 import logging
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, Optional, List
 from datetime import datetime, timezone, timedelta
-from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 

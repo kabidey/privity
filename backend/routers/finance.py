@@ -4,9 +4,9 @@ Finance Router
 Handles all finance-related operations including payments tracking, refund requests,
 and financial reports/exports.
 """
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel
 import uuid
@@ -17,11 +17,8 @@ from utils.auth import get_current_user
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
-from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(tags=["Finance"])
 

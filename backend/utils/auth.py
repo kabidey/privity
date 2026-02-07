@@ -3,7 +3,6 @@ Authentication utilities
 """
 import bcrypt
 import jwt
-import logging
 from datetime import datetime, timezone, timedelta
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

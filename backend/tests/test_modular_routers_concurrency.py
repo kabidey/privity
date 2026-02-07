@@ -10,12 +10,8 @@ Tests:
 import pytest
 import requests
 import os
-import asyncio
-import aiohttp
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Tuple
-import uuid
+from typing import Tuple
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://login-ui-revamp-5.preview.emergentagent.com').rstrip('/')
 
@@ -243,7 +239,7 @@ class TestBookingNumberUniqueness:
         
         # Verify uniqueness
         unique_numbers = set(booking_numbers)
-        print(f"\nResults:")
+        print("\nResults:")
         print(f"  Total successful: {len(booking_numbers)}")
         print(f"  Unique numbers: {len(unique_numbers)}")
         
@@ -360,7 +356,7 @@ class TestAtomicInventoryOperations:
         
         # Verify inventory was blocked
         assert final_blocked >= initial_blocked, "Blocked quantity should increase or stay same"
-        print(f"✓ Inventory correctly updated on booking approval")
+        print("✓ Inventory correctly updated on booking approval")
     
     def test_13_inventory_released_on_void(self):
         """Test that inventory is released when booking is voided"""
@@ -409,7 +405,7 @@ class TestAtomicInventoryOperations:
         
         # Verify inventory was released
         assert final_available >= initial_available, "Available quantity should increase after void"
-        print(f"✓ Inventory correctly released on booking void")
+        print("✓ Inventory correctly released on booking void")
 
 
 class TestConcurrentBookingApprovals:
@@ -491,7 +487,7 @@ class TestConcurrentBookingApprovals:
         
         total_quantity = sum(b["quantity"] for b in test_bookings)
         
-        print(f"\n=== Concurrent Approval Test ===")
+        print("\n=== Concurrent Approval Test ===")
         print(f"Stock: {test_stock}")
         print(f"Initial available: {initial_available}")
         print(f"Bookings to approve: {len(test_bookings)}")
@@ -518,7 +514,7 @@ class TestConcurrentBookingApprovals:
         # Calculate expected changes
         successful_qty = sum(qty for success, _, qty in results if success)
         
-        print(f"\nResults:")
+        print("\nResults:")
         print(f"  Successful approvals: {sum(1 for s, _, _ in results if s)}")
         print(f"  Failed approvals: {sum(1 for s, _, _ in results if not s)}")
         print(f"  Quantity approved: {successful_qty}")
@@ -527,7 +523,7 @@ class TestConcurrentBookingApprovals:
         
         # Verify no overselling
         assert final_available >= 0, "Available quantity should never go negative"
-        print(f"✓ No overselling detected (available >= 0)")
+        print("✓ No overselling detected (available >= 0)")
 
 
 class TestExistingFunctionality:

@@ -9,7 +9,6 @@ Tests that:
 
 import pytest
 import requests
-import os
 
 # Get backend URL from environment - use localhost for internal testing
 BASE_URL = "http://localhost:8001"
@@ -154,7 +153,7 @@ class TestCustomDomainFeature:
         updated_data = response.json()
         assert updated_data.get("custom_domain") is None or updated_data.get("custom_domain") == "", \
             f"custom_domain not cleared. Got: {updated_data.get('custom_domain')}"
-        print(f"✓ custom_domain successfully cleared")
+        print("✓ custom_domain successfully cleared")
     
     def test_06_restore_custom_domain_for_production(self):
         """Restore custom_domain for production testing"""

@@ -7,17 +7,15 @@ import io
 import os
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from reportlab.lib.units import inch, cm
+from reportlab.lib.units import cm
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, 
     Image, HRFlowable
 )
-from reportlab.pdfgen import canvas
 from num2words import num2words
 
 from database import db

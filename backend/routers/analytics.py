@@ -2,21 +2,17 @@
 Analytics & Reports Router
 Handles all analytics, reporting, and export endpoints
 """
-from typing import List, Optional, Dict
+from typing import Optional
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, HTTPException, Depends, Query
-from fastapi.responses import StreamingResponse
-import io
+from fastapi import APIRouter, Depends, Query
 
 from database import db
 from config import ROLES
 from utils.auth import get_current_user
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
-from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
+from utils.demo_isolation import add_demo_filter
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 

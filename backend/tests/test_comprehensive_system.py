@@ -5,7 +5,6 @@ Tests: Authentication, Authorization, User Management, Client/Vendor, Stock, Pur
 import pytest
 import requests
 import os
-import json
 import time
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://login-ui-revamp-5.preview.emergentagent.com').rstrip('/')
@@ -452,7 +451,7 @@ class TestFinanceDashboard:
         assert response.status_code == 200, f"Failed to get finance summary: {response.text}"
         summary = response.json()
         assert isinstance(summary, dict)
-        print(f"✓ Finance summary retrieved")
+        print("✓ Finance summary retrieved")
     
     def test_finance_export_excel(self):
         """Test GET /api/finance/export/excel"""

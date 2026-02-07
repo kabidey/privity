@@ -491,7 +491,7 @@ class TestRPEmailNotification:
         for var in expected_vars:
             assert var in template_vars, f"Template should have variable: {var}"
         
-        print(f"✓ rp_deal_notification template exists with all required variables")
+        print("✓ rp_deal_notification template exists with all required variables")
     
     def test_24_stock_transfer_creates_rp_payment(self):
         """Test that stock transfer with RP creates RP payment record"""
@@ -508,7 +508,7 @@ class TestRPEmailNotification:
                 assert "booking_number" in payment, "Should have booking_number"
                 assert "payment_amount" in payment, "Should have payment_amount"
                 assert "status" in payment, "Should have status"
-                print(f"✓ RP payment records exist with correct structure")
+                print("✓ RP payment records exist with correct structure")
             else:
                 print("⚠ No RP payments found - this is expected if no bookings with RP have been transferred")
         else:
@@ -560,7 +560,7 @@ class TestRPEditValidation:
         
         assert response.status_code == 400, f"Expected 400, got {response.status_code}"
         assert "10 digits" in response.json().get("detail", "").lower()
-        print(f"✓ Edit with invalid phone correctly rejected")
+        print("✓ Edit with invalid phone correctly rejected")
     
     def test_26_edit_rp_aadhar_validation(self):
         """Test that editing RP validates Aadhar (12 digits)"""
@@ -586,7 +586,7 @@ class TestRPEditValidation:
         
         assert response.status_code == 400, f"Expected 400, got {response.status_code}"
         assert "12 digits" in response.json().get("detail", "").lower()
-        print(f"✓ Edit with invalid Aadhar correctly rejected")
+        print("✓ Edit with invalid Aadhar correctly rejected")
 
 
 if __name__ == "__main__":

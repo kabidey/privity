@@ -10,7 +10,6 @@ ISOLATION RULES:
 """
 from fastapi import APIRouter, HTTPException
 from datetime import datetime, timedelta
-import uuid
 import random
 from database import db
 from utils.auth import hash_password, create_token

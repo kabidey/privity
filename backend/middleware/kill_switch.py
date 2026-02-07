@@ -2,7 +2,7 @@
 Kill Switch Middleware
 Blocks all API requests when kill switch is active (except allowed endpoints)
 """
-from fastapi import Request, HTTPException
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 import jwt
@@ -78,7 +78,7 @@ class KillSwitchMiddleware(BaseHTTPMiddleware):
                         "reason": status.get("reason")
                     }
                 )
-        except Exception as e:
+        except Exception:
             # If we can't check, allow the request (fail open for safety)
             pass
         

@@ -14,7 +14,6 @@ Tests for the new inventory blocking system:
 import pytest
 import requests
 import os
-import time
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
@@ -111,7 +110,7 @@ class TestInventoryBlocking:
         }
         purchase_response = requests.post(f"{BASE_URL}/api/purchases", json=purchase_data, headers=self.headers)
         assert purchase_response.status_code == 200, f"Failed to create purchase: {purchase_response.text}"
-        print(f"✓ Created purchase: 1000 units at ₹100")
+        print("✓ Created purchase: 1000 units at ₹100")
         
         # Verify inventory
         inv_response = requests.get(f"{BASE_URL}/api/inventory/{self.test_stock_id}", headers=self.headers)
@@ -156,7 +155,7 @@ class TestInventoryBlocking:
         # First approve the booking
         approve_response = requests.put(f"{BASE_URL}/api/bookings/{booking_id}/approve?approve=true", headers=self.headers)
         assert approve_response.status_code == 200, f"Failed to approve booking: {approve_response.text}"
-        print(f"✓ Booking approved by PE Desk")
+        print("✓ Booking approved by PE Desk")
         
         # Now simulate client confirmation
         # Get the booking to find confirmation token
@@ -167,7 +166,7 @@ class TestInventoryBlocking:
             # Confirm via public endpoint
             confirm_response = requests.post(f"{BASE_URL}/api/bookings/confirm/{token}?accept=true")
             if confirm_response.status_code == 200:
-                print(f"✓ Client confirmed booking")
+                print("✓ Client confirmed booking")
             else:
                 print(f"Client confirmation endpoint returned: {confirm_response.status_code}")
         
@@ -303,25 +302,25 @@ class TestInventoryBlocking:
             )
             
             if transfer_response.status_code == 200:
-                print(f"✓ Stock transfer confirmed")
+                print("✓ Stock transfer confirmed")
                 
                 # Now try to void - should fail
                 void_response = requests.put(
                     f"{BASE_URL}/api/bookings/{booking_id}/void?reason=Test",
                     headers=self.headers
                 )
-                assert void_response.status_code == 400, f"Should not be able to void transferred booking"
+                assert void_response.status_code == 400, "Should not be able to void transferred booking"
                 assert "transferred" in void_response.json().get("detail", "").lower()
                 print(f"✓ Cannot void transferred booking: {void_response.json().get('detail')}")
                 
                 # Also try to delete - should fail
                 delete_response = requests.delete(f"{BASE_URL}/api/bookings/{booking_id}", headers=self.headers)
-                assert delete_response.status_code == 400, f"Should not be able to delete transferred booking"
+                assert delete_response.status_code == 400, "Should not be able to delete transferred booking"
                 print(f"✓ Cannot delete transferred booking: {delete_response.json().get('detail')}")
             else:
                 print(f"Transfer confirmation failed: {transfer_response.text}")
         else:
-            print(f"Booking not DP transfer ready - skipping transfer test")
+            print("Booking not DP transfer ready - skipping transfer test")
     
     def test_07_void_requires_reason(self):
         """Test that void endpoint works with reason parameter"""
@@ -347,7 +346,7 @@ class TestInventoryBlocking:
         
         # Check that default reason is used
         voided_booking = requests.get(f"{BASE_URL}/api/bookings/{booking_id}", headers=self.headers).json()
-        assert voided_booking.get("void_reason") == "No reason provided", f"Default reason should be used"
+        assert voided_booking.get("void_reason") == "No reason provided", "Default reason should be used"
         print(f"✓ Void without reason uses default: '{voided_booking.get('void_reason')}'")
     
     def test_08_transfer_decreases_blocked_quantity(self):
@@ -411,7 +410,7 @@ class TestInventoryBlocking:
                 
                 # Blocked should decrease (stock is now permanently sold)
                 # Available should remain the same (it was already reduced when blocked)
-                print(f"✓ Transfer completed - blocked quantity decreased")
+                print("✓ Transfer completed - blocked quantity decreased")
             else:
                 print(f"Transfer failed: {transfer_response.text}")
         else:

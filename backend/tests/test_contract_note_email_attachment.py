@@ -206,7 +206,7 @@ class TestDPTransferAutoGeneration:
             assert detail_response.status_code == 200
             detail = detail_response.json()
             
-            print(f"✓ Contract note fields verified:")
+            print("✓ Contract note fields verified:")
             print(f"  CN Number: {detail.get('contract_note_number')}")
             print(f"  email_sent: {detail.get('email_sent')}")
             print(f"  email_sent_at: {detail.get('email_sent_at', 'N/A')}")
@@ -264,7 +264,7 @@ class TestConfirmStockTransferResponse:
         email_sent_count = sum(1 for n in data["notes"] if n.get("email_sent"))
         pending_count = sum(1 for n in data["notes"] if not n.get("email_sent"))
         
-        print(f"✓ Contract notes email status:")
+        print("✓ Contract notes email status:")
         print(f"  Total: {data['total']}")
         print(f"  Email Sent: {email_sent_count}")
         print(f"  Pending Email: {pending_count}")

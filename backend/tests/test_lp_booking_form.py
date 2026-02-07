@@ -273,7 +273,7 @@ class TestLPLabelsAndDisplay:
             
             # At least one price field should exist
             has_price = any(field in item for field in price_fields)
-            assert has_price, f"Inventory should have landing_price or weighted_avg_price"
+            assert has_price, "Inventory should have landing_price or weighted_avg_price"
             
             print("Inventory structure is correct for frontend LP display")
             print(f"  - stock_id: {item.get('stock_id')}")

@@ -7,7 +7,7 @@ to prevent race conditions during simultaneous booking requests.
 import asyncio
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, Tuple
-from database import db, client
+from database import db
 import logging
 
 logger = logging.getLogger(__name__)

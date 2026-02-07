@@ -205,7 +205,7 @@ class TestPaymentTracking:
             ]
             for field in required_fields:
                 assert field in record, f"Missing required field: {field}"
-            print(f"PASS: DP transfer report contains all required fields")
+            print("PASS: DP transfer report contains all required fields")
         else:
             print("SKIP: No records in DP transfer report to validate fields")
     
@@ -420,7 +420,7 @@ class TestGetBookingPayments:
         assert "payments" in data
         assert "dp_transfer_ready" in data
         
-        print(f"PASS: Get booking payments returns correct structure")
+        print("PASS: Get booking payments returns correct structure")
         print(f"  - Total amount: {data['total_amount']}")
         print(f"  - Total paid: {data['total_paid']}")
         print(f"  - Remaining: {data['remaining']}")

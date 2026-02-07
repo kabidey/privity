@@ -532,7 +532,7 @@ class TestNewPermissions:
             all_perms = str(data)
             wa_found = "whatsapp" in all_perms
         
-        assert wa_found, f"notifications.whatsapp permission not found in permissions"
+        assert wa_found, "notifications.whatsapp permission not found in permissions"
         print("PASS: notifications.whatsapp permission exists in Role Management")
 
 

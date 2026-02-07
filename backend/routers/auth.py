@@ -286,7 +286,7 @@ async def request_registration_otp(user_data: UserCreate, request: Request = Non
     # Send OTP email
     try:
         await send_otp_email(email_lower, otp, user_data.name)
-    except Exception as e:
+    except Exception:
         del pending_registrations[email_lower]
         raise HTTPException(status_code=500, detail="Failed to send OTP email. Please try again.")
     
@@ -389,7 +389,7 @@ async def resend_registration_otp(email: str):
     # Send OTP email
     try:
         await send_otp_email(email_lower, otp, pending["name"])
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to send OTP email. Please try again.")
     
     return {

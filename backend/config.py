@@ -138,4 +138,3 @@ AUDIT_ACTIONS = {
 # Default Email Templates - All system emails are customizable via PE Desk
 
 # Email templates moved to email_templates.py
-from email_templates import DEFAULT_EMAIL_TEMPLATES

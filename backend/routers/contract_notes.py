@@ -5,7 +5,7 @@ Generated after DP transfer and sent to clients
 """
 import os
 import logging
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
 from fastapi.responses import FileResponse, StreamingResponse
@@ -18,14 +18,11 @@ from utils.auth import get_current_user
 from services.audit_service import create_audit_log
 from services.contract_note_service import (
     generate_contract_note_pdf,
-    create_and_save_contract_note,
-    generate_contract_note_number
+    create_and_save_contract_note
 )
 from services.email_service import send_email
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
 

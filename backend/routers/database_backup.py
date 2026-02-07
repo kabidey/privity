@@ -4,7 +4,7 @@ Handles database backup creation, listing, and restoration (PE Desk only)
 Includes support for backing up uploaded files from GridFS
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import StreamingResponse
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime, timezone
@@ -21,8 +21,6 @@ from database import db
 from routers.auth import get_current_user
 from services.file_storage import upload_file_to_gridfs, download_file_from_gridfs, get_file_url
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
 

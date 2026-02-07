@@ -196,7 +196,7 @@ class TestReferralPartnersAPI:
         error_detail = response2.json().get("detail", "")
         assert "already exists" in error_detail.lower(), f"Error should mention duplicate: {error_detail}"
         
-        print(f"✓ Duplicate PAN correctly rejected")
+        print("✓ Duplicate PAN correctly rejected")
         
     def test_07_create_referral_partner_duplicate_aadhar_rejected(self):
         """Test duplicate Aadhar number is rejected"""
@@ -225,7 +225,7 @@ class TestReferralPartnersAPI:
         response2 = self.session.post(f"{BASE_URL}/api/referral-partners", json=rp_data2)
         assert response2.status_code == 400, f"Expected 400 for duplicate Aadhar, got {response2.status_code}"
         
-        print(f"✓ Duplicate Aadhar correctly rejected")
+        print("✓ Duplicate Aadhar correctly rejected")
         
     # ============== RP Edit Tests ==============
     
@@ -265,7 +265,7 @@ class TestReferralPartnersAPI:
         assert updated_data["phone"] == "9876543210", "Phone should be updated"
         assert updated_data["address"] == "Updated Address", "Address should be updated"
         
-        print(f"✓ PE Desk successfully edited RP")
+        print("✓ PE Desk successfully edited RP")
         
     def test_09_get_single_referral_partner(self):
         """Test GET /api/referral-partners/{id} returns single RP"""
@@ -329,7 +329,7 @@ class TestReferralPartnersAPI:
         get_response2 = self.session.get(f"{BASE_URL}/api/referral-partners/{rp_id}")
         assert get_response2.json()["is_active"] == True
         
-        print(f"✓ PE Desk can toggle RP active status")
+        print("✓ PE Desk can toggle RP active status")
         
     # ============== RP Bookings Integration Tests ==============
     
@@ -465,7 +465,7 @@ class TestReferralPartnersAPI:
         if response.status_code in [200, 201]:
             data = response.json()
             assert data.get("referral_partner_id") is None, "RP ID should be None"
-            print(f"✓ Created booking without RP")
+            print("✓ Created booking without RP")
         elif response.status_code == 400:
             print(f"⚠ Booking creation returned 400 (may be inventory constraint): {response.text}")
         else:
@@ -520,7 +520,7 @@ class TestReferralPartnersDocuments:
         
         # Should return 400 for invalid type, not 404
         assert response.status_code in [400, 422], f"Expected 400/422 for invalid type, got {response.status_code}"
-        print(f"✓ Document upload endpoint exists and validates document type")
+        print("✓ Document upload endpoint exists and validates document type")
 
 
 if __name__ == "__main__":

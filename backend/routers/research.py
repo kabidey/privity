@@ -3,7 +3,7 @@ Research Reports Router
 Handles research report uploads, listing, and AI-powered stock research
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime, timezone
 import uuid
@@ -14,8 +14,6 @@ from database import db
 from routers.auth import get_current_user
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
 

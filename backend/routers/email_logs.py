@@ -10,8 +10,6 @@ from pydantic import BaseModel
 from database import db
 from utils.auth import get_current_user
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
 
@@ -203,7 +201,7 @@ async def resend_email(
     This will attempt to resend the email using the original template and variables.
     Only emails with status 'failed' or 'skipped' can be resent.
     """
-    from services.email_service import send_templated_email, send_email, get_email_template, render_template
+    from services.email_service import send_email, get_email_template, render_template
     
     # Get the original email log
     log = await db.email_logs.find_one({"id": log_id}, {"_id": 0})

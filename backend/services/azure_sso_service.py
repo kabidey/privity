@@ -7,7 +7,6 @@ import jwt
 import requests
 from datetime import datetime, timezone
 from typing import Optional, Dict
-from functools import lru_cache
 
 
 class AzureADConfig:

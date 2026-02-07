@@ -10,19 +10,16 @@ import uuid
 import secrets
 import string
 import os
-import shutil
 
 from database import db
 from routers.auth import get_current_user, create_audit_log
-from config import ROLES
-from services.email_service import send_email, generate_otp
+from services.email_service import send_email
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
     has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
-from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
+from utils.demo_isolation import add_demo_filter
 
 router = APIRouter(prefix="/business-partners", tags=["Business Partners"])
 

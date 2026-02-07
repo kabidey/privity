@@ -2,16 +2,15 @@
 Group Chat Router
 Handles real-time group chat functionality for all users.
 """
-from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, Depends, WebSocket
 from datetime import datetime, timezone
-from typing import List, Dict, Set
+from typing import Dict
 from pydantic import BaseModel
 import json
-import asyncio
 import uuid
 
 from database import db
-from utils.auth import get_current_user, decode_token
+from utils.auth import get_current_user
 
 router = APIRouter(prefix="/group-chat", tags=["Group Chat"])
 

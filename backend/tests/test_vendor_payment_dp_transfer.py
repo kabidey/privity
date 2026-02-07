@@ -128,7 +128,7 @@ class TestVendorPaymentAndDPTransfer:
         
         response = self.session.post(f"{BASE_URL}/api/purchases/invalid-id-12345/payments", json=payment_data)
         assert response.status_code == 404, f"Should return 404 for invalid purchase: {response.text}"
-        print(f"✓ Invalid purchase ID correctly returns 404")
+        print("✓ Invalid purchase ID correctly returns 404")
     
     def test_get_purchase_payments(self):
         """Test getting payment history for a purchase"""
@@ -202,7 +202,7 @@ class TestVendorPaymentAndDPTransfer:
             json={"notes": "Test"}
         )
         assert response.status_code == 404, f"Should return 404 for invalid booking: {response.text}"
-        print(f"✓ Invalid booking ID correctly returns 404")
+        print("✓ Invalid booking ID correctly returns 404")
     
     def test_confirm_transfer_not_ready(self):
         """Test that transfer fails if booking is not ready (no full payment)"""
@@ -246,7 +246,7 @@ class TestVendorPaymentAndDPTransfer:
             for field in required_fields:
                 assert field in purchase, f"Missing required field: {field}"
             
-            print(f"✓ All required fields present for Purchases page UI")
+            print("✓ All required fields present for Purchases page UI")
     
     def test_dp_transfer_report_data_structure(self):
         """Test that DP transfer records have all required fields for UI"""
@@ -262,7 +262,7 @@ class TestVendorPaymentAndDPTransfer:
             for field in required_fields:
                 assert field in record, f"Missing required field: {field}"
             
-            print(f"✓ All required fields present for DP Transfer Report UI")
+            print("✓ All required fields present for DP Transfer Report UI")
 
 
 class TestVendorPaymentEndToEnd:

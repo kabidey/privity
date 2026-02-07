@@ -13,7 +13,6 @@ Test client ID with documents: d6e65ab9-d513-4a95-abec-d01fdfeb38e3
 import pytest
 import requests
 import os
-import json
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
@@ -110,7 +109,7 @@ class TestBugFixes:
             print(f"PASS: Rerun OCR endpoint works. Documents processed: {len(data.get('documents_processed', []))}")
         elif response.status_code == 400:
             # 400 is OK - means permission passed, just no valid documents
-            print(f"PASS: Rerun OCR endpoint accessible (400 error is OCR-related, not permission)")
+            print("PASS: Rerun OCR endpoint accessible (400 error is OCR-related, not permission)")
         else:
             print(f"Rerun OCR response: {response.status_code} - {response.text[:200]}")
     

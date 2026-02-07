@@ -266,7 +266,7 @@ class TestRPApprovalWorkflow:
         assert get_response.status_code == 200
         data = get_response.json()
         assert data.get("approval_status") == "rejected", f"Expected 'rejected', got '{data.get('approval_status')}'"
-        assert data.get("rejection_reason") == rejection_reason, f"Rejection reason mismatch"
+        assert data.get("rejection_reason") == rejection_reason, "Rejection reason mismatch"
         
         print(f"✓ PE Level rejected RP {rp_code} with reason: {rejection_reason}")
     

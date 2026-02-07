@@ -202,10 +202,10 @@ async def chat_with_sohini(
         
         return ChatResponse(response=response, session_id=session_id)
         
-    except Exception as e:
+    except Exception:
         # Return a friendly error message
         return ChatResponse(
-            response=f"I apologize, but I'm having a little trouble right now. Please try again in a moment. If the issue persists, please contact PE Desk for assistance.",
+            response="I apologize, but I'm having a little trouble right now. Please try again in a moment. If the issue persists, please contact PE Desk for assistance.",
             session_id=session_id
         )
 

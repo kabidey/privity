@@ -168,7 +168,7 @@ class TestAuditTrail:
         response = requests.get(f"{BASE_URL}/api/audit-logs/stats", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        print(f"✓ Audit stats retrieved")
+        print("✓ Audit stats retrieved")
         return data
 
 
@@ -186,7 +186,7 @@ class TestDatabaseBackup:
         response = requests.get(f"{BASE_URL}/api/database-backup/stats", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        print(f"✓ Database backup stats retrieved")
+        print("✓ Database backup stats retrieved")
         return data
     
     def test_get_backup_history(self, pe_desk_token):
@@ -237,7 +237,7 @@ class TestDashboards:
         response = requests.get(f"{BASE_URL}/api/dashboard/stats", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        print(f"✓ Dashboard stats retrieved")
+        print("✓ Dashboard stats retrieved")
         return data
     
     def test_employee_revenue_dashboard(self, pe_desk_token):
@@ -246,7 +246,7 @@ class TestDashboards:
         response = requests.get(f"{BASE_URL}/api/employee-revenue", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        print(f"✓ Employee revenue dashboard retrieved")
+        print("✓ Employee revenue dashboard retrieved")
         return data
     
     def test_rp_revenue_dashboard(self, pe_desk_token):
@@ -255,7 +255,7 @@ class TestDashboards:
         response = requests.get(f"{BASE_URL}/api/rp-revenue", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        print(f"✓ RP revenue dashboard retrieved")
+        print("✓ RP revenue dashboard retrieved")
         return data
 
 
@@ -283,7 +283,7 @@ class TestUserManagement:
         response = requests.get(f"{BASE_URL}/api/users/hierarchy", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        print(f"✓ User hierarchy retrieved")
+        print("✓ User hierarchy retrieved")
         return data
 
 

@@ -6,7 +6,7 @@ This service provides functions to check if a user has a specific permission
 based on their assigned role and the permissions defined in the roles collection.
 """
 
-from typing import List, Optional, Set
+from typing import List, Set
 from database import db
 import logging
 

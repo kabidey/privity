@@ -3,7 +3,7 @@ Email Templates Router
 Handles email template CRUD operations and SMTP configuration
 """
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime, timezone
 
@@ -89,7 +89,7 @@ async def sync_all_templates(
     })
     
     return {
-        "message": f"All email templates synced to latest defaults",
+        "message": "All email templates synced to latest defaults",
         "templates_reset": deleted_count,
         "available_templates": list(EMAIL_TEMPLATES.keys())
     }

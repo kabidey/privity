@@ -289,7 +289,7 @@ Privity System
         test_result = "recipient_refused"
         test_message = f"Recipient email was refused by the server. Error: {str(e)}"
     except Exception as e:
-        test_result = f"error"
+        test_result = "error"
         test_message = f"Failed to send test email: {str(e)}"
     
     # Update last test result in database

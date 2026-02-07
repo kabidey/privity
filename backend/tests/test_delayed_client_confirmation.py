@@ -219,7 +219,7 @@ class TestDelayedClientConfirmation:
         assert result["status"] == "pending_approval", f"Expected pending_approval, got {result['status']}"
         assert "pending PE Desk approval" in result["message"].lower() or "pending" in result["message"].lower()
         
-        print(f"✓ Client confirmation before approval correctly returns pending_approval")
+        print("✓ Client confirmation before approval correctly returns pending_approval")
         print(f"  - status: {result['status']}")
         print(f"  - message: {result['message']}")
     
@@ -273,7 +273,7 @@ class TestDelayedClientConfirmation:
         
         print(f"✓ PE Desk approved normal booking: {booking['booking_number']}")
         print(f"  - approval_status: {updated_booking['approval_status']}")
-        print(f"  - Client confirmation email would be sent now (SMTP may not be configured)")
+        print("  - Client confirmation email would be sent now (SMTP may not be configured)")
         
         return updated_booking
     
@@ -327,7 +327,7 @@ class TestDelayedClientConfirmation:
         result = confirm_response.json()
         assert result["status"] == "accepted", f"Expected accepted, got {result['status']}"
         
-        print(f"✓ Client confirmation after approval works correctly")
+        print("✓ Client confirmation after approval works correctly")
         print(f"  - status: {result['status']}")
         print(f"  - message: {result['message']}")
     
@@ -436,7 +436,7 @@ class TestDelayedClientConfirmation:
         result = confirm_response.json()
         assert result["status"] == "pending_loss_approval", f"Expected pending_loss_approval, got {result['status']}"
         
-        print(f"✓ PE Desk approved loss booking but client confirmation blocked")
+        print("✓ PE Desk approved loss booking but client confirmation blocked")
         print(f"  - approval_status: {updated_booking['approval_status']}")
         print(f"  - loss_approval_status: {updated_booking['loss_approval_status']}")
         print(f"  - Client confirmation returns: {result['status']}")
@@ -508,9 +508,9 @@ class TestDelayedClientConfirmation:
         result = confirm_response.json()
         assert result["status"] == "accepted", f"Expected accepted, got {result['status']}"
         
-        print(f"✓ Full loss booking workflow completed successfully")
-        print(f"  - PE Desk approval: ✓")
-        print(f"  - Loss approval: ✓")
+        print("✓ Full loss booking workflow completed successfully")
+        print("  - PE Desk approval: ✓")
+        print("  - Loss approval: ✓")
         print(f"  - Client confirmation: {result['status']}")
     
     # ==================== ROLE RESTRICTION TESTS ====================
@@ -547,19 +547,19 @@ class TestDelayedClientConfirmation:
         
         # Try to delete as employee - should fail
         delete_response = self.session.delete(f"{BASE_URL}/api/bookings/{booking['id']}", headers=headers_emp)
-        assert delete_response.status_code == 403, f"Employee should not be able to delete bookings"
+        assert delete_response.status_code == 403, "Employee should not be able to delete bookings"
         
         # Delete as admin - should succeed
         self._login_admin()
         headers_admin = {"Authorization": f"Bearer {self.admin_token}"}
         
         delete_response = self.session.delete(f"{BASE_URL}/api/bookings/{booking['id']}", headers=headers_admin)
-        assert delete_response.status_code == 200, f"PE Desk should be able to delete bookings"
+        assert delete_response.status_code == 200, "PE Desk should be able to delete bookings"
         
         # Remove from cleanup list since already deleted
         self.created_bookings.remove(booking["id"])
         
-        print(f"✓ Booking deletion correctly restricted to PE Desk only")
+        print("✓ Booking deletion correctly restricted to PE Desk only")
     
     def test_11_purchases_restricted_to_pe_desk(self):
         """
@@ -582,7 +582,7 @@ class TestDelayedClientConfirmation:
         # Should be 403 (forbidden) or 404 (vendor not found after permission check)
         assert response.status_code in [403, 404], f"Employee should not be able to create purchases: {response.status_code}"
         
-        print(f"✓ Purchases module correctly restricted from employees")
+        print("✓ Purchases module correctly restricted from employees")
     
     def test_12_stocks_restricted_to_pe_desk(self):
         """
@@ -600,7 +600,7 @@ class TestDelayedClientConfirmation:
         response = self.session.post(f"{BASE_URL}/api/stocks", json=stock_data, headers=headers_emp)
         assert response.status_code == 403, f"Employee should not be able to create stocks: {response.status_code}"
         
-        print(f"✓ Stock creation correctly restricted to PE Desk")
+        print("✓ Stock creation correctly restricted to PE Desk")
     
     def test_13_vendors_restricted_to_pe_desk(self):
         """
@@ -620,7 +620,7 @@ class TestDelayedClientConfirmation:
         response = self.session.post(f"{BASE_URL}/api/clients", json=vendor_data, headers=headers_emp)
         assert response.status_code == 403, f"Employee should not be able to create vendors: {response.status_code}"
         
-        print(f"✓ Vendor creation correctly restricted to PE Desk")
+        print("✓ Vendor creation correctly restricted to PE Desk")
     
     # ==================== EXPORT TESTS ====================
     

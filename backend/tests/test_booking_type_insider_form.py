@@ -228,7 +228,7 @@ class TestBookingTypeFeature:
             # Check that booking_type field exists
             for booking in bookings[:5]:  # Check first 5
                 assert "booking_type" in booking or booking.get("booking_type") is None, "booking_type field should exist"
-            print(f"SUCCESS: Bookings list contains booking_type field")
+            print("SUCCESS: Bookings list contains booking_type field")
         else:
             print("INFO: No bookings found to verify")
 

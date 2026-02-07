@@ -3,10 +3,9 @@ Day-End Revenue Report Service
 Sends revenue summary at 6 PM IST to users and their managers via email and WhatsApp
 Follows full hierarchy for consolidated reports
 """
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Optional
+from datetime import datetime, timezone
+from typing import List, Dict
 import uuid
-import asyncio
 
 from database import db
 

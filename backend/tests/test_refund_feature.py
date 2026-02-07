@@ -222,7 +222,7 @@ class TestRefundFeature:
         assert "completed_refunds_count" in data, "Missing completed_refunds_count"
         assert "completed_refunds_amount" in data, "Missing completed_refunds_amount"
         
-        print(f"✓ Finance summary has refund stats:")
+        print("✓ Finance summary has refund stats:")
         print(f"  - Pending refunds: {data['pending_refunds_count']} (₹{data['pending_refunds_amount']:,.2f})")
         print(f"  - Completed refunds: {data['completed_refunds_count']} (₹{data['completed_refunds_amount']:,.2f})")
     
@@ -267,7 +267,7 @@ class TestRefundFeature:
         assert void_data.get("refund_amount") == payment_amount, f"Refund amount should be {payment_amount}"
         assert "refund_request_id" in void_data, "Should return refund_request_id"
         
-        print(f"✓ Voiding paid booking created refund request:")
+        print("✓ Voiding paid booking created refund request:")
         print(f"  - Refund ID: {void_data.get('refund_request_id')}")
         print(f"  - Refund Amount: ₹{void_data.get('refund_amount'):,.2f}")
         
@@ -396,7 +396,7 @@ class TestRefundFeature:
             refund = refunds[0]
             assert "bank_details" in refund, "Refund should have bank_details field"
             bank_details = refund.get("bank_details", {})
-            print(f"✓ Refund request has bank details:")
+            print("✓ Refund request has bank details:")
             print(f"  - Bank: {bank_details.get('bank_name', 'N/A')}")
             print(f"  - Account: {bank_details.get('account_number', 'N/A')}")
             print(f"  - IFSC: {bank_details.get('ifsc_code', 'N/A')}")

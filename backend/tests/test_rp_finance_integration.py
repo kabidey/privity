@@ -312,7 +312,7 @@ class TestRPFinanceIntegration:
         
         assert updated_payment is not None, "Payment not found after update"
         assert updated_payment.get("status") == "processing", f"Status should be processing, got {updated_payment.get('status')}"
-        print(f"✓ Verified payment status updated to processing")
+        print("✓ Verified payment status updated to processing")
         
         # Store for next test
         self.test_rp_payment_id = payment_id
@@ -491,7 +491,7 @@ class TestEndToEndRPPaymentFlow:
         # Step 3: Approve booking
         approve_response = self.session.put(f"{BASE_URL}/api/bookings/{booking_id}/approve?approve=true")
         assert approve_response.status_code == 200, f"Approve failed: {approve_response.text}"
-        print(f"✓ Step 2: Booking approved")
+        print("✓ Step 2: Booking approved")
         
         # Step 4: Simulate client confirmation
         # Get booking to get confirmation token
@@ -523,7 +523,7 @@ class TestEndToEndRPPaymentFlow:
             pytest.skip(f"Could not confirm transfer: {transfer_response.text}")
         
         transfer_data = transfer_response.json()
-        print(f"✓ Step 4: Stock transfer confirmed")
+        print("✓ Step 4: Stock transfer confirmed")
         
         # Step 7: Verify RP payment was created
         assert transfer_data.get("rp_payment_created") == True, "RP payment should be created"
@@ -544,10 +544,10 @@ class TestEndToEndRPPaymentFlow:
         rp_payment = next((p for p in rp_payments if p.get("booking_id") == booking_id), None)
         assert rp_payment is not None, "RP payment should appear in finance endpoint"
         assert rp_payment.get("status") == "pending", "New RP payment should have pending status"
-        assert rp_payment.get("payment_amount") == expected_rp_payment, f"Payment amount mismatch"
+        assert rp_payment.get("payment_amount") == expected_rp_payment, "Payment amount mismatch"
         assert rp_payment.get("revenue_share_percent") == 20.0, "Revenue share should be 20%"
         
-        print(f"✓ Step 6: RP payment verified in finance endpoint")
+        print("✓ Step 6: RP payment verified in finance endpoint")
         print(f"  - RP: {rp_payment.get('rp_name')} ({rp_payment.get('rp_code')})")
         print(f"  - Profit: {rp_payment.get('profit')}")
         print(f"  - Revenue Share: {rp_payment.get('revenue_share_percent')}%")
@@ -563,7 +563,7 @@ class TestEndToEndRPPaymentFlow:
         })
         
         assert update_response.status_code == 200, f"Failed to update RP payment: {update_response.text}"
-        print(f"✓ Step 7: RP payment marked as paid")
+        print("✓ Step 7: RP payment marked as paid")
         
         print("\n✓ END-TO-END TEST PASSED: Booking with RP → Transfer → RP Payment Created → Marked Paid")
 

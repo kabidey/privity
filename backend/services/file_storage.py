@@ -4,12 +4,11 @@ Provides persistent file storage that survives redeployments
 """
 import os
 import io
-import base64
 from datetime import datetime, timezone
 from typing import Optional, Tuple, List
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from bson import ObjectId
-from database import db, client
+from database import db
 
 # GridFS bucket for file storage
 fs_bucket = None

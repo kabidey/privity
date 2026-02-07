@@ -2,16 +2,14 @@
 Audit Logs Router
 Handles audit log retrieval and statistics
 """
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, Depends, Query
 
 from database import db
 from config import AUDIT_ACTIONS, ROLES
 from utils.auth import get_current_user
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
 

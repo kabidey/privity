@@ -38,7 +38,7 @@ class TestDatabaseBackupFeatures:
         
         token = login_response.json().get("token")
         self.session.headers.update({"Authorization": f"Bearer {token}"})
-        print(f"✓ Logged in as PE Desk Super Admin")
+        print("✓ Logged in as PE Desk Super Admin")
     
     # ============== Test Database Stats ==============
     def test_get_database_stats(self):
@@ -200,7 +200,7 @@ class TestDatabaseBackupFeatures:
         assert "restored_counts" in data, "Response should contain 'restored_counts'"
         assert "backup_info" in data, "Response should contain 'backup_info'"
         
-        print(f"✓ Restored from uploaded ZIP file")
+        print("✓ Restored from uploaded ZIP file")
         print(f"  - Message: {data['message']}")
         print(f"  - Restored counts: {data['restored_counts']}")
     
@@ -282,7 +282,7 @@ class TestDatabaseBackupFeatures:
         # Users should be preserved
         assert users_after == users_before, f"Users should be preserved: before={users_before}, after={users_after}"
         
-        print(f"✓ Database cleared successfully")
+        print("✓ Database cleared successfully")
         print(f"  - Total deleted: {data['total_deleted']} records")
         print(f"  - Users preserved: {users_after}")
         print(f"  - Cleared collections: {list(data['cleared_counts'].keys())}")

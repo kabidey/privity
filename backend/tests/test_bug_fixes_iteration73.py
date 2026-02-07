@@ -37,7 +37,7 @@ class TestAuthentication:
         data = response.json()
         assert "token" in data
         assert data.get("user", {}).get("email") == PE_DESK_EMAIL
-        print(f"✓ PE Desk login successful")
+        print("✓ PE Desk login successful")
     
     def test_employee_login(self):
         """Employee can login successfully"""
@@ -49,7 +49,7 @@ class TestAuthentication:
         data = response.json()
         assert "token" in data
         assert data.get("user", {}).get("email") == EMPLOYEE_EMAIL
-        print(f"✓ Employee login successful")
+        print("✓ Employee login successful")
 
 
 @pytest.fixture
@@ -134,7 +134,7 @@ class TestBookingVisibility:
         elif response.status_code == 400:
             detail = response.json().get("detail", "")
             if "Duplicate" in detail or "already exists" in detail or "just created" in detail:
-                print(f"✓ Booking already exists (duplicate check working)")
+                print("✓ Booking already exists (duplicate check working)")
                 return None
             else:
                 pytest.fail(f"Booking creation failed: {detail}")
@@ -189,7 +189,7 @@ class TestBookingVisibility:
             print(f"  - {booking.get('booking_number')} created by {booking.get('created_by_name', 'Unknown')}")
         
         # Even if no PE Desk bookings exist, the query should work
-        print(f"✓ Booking visibility query works correctly")
+        print("✓ Booking visibility query works correctly")
 
 
 class TestPaymentStatusUpdate:
@@ -260,15 +260,15 @@ class TestPaymentStatusUpdate:
         payment_status = updated_booking.get("payment_status")
         dp_status = updated_booking.get("dp_status")
         
-        print(f"  After full payment:")
+        print("  After full payment:")
         print(f"    payment_status: {payment_status}")
         print(f"    dp_status: {dp_status}")
         
         assert payment_status == "paid", f"Expected payment_status='paid', got '{payment_status}'"
-        print(f"✓ Payment status correctly updated to 'paid'")
+        print("✓ Payment status correctly updated to 'paid'")
         
         assert dp_status == "ready", f"Expected dp_status='ready', got '{dp_status}'"
-        print(f"✓ DP status correctly updated to 'ready'")
+        print("✓ DP status correctly updated to 'ready'")
 
 
 class TestDPStatusUpdate:
@@ -297,7 +297,7 @@ class TestDPStatusUpdate:
             assert dp_status in ["ready", "transferred"], \
                 f"Booking {booking_number} has payment_status=paid but dp_status={dp_status}"
         
-        print(f"✓ All paid bookings have correct DP status")
+        print("✓ All paid bookings have correct DP status")
     
     def test_dp_ready_bookings_endpoint(self, pe_desk_token):
         """Test the /bookings/dp-ready endpoint"""
@@ -312,7 +312,7 @@ class TestDPStatusUpdate:
         for booking in dp_ready_bookings[:5]:
             print(f"  - {booking.get('booking_number')}: client={booking.get('client_name')}")
         
-        print(f"✓ /api/bookings/dp-ready endpoint working")
+        print("✓ /api/bookings/dp-ready endpoint working")
 
 
 class TestDocumentDownload:
@@ -341,7 +341,7 @@ class TestDocumentDownload:
         
         summary = doc_status.get("summary", {})
         print(f"  Summary: all_mandatory_stored={summary.get('all_mandatory_stored')}")
-        print(f"✓ Document status endpoint working")
+        print("✓ Document status endpoint working")
     
     def test_pe_user_can_download_documents(self, pe_desk_token):
         """PE level users should be able to download documents"""
@@ -365,7 +365,7 @@ class TestDocumentDownload:
             print(f"Attempting to download {doc_type} (filename={filename}, file_id={file_id})")
             
             if not filename:
-                print(f"  - Skipping: no filename")
+                print("  - Skipping: no filename")
                 continue
             
             response = requests.get(
@@ -376,7 +376,7 @@ class TestDocumentDownload:
             if response.status_code == 200:
                 print(f"  ✓ Downloaded successfully (size: {len(response.content)} bytes)")
             elif response.status_code == 404:
-                print(f"  ✗ Document not found (404)")
+                print("  ✗ Document not found (404)")
             else:
                 print(f"  ✗ Download failed: {response.status_code} - {response.text[:100]}")
     
@@ -392,7 +392,7 @@ class TestDocumentDownload:
         
         # Should be accessible
         assert response.status_code == 200, f"Employee cannot access document status: {response.text}"
-        print(f"✓ Employee can access document status for mapped client")
+        print("✓ Employee can access document status for mapped client")
         
         doc_status = response.json()
         documents = doc_status.get("documents", {})
@@ -436,14 +436,14 @@ class TestSpecificBooking:
                 break
         
         if target_booking:
-            print(f"✓ Booking BK-2026-00033 is visible to employee")
+            print("✓ Booking BK-2026-00033 is visible to employee")
             print(f"  - Client: {target_booking.get('client_name')}")
             print(f"  - Created by: {target_booking.get('created_by_name')}")
             print(f"  - Payment status: {target_booking.get('payment_status')}")
             print(f"  - DP status: {target_booking.get('dp_status')}")
         else:
             # List available bookings
-            print(f"Booking BK-2026-00033 not found. Available bookings:")
+            print("Booking BK-2026-00033 not found. Available bookings:")
             for b in bookings[:10]:
                 print(f"  - {b.get('booking_number')} for client {b.get('client_name')}")
             

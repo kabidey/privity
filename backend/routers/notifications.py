@@ -1,14 +1,12 @@
 """
 Notification routes and WebSocket endpoint
 """
-import logging
 import jwt
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException
 
 from database import db
 from config import JWT_SECRET, JWT_ALGORITHM
 from utils.auth import get_current_user
-from services.notification_service import ws_manager
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 

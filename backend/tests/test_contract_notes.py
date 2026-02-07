@@ -438,7 +438,7 @@ class TestContractNoteDataValidation:
             for field in required_fields:
                 assert field in note, f"Missing required field: {field}"
             
-            print(f"✓ Contract note has all required fields")
+            print("✓ Contract note has all required fields")
             print(f"  CN Number: {note['contract_note_number']}")
             print(f"  Booking: {note['booking_number']}")
             print(f"  Amount: ₹{note['net_amount']}")

@@ -49,13 +49,13 @@ class TestAuthSetup:
         """Verify PE Desk can login"""
         assert pe_desk_token is not None
         assert len(pe_desk_token) > 0
-        print(f"✅ PE Desk login successful")
+        print("✅ PE Desk login successful")
     
     def test_viewer_login(self, viewer_token):
         """Verify Viewer can login"""
         assert viewer_token is not None
         assert len(viewer_token) > 0
-        print(f"✅ Viewer login successful")
+        print("✅ Viewer login successful")
 
 
 class TestDashboardEndpoints:
@@ -94,7 +94,7 @@ class TestDashboardEndpoints:
         assert response.status_code == 200, f"Viewer dashboard stats failed: {response.text}"
         data = response.json()
         assert "total_clients" in data
-        print(f"✅ Viewer can access dashboard stats")
+        print("✅ Viewer can access dashboard stats")
     
     def test_dashboard_analytics_pe_desk(self, pe_desk_token):
         """PE Desk should access dashboard analytics"""
@@ -104,7 +104,7 @@ class TestDashboardEndpoints:
         assert response.status_code == 200, f"Dashboard analytics failed: {response.text}"
         data = response.json()
         assert "status_distribution" in data or "recent_bookings" in data
-        print(f"✅ PE Desk dashboard analytics accessible")
+        print("✅ PE Desk dashboard analytics accessible")
 
 
 class TestBookingsEndpoints:
@@ -146,7 +146,7 @@ class TestBookingsEndpoints:
         response = requests.get(f"{BASE_URL}/api/bookings?status=open", headers=headers)
         
         assert response.status_code == 200, f"Filtered bookings failed: {response.text}"
-        print(f"✅ PE Desk filtered bookings accessible")
+        print("✅ PE Desk filtered bookings accessible")
 
 
 class TestClientsEndpoints:
@@ -284,14 +284,14 @@ class TestPermissionServiceIntegration:
         """Unauthenticated requests should be denied"""
         response = requests.get(f"{BASE_URL}/api/dashboard/stats")
         assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
-        print(f"✅ Unauthenticated access correctly denied")
+        print("✅ Unauthenticated access correctly denied")
     
     def test_invalid_token_denied(self):
         """Invalid token should be denied"""
         headers = {"Authorization": "Bearer invalid_token_12345"}
         response = requests.get(f"{BASE_URL}/api/dashboard/stats", headers=headers)
         assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
-        print(f"✅ Invalid token correctly denied")
+        print("✅ Invalid token correctly denied")
 
 
 if __name__ == "__main__":

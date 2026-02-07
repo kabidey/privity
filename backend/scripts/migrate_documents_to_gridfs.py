@@ -169,7 +169,7 @@ async def migrate_documents():
                 {"id": client_id},
                 {"$set": {"documents": updated_documents}}
             )
-            print(f"  → Updated client record")
+            print("  → Updated client record")
         
         print()
     

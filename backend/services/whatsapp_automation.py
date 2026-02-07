@@ -3,7 +3,7 @@ WhatsApp Bulk Notification Automation Service
 Handles scheduled and triggered bulk WhatsApp notifications
 """
 from datetime import datetime, timezone, timedelta
-from typing import List, Optional, Dict
+from typing import List, Optional
 import uuid
 import logging
 import asyncio

@@ -2,7 +2,7 @@
 Reports Router
 Handles P&L reports, exports (Excel, PDF), and financial reporting
 """
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import StreamingResponse
@@ -10,22 +10,19 @@ import io
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+from reportlab.lib.enums import TA_CENTER
 
 from database import db
-from config import ROLES
 from utils.auth import get_current_user
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
-from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
+from utils.demo_isolation import add_demo_filter
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 

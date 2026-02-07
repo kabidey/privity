@@ -5,7 +5,6 @@ PE Desk only access
 """
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
-from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
 import csv
@@ -14,8 +13,6 @@ import io
 from database import db
 from routers.auth import get_current_user
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
 

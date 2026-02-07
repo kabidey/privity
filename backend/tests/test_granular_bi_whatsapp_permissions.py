@@ -85,7 +85,7 @@ class TestGranularBIPermissionsInRolesAPI:
         for perm in expected_bi_permissions:
             assert perm in perm_keys, f"Missing BI permission: {perm}"
         
-        print(f"PASS: All 8 granular BI permissions found in /api/roles/permissions")
+        print("PASS: All 8 granular BI permissions found in /api/roles/permissions")
     
     def test_permissions_api_returns_granular_whatsapp_permissions(self, pe_desk_token):
         """GET /api/roles/permissions - Should return granular WhatsApp permissions"""
@@ -117,7 +117,7 @@ class TestGranularBIPermissionsInRolesAPI:
         for perm in expected_whatsapp_permissions:
             assert perm in perm_keys, f"Missing WhatsApp permission: {perm}"
         
-        print(f"PASS: All 6 granular WhatsApp permissions found in /api/roles/permissions")
+        print("PASS: All 6 granular WhatsApp permissions found in /api/roles/permissions")
 
 
 class TestBIReportsConfigWithPermissions:
@@ -426,7 +426,7 @@ class TestPermissionServiceIntegration:
         
         # PE Desk (role 1) should have all permissions
         assert data.get("role") == 1, "Expected PE Desk role (1)"
-        print(f"PASS: Verified PE Desk user (role 1) has access to all permissions")
+        print("PASS: Verified PE Desk user (role 1) has access to all permissions")
 
 
 class TestUnauthorizedAccess:

@@ -7,7 +7,7 @@ import random
 import hashlib
 import time
 import logging
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
@@ -215,7 +215,7 @@ class SecurityAlertService:
             {"_id": 0, "email": 1}
         ).to_list(5)
         
-        subject = f"⚠️ Security Alert: Suspicious Activity Detected"
+        subject = "⚠️ Security Alert: Suspicious Activity Detected"
         
         details_html = "".join([
             f'<tr><td style="padding: 8px; border: 1px solid #e5e7eb;">{k}</td>'

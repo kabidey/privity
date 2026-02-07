@@ -161,7 +161,7 @@ def test_04_update_rp_mapping_change_share():
     data = response.json()
     
     assert data.get("rp_revenue_share_percent") == 15.0, "RP share not updated"
-    print(f"SUCCESS: Changed RP share to 15%")
+    print("SUCCESS: Changed RP share to 15%")
 
 
 def test_05_update_rp_mapping_remove_rp():
@@ -221,7 +221,7 @@ def test_06_verify_booking_after_rp_update():
     assert updated_booking.get("rp_revenue_share_percent") == 25.0, "RP share not persisted"
     assert updated_booking.get("employee_revenue_share_percent") == 75.0, "Employee share not calculated correctly"
     
-    print(f"SUCCESS: Booking correctly reflects RP update (RP: 25%, Employee: 75%)")
+    print("SUCCESS: Booking correctly reflects RP update (RP: 25%, Employee: 75%)")
 
 
 def test_07_rp_share_default_30_percent():
@@ -252,7 +252,7 @@ def test_07_rp_share_default_30_percent():
     
     # Default should be 30%
     assert data.get("rp_revenue_share_percent") == 30.0, f"RP share should default to 30%, got {data.get('rp_revenue_share_percent')}"
-    print(f"SUCCESS: RP share defaults to 30%")
+    print("SUCCESS: RP share defaults to 30%")
 
 
 def test_08_invalid_rp_id():
@@ -274,7 +274,7 @@ def test_08_invalid_rp_id():
     
     assert response.status_code == 404, f"Should reject invalid RP ID: {response.text}"
     
-    print(f"SUCCESS: API correctly rejected invalid RP ID")
+    print("SUCCESS: API correctly rejected invalid RP ID")
 
 
 def test_09_invalid_booking_id():
@@ -296,7 +296,7 @@ def test_09_invalid_booking_id():
     
     assert response.status_code == 404, f"Should return 404 for invalid booking: {response.text}"
     
-    print(f"SUCCESS: API correctly returned 404 for invalid booking ID")
+    print("SUCCESS: API correctly returned 404 for invalid booking ID")
 
 
 def test_10_cannot_update_transferred_booking():
@@ -333,7 +333,7 @@ def test_10_cannot_update_transferred_booking():
     assert response.status_code == 400, f"Should reject update on transferred booking: {response.text}"
     assert "transferred" in response.json().get("detail", "").lower(), "Error should mention transfer"
     
-    print(f"SUCCESS: API correctly rejected RP update on transferred booking")
+    print("SUCCESS: API correctly rejected RP update on transferred booking")
 
 
 def test_11_cannot_update_bp_booking():
@@ -370,7 +370,7 @@ def test_11_cannot_update_bp_booking():
     assert response.status_code == 400, f"Should reject RP on BP booking: {response.text}"
     assert "business partner" in response.json().get("detail", "").lower(), "Error should mention BP"
     
-    print(f"SUCCESS: API correctly rejected RP assignment on BP booking")
+    print("SUCCESS: API correctly rejected RP assignment on BP booking")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 """
 WebSocket manager for real-time notifications
 """
-import json
 import logging
 from typing import Dict, List
 from fastapi import WebSocket

@@ -4,29 +4,25 @@ Handles purchase orders and vendor payments
 """
 from typing import List, Optional
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Body, Query
+from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import uuid
-import os
 import io
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from database import db
-from config import UPLOAD_DIR
 from models import Purchase, PurchaseCreate
 from utils.auth import get_current_user
 from services.audit_service import create_audit_log
 from services.email_service import send_stock_transfer_request_email, send_email, get_email_template
 from services.contract_note_service import create_and_save_vendor_contract_note
 from services.permission_service import (
-    has_permission,
-    check_permission as check_dynamic_permission,
     require_permission
 )
-from utils.demo_isolation import is_demo_user, add_demo_filter, mark_as_demo, require_demo_access
+from utils.demo_isolation import add_demo_filter, mark_as_demo
 
 router = APIRouter(prefix="/purchases", tags=["Purchases"])
 

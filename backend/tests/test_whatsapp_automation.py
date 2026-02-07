@@ -65,7 +65,7 @@ class TestWhatsAppAutomationConfig:
         assert isinstance(data["document_reminder_enabled"], bool), "document_reminder_enabled should be boolean"
         assert isinstance(data["dp_ready_notification_enabled"], bool), "dp_ready_notification_enabled should be boolean"
         
-        print(f"PASS: Automation config returned with all expected fields")
+        print("PASS: Automation config returned with all expected fields")
         print(f"  - payment_reminder_enabled: {data['payment_reminder_enabled']}")
         print(f"  - payment_reminder_days: {data['payment_reminder_days']}")
         print(f"  - document_reminder_enabled: {data['document_reminder_enabled']}")
@@ -113,7 +113,7 @@ class TestWhatsAppAutomationConfig:
         assert verify_data.get("payment_reminder_enabled") == True, "Config not persisted"
         assert verify_data.get("payment_reminder_days") == 5, "Config not persisted"
         
-        print(f"PASS: Automation config updated and persisted successfully")
+        print("PASS: Automation config updated and persisted successfully")
 
 
 class TestWhatsAppAutomationTriggers:
@@ -332,16 +332,16 @@ class TestSchedulerIntegration:
             # Check if whatsapp_automations job exists
             job_ids = [job.get("id") for job in jobs]
             if "whatsapp_automations" in job_ids:
-                print(f"PASS: WhatsApp automation job found in scheduler")
+                print("PASS: WhatsApp automation job found in scheduler")
                 wa_job = next((j for j in jobs if j.get("id") == "whatsapp_automations"), None)
                 if wa_job:
                     print(f"  - Next run: {wa_job.get('next_run_time')}")
                     print(f"  - Trigger: {wa_job.get('trigger')}")
             else:
-                print(f"INFO: WhatsApp automation job not found in scheduler jobs list")
+                print("INFO: WhatsApp automation job not found in scheduler jobs list")
                 print(f"  - Available jobs: {job_ids}")
         elif response.status_code == 404:
-            print(f"INFO: Scheduler jobs endpoint not available (404)")
+            print("INFO: Scheduler jobs endpoint not available (404)")
         else:
             print(f"INFO: Scheduler jobs endpoint returned {response.status_code}")
 

@@ -10,7 +10,6 @@ Test Loss Booking Approval Workflow
 import pytest
 import requests
 import os
-import uuid
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
@@ -232,12 +231,12 @@ class TestLossBookingWorkflow:
         
         # Verify our booking is in the list
         booking_ids = [b["id"] for b in pending_bookings]
-        assert created_booking["id"] in booking_ids, f"Created loss booking not found in pending list"
+        assert created_booking["id"] in booking_ids, "Created loss booking not found in pending list"
         
         # Verify all returned bookings are loss bookings with pending status
         for booking in pending_bookings:
-            assert booking.get("is_loss_booking") == True, f"Non-loss booking in pending-loss-approval list"
-            assert booking.get("loss_approval_status") == "pending", f"Non-pending booking in pending-loss-approval list"
+            assert booking.get("is_loss_booking") == True, "Non-loss booking in pending-loss-approval list"
+            assert booking.get("loss_approval_status") == "pending", "Non-pending booking in pending-loss-approval list"
         
         print(f"✓ Pending loss approval endpoint returns {len(pending_bookings)} pending loss bookings")
         
@@ -442,7 +441,7 @@ class TestLossBookingRoleRestrictions:
         pending_res = self.session.get(f"{BASE_URL}/api/bookings/pending-loss-approval")
         assert pending_res.status_code == 200, f"PE Desk should access pending loss bookings, got {pending_res.status_code}"
         
-        print(f"✓ PE Desk can view pending loss bookings")
+        print("✓ PE Desk can view pending loss bookings")
     
     def test_non_pe_desk_cannot_view_pending_loss_bookings(self):
         """Test that non-PE Desk users cannot access pending-loss-approval endpoint"""
@@ -472,7 +471,7 @@ class TestLossBookingRoleRestrictions:
         pending_res = no_auth_session.get(f"{BASE_URL}/api/bookings/pending-loss-approval")
         assert pending_res.status_code in [401, 403], f"Unauthenticated request should fail, got {pending_res.status_code}"
         
-        print(f"✓ Unauthenticated users cannot view pending loss bookings")
+        print("✓ Unauthenticated users cannot view pending loss bookings")
     
     def test_only_pe_desk_can_approve_loss_bookings(self):
         """Test that only PE Desk (role 1) can approve loss bookings"""
@@ -484,7 +483,7 @@ class TestLossBookingRoleRestrictions:
         approve_res = no_auth_session.put(f"{BASE_URL}/api/bookings/fake-id/approve-loss?approve=true")
         assert approve_res.status_code in [401, 403], f"Unauthenticated request should fail, got {approve_res.status_code}"
         
-        print(f"✓ Unauthenticated users cannot approve loss bookings")
+        print("✓ Unauthenticated users cannot approve loss bookings")
 
 
 class TestLossBookingDataIntegrity:
@@ -526,7 +525,7 @@ class TestLossBookingDataIntegrity:
             assert booking["loss_approval_status"] in ["not_required", "pending", "approved", "rejected"], \
                 f"Invalid loss_approval_status: {booking['loss_approval_status']}"
             
-            print(f"✓ Loss booking fields present in booking response")
+            print("✓ Loss booking fields present in booking response")
             print(f"  - is_loss_booking: {booking['is_loss_booking']}")
             print(f"  - loss_approval_status: {booking['loss_approval_status']}")
         else:
@@ -552,7 +551,7 @@ class TestLossBookingDataIntegrity:
                 # Verify is_loss_booking flag matches P&L
                 if booking["selling_price"] < booking["buying_price"]:
                     assert booking.get("is_loss_booking") == True, \
-                        f"Booking with loss should have is_loss_booking=True"
+                        "Booking with loss should have is_loss_booking=True"
         
         print(f"✓ Profit/loss calculations verified for {len(bookings)} bookings")
 
