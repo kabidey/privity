@@ -949,7 +949,7 @@ async def update_template_mapping(
     }
 
 
-
+@router.post("/templates")
 async def create_template(
     template: WhatsAppTemplate,
     current_user: dict = Depends(get_current_user),
