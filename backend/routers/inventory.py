@@ -515,12 +515,37 @@ async def send_consolidated_pe_report(
     if not inventory_items:
         raise HTTPException(status_code=400, detail="No inventory items found")
     
-    # Filter out items without proper stock symbol (data quality)
-    valid_items = [item for item in inventory_items if item.get("stock_symbol") and item.get("stock_symbol") != "Unknown"]
+    # Get stock master data for LP fallback
+    stocks_master = {}
+    all_stocks = await db.stocks.find({}, {"_id": 0, "id": 1, "symbol": 1, "landing_price": 1}).to_list(1000)
+    for stock in all_stocks:
+        if stock.get("id"):
+            stocks_master[stock["id"]] = stock
+        if stock.get("symbol"):
+            stocks_master[stock["symbol"]] = stock
+    
+    # Filter out items without proper stock symbol (data quality) and enrich with LP
+    valid_items = []
+    for item in inventory_items:
+        symbol = item.get("stock_symbol")
+        if not symbol or symbol == "Unknown":
+            continue
+        
+        # Try to get LP from inventory first, then from stocks master
+        lp = item.get("landing_price")
+        if not lp or lp <= 0:
+            stock_id = item.get("stock_id")
+            master = stocks_master.get(stock_id) or stocks_master.get(symbol)
+            if master:
+                lp = master.get("landing_price")
+        
+        item["_resolved_lp"] = lp  # Store resolved LP
+        valid_items.append(item)
+    
     items_without_symbol = len(inventory_items) - len(valid_items)
     
     # Count items with and without LP
-    items_with_lp = [item for item in valid_items if item.get("landing_price") and item.get("landing_price") > 0]
+    items_with_lp = [item for item in valid_items if item.get("_resolved_lp") and item.get("_resolved_lp") > 0]
     items_without_lp = len(valid_items) - len(items_with_lp)
     
     # Count items with available stock vs out of stock
