@@ -824,7 +824,7 @@ const Login = () => {
                                 <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
                                   onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
                                   maxLength={10} required className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
-                                <p className="text-white/40 text-xs">Required for SMS/WhatsApp notifications</p>
+                                <p className="text-white/70 text-xs">Required for SMS/WhatsApp notifications</p>
                               </div>
                               <div className="space-y-2">
                                 <Label className="text-white/80">PAN Number <span className="text-red-400">*</span></Label>
