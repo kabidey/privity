@@ -827,7 +827,7 @@ const Login = () => {
                                 <p className="text-white/70 text-xs">Required for SMS/WhatsApp notifications</p>
                               </div>
                               <div className="space-y-2">
-                                <Label className="text-white/80">PAN Number <span className="text-red-400">*</span></Label>
+                                <Label className="text-white">PAN Number <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                                   onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
                                   maxLength={10} required className="bg-white/10 border-white/20 text-white font-mono" data-testid="pan" />
