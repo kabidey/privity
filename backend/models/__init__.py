@@ -77,6 +77,12 @@ class PasswordResetVerify(BaseModel):
     new_password: str
 
 
+# ============== OTP Registration Models ==============
+class OTPVerifyRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+
 # ============== Notification Model ==============
 class Notification(BaseModel):
     id: str
