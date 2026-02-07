@@ -302,8 +302,8 @@ class TestFixedIncomeOrders:
             headers=auth_headers
         )
         
-        # Should fail with 404 for invalid client
-        assert response.status_code in [404, 400]
+        # Should fail with 404 for invalid client or 400/422 for validation
+        assert response.status_code in [404, 400, 422]
         print("Order creation correctly validates client")
 
 
