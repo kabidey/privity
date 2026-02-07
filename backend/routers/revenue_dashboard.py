@@ -10,14 +10,9 @@ from typing import List, Optional
 from database import db
 from utils.auth import get_current_user
 from config import ROLES
-from services.permission_service import require_permission
+from services.permission_service import require_permission, is_pe_level
 
 router = APIRouter(tags=["Revenue Dashboard"])
-
-
-def is_pe_level(role: int) -> bool:
-    """Check if user has PE Desk or PE Manager role"""
-    return role in [1, 2]
 
 
 async def get_subordinate_user_ids(user_id: str, user_role: int) -> List[str]:
