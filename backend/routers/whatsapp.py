@@ -866,7 +866,90 @@ async def refresh_system_templates(
     }
 
 
-@router.post("/templates")
+@router.get("/templates/mapping")
+async def get_template_mapping(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_config", "view WhatsApp template mapping"))
+):
+    """
+    Get the template mapping status - shows which internal templates map to which Wati templates,
+    and whether those Wati templates exist and are approved.
+    """
+    service = await get_wati_service()
+    
+    # Get approved templates from Wati
+    approved_wati_templates = set()
+    if service:
+        try:
+            result = await service.get_templates()
+            if result.get("success"):
+                templates = result.get("templates", {})
+                if isinstance(templates, dict):
+                    template_list = templates.get("messageTemplates", [])
+                else:
+                    template_list = templates
+                
+                for t in template_list:
+                    if t.get("status") == "APPROVED":
+                        approved_wati_templates.add(t.get("elementName", ""))
+        except Exception as e:
+            logger.error(f"Error fetching Wati templates: {e}")
+    
+    # Build mapping status
+    mapping_status = []
+    for internal_id, wati_name in WATI_TEMPLATE_MAPPING.items():
+        is_approved = wati_name in approved_wati_templates
+        mapping_status.append({
+            "internal_id": internal_id,
+            "wati_template_name": wati_name,
+            "status": "approved" if is_approved else "pending_approval",
+            "ready_to_use": is_approved
+        })
+    
+    # Count stats
+    approved_count = sum(1 for m in mapping_status if m["status"] == "approved")
+    pending_count = len(mapping_status) - approved_count
+    
+    return {
+        "total_templates": len(mapping_status),
+        "approved": approved_count,
+        "pending_approval": pending_count,
+        "all_approved_in_wati": list(approved_wati_templates),
+        "mapping": mapping_status,
+        "instructions": "Submit templates from /app/docs/wati_templates/ to Wati Dashboard for approval"
+    }
+
+
+@router.put("/templates/mapping/{internal_id}")
+async def update_template_mapping(
+    internal_id: str,
+    wati_template_name: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("notifications.whatsapp_config", "update WhatsApp template mapping"))
+):
+    """
+    Update the Wati template name mapping for an internal template.
+    Use this if your approved Wati template has a different name than the default.
+    """
+    # Store custom mapping in database
+    await db.system_config.update_one(
+        {"config_type": "whatsapp_template_mapping"},
+        {"$set": {
+            f"mapping.{internal_id}": wati_template_name,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user["id"]
+        }},
+        upsert=True
+    )
+    
+    return {
+        "message": f"Template mapping updated: {internal_id} -> {wati_template_name}",
+        "internal_id": internal_id,
+        "wati_template_name": wati_template_name
+    }
+
+
+
 async def create_template(
     template: WhatsAppTemplate,
     current_user: dict = Depends(get_current_user),
