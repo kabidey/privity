@@ -707,16 +707,24 @@ const Login = () => {
                               onChange={handleChange} required className="bg-white/10 border-white/20 text-white" data-testid="name" />
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Mobile Number</Label>
+                            <Label className="text-white/80">Mobile Number <span className="text-white/40 text-xs">(Optional)</span></Label>
                             <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
                               onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                              maxLength={10} required className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
+                              maxLength={10} className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-white/80">PAN Number</Label>
+                            <Label className="text-white/80">PAN Number <span className="text-white/40 text-xs">(Optional)</span></Label>
                             <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                               onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
                               maxLength={10} className="bg-white/10 border-white/20 text-white font-mono" data-testid="pan" />
+                          </div>
+                          
+                          {/* Domain restriction warning */}
+                          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                            <p className="text-amber-300 text-xs flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                              Registration is only available for @smifs.com and @smifs.co.in email addresses
+                            </p>
                           </div>
                         </>
                       )}
