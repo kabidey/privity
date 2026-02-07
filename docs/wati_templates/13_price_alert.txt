@@ -1,0 +1,38 @@
+================================================================================
+TEMPLATE 13: STOCK PRICE ALERT
+================================================================================
+
+Template Name: privity_price_alert
+Category: MARKETING
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Price Update 📈
+
+Body:
+Dear {{1}},
+
+Stock price update for your watchlist:
+
+*{{2}}*
+• Current Price: ₹{{3}}
+• Change: {{4}}
+• Updated: {{5}}
+
+This stock is available for booking. Contact us to secure your allocation.
+
+Footer (Optional): SMIFS PE - Unlisted & Pre-IPO Shares
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Investor
+{{2}} = TATA TECHNOLOGIES
+{{3}} = 980.00
+{{4}} = +5.2%
+{{5}} = 07 Feb 2026, 10:30 AM
+
+================================================================================

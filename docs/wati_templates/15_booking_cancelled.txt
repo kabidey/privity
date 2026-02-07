@@ -1,0 +1,41 @@
+================================================================================
+TEMPLATE 15: BOOKING CANCELLED
+================================================================================
+
+Template Name: privity_booking_cancelled
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Booking Cancelled ❌
+
+Body:
+Dear {{1}},
+
+Your booking has been cancelled as requested.
+
+*Cancelled Booking:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+
+*Refund Status:*
+{{5}}
+
+If this was not requested by you, please contact us immediately.
+
+Footer (Optional): SMIFS PE Support - pe@smifs.com
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Client Name
+{{2}} = BK-2026-00010
+{{3}} = PHARMEASY
+{{4}} = 50
+{{5}} = Refund of ₹50,000 initiated
+
+================================================================================

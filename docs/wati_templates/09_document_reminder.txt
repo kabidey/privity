@@ -1,0 +1,40 @@
+================================================================================
+TEMPLATE 9: DOCUMENT UPLOAD REMINDER
+================================================================================
+
+Template Name: privity_document_reminder
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Document Required 📄
+
+Body:
+Dear {{1}},
+
+Your KYC documents are pending. Please upload the following:
+
+*Required Documents:*
+• PAN Card
+• Cancelled Cheque / Bank Proof
+• CML Copy (Demat Statement)
+
+*Your Status:*
+• Client ID: {{2}}
+• Documents Pending: {{3}}
+
+Please upload documents at your earliest to enable share booking.
+
+Footer (Optional): Contact us for assistance.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Suresh Menon
+{{2}} = CLT-2026-001
+{{3}} = PAN Card, CML Copy
+
+================================================================================

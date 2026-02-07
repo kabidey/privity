@@ -1,0 +1,39 @@
+================================================================================
+TEMPLATE 6: PAYMENT COMPLETE
+================================================================================
+
+Template Name: privity_payment_complete
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Payment Complete 🎉
+
+Body:
+Dear {{1}},
+
+Your payment is now complete!
+
+*Booking Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+• Total Paid: ₹{{5}}
+
+Your shares are now queued for DP transfer. We will notify you once the transfer is complete.
+
+Footer (Optional): Thank you for choosing SMIFS PE.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Neha Kapoor
+{{2}} = BK-2026-00006
+{{3}} = PHARMEASY
+{{4}} = 150
+{{5}} = 2,25,000.00
+
+================================================================================

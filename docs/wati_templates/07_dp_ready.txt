@@ -1,0 +1,43 @@
+================================================================================
+TEMPLATE 7: DP READY FOR TRANSFER
+================================================================================
+
+Template Name: privity_dp_ready
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Shares Ready for Transfer 📊
+
+Body:
+Dear {{1}},
+
+Your shares are ready for DP transfer!
+
+*Transfer Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+
+Please ensure your Demat account details are updated. The transfer will be initiated shortly.
+
+*Your DP Details on Record:*
+• DP ID: {{5}}
+• Client ID: {{6}}
+
+Footer (Optional): Contact us if details need updating.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Rajesh Kumar
+{{2}} = BK-2026-00007
+{{3}} = MOBIKWIK
+{{4}} = 100
+{{5}} = 12345678
+{{6}} = 87654321
+
+================================================================================

@@ -1,0 +1,40 @@
+================================================================================
+TEMPLATE 3: BOOKING APPROVED
+================================================================================
+
+Template Name: privity_booking_approved
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Booking Approved ✅
+
+Body:
+Dear {{1}},
+
+Great news! Your booking has been approved.
+
+*Booking Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+• Total Amount: ₹{{5}}
+
+*Next Steps:*
+Please complete the payment to proceed with share transfer.
+
+Footer (Optional): Contact us for any queries.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Amit Patel
+{{2}} = BK-2026-00003
+{{3}} = OLA ELECTRIC
+{{4}} = 200
+{{5}} = 1,50,000.00
+
+================================================================================

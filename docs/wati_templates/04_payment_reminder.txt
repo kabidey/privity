@@ -1,0 +1,39 @@
+================================================================================
+TEMPLATE 4: PAYMENT REMINDER
+================================================================================
+
+Template Name: privity_payment_reminder
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Payment Reminder 💰
+
+Body:
+Dear {{1}},
+
+This is a friendly reminder for your pending payment.
+
+*Payment Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Pending Amount: ₹{{4}}
+• Due Since: {{5}} days
+
+Please complete the payment at your earliest convenience to proceed with share transfer.
+
+Footer (Optional): Ignore if already paid.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Sneha Gupta
+{{2}} = BK-2026-00004
+{{3}} = BOAT
+{{4}} = 75,000.00
+{{5}} = 3
+
+================================================================================

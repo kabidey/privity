@@ -1,0 +1,37 @@
+================================================================================
+TEMPLATE 2: BOOKING PENDING APPROVAL
+================================================================================
+
+Template Name: privity_booking_pending
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Booking Received 📋
+
+Body:
+Dear {{1}},
+
+Your booking request has been received and is pending approval.
+
+*Booking Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+
+Our team will review and approve your booking shortly. You will receive a confirmation once approved.
+
+Footer (Optional): Thank you for your patience.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Priya Sharma
+{{2}} = BK-2026-00002
+{{3}} = SWIGGY
+{{4}} = 50
+
+================================================================================

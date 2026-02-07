@@ -1,0 +1,39 @@
+================================================================================
+TEMPLATE 5: PAYMENT RECEIVED
+================================================================================
+
+Template Name: privity_payment_received
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Payment Received ✅
+
+Body:
+Dear {{1}},
+
+We have received your payment. Thank you!
+
+*Payment Details:*
+• Booking No: {{2}}
+• Amount Received: ₹{{3}}
+• Payment Mode: {{4}}
+• Date: {{5}}
+
+Your booking is now being processed for share transfer.
+
+Footer (Optional): Thank you for your business.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Vikram Singh
+{{2}} = BK-2026-00005
+{{3}} = 1,00,000.00
+{{4}} = NEFT
+{{5}} = 07 Feb 2026
+
+================================================================================

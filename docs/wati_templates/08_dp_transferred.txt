@@ -1,0 +1,39 @@
+================================================================================
+TEMPLATE 8: DP TRANSFER COMPLETE
+================================================================================
+
+Template Name: privity_dp_transferred
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Shares Transferred ✅
+
+Body:
+Dear {{1}},
+
+Great news! Your shares have been successfully transferred to your Demat account.
+
+*Transfer Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+• Transfer Date: {{5}}
+
+Please check your Demat account to confirm receipt.
+
+Footer (Optional): Thank you for investing with SMIFS PE.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Anita Desai
+{{2}} = BK-2026-00008
+{{3}} = LENSKART
+{{4}} = 75
+{{5}} = 07 Feb 2026
+
+================================================================================

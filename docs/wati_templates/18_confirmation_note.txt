@@ -1,0 +1,39 @@
+================================================================================
+TEMPLATE 18: CONFIRMATION NOTE READY
+================================================================================
+
+Template Name: privity_confirmation_note
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Confirmation Note Ready 📄
+
+Body:
+Dear {{1}},
+
+Your Confirmation Note is ready for download.
+
+*Details:*
+• Note Number: {{2}}
+• Booking: {{3}}
+• Stock: {{4}}
+• Date: {{5}}
+
+Please download and retain this document for your records.
+
+Footer (Optional): SMIFS Private Equity
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Client Name
+{{2}} = CN-2026-00001
+{{3}} = BK-2026-00012
+{{4}} = SWIGGY
+{{5}} = 07 Feb 2026
+
+================================================================================

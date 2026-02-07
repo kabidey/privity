@@ -1,0 +1,42 @@
+================================================================================
+TEMPLATE 11: WELCOME NEW CLIENT
+================================================================================
+
+Template Name: privity_welcome_client
+Category: MARKETING
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Welcome to SMIFS PE! 🎉
+
+Body:
+Dear {{1}},
+
+Welcome to SMIFS Private Equity!
+
+We are delighted to have you onboard. You now have access to exclusive unlisted and pre-IPO share opportunities.
+
+*Your Account:*
+• Client ID: {{2}}
+• Relationship Manager: {{3}}
+
+*What's Next:*
+1. Complete your KYC documents
+2. Explore available stocks
+3. Place your first booking
+
+Thank you for choosing us for your private equity investments.
+
+Footer (Optional): SMIFS Private Equity - pe@smifs.com
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Arjun Nair
+{{2}} = CLT-2026-003
+{{3}} = Rohit Sharma
+
+================================================================================

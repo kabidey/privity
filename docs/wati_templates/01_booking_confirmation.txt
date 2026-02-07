@@ -1,0 +1,41 @@
+================================================================================
+TEMPLATE 1: BOOKING CONFIRMATION
+================================================================================
+
+Template Name: privity_booking_confirmation
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Booking Confirmed ✅
+
+Body:
+Dear {{1}},
+
+Your share booking has been confirmed.
+
+*Booking Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+• Price: ₹{{5}} per share
+• Total Amount: ₹{{6}}
+
+Thank you for choosing SMIFS Private Equity.
+
+Footer (Optional): For queries, contact your relationship manager.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Rahul Kumar
+{{2}} = BK-2026-00001
+{{3}} = TATA TECHNOLOGIES
+{{4}} = 100
+{{5}} = 950.00
+{{6}} = 95,000.00
+
+================================================================================

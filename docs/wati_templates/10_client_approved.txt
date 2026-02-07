@@ -1,0 +1,36 @@
+================================================================================
+TEMPLATE 10: CLIENT KYC APPROVED
+================================================================================
+
+Template Name: privity_client_approved
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: KYC Approved ✅
+
+Body:
+Dear {{1}},
+
+Your KYC verification is complete and approved!
+
+*Account Details:*
+• Client ID: {{2}}
+• PAN: {{3}}
+• Status: Verified
+
+You can now book shares through SMIFS Private Equity. Explore our current inventory of unlisted and pre-IPO shares.
+
+Footer (Optional): Contact your RM for investment guidance.
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Kavita Reddy
+{{2}} = CLT-2026-002
+{{3}} = ABCDE1234F
+
+================================================================================

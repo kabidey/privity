@@ -1,0 +1,39 @@
+================================================================================
+TEMPLATE 16: REFERRAL COMMISSION PAID
+================================================================================
+
+Template Name: privity_commission_paid
+Category: UTILITY
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Commission Credited 💰
+
+Body:
+Dear {{1}},
+
+Your referral commission has been processed!
+
+*Commission Details:*
+• Reference: {{2}}
+• Amount: ₹{{3}}
+• For Booking: {{4}}
+• Payment Date: {{5}}
+
+Thank you for your continued partnership.
+
+Footer (Optional): SMIFS PE Partner Program
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Partner Name
+{{2}} = COM-2026-001
+{{3}} = 5,000.00
+{{4}} = BK-2026-00011
+{{5}} = 07 Feb 2026
+
+================================================================================

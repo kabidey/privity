@@ -1,0 +1,39 @@
+================================================================================
+TEMPLATE 14: PE INVENTORY REPORT
+================================================================================
+
+Template Name: privity_pe_report
+Category: MARKETING
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: PE Inventory Update 📊
+
+Body:
+Dear {{1}},
+
+Here's today's PE inventory snapshot:
+
+*Available Stocks: {{2}}*
+*Top Picks:*
+{{3}}
+
+*Market Highlights:*
+{{4}}
+
+For detailed pricing and availability, contact your relationship manager or visit our portal.
+
+Footer (Optional): SMIFS Private Equity - pe@smifs.com
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Valued Client
+{{2}} = 15
+{{3}} = SWIGGY, OLA, BOAT, LENSKART
+{{4}} = Pre-IPO stocks in demand
+
+================================================================================

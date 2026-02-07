@@ -1,0 +1,44 @@
+================================================================================
+TEMPLATE 12: WELCOME BUSINESS PARTNER
+================================================================================
+
+Template Name: privity_welcome_partner
+Category: MARKETING
+Language: English
+
+Header (Optional): 
+Type: TEXT
+Content: Partnership Confirmed! 🤝
+
+Body:
+Dear {{1}},
+
+Welcome to the SMIFS PE Partner Network!
+
+Your business partner account has been activated.
+
+*Partner Details:*
+• Partner ID: {{2}}
+• Commission Rate: {{3}}%
+• Account Manager: {{4}}
+
+*Partner Benefits:*
+• Competitive commission structure
+• Real-time booking dashboard
+• Dedicated support
+
+Login to your partner portal to start referring clients.
+
+Footer (Optional): SMIFS Private Equity Partner Program
+
+Buttons (Optional): None
+
+---
+
+Sample Values for Testing:
+{{1}} = Sunrise Investments
+{{2}} = BP-2026-001
+{{3}} = 2.5
+{{4}} = PE Desk
+
+================================================================================
