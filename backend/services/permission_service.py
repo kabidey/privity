@@ -249,6 +249,36 @@ async def get_user_all_permissions(user: dict) -> Set[str]:
 # Backward compatibility functions that check dynamic permissions
 # These can be used to gradually migrate existing code
 
+def is_pe_level(role: int) -> bool:
+    """
+    Check if a role is PE-level (PE Desk or PE Manager).
+    Synchronous helper for backward compatibility.
+    
+    PE-level roles: 1 (PE Desk), 2 (PE Manager)
+    """
+    return role in [1, 2]
+
+
+def is_pe_desk(role: int) -> bool:
+    """Check if role is PE Desk (highest privilege)."""
+    return role == 1
+
+
+def is_finance_level(role: int) -> bool:
+    """Check if role has finance access (Finance role or PE-level)."""
+    return role in [1, 2, 3]  # PE Desk, PE Manager, Finance
+
+
+def is_partners_desk(role: int) -> bool:
+    """Check if role is Partners Desk."""
+    return role == 5
+
+
+def can_view_all_data(role: int) -> bool:
+    """Check if role can view all data (not just mapped)."""
+    return role in [1, 2, 3, 4, 5]  # PE Desk, PE Manager, Finance, Viewer, Partners Desk
+
+
 async def is_pe_level_dynamic(user: dict) -> bool:
     """Check if user has PE-level access based on permissions."""
     # Check for admin-level permissions
