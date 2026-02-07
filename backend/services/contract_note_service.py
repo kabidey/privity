@@ -229,7 +229,7 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     settlement_date = booking.get("payment_completed_date", contract_date)
     
     contract_info = [
-        ["Contract No:", contract_number, "Contract Date:", contract_date],
+        ["Confirmation No:", contract_number, "Confirmation Date:", contract_date],
         ["Trade Date:", trade_date, "Settlement Date:", settlement_date],
         ["Transaction Type:", "Our Sale", "Type:", "Equity Shares"]
     ]
