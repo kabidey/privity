@@ -17,16 +17,12 @@ from utils.auth import get_current_user
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level,
+    is_finance_level
 )
 
 router = APIRouter(tags=["Finance"])
-
-
-# Helper functions for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 def has_finance_access(role: int) -> bool:
@@ -37,6 +33,7 @@ def has_finance_access(role: int) -> bool:
 def can_manage_finance(role: int) -> bool:
     """Check if role can manage finance operations."""
     return role in [1, 2, 3]  # PE Desk, PE Manager, Finance
+
 
 
 class RefundStatusUpdate(BaseModel):
