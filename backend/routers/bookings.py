@@ -562,6 +562,22 @@ async def create_booking(
         {"booking_id": booking_id, "booking_number": booking_number, "client_name": client["name"], "stock_symbol": stock["symbol"]}
     )
     
+    # Send role-based email notification for new booking
+    try:
+        from services.role_notification_service import notify_new_booking
+        await notify_new_booking(
+            booking_number=booking_number,
+            client_name=client["name"],
+            stock_symbol=stock["symbol"],
+            stock_name=stock["name"],
+            quantity=booking_data.quantity,
+            total_amount=total_amount,
+            created_by=current_user["name"],
+            exclude_user_id=current_user["id"]
+        )
+    except Exception as e:
+        logger.error(f"Failed to send new booking notification: {e}")
+    
     return Booking(**{k: v for k, v in booking_doc.items() if k not in ["user_id", "created_by_name"]})
 
 
