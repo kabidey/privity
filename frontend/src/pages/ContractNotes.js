@@ -224,10 +224,32 @@ const ContractNotes = () => {
             Manage confirmation notes generated after DP transfer
           </p>
         </div>
-        <Button variant="outline" onClick={fetchNotes}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          {canRegenerateNotes && (
+            <Button 
+              variant="outline" 
+              onClick={handleGenerateMissing}
+              disabled={generatingMissing}
+              data-testid="generate-missing-btn"
+            >
+              {generatingMissing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FileCheck className="w-4 h-4 mr-2" />
+                  Generate Missing
+                </>
+              )}
+            </Button>
+          )}
+          <Button variant="outline" onClick={fetchNotes}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
