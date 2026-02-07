@@ -797,7 +797,7 @@ const Login = () => {
         <div className="mt-8 text-center animate-fade-in" style={{animationDelay: '0.6s'}}>
           <p className="text-white/40 text-xs">© 2026 SMIFS Private Equity. All rights reserved.</p>
           <p className="text-white/30 text-xs mt-1">Powered by Privity | v{getFullVersion()}</p>
-          <p className={`text-${currentTheme.primary}-400/60 text-xs mt-2 font-medium`}>Vibe Coded by Somnath Dey</p>
+          <p className="text-emerald-400 text-xs mt-2 font-medium tracking-wide">✨ Vibe Coded by Somnath Dey</p>
         </div>
       </div>
 
