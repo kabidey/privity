@@ -494,8 +494,6 @@ async def regenerate_contract_note(
     Useful when client/stock details have been updated
     Stronger regeneration with multiple fallback methods
     """
-    from services.file_storage import upload_file_to_gridfs, get_file_url
-    
     note = await db.contract_notes.find_one({"id": note_id}, {"_id": 0})
     if not note:
         raise HTTPException(status_code=404, detail="Contract note not found")
