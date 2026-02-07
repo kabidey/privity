@@ -792,7 +792,7 @@ const Login = () => {
                   {loginType === 'employee' && (
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div className="space-y-2">
-                        <Label className="text-white/80">Email</Label>
+                        <Label className="text-white">Email</Label>
                         <Input type="email" name="email" placeholder="you@company.com" value={formData.email}
                           onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/40" data-testid="email" />
                       </div>
