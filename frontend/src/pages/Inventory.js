@@ -43,7 +43,19 @@ const Inventory = () => {
     setSendingPeReport(true);
     try {
       const response = await api.post('/inventory/send-pe-report');
-      toast.success(response.data.message || 'PE Report sent successfully!');
+      const data = response.data;
+      
+      // Show detailed success message
+      if (data.success) {
+        toast.success(data.message, { duration: 5000 });
+        
+        // Show additional info if there are stocks without LP
+        if (data.stocks_without_lp > 0) {
+          toast.warning(`${data.stocks_without_lp} stocks don't have Landing Price set`, { duration: 4000 });
+        }
+      } else {
+        toast.error(data.message || 'Some emails failed to send');
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to send PE Report');
     } finally {
