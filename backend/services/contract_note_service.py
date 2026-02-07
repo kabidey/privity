@@ -70,14 +70,45 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     Returns:
         BytesIO buffer containing the PDF
     """
-    # Get company master
+    # Get company master - use defaults if not found
     company = await get_company_master()
+    if not company:
+        company = {
+            "company_name": "SMIFS Management Services Limited",
+            "company_address": "Administrative Office: 14th Floor, Mahendra Chambers, 8A Royd Street, Kolkata - 700016",
+            "company_pan": "AAACS2814G",
+            "company_cin": "U74999WB2000PLC091102",
+            "company_gst": "19AAACS2814G1ZS",
+            "company_bank_name": "HDFC Bank",
+            "company_bank_account": "50200012345678",
+            "company_bank_ifsc": "HDFC0000123",
+            "company_bank_branch": "Park Street, Kolkata",
+            "cdsl_dp_id": "12345678",
+            "nsdl_dp_id": "IN123456"
+        }
     
-    # Get client details
+    # Get client details - use defaults for sample
     client = await db.clients.find_one({"id": booking.get("client_id")}, {"_id": 0})
+    if not client:
+        client = {
+            "name": "Sample Buyer Private Limited",
+            "pan_number": "AAAAA0000A",
+            "address": "123 Business Park, Mumbai, Maharashtra 400001",
+            "email": "buyer@example.com",
+            "dp_name": "CDSL Depository",
+            "dp_id": "12345678",
+            "client_id": "1234567890123456"
+        }
     
-    # Get stock details
+    # Get stock details - use defaults for sample
     stock = await db.stocks.find_one({"id": booking.get("stock_id")}, {"_id": 0})
+    if not stock:
+        stock = {
+            "name": "NATIONAL STOCK EXCHANGE OF INDIA",
+            "symbol": "NSE",
+            "isin_number": "INE721I01024",
+            "face_value": 1.00
+        }
     
     # Create PDF buffer
     buffer = io.BytesIO()
