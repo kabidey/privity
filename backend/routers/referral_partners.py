@@ -220,6 +220,19 @@ async def create_referral_partner(
         details={"pan_number": rp_data.pan_number, "rp_code": rp_code}
     )
     
+    # Send role-based notification for new partner
+    try:
+        from services.role_notification_service import notify_new_partner
+        await notify_new_partner(
+            partner_name=rp_data.name,
+            partner_email=rp_data.email,
+            partner_phone=phone_digits,
+            exclude_user_id=current_user["id"]
+        )
+    except Exception as e:
+        import logging
+        logging.error(f"Failed to send new partner notification: {e}")
+    
     return ReferralPartner(**{k: v for k, v in rp_doc.items() if k != "_id"})
 
 
