@@ -84,6 +84,16 @@ async def create_instrument(
             if isinstance(instrument_dict[field], date):
                 instrument_dict[field] = instrument_dict[field].isoformat()
     
+    # Convert Decimal objects to strings for MongoDB (Decimal is not BSON serializable)
+    decimal_fields = [
+        "face_value", "coupon_rate", "current_market_price",
+        "last_traded_price", "accrued_interest", "dirty_price",
+        "ytm", "call_price", "put_price"
+    ]
+    for field in decimal_fields:
+        if field in instrument_dict and instrument_dict[field] is not None:
+            instrument_dict[field] = str(instrument_dict[field])
+    
     # Store in MongoDB
     await db.fi_instruments.insert_one(instrument_dict)
     
