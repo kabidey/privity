@@ -20,17 +20,12 @@ from reportlab.lib.enums import TA_CENTER
 from database import db
 from utils.auth import get_current_user
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level
 )
 from utils.demo_isolation import add_demo_filter
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
-
-
-# Helper function for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 @router.get("/pnl", dependencies=[Depends(require_permission("reports.view", "view P&L reports"))])
