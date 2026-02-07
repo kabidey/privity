@@ -31,6 +31,41 @@ from services.permission_service import (
 router = APIRouter(prefix="/contract-notes", tags=["Confirmation Notes"])
 
 
+@router.get("/preview-sample")
+async def preview_sample_conformation_note():
+    """
+    Generate a sample Conformation Note PDF for preview/testing purposes.
+    This endpoint does not require authentication.
+    Returns the PDF directly for download/viewing.
+    """
+    # Create sample data
+    sample_booking = {
+        "id": "sample-booking-001",
+        "booking_number": "BK/25-26/0001",
+        "contract_note_number": "SMIFS/CN/25-26/SAMPLE",
+        "client_id": "sample-client",
+        "stock_id": "sample-stock",
+        "quantity": 1000,
+        "selling_price": 1985.00,
+        "booking_date": "01-Feb-2026",
+        "stock_transfer_date": "03-Feb-2026",
+        "payment_completed_date": "05-Feb-2026",
+    }
+    
+    try:
+        # Generate PDF using the service
+        pdf_buffer = await generate_contract_note_pdf(sample_booking)
+        
+        return StreamingResponse(
+            pdf_buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": 'inline; filename="Sample_Conformation_Note.pdf"'}
+        )
+    except Exception as e:
+        logger.error(f"Failed to generate sample conformation note: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate sample: {str(e)}")
+
+
 class ContractNote(BaseModel):
     id: str
     contract_note_number: str
