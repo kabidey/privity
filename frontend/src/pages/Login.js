@@ -374,6 +374,7 @@ const Login = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormError(''); // Clear error when user starts typing
   };
 
   const handleSubmit = async (e) => {
