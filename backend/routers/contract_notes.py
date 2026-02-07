@@ -190,7 +190,7 @@ async def generate_contract_note(
         )
         
         return {
-            "message": "Contract note generated successfully",
+            "message": "Confirmation note generated successfully",
             "contract_note_number": cn_doc["contract_note_number"],
             "contract_note_id": cn_doc["id"],
             "pdf_url": cn_doc["pdf_url"]
