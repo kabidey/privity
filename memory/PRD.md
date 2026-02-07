@@ -37,6 +37,30 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 07, 2026)
 
+#### ✅ Fix - Login Page Text Prominence (Feb 07, 2026)
+- **Issue:** User reported that multiple text elements on the login page had poor contrast and were hard to read against the dark gradient background
+- **Solution:** Updated all text elements to use fully opaque colors with increased font weights:
+  - Changed semi-transparent colors (e.g., `text-white/60`, `text-white/80`, `text-white/90`) to fully opaque equivalents (`text-white`, `text-gray-200`, `text-gray-300`)
+  - Added `font-medium` or `font-semibold` to labels and helper text for better visibility
+  - Updated placeholders from `placeholder:text-white/60` to `placeholder:text-gray-400`
+  - Enhanced floating icon labels with `drop-shadow-md` for better contrast
+  - Updated warning boxes to use brighter amber tones (`text-amber-200`)
+  - Updated footer text to use visible gray tones with proper font weights
+- **Elements Fixed:**
+  - Form labels (Email, Password, Full Name, Mobile Number, PAN Number)
+  - Helper text ("Required for SMS/WhatsApp notifications", "Required for KYC verification")
+  - Card description ("Access exclusive PE opportunities", "Start your private equity journey")
+  - Tab buttons (Employee/Partner - inactive state)
+  - Domain restriction warning
+  - Floating icon keyword labels
+  - Footer text (copyright, "Powered by Privity", "Vibe Coded by Somnath Dey")
+  - Input placeholders
+  - "Try Demo" button
+  - "Forgot Password?" and "Don't have an account? Register" links
+- **Files Modified:**
+  - `/app/frontend/src/pages/Login.js` - Comprehensive text color and font-weight updates
+- **Test Status:** Verified via screenshots - all text elements now clearly visible with high contrast
+
 #### ✅ Feature - Browser Cache-Busting Solution (Feb 07, 2026)
 - **Issue:** Users were not seeing new enhancements after deployment due to aggressive browser/service worker caching
 - **Implementation:**
