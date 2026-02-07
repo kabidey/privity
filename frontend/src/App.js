@@ -170,6 +170,53 @@ const AgreementChecker = ({ children }) => {
 };
 
 function App() {
+  // Listen for service worker updates and auto-refresh
+  useEffect(() => {
+    // Handle SW_UPDATED message from service worker
+    const handleSWUpdate = (event) => {
+      if (event.data && event.data.type === 'SW_UPDATED') {
+        console.log(`[App] Service Worker updated to version ${event.data.version}`);
+        // Force reload to get latest assets
+        window.location.reload();
+      }
+    };
+
+    // Listen for messages from service worker
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.addEventListener('message', handleSWUpdate);
+    }
+
+    // Also check for waiting service worker on page load
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        if (registration.waiting) {
+          // New service worker is waiting, tell it to take over
+          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        
+        // Listen for new service worker installing
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // New content available, refresh to get it
+                console.log('[App] New content available, reloading...');
+                window.location.reload();
+              }
+            });
+          }
+        });
+      });
+    }
+
+    return () => {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.removeEventListener('message', handleSWUpdate);
+      }
+    };
+  }, []);
+
   return (
     <DemoProvider>
       <ThemeProvider>
