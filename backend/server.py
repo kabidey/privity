@@ -47,6 +47,30 @@ logger = logging.getLogger(__name__)
 
 
 # ====================
+# Cache Control Middleware for Auth Routes
+# ====================
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+
+class NoCacheAuthMiddleware(BaseHTTPMiddleware):
+    """Middleware to prevent caching of auth-related responses"""
+    
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        
+        # Add no-cache headers for auth routes
+        path = request.url.path.lower()
+        if '/auth/' in path or '/register' in path or '/login' in path:
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        
+        return response
+
+app.add_middleware(NoCacheAuthMiddleware)
+
+
+# ====================
 # Health Check Endpoint (No Auth Required)
 # ====================
 
