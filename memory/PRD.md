@@ -37,6 +37,29 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 07, 2026)
 
+#### ✅ Bug Fix - Contract Note Download & Email Attachment (Feb 07, 2026)
+- **Issue:** Contract/Confirmation notes were being generated but:
+  1. Could not be downloaded (404 error)
+  2. PDF attachment was not being sent with emails
+- **Root Cause:** 
+  - Download endpoint only checked local file storage (`/app/uploads/contract_notes/`) but notes are also stored in GridFS
+  - Email function only tried to read from local file path, failing silently when file wasn't there
+- **Solution:** Implemented robust multi-source PDF retrieval with fallback chain:
+  1. **Primary:** Try GridFS storage first (persistent storage that survives redeployments)
+  2. **Secondary:** Try local file system
+  3. **Fallback:** Regenerate PDF on-the-fly from booking data
+  - For email: If PDF is regenerated, save it back to GridFS for future use
+- **Files Modified:**
+  - `/app/backend/routers/contract_notes.py`:
+    - `download_contract_note()` - Added GridFS support and regeneration fallback
+    - `send_contract_note_email()` - Complete rewrite with multi-source PDF retrieval, auto-regeneration, and guaranteed attachment
+- **Key Improvements:**
+  - Downloads now work even if original file was lost (auto-regeneration)
+  - Emails will always have PDF attachment (never sends without it)
+  - Auto-saves regenerated PDFs to GridFS for future use
+  - Detailed logging for debugging PDF source
+- **Test Status:** Code changes deployed, ready for production testing when contract notes exist
+
 #### ✅ Bug Fix - Agreement Popup Button Visibility (Feb 07, 2026)
 - **Issue:** The "I Agree" button in the User Agreement modal was only visible when browser zoom was reduced to 75%
 - **Root Cause:** The modal's content area had fixed height calculations (`maxHeight: 'calc(85vh - 180px)'`) that didn't properly account for flexbox layout, causing the footer with the "I Agree" button to be pushed off-screen at normal zoom levels
