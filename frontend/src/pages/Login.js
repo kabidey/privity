@@ -854,7 +854,7 @@ const Login = () => {
                               </div>
                               
                               <div className="space-y-2">
-                                <Label className="text-white/80">Enter 6-digit OTP</Label>
+                                <Label className="text-white">Enter 6-digit OTP</Label>
                                 <Input 
                                   type="text" 
                                   value={registrationOtp}
