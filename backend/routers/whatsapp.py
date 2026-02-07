@@ -400,6 +400,45 @@ WATI_DEFAULT_ENDPOINT = "https://live-mt-server.wati.io/302931"
 WATI_DEFAULT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImJpZHl1dC5kaGFyQHNtaWZzLmNvLmluIiwibmFtZWlkIjoiYmlkeXV0LmRoYXJAc21pZnMuY28uaW4iLCJlbWFpbCI6ImJpZHl1dC5kaGFyQHNtaWZzLmNvLmluIiwiYXV0aF90aW1lIjoiMDIvMDYvMjAyNiAxNjozNTowNSIsInRlbmFudF9pZCI6IjMwMjkzMSIsImRiX25hbWUiOiJtdC1wcm9kLVRlbmFudHMiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBRE1JTklTVFJBVE9SIiwiZXhwIjoyNTM0MDIzMDA4MDAsImlzcyI6IkNsYXJlX0FJIiwiYXVkIjoiQ2xhcmVfQUkifQ.zk83hsHUrp_ARBp5Lkng7S5dZu2TRZlCsuhbeZlz3Pc"
 WATI_DEFAULT_VERSION = "v1"
 
+# ============== WATI TEMPLATE NAME MAPPING ==============
+# Maps internal template IDs to actual Wati template names (must match approved templates in Wati)
+# Update these values after templates are approved in Wati Dashboard
+WATI_TEMPLATE_MAPPING = {
+    # Booking templates
+    "booking_confirmation": "privity_booking_confirmation",
+    "booking_pending_approval": "privity_booking_pending",
+    "booking_approved": "privity_booking_approved",
+    "booking_cancelled": "privity_booking_cancelled",
+    
+    # Payment templates
+    "payment_reminder": "privity_payment_reminder",
+    "payment_received": "privity_payment_received",
+    "payment_complete": "privity_payment_complete",
+    
+    # DP Transfer templates
+    "dp_ready": "privity_dp_ready",
+    "dp_transfer_complete": "privity_dp_transferred",
+    
+    # Client templates
+    "document_reminder": "privity_document_reminder",
+    "client_approved": "privity_client_approved",
+    "welcome_client": "privity_welcome_client",
+    
+    # Partner templates
+    "welcome_partner": "privity_welcome_partner",
+    "commission_paid": "privity_commission_paid",
+    
+    # Other templates
+    "confirmation_note": "privity_confirmation_note",
+    "price_alert": "privity_price_alert",
+    "pe_report": "privity_pe_report",
+    "otp_verification": "privity_otp_verification",
+}
+
+def get_wati_template_name(internal_id: str) -> str:
+    """Get the actual Wati template name for an internal template ID"""
+    return WATI_TEMPLATE_MAPPING.get(internal_id, internal_id)
+
 
 # Get Wati service instance
 async def get_wati_service() -> Optional[WatiService]:
