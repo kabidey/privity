@@ -50,8 +50,7 @@ import {
   HardDrive,
   HelpCircle,
   MessageCircle,
-  Bell,
-  PieChart
+  Bell
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
