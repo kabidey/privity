@@ -78,7 +78,7 @@ async def activate_kill_switch(
     - Stop all email sending
     - Start 3-minute cooldown before deactivation is allowed
     """
-    if not is_pe_desk_only(current_user.get("role", 6)):
+    if not is_pe_desk(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can activate the kill switch")
     
     # Check if already active
@@ -132,7 +132,7 @@ async def activate_kill_switch(
 @router.post("/deactivate", dependencies=[Depends(require_permission("system.kill_switch", "deactivate kill switch"))])
 async def deactivate_kill_switch(current_user: dict = Depends(get_current_user)):
     """Deactivate kill switch - PE Desk only, after cooldown period"""
-    if not is_pe_desk_only(current_user.get("role", 6)):
+    if not is_pe_desk(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can deactivate the kill switch")
     
     status = await get_kill_switch_status()
