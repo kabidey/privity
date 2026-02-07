@@ -17,15 +17,10 @@ from database import db
 from utils.auth import get_current_user, verify_password
 from services.totp_service import TwoFactorManager, TOTPService, BackupCodeService
 from services.audit_service import create_audit_log
+from services.permission_service import is_pe_level
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth/2fa", tags=["Two-Factor Authentication"])
-
-
-# Helper function for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 # ============== Pydantic Models ==============
