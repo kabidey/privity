@@ -506,14 +506,14 @@ async def send_consolidated_pe_report(
     from services.email_service import send_email
     from datetime import datetime, timezone
     
-    # Get ALL inventory items with available quantity
+    # Get ALL inventory items (regardless of quantity)
     inventory_items = await db.inventory.find(
-        {"available_quantity": {"$gt": 0}},
+        {},  # No filter - include all stocks
         {"_id": 0}
     ).sort("stock_symbol", 1).to_list(1000)
     
     if not inventory_items:
-        raise HTTPException(status_code=400, detail="No inventory items found with available quantity")
+        raise HTTPException(status_code=400, detail="No inventory items found")
     
     # Filter out items without proper stock symbol (data quality)
     valid_items = [item for item in inventory_items if item.get("stock_symbol") and item.get("stock_symbol") != "Unknown"]
@@ -522,6 +522,10 @@ async def send_consolidated_pe_report(
     # Count items with and without LP
     items_with_lp = [item for item in valid_items if item.get("landing_price") and item.get("landing_price") > 0]
     items_without_lp = len(valid_items) - len(items_with_lp)
+    
+    # Count items with available stock vs out of stock
+    items_in_stock = [item for item in valid_items if item.get("available_quantity", 0) > 0]
+    items_out_of_stock = len(valid_items) - len(items_in_stock)
     
     if not valid_items:
         raise HTTPException(status_code=400, detail="No valid inventory items found (all items have missing stock symbols)")
