@@ -17,27 +17,18 @@ from services.email_service import send_email
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
     has_permission,
-    require_permission
+    require_permission,
+    is_pe_level,
+    is_partners_desk
 )
 from utils.demo_isolation import add_demo_filter
 
 router = APIRouter(prefix="/business-partners", tags=["Business Partners"])
 
 
-# Helper functions for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
-
-
 def can_manage_business_partners(role: int) -> bool:
     """Check if role can manage business partners."""
     return role in [1, 2, 5]  # PE Desk, PE Manager, Partners Desk
-
-
-def is_partners_desk(role: int) -> bool:
-    """Check if role is Partners Desk."""
-    return role == 5
 
 
 # OTP settings
