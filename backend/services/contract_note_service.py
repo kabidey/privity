@@ -62,7 +62,7 @@ async def generate_contract_note_number():
 
 async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     """
-    Generate Confirmation Note cum Bill PDF for a booking after DP transfer
+    Generate beautiful Conformation Note cum Bill PDF for a booking after DP transfer
     
     Args:
         booking: The booking document with client, stock, and transaction details
@@ -84,11 +84,18 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        rightMargin=1*cm,
-        leftMargin=1*cm,
-        topMargin=1*cm,
-        bottomMargin=1*cm
+        rightMargin=1.5*cm,
+        leftMargin=1.5*cm,
+        topMargin=1.2*cm,
+        bottomMargin=1.2*cm
     )
+    
+    # Color scheme - Professional emerald green theme
+    primary_color = colors.Color(0.02, 0.31, 0.23)  # Dark emerald
+    secondary_color = colors.Color(0.06, 0.47, 0.35)  # Lighter emerald
+    accent_color = colors.Color(0.85, 0.65, 0.13)  # Gold accent
+    light_bg = colors.Color(0.97, 0.99, 0.97)  # Very light green tint
+    border_color = colors.Color(0.8, 0.85, 0.8)  # Light border
     
     # Styles
     styles = getSampleStyleSheet()
@@ -96,108 +103,415 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     title_style = ParagraphStyle(
         'TitleStyle',
         parent=styles['Heading1'],
-        fontSize=14,
+        fontSize=16,
         alignment=TA_CENTER,
-        textColor=colors.Color(0.02, 0.3, 0.23),
-        spaceAfter=10
+        textColor=primary_color,
+        spaceAfter=8,
+        fontName='Helvetica-Bold',
+        leading=20
     )
     
-    header_style = ParagraphStyle(
-        'HeaderStyle',
+    subtitle_style = ParagraphStyle(
+        'SubtitleStyle',
         parent=styles['Normal'],
-        fontSize=10,
+        fontSize=9,
         alignment=TA_CENTER,
-        textColor=colors.Color(0.3, 0.3, 0.3)
+        textColor=colors.Color(0.4, 0.4, 0.4),
+        spaceAfter=6
     )
     
     section_title = ParagraphStyle(
         'SectionTitle',
         parent=styles['Heading3'],
         fontSize=10,
-        textColor=colors.Color(0.02, 0.3, 0.23),
-        spaceBefore=10,
-        spaceAfter=5
+        textColor=primary_color,
+        spaceBefore=12,
+        spaceAfter=6,
+        fontName='Helvetica-Bold',
+        borderPadding=4
     )
     
-    normal_style = ParagraphStyle(
-        'NormalStyle',
+    label_style = ParagraphStyle(
+        'LabelStyle',
+        parent=styles['Normal'],
+        fontSize=8,
+        textColor=colors.Color(0.4, 0.4, 0.4),
+        leading=10
+    )
+    
+    value_style = ParagraphStyle(
+        'ValueStyle',
         parent=styles['Normal'],
         fontSize=9,
-        leading=12
+        textColor=colors.Color(0.1, 0.1, 0.1),
+        leading=12,
+        fontName='Helvetica'
     )
     
     small_style = ParagraphStyle(
         'SmallStyle',
         parent=styles['Normal'],
         fontSize=7,
-        leading=9,
-        textColor=colors.Color(0.4, 0.4, 0.4)
+        leading=10,
+        textColor=colors.Color(0.45, 0.45, 0.45)
     )
     
     elements = []
     
-    # ==================== HEADER WITH LOGO ====================
+    # ==================== HEADER SECTION ====================
     company_name = company.get("company_name", "SMIFS Capital Markets Ltd")
     company_address = company.get("company_address", "")
     logo_url = company.get("logo_url")
     
-    # Create header with logo and company name side by side
-    header_content = []
+    # Build header with or without logo
+    header_elements = []
     
-    # Check if logo exists and add it
-    if logo_url:
-        logo_path = f"/app{logo_url}" if logo_url.startswith("/uploads") else logo_url
-        if os.path.exists(logo_path):
-            try:
-                logo_img = Image(logo_path, width=1.5*cm, height=1.5*cm)
-                logo_img.hAlign = 'LEFT'
-                header_content.append(logo_img)
-            except Exception:
-                # If logo fails to load, skip it
-                pass
+    # Company name - large and prominent
+    header_elements.append(Paragraph(f"<b>{company_name}</b>", ParagraphStyle(
+        'CompanyName',
+        parent=styles['Normal'],
+        fontSize=14,
+        alignment=TA_CENTER,
+        textColor=primary_color,
+        fontName='Helvetica-Bold',
+        spaceAfter=2
+    )))
     
-    # Company name and details
-    company_info = f"<b>{company_name}</b>"
+    # Company address
     if company_address:
-        company_info += f"<br/><font size='9' color='#555555'>{company_address}</font>"
+        # Truncate long addresses
+        addr_display = company_address[:80] + "..." if len(company_address) > 80 else company_address
+        header_elements.append(Paragraph(addr_display, ParagraphStyle(
+            'CompanyAddr',
+            parent=styles['Normal'],
+            fontSize=8,
+            alignment=TA_CENTER,
+            textColor=colors.Color(0.4, 0.4, 0.4),
+            spaceAfter=2
+        )))
     
-    # Registration details
-    reg_details = []
+    # Registration details in a single line
+    reg_parts = []
     if company.get("company_cin"):
-        reg_details.append(f"CIN: {company.get('company_cin')}")
+        reg_parts.append(f"CIN: {company.get('company_cin')}")
     if company.get("company_pan"):
-        reg_details.append(f"PAN: {company.get('company_pan')}")
+        reg_parts.append(f"PAN: {company.get('company_pan')}")
     if company.get("company_gst"):
-        reg_details.append(f"GST: {company.get('company_gst')}")
+        reg_parts.append(f"GST: {company.get('company_gst')}")
     
-    if reg_details:
-        company_info += f"<br/><font size='8' color='#666666'>{' | '.join(reg_details)}</font>"
+    if reg_parts:
+        header_elements.append(Paragraph(" | ".join(reg_parts), ParagraphStyle(
+            'RegDetails',
+            parent=styles['Normal'],
+            fontSize=7,
+            alignment=TA_CENTER,
+            textColor=colors.Color(0.5, 0.5, 0.5)
+        )))
     
-    # Create header table with logo and company info
-    if logo_url and os.path.exists(f"/app{logo_url}" if logo_url.startswith("/uploads") else logo_url):
-        try:
-            logo_path = f"/app{logo_url}" if logo_url.startswith("/uploads") else logo_url
-            logo_img = Image(logo_path, width=2*cm, height=2*cm)
-            
-            header_table_data = [[
-                logo_img,
-                Paragraph(company_info, ParagraphStyle(
-                    'CompanyHeader',
-                    parent=styles['Normal'],
-                    fontSize=12,
-                    alignment=TA_CENTER,
-                    leading=14
-                ))
-            ]]
-            
-            header_table = Table(header_table_data, colWidths=[2.5*cm, 14*cm])
-            header_table.setStyle(TableStyle([
-                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
-                ('ALIGN', (1, 0), (1, 0), 'CENTER'),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
-            elements.append(header_table)
-        except (IOError, OSError):
+    for elem in header_elements:
+        elements.append(elem)
+    
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # Decorative divider
+    elements.append(HRFlowable(width="100%", thickness=2, color=primary_color, spaceAfter=0.3*cm))
+    
+    # ==================== DOCUMENT TITLE ====================
+    elements.append(Paragraph("<b>CONFORMATION NOTE CUM BILL</b>", title_style))
+    elements.append(Paragraph("(Sale of Unlisted Equity Shares)", subtitle_style))
+    elements.append(Spacer(1, 0.3*cm))
+    
+    # ==================== DOCUMENT INFO BOX ====================
+    contract_number = booking.get("contract_note_number", await generate_contract_note_number())
+    contract_date = booking.get("stock_transfer_date", datetime.now().strftime("%d-%b-%Y"))
+    trade_date = booking.get("booking_date", "")
+    settlement_date = booking.get("payment_completed_date", contract_date)
+    
+    # Create a clean info box
+    info_data = [
+        [
+            Paragraph("<b>Conformation No:</b>", label_style),
+            Paragraph(f"<b>{contract_number}</b>", ParagraphStyle('Value', fontSize=9, textColor=primary_color, fontName='Helvetica-Bold')),
+            Paragraph("<b>Date:</b>", label_style),
+            Paragraph(contract_date, value_style)
+        ],
+        [
+            Paragraph("<b>Trade Date:</b>", label_style),
+            Paragraph(trade_date, value_style),
+            Paragraph("<b>Settlement:</b>", label_style),
+            Paragraph(settlement_date, value_style)
+        ]
+    ]
+    
+    info_table = Table(info_data, colWidths=[3*cm, 5.5*cm, 3*cm, 5.5*cm])
+    info_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), light_bg),
+        ('BOX', (0, 0), (-1, -1), 1, border_color),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, border_color),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(info_table)
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # ==================== BUYER DETAILS ====================
+    elements.append(Paragraph("BUYER DETAILS", section_title))
+    
+    client_name = client.get("name", "N/A") if client else "N/A"
+    client_pan = client.get("pan_number", "N/A") if client else "N/A"
+    client_address = client.get("address", "N/A") if client else "N/A"
+    # Truncate long addresses
+    if len(client_address) > 60:
+        client_address = client_address[:60] + "..."
+    
+    buyer_data = [
+        [Paragraph("<b>Name</b>", label_style), Paragraph(client_name, value_style)],
+        [Paragraph("<b>PAN</b>", label_style), Paragraph(client_pan, value_style)],
+        [Paragraph("<b>Address</b>", label_style), Paragraph(client_address, value_style)],
+    ]
+    
+    # Add demat details if available
+    if client:
+        dp_info_parts = []
+        if client.get("dp_name"):
+            dp_info_parts.append(f"DP: {client.get('dp_name')}")
+        if client.get("dp_id"):
+            dp_info_parts.append(f"DP ID: {client.get('dp_id')}")
+        if client.get("client_id") or client.get("otc_ucc"):
+            dp_info_parts.append(f"Client ID: {client.get('client_id') or client.get('otc_ucc')}")
+        
+        if dp_info_parts:
+            buyer_data.append([
+                Paragraph("<b>Demat</b>", label_style), 
+                Paragraph(" | ".join(dp_info_parts), value_style)
+            ])
+    
+    buyer_table = Table(buyer_data, colWidths=[3*cm, 14*cm])
+    buyer_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('LINEBELOW', (0, -1), (-1, -1), 0.5, border_color),
+    ]))
+    elements.append(buyer_table)
+    elements.append(Spacer(1, 0.3*cm))
+    
+    # ==================== SELLER DETAILS ====================
+    elements.append(Paragraph("SELLER DETAILS", section_title))
+    
+    seller_data = [
+        [Paragraph("<b>Name</b>", label_style), Paragraph(company_name, value_style)],
+        [Paragraph("<b>PAN</b>", label_style), Paragraph(company.get("company_pan", "N/A"), value_style)],
+    ]
+    
+    # Add seller demat info
+    seller_demat_parts = []
+    if company.get("cdsl_dp_id"):
+        seller_demat_parts.append(f"CDSL: {company.get('cdsl_dp_id')}")
+    if company.get("nsdl_dp_id"):
+        seller_demat_parts.append(f"NSDL: {company.get('nsdl_dp_id')}")
+    
+    if seller_demat_parts:
+        seller_data.append([
+            Paragraph("<b>Demat</b>", label_style), 
+            Paragraph(" | ".join(seller_demat_parts), value_style)
+        ])
+    
+    seller_table = Table(seller_data, colWidths=[3*cm, 14*cm])
+    seller_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('LINEBELOW', (0, -1), (-1, -1), 0.5, border_color),
+    ]))
+    elements.append(seller_table)
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # ==================== TRANSACTION DETAILS ====================
+    elements.append(Paragraph("TRANSACTION DETAILS", section_title))
+    
+    stock_name = stock.get("name", "N/A") if stock else "N/A"
+    stock_symbol = stock.get("symbol", "N/A") if stock else "N/A"
+    isin = stock.get("isin_number", "N/A") if stock else "N/A"
+    face_value = stock.get("face_value", 1) if stock else 1
+    
+    quantity = booking.get("quantity", 0)
+    rate = booking.get("selling_price", 0)
+    gross_amount = quantity * rate
+    
+    # Truncate long stock names
+    stock_display = stock_symbol
+    if stock_name and len(stock_name) > 25:
+        stock_display = f"{stock_symbol}\n{stock_name[:25]}..."
+    elif stock_name:
+        stock_display = f"{stock_symbol}\n{stock_name}"
+    
+    # Transaction table header
+    trans_header = [
+        Paragraph("<b>Script</b>", ParagraphStyle('TH', fontSize=8, textColor=colors.white, alignment=TA_CENTER)),
+        Paragraph("<b>ISIN</b>", ParagraphStyle('TH', fontSize=8, textColor=colors.white, alignment=TA_CENTER)),
+        Paragraph("<b>Face Value</b>", ParagraphStyle('TH', fontSize=8, textColor=colors.white, alignment=TA_CENTER)),
+        Paragraph("<b>Qty</b>", ParagraphStyle('TH', fontSize=8, textColor=colors.white, alignment=TA_CENTER)),
+        Paragraph("<b>Rate (₹)</b>", ParagraphStyle('TH', fontSize=8, textColor=colors.white, alignment=TA_CENTER)),
+        Paragraph("<b>Amount (₹)</b>", ParagraphStyle('TH', fontSize=8, textColor=colors.white, alignment=TA_CENTER)),
+    ]
+    
+    trans_data = [
+        Paragraph(stock_display, ParagraphStyle('TD', fontSize=8, alignment=TA_CENTER, leading=10)),
+        Paragraph(isin, ParagraphStyle('TD', fontSize=8, alignment=TA_CENTER)),
+        Paragraph(f"₹{face_value:.2f}", ParagraphStyle('TD', fontSize=8, alignment=TA_CENTER)),
+        Paragraph(f"{quantity:,}", ParagraphStyle('TD', fontSize=8, alignment=TA_CENTER)),
+        Paragraph(f"₹{rate:,.2f}", ParagraphStyle('TD', fontSize=8, alignment=TA_CENTER)),
+        Paragraph(f"₹{gross_amount:,.2f}", ParagraphStyle('TD', fontSize=8, alignment=TA_CENTER, fontName='Helvetica-Bold')),
+    ]
+    
+    trans_table = Table([trans_header, trans_data], colWidths=[3.5*cm, 3.5*cm, 2*cm, 2*cm, 2.5*cm, 3.5*cm])
+    trans_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), primary_color),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('BACKGROUND', (0, 1), (-1, 1), light_bg),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('GRID', (0, 0), (-1, -1), 0.5, border_color),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(trans_table)
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # ==================== FINANCIAL SUMMARY ====================
+    elements.append(Paragraph("FINANCIAL SUMMARY", section_title))
+    
+    # Stamp duty calculation
+    stamp_duty_rate = 0.00015  # 0.015%
+    stamp_duty = round(gross_amount * stamp_duty_rate, 2)
+    net_amount = gross_amount  # Stamp duty shown separately
+    
+    summary_data = [
+        [Paragraph("Gross Amount", value_style), Paragraph(f"₹ {gross_amount:,.2f}", ParagraphStyle('Amount', fontSize=9, alignment=TA_CENTER))],
+        [Paragraph("Stamp Duty (0.015%)", value_style), Paragraph(f"₹ {stamp_duty:,.2f}", ParagraphStyle('Amount', fontSize=9, alignment=TA_CENTER))],
+        [
+            Paragraph("<b>Net Payable Amount</b>", ParagraphStyle('NetLabel', fontSize=10, fontName='Helvetica-Bold', textColor=primary_color)),
+            Paragraph(f"<b>₹ {net_amount:,.2f}</b>", ParagraphStyle('NetAmount', fontSize=10, alignment=TA_CENTER, fontName='Helvetica-Bold', textColor=primary_color))
+        ],
+    ]
+    
+    summary_table = Table(summary_data, colWidths=[12*cm, 5*cm])
+    summary_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LINEABOVE', (0, -1), (-1, -1), 1.5, primary_color),
+        ('BACKGROUND', (0, -1), (-1, -1), light_bg),
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(summary_table)
+    
+    # Amount in words
+    elements.append(Spacer(1, 0.2*cm))
+    amount_words = amount_to_words(net_amount)
+    elements.append(Paragraph(f"<b>Amount in Words:</b> <i>{amount_words}</i>", ParagraphStyle(
+        'AmountWords', fontSize=8, textColor=colors.Color(0.3, 0.3, 0.3), leading=12
+    )))
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # ==================== BANK DETAILS ====================
+    elements.append(Paragraph("PAYMENT DETAILS", section_title))
+    
+    bank_data = [
+        [
+            Paragraph("<b>Bank Name</b>", label_style),
+            Paragraph(company.get("company_bank_name", "N/A"), value_style),
+            Paragraph("<b>Branch</b>", label_style),
+            Paragraph(company.get("company_bank_branch", "N/A"), value_style)
+        ],
+        [
+            Paragraph("<b>Account No.</b>", label_style),
+            Paragraph(company.get("company_bank_account", "N/A"), value_style),
+            Paragraph("<b>IFSC</b>", label_style),
+            Paragraph(company.get("company_bank_ifsc", "N/A"), value_style)
+        ],
+    ]
+    
+    bank_table = Table(bank_data, colWidths=[2.8*cm, 5.7*cm, 2.8*cm, 5.7*cm])
+    bank_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.Color(0.98, 0.97, 0.90)),  # Light cream
+        ('BOX', (0, 0), (-1, -1), 1, accent_color),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.Color(0.9, 0.85, 0.7)),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 6),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(bank_table)
+    elements.append(Spacer(1, 0.4*cm))
+    
+    # ==================== TERMS & CONDITIONS ====================
+    elements.append(Paragraph("TERMS & CONDITIONS", section_title))
+    
+    terms = [
+        "1. This conformation note is issued for the sale of unlisted equity shares.",
+        "2. All FEMA related compliance (if any) is the sole responsibility of the purchaser.",
+        "3. The purchaser is responsible for all regulatory compliances including Income Tax and GST.",
+        "4. Unlisted securities may have limited liquidity and their value can fluctuate.",
+        "5. Payment should be made via RTGS/NEFT/IMPS to the bank account mentioned above.",
+        "6. Any discrepancy should be reported within 3 working days.",
+        "7. This document is computer generated and does not require physical signature.",
+    ]
+    
+    for term in terms:
+        elements.append(Paragraph(term, small_style))
+        elements.append(Spacer(1, 0.1*cm))
+    
+    elements.append(Spacer(1, 0.5*cm))
+    
+    # ==================== SIGNATURES ====================
+    sig_data = [
+        [
+            Paragraph(f"<b>For {company_name}</b>", ParagraphStyle('SigHeader', fontSize=8, alignment=TA_CENTER, textColor=primary_color)),
+            Paragraph("<b>For Purchaser</b>", ParagraphStyle('SigHeader', fontSize=8, alignment=TA_CENTER, textColor=primary_color))
+        ],
+        ["", ""],
+        ["", ""],
+        [
+            Paragraph("_____________________", ParagraphStyle('SigLine', fontSize=8, alignment=TA_CENTER)),
+            Paragraph("_____________________", ParagraphStyle('SigLine', fontSize=8, alignment=TA_CENTER))
+        ],
+        [
+            Paragraph("Authorized Signatory", ParagraphStyle('SigLabel', fontSize=7, alignment=TA_CENTER, textColor=colors.Color(0.5, 0.5, 0.5))),
+            Paragraph("Authorized Signatory", ParagraphStyle('SigLabel', fontSize=7, alignment=TA_CENTER, textColor=colors.Color(0.5, 0.5, 0.5)))
+        ]
+    ]
+    
+    sig_table = Table(sig_data, colWidths=[8.5*cm, 8.5*cm])
+    sig_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    elements.append(sig_table)
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    return buffer
             # Fallback to text-only header
             elements.append(Paragraph(f"<b>{company_name}</b>", title_style))
             if company_address:
