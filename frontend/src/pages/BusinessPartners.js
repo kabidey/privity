@@ -76,19 +76,17 @@ const BusinessPartners = () => {
 
   const fetchData = async () => {
     try {
-      // Partners Desk uses /users/employees, PE Level uses /users
-      const employeesEndpoint = isPartnersDesk ? '/users/employees' : '/users';
-      
+      // Both PE Level and Partners Desk use /users/employees to get all mappable users
       const [partnersRes, usersRes] = await Promise.all([
         api.get('/business-partners'),
-        api.get(employeesEndpoint)
+        api.get('/users/employees')
       ]);
       setPartners(partnersRes.data);
-      // For PE Level, filter to get only employees (roles 3-7)
-      // For Partners Desk, the endpoint already returns filtered employees
-      const employeesList = isPartnersDesk 
-        ? usersRes.data 
-        : usersRes.data.filter(u => u.role >= 3 && u.role <= 7);
+      
+      // Filter to show only internal employees who can be mapped to BPs
+      // Exclude Business Partners (role 6) as they can't be linked employees
+      // Include: PE Desk (1), PE Manager (2), Finance (3), Viewer (4), Partners Desk (5), Employee (7)
+      const employeesList = usersRes.data.filter(u => u.role !== 6 && u.role !== 8);
       setEmployees(employeesList);
     } catch (error) {
       toast.error('Failed to load data');
