@@ -37,6 +37,51 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 07, 2026)
 
+#### ✅ Fixed Income Frontend UI (Feb 07, 2026)
+**Built complete frontend for Fixed Income module**
+
+**Pages Created:**
+1. **FI Security Master** (`/app/frontend/src/pages/FISecurityMaster.js`)
+   - List all NCDs/Bonds with filtering and search
+   - Create/Edit instrument dialog with all fields
+   - Bond pricing calculator (YTM, Price from Yield)
+   - Bulk upload dialog with CSV template
+   - Live YTM/Accrued Interest calculation per row
+
+2. **FI Orders** (`/app/frontend/src/pages/FIOrders.js`)
+   - Order list with status tabs (Draft, Pending, Approved, Settled)
+   - Summary cards (Pending Approval, Payment Pending, In Settlement, Settled)
+   - Create Order with live pricing calculation
+   - Order workflow actions (Send Deal Sheet, Approve, Record Payment, Settle)
+   - Order detail dialog
+
+3. **FI Reports** (`/app/frontend/src/pages/FIReports.js`)
+   - Holdings Report with MTM and P&L
+   - Cash Flow Calendar (upcoming coupon/principal)
+   - Maturity Schedule
+   - Portfolio Analytics (rating/maturity distribution, concentration)
+   - Transaction History
+   - CSV export functionality
+
+**Backend Enhancements:**
+- Added bulk upload endpoint for instruments
+- Added CSV template download
+- Added bulk market data update endpoint
+
+**Navigation Added:**
+- FI Instruments, FI Orders, FI Reports menu items in sidebar
+- RBAC-controlled visibility based on permissions
+
+**Files Created:**
+- `/app/frontend/src/pages/FISecurityMaster.js`
+- `/app/frontend/src/pages/FIOrders.js`
+- `/app/frontend/src/pages/FIReports.js`
+
+**Files Modified:**
+- `/app/frontend/src/App.js` - Added routes
+- `/app/frontend/src/components/Layout.js` - Added navigation items
+- `/app/backend/fixed_income/router_instruments.py` - Added bulk upload
+
 #### ✅ Fixed Income Trading Module (Feb 07, 2026)
 **Complete new module for NCD/Bond trading with same RBAC hierarchy**
 
