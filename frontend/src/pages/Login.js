@@ -714,12 +714,12 @@ const Login = () => {
         {/* Typewriter Quote */}
         <div className="mb-8 text-center max-w-2xl px-4 animate-fade-in" style={{animationDelay: '0.2s'}}>
           <div className="min-h-[80px] flex items-center justify-center">
-            <blockquote className="text-lg sm:text-xl md:text-2xl font-light text-white/90 leading-relaxed" data-testid="quote">
+            <blockquote className="text-lg sm:text-xl md:text-2xl font-light text-white leading-relaxed" data-testid="quote">
               &ldquo;{displayedText}
               <span className={`inline-block w-0.5 h-5 sm:h-6 bg-${currentTheme.primary}-400 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>&rdquo;
             </blockquote>
           </div>
-          <cite className={`text-${currentTheme.primary}-400/80 text-sm mt-3 block font-semibold tracking-wide`}>
+          <cite className={`text-${currentTheme.primary}-400 text-sm mt-3 block font-semibold tracking-wide`}>
             — SMIFS PE
           </cite>
         </div>
