@@ -251,6 +251,17 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: FileText, label: 'Confirmation Notes', path: '/contract-notes' });
   }
   
+  // Fixed Income Module - based on permission
+  if (hasPermission('fixed_income.view') || isPELevel || isViewer) {
+    menuItems.push({ icon: TrendingUp, label: 'FI Instruments', path: '/fi-instruments' });
+  }
+  if (hasPermission('fixed_income.order_view') || isPELevel) {
+    menuItems.push({ icon: FileText, label: 'FI Orders', path: '/fi-orders' });
+  }
+  if (hasPermission('fixed_income.report_view') || isPELevel || isViewer) {
+    menuItems.push({ icon: PieChart, label: 'FI Reports', path: '/fi-reports' });
+  }
+  
   // Email Templates - based on permission
   if (hasPermission('email.view_templates') || isPELevel || isViewer) {
     menuItems.push({ icon: Mail, label: 'Email Templates', path: '/email-templates' });
