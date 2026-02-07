@@ -1,6 +1,6 @@
 """
 Confirmation Note Service
-Generates Confirmation Notes (Confirmation Note cum Bill) for share transactions
+Generates Confirmation Notes (Conformation Note cum Bill) for share transactions
 Sent to clients after DP transfer
 """
 import io
@@ -19,6 +19,13 @@ from reportlab.platypus import (
 from num2words import num2words
 
 from database import db
+
+
+def safe_str(value, default="N/A"):
+    """Safely convert value to string, returning default for None or empty values"""
+    if value is None or value == "":
+        return default
+    return str(value)
 
 
 def amount_to_words(amount: float) -> str:
