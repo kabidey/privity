@@ -61,7 +61,6 @@ import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
 import UserAgreementModal from './components/UserAgreementModal';
-import TestAgreementModal from './pages/TestAgreementModal';
 import { useState, useEffect } from 'react';
 import api from './utils/api';
 import './App.css';
