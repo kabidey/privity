@@ -1924,7 +1924,22 @@ async def add_payment_tranche(
                     cc_email=current_user.get("email")
                 )
         except Exception as e:
-            logging.error(f"Failed to send DP Ready email: {e}")
+            logger.error(f"Failed to send DP Ready email: {e}")
+    
+    # Send role-based notification for payment received
+    try:
+        from services.role_notification_service import notify_payment_received
+        client = await db.clients.find_one({"id": booking.get("client_id")}, {"_id": 0, "name": 1})
+        await notify_payment_received(
+            booking_number=booking.get("booking_number", booking_id),
+            client_name=client.get("name", "Unknown") if client else "Unknown",
+            amount=amount,
+            payment_mode=payment_data.payment_mode,
+            recorded_by=current_user["name"],
+            exclude_user_id=current_user["id"]
+        )
+    except Exception as e:
+        logger.error(f"Failed to send payment notification: {e}")
     
     return {
         "message": f"Payment of ₹{amount:,.2f} recorded successfully",
