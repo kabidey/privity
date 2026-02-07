@@ -323,16 +323,26 @@ class TestFixedIncomeReports:
     
     def test_cash_flow_calendar(self, auth_headers):
         """Test cash flow calendar endpoint"""
-        # Get a client first
+        # Get a client first - API returns list directly, not {"clients": [...]}
         client_response = requests.get(
             f"{BASE_URL}/api/clients?limit=1",
             headers=auth_headers
         )
         
-        if client_response.status_code != 200 or not client_response.json().get("clients"):
+        if client_response.status_code != 200:
+            pytest.skip("Failed to fetch clients")
+        
+        clients_data = client_response.json()
+        # Handle both list and dict response formats
+        if isinstance(clients_data, list):
+            clients = clients_data
+        else:
+            clients = clients_data.get("clients", [])
+        
+        if not clients:
             pytest.skip("No clients available for cash flow test")
         
-        client_id = client_response.json()["clients"][0]["id"]
+        client_id = clients[0]["id"]
         
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/reports/cash-flow-calendar?client_id={client_id}&months_ahead=12",
