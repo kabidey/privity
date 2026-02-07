@@ -268,7 +268,7 @@ async def generate_missing_contract_notes(
     )
     
     return {
-        "message": f"Generated {results['generated']} missing contract notes",
+        "message": f"Generated {results['generated']} missing confirmation notes",
         "results": results
     }
 
@@ -587,7 +587,7 @@ async def regenerate_contract_note(
         
         return {
             "success": True,
-            "message": "Contract note regenerated successfully",
+            "message": "Confirmation note regenerated successfully",
             "contract_note_number": cn_number,
             "pdf_url": f"/uploads/contract_notes/{filename}",
             "pdf_size": len(pdf_content)
