@@ -385,11 +385,24 @@ const Login = () => {
         toast.success('Login successful!');
         navigate('/');
       } else {
+        // Registration - validate domain
+        const email = formData.email.toLowerCase();
+        const allowedDomains = ['smifs.com', 'smifs.co.in'];
+        const emailDomain = email.split('@')[1];
+        
+        if (!allowedDomains.includes(emailDomain)) {
+          toast.error('Registration is only allowed for @smifs.com or @smifs.co.in email addresses');
+          setLoading(false);
+          return;
+        }
+        
+        // Send registration with mobile number
         await api.post('/auth/register', {
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          pan_number: formData.pan_number,
+          mobile_number: formData.mobile_number || null,
+          pan_number: formData.pan_number || null,
         });
         setRegistrationSuccess(true);
         setRegisteredEmail(formData.email);
