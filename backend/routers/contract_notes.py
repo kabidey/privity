@@ -271,22 +271,56 @@ async def download_contract_note(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("contract_notes.download", "download contract note"))
 ):
-    """Download contract note PDF"""
+    """Download contract note PDF - tries GridFS first, then local file"""
+    from services.file_storage import download_file_from_gridfs
     
     note = await db.contract_notes.find_one({"id": note_id}, {"_id": 0})
     if not note:
         raise HTTPException(status_code=404, detail="Contract note not found")
     
-    pdf_path = f"/app{note.get('pdf_url', '')}"
+    cn_number = note.get('contract_note_number', 'CN').replace('/', '_')
+    filename = f"Contract_Note_{cn_number}.pdf"
     
-    if not os.path.exists(pdf_path):
-        raise HTTPException(status_code=404, detail="PDF file not found")
+    # Try GridFS first (primary storage)
+    file_id = note.get("file_id")
+    if file_id:
+        try:
+            content, metadata = await download_file_from_gridfs(file_id)
+            return StreamingResponse(
+                io.BytesIO(content),
+                media_type="application/pdf",
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+            )
+        except Exception as e:
+            logger.warning(f"GridFS download failed for {file_id}: {e}, trying local file")
     
-    return FileResponse(
-        pdf_path,
-        media_type="application/pdf",
-        filename=f"Contract_Note_{note.get('contract_note_number', '').replace('/', '_')}.pdf"
-    )
+    # Fall back to local file
+    pdf_url = note.get('pdf_url', '')
+    if pdf_url:
+        pdf_path = f"/app{pdf_url}"
+        if os.path.exists(pdf_path):
+            return FileResponse(
+                pdf_path,
+                media_type="application/pdf",
+                filename=filename
+            )
+    
+    # If neither works, try to regenerate the PDF
+    booking_id = note.get("booking_id")
+    if booking_id:
+        booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+        if booking:
+            try:
+                pdf_buffer = await generate_contract_note_pdf(booking)
+                return StreamingResponse(
+                    pdf_buffer,
+                    media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+                )
+            except Exception as e:
+                logger.error(f"Failed to regenerate PDF for {note_id}: {e}")
+    
+    raise HTTPException(status_code=404, detail="PDF file not found in storage. Please regenerate the contract note.")
 
 
 @router.post("/preview/{booking_id}")
