@@ -1,7 +1,11 @@
 // Service Worker for PRIVITY PWA
-const CACHE_NAME = 'privity-cache-v1';
-const STATIC_CACHE_NAME = 'privity-static-v1';
-const DYNAMIC_CACHE_NAME = 'privity-dynamic-v1';
+// VERSION: 6.2.5.1 - Update this on each deployment to force cache refresh
+const SW_VERSION = '6.2.5.1';
+const CACHE_NAME = `privity-cache-${SW_VERSION}`;
+const STATIC_CACHE_NAME = `privity-static-${SW_VERSION}`;
+const DYNAMIC_CACHE_NAME = `privity-dynamic-${SW_VERSION}`;
+
+console.log(`[ServiceWorker] Version ${SW_VERSION} loading...`);
 
 // Static assets to cache immediately
 const STATIC_ASSETS = [
@@ -19,37 +23,53 @@ const API_CACHE_PATTERNS = [
   '/api/kill-switch/status',
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets and force activation
 self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Installing...');
+  console.log(`[ServiceWorker ${SW_VERSION}] Installing...`);
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
         console.log('[ServiceWorker] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('[ServiceWorker] Skip waiting to activate immediately');
+        return self.skipWaiting();
+      })
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up ALL old caches aggressively
 self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Activating...');
+  console.log(`[ServiceWorker ${SW_VERSION}] Activating...`);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((name) => {
+            // Delete ANY cache that doesn't match current version
             return name.startsWith('privity-') && 
-                   name !== STATIC_CACHE_NAME && 
-                   name !== DYNAMIC_CACHE_NAME;
+                   !name.includes(SW_VERSION);
           })
           .map((name) => {
             console.log('[ServiceWorker] Deleting old cache:', name);
             return caches.delete(name);
           })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      console.log('[ServiceWorker] Claiming all clients');
+      return self.clients.claim();
+    }).then(() => {
+      // Notify all clients to refresh
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_UPDATED',
+            version: SW_VERSION
+          });
+        });
+      });
+    })
   );
 });
 
