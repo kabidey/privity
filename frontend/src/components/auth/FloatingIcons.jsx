@@ -250,22 +250,21 @@ const FloatingIcons = ({ theme }) => {
             <div 
               className={`
                 p-3 rounded-xl backdrop-blur-md
-                bg-gradient-to-br from-${theme.primary}-500/20 to-${theme.secondary}-500/10
-                border border-${theme.primary}-400/30
-                shadow-lg shadow-${theme.primary}-500/20
-                hover:shadow-xl hover:shadow-${theme.primary}-500/30
-                hover:border-${theme.primary}-400/50
-                hover:from-${theme.primary}-500/30 hover:to-${theme.secondary}-500/20
+                bg-gradient-to-br from-${theme.primary}-500/25 to-${theme.secondary}-500/15
+                border-2 border-${theme.primary}-400/40
+                shadow-lg shadow-${theme.primary}-500/25
+                hover:shadow-xl hover:shadow-${theme.primary}-400/40
+                hover:border-${theme.primary}-300/60
+                hover:from-${theme.primary}-400/40 hover:to-${theme.secondary}-400/25
                 transition-all duration-300
-                ${isDragging ? `ring-2 ring-${theme.primary}-400/50` : ''}
+                ${isDragging ? `ring-2 ring-${theme.primary}-300 scale-110` : ''}
               `}
             >
-              <Icon className={`w-5 h-5 text-${theme.primary}-300 drop-shadow-sm`} />
+              <Icon className={`w-6 h-6 text-${theme.primary}-300 drop-shadow-md`} />
             </div>
             <p className={`
-              text-${theme.primary}-200 text-[9px] mt-1 text-center 
-              font-bold tracking-wider drop-shadow-lg
-              opacity-80 hover:opacity-100 transition-opacity
+              text-${theme.primary}-200 text-[10px] mt-1.5 text-center 
+              font-bold tracking-wider drop-shadow-lg uppercase
             `}>
               {icon.item.word}
             </p>
