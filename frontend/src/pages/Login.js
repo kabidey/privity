@@ -664,7 +664,7 @@ const Login = () => {
             <div className={`bg-gradient-to-br from-${currentTheme.primary}-500/20 to-${currentTheme.secondary}-500/20 p-3 rounded-xl backdrop-blur-sm border border-${currentTheme.primary}-500/20 shadow-lg shadow-${currentTheme.primary}-500/10 transition-all duration-300 hover:scale-110`}>
               <item.icon className={`w-6 h-6 text-${currentTheme.primary}-400`} />
             </div>
-            <p className={`text-${currentTheme.primary}-400/50 text-[10px] mt-1 text-center font-semibold tracking-wider`}>{item.word}</p>
+            <p className={`text-${currentTheme.primary}-300 text-[10px] mt-1 text-center font-bold tracking-wider drop-shadow-md`}>{item.word}</p>
           </div>
         ))}
       </div>
@@ -719,7 +719,7 @@ const Login = () => {
               <span className={`inline-block w-0.5 h-5 sm:h-6 bg-${currentTheme.primary}-400 ml-1 ${showCursor ? 'opacity-100' : 'opacity-0'}`}></span>&rdquo;
             </blockquote>
           </div>
-          <cite className={`text-${currentTheme.primary}-400 text-sm mt-3 block font-semibold tracking-wide`}>
+          <cite className={`text-${currentTheme.primary}-300 text-sm mt-3 block font-bold tracking-wide drop-shadow-sm`}>
             — SMIFS PE
           </cite>
         </div>
@@ -736,7 +736,7 @@ const Login = () => {
               <CardTitle className="text-2xl font-bold text-center text-white">
                 {isLogin ? 'Welcome Back' : 'Join Privity'}
               </CardTitle>
-              <CardDescription className="text-center text-white">
+              <CardDescription className="text-center text-gray-200 font-medium">
                 {isLogin ? 'Access exclusive PE opportunities' : 'Start your private equity journey'}
               </CardDescription>
             </CardHeader>
@@ -779,10 +779,10 @@ const Login = () => {
                   {isLogin && (
                     <Tabs value={loginType} onValueChange={setLoginType} className="mb-4">
                       <TabsList className="grid w-full grid-cols-2 bg-white/10">
-                        <TabsTrigger value="employee" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-white/80`}>
+                        <TabsTrigger value="employee" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-gray-200 font-medium`}>
                           <Building2 className="w-4 h-4 mr-2" /> Employee
                         </TabsTrigger>
-                        <TabsTrigger value="partner" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-white/80`}>
+                        <TabsTrigger value="partner" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-gray-200 font-medium`}>
                           <Users className="w-4 h-4 mr-2" /> Partner
                         </TabsTrigger>
                       </TabsList>
@@ -824,14 +824,14 @@ const Login = () => {
                                 <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
                                   onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
                                   maxLength={10} required className="bg-white/15 border-white/40 text-white" data-testid="mobile" />
-                                <p className="text-white/90 text-xs">Required for SMS/WhatsApp notifications</p>
+                                <p className="text-gray-300 text-xs font-medium">Required for SMS/WhatsApp notifications</p>
                               </div>
                               <div className="space-y-2">
                                 <Label className="text-white">PAN Number <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                                   onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
                                   maxLength={10} required className="bg-white/15 border-white/40 text-white font-mono" data-testid="pan" />
-                                <p className="text-white/90 text-xs">Required for KYC verification</p>
+                                <p className="text-gray-300 text-xs font-medium">Required for KYC verification</p>
                               </div>
                               
                               {/* Domain restriction warning */}
@@ -865,7 +865,7 @@ const Login = () => {
                                   data-testid="registration-otp"
                                 />
                                 {otpTimer > 0 && (
-                                  <p className="text-white/90 text-xs text-center">
+                                  <p className="text-gray-300 text-xs text-center font-medium">
                                     OTP expires in {Math.floor(otpTimer / 60)}:{String(otpTimer % 60).padStart(2, '0')}
                                   </p>
                                 )}
@@ -878,7 +878,7 @@ const Login = () => {
                                     setRegistrationStep('form');
                                     setRegistrationOtp('');
                                   }}
-                                  className="text-white/90 text-sm hover:text-white flex items-center gap-1"
+                                  className="text-gray-200 text-sm hover:text-white flex items-center gap-1 font-medium"
                                 >
                                   <ArrowLeft className="w-4 h-4" /> Back
                                 </button>
