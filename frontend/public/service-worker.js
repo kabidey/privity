@@ -1,6 +1,6 @@
 // Service Worker for PRIVITY PWA
-// VERSION: 6.2.5.1 - Update this on each deployment to force cache refresh
-const SW_VERSION = '6.2.5.1';
+// VERSION: 6.3.0 - Update this on each deployment to force cache refresh
+const SW_VERSION = '6.3.0';
 const CACHE_NAME = `privity-cache-${SW_VERSION}`;
 const STATIC_CACHE_NAME = `privity-static-${SW_VERSION}`;
 const DYNAMIC_CACHE_NAME = `privity-dynamic-${SW_VERSION}`;
