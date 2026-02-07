@@ -359,8 +359,10 @@ async def send_contract_note_email(
     _: None = Depends(require_permission("contract_notes.send", "send contract note"))
 ):
     """
-    Send contract note to client via email
+    Send contract note to client via email with PDF attachment
+    Tries GridFS first, then local file, then regenerates if needed
     """
+    from services.file_storage import download_file_from_gridfs
     
     note = await db.contract_notes.find_one({"id": note_id}, {"_id": 0})
     if not note:
@@ -427,23 +429,80 @@ async def send_contract_note_email(
     </div>
     """
     
-    # Read PDF file for attachment
-    pdf_path = f"/app{note.get('pdf_url', '')}"
+    # Get PDF content - try multiple sources
     pdf_content = None
+    cn_number = note.get('contract_note_number', 'CN').replace('/', '_')
     
-    if os.path.exists(pdf_path):
-        with open(pdf_path, 'rb') as f:
-            pdf_content = f.read()
+    # 1. Try GridFS first (primary storage)
+    file_id = note.get("file_id")
+    if file_id:
+        try:
+            content, metadata = await download_file_from_gridfs(file_id)
+            pdf_content = content
+            logger.info(f"Loaded PDF from GridFS for contract note {note_id}")
+        except Exception as e:
+            logger.warning(f"GridFS download failed for {file_id}: {e}")
+    
+    # 2. Try local file if GridFS failed
+    if not pdf_content:
+        pdf_url = note.get('pdf_url', '')
+        if pdf_url:
+            pdf_path = f"/app{pdf_url}"
+            if os.path.exists(pdf_path):
+                try:
+                    with open(pdf_path, 'rb') as f:
+                        pdf_content = f.read()
+                    logger.info(f"Loaded PDF from local file for contract note {note_id}")
+                except Exception as e:
+                    logger.warning(f"Local file read failed: {e}")
+    
+    # 3. Regenerate PDF if both failed
+    if not pdf_content:
+        booking_id = note.get("booking_id")
+        if booking_id:
+            booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+            if booking:
+                try:
+                    pdf_buffer = await generate_contract_note_pdf(booking)
+                    pdf_content = pdf_buffer.getvalue()
+                    logger.info(f"Regenerated PDF for contract note {note_id}")
+                    
+                    # Save regenerated PDF to GridFS for future use
+                    try:
+                        new_file_id = await upload_file_to_gridfs(
+                            pdf_content,
+                            f"CN_{cn_number}_{booking_id[:8]}.pdf",
+                            "application/pdf",
+                            {
+                                "category": "contract_notes",
+                                "entity_id": booking_id,
+                                "contract_note_number": note.get("contract_note_number"),
+                                "regenerated_for_email": True
+                            }
+                        )
+                        # Update contract note with new file_id
+                        await db.contract_notes.update_one(
+                            {"id": note_id},
+                            {"$set": {"file_id": new_file_id, "pdf_url": get_file_url(new_file_id)}}
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to save regenerated PDF to GridFS: {e}")
+                except Exception as e:
+                    logger.error(f"Failed to regenerate PDF: {e}")
+    
+    # Check if we have PDF content
+    if not pdf_content:
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to get PDF content. Please regenerate the contract note first."
+        )
     
     # Prepare attachment
-    attachments = None
-    if pdf_content:
-        cn_number = note.get('contract_note_number', 'CN').replace('/', '_')
-        attachments = [{
-            'filename': f"Contract_Note_{cn_number}.pdf",
-            'content': pdf_content,
-            'content_type': 'application/pdf'
-        }]
+    attachments = [{
+        'filename': f"Contract_Note_{cn_number}.pdf",
+        'content': pdf_content,
+        'content_type': 'application/pdf'
+    }]
     
     # Send email with PDF attachment
     try:
