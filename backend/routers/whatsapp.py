@@ -980,9 +980,13 @@ async def send_template_message(
     if not service:
         raise HTTPException(status_code=400, detail="WhatsApp not configured. Please set up Wati.io API credentials.")
     
+    # Map internal template name to actual Wati template name
+    wati_template_name = get_wati_template_name(request.template_name)
+    logger.info(f"Sending template: {request.template_name} -> {wati_template_name}")
+    
     result = await service.send_template_message(
         request.phone_number,
-        request.template_name,
+        wati_template_name,  # Use mapped template name
         request.parameters,
         request.broadcast_name
     )
@@ -992,9 +996,11 @@ async def send_template_message(
         "id": str(uuid.uuid4()),
         "phone_number": request.phone_number,
         "template_name": request.template_name,
+        "wati_template_name": wati_template_name,
         "parameters": request.parameters,
-        "status": "sent" if result.get("result") else "failed",
-        "wati_message_id": result.get("localMessageId"),
+        "status": "sent" if result.get("success") else "failed",
+        "error": result.get("error") if not result.get("success") else None,
+        "wati_message_id": result.get("result", {}).get("localMessageId") if result.get("success") else None,
         "sent_at": datetime.now(timezone.utc).isoformat(),
         "sent_by": current_user["id"],
         "sent_by_name": current_user["name"]
@@ -1002,9 +1008,11 @@ async def send_template_message(
     await db.whatsapp_messages.insert_one(message_log)
     
     return {
-        "message": "Template sent successfully" if result.get("result") else "Template sending failed",
-        "result": result.get("result", False),
-        "message_id": result.get("localMessageId")
+        "message": "Template sent successfully" if result.get("success") else "Template sending failed",
+        "success": result.get("success", False),
+        "wati_template": wati_template_name,
+        "error": result.get("error") if not result.get("success") else None,
+        "message_id": result.get("result", {}).get("localMessageId") if result.get("success") else None
     }
 
 
