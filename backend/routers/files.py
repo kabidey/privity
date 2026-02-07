@@ -15,16 +15,11 @@ from services.file_storage import (
     get_file_url
 )
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level
 )
 
 router = APIRouter(prefix="/files", tags=["files"])
-
-
-# Helper function for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 # ============== Static routes (must come before dynamic /{file_id} routes) ==============
