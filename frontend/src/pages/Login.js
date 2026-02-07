@@ -815,18 +815,19 @@ const Login = () => {
                           {registrationStep === 'form' ? (
                             <>
                               <div className="space-y-2">
-                              <Label className="text-white font-medium">Full Name <span className="text-red-400">*</span></Label>
+                                <Label className="text-white font-medium">Full Name <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="name" placeholder="Your name" value={formData.name}
                                   onChange={handleChange} required className="bg-white/15 border-white/50 text-white placeholder:text-gray-400" data-testid="name" />
                               </div>
-                              <Label className="text-white font-medium">Mobile Number <span className="text-red-400">*</span></Label>
+                              <div className="space-y-2">
+                                <Label className="text-white font-medium">Mobile Number <span className="text-red-400">*</span></Label>
                                 <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
                                   onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
                                   maxLength={10} required className="bg-white/15 border-white/50 text-white placeholder:text-gray-400" data-testid="mobile" />
                                 <p className="text-gray-300 text-xs font-medium">Required for SMS/WhatsApp notifications</p>
                               </div>
                               <div className="space-y-2">
-                                <Label className="text-white">PAN Number <span className="text-red-400">*</span></Label>
+                                <Label className="text-white font-medium">PAN Number <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                                   onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
                                   maxLength={10} required className="bg-white/15 border-white/50 text-white font-mono placeholder:text-gray-400" data-testid="pan" />
