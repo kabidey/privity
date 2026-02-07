@@ -1,6 +1,6 @@
 // Service Worker for PRIVITY PWA
-// VERSION: 6.3.0 - Update this on each deployment to force cache refresh
-const SW_VERSION = '6.3.0';
+// VERSION: 6.4.0 - Update this on each deployment to force cache refresh
+const SW_VERSION = '6.4.0';
 const CACHE_NAME = `privity-cache-${SW_VERSION}`;
 const STATIC_CACHE_NAME = `privity-static-${SW_VERSION}`;
 const DYNAMIC_CACHE_NAME = `privity-dynamic-${SW_VERSION}`;
@@ -11,6 +11,15 @@ console.log(`[ServiceWorker] Version ${SW_VERSION} loading...`);
 const STATIC_ASSETS = [
   '/manifest.json',
   '/privity-logo.png',
+];
+
+// Patterns that should NEVER be cached (auth-related)
+const NEVER_CACHE_PATTERNS = [
+  /\/api\/auth\//,        // All auth API endpoints
+  /\/api\/register/,      // Registration endpoints
+  /\/login/,              // Login page
+  /\/register/,           // Register page
+  /\/forgot-password/,    // Forgot password page
 ];
 
 // Patterns that should ALWAYS fetch from network (never serve stale)
