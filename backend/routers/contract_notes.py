@@ -4,11 +4,14 @@ Handles confirmation note generation and management
 Generated after DP transfer and sent to clients
 """
 import os
+import logging
 from typing import List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 from database import db
 from utils.auth import get_current_user
