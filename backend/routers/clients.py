@@ -34,9 +34,7 @@ from utils.demo_isolation import add_demo_filter, mark_as_demo, require_demo_acc
 router = APIRouter(tags=["Clients"])
 
 
-def is_pe_desk_only(role: int) -> bool:
-    """Check if role is PE Desk only."""
-    return role == 1
+# is_pe_desk is now imported from services.permission_service
 
 
 async def generate_otc_ucc() -> str:
