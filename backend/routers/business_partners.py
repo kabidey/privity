@@ -228,6 +228,20 @@ async def create_business_partner(
         }
     )
     
+    # Send role-based notification for new business partner
+    try:
+        from services.role_notification_service import notify_new_business_partner
+        await notify_new_business_partner(
+            bp_name=bp_data.name,
+            contact_person=bp_data.contact_person or bp_data.name,
+            bp_email=bp_data.email,
+            registered_by=current_user["name"],
+            exclude_user_id=current_user["id"]
+        )
+    except Exception as e:
+        import logging
+        logging.error(f"Failed to send new business partner notification: {e}")
+    
     return BusinessPartnerResponse(**bp_doc)
 
 
