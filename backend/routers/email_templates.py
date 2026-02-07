@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 from database import db
 from routers.auth import get_current_user
-from config import DEFAULT_EMAIL_TEMPLATES as EMAIL_TEMPLATES
+from email_templates import DEFAULT_EMAIL_TEMPLATES as EMAIL_TEMPLATES
 from services.email_service import render_template
 from services.permission_service import require_permission
 
