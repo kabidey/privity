@@ -199,6 +199,13 @@ async def request_registration_otp(user_data: UserCreate, request: Request = Non
     Step 1 of OTP-based registration.
     Validates user data and sends OTP to email.
     """
+    # Validate password is provided for OTP registration
+    if not user_data.password:
+        raise HTTPException(status_code=400, detail="Password is required for registration")
+    
+    if len(user_data.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    
     # Check email domain restriction
     email_domain = user_data.email.split('@')[-1].lower()
     if email_domain not in ALLOWED_EMAIL_DOMAINS:
