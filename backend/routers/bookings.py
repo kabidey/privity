@@ -2388,6 +2388,21 @@ async def mark_dp_transferred(
         entity_name=booking.get("booking_number", booking_id)
     )
     
+    # Send role-based notification for DP transfer
+    try:
+        from services.role_notification_service import notify_dp_transfer
+        await notify_dp_transfer(
+            booking_number=booking.get("booking_number", booking_id),
+            client_name=client.get("name", "Unknown") if client else "Unknown",
+            stock_symbol=stock.get("symbol", "Unknown") if stock else "Unknown",
+            quantity=booking.get("quantity", 0),
+            dp_type=dp_type,
+            transferred_by=current_user["name"],
+            exclude_user_id=current_user["id"]
+        )
+    except Exception as e:
+        logger.error(f"Failed to send DP transfer notification: {e}")
+    
     response = {
         "message": f"Stock transferred via {dp_type}. Client notified about T+2 settlement.",
         "dp_type": dp_type,
