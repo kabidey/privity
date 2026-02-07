@@ -824,3 +824,97 @@ async def recalculate_all_inventory(current_user: dict = Depends(get_current_use
         "details": results
     }
 
+
+
+# ========== DATA QUALITY ENDPOINTS ==========
+
+@router.get("/data-quality/report")
+async def get_data_quality_report(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.view", "view data quality report"))
+):
+    """
+    Get a data quality report for inventory and stocks collections.
+    Reports issues like orphaned records, missing landing prices, etc.
+    """
+    from scripts.data_cleanup import generate_data_quality_report
+    from database import db as database
+    
+    report = await generate_data_quality_report(database)
+    return report
+
+
+@router.post("/data-quality/cleanup")
+async def run_data_cleanup(
+    dry_run: bool = True,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("inventory.edit_landing_price", "run data cleanup"))
+):
+    """
+    Run data cleanup operations on inventory and stocks collections.
+    
+    Args:
+        dry_run: If True (default), only report what would be changed without making changes.
+                 Set to False to actually apply fixes.
+    
+    Operations performed:
+    1. Remove or fix orphaned inventory records (stock_symbol = "Unknown")
+    2. Set missing landing_price to weighted_avg_price or stock master LP
+    3. Validate and update stock references in inventory
+    
+    PE Desk/Manager only.
+    """
+    from scripts.data_cleanup import run_full_cleanup, generate_data_quality_report
+    from database import db as database
+    from services.audit_service import create_audit_log
+    
+    # Run cleanup
+    results = {
+        "dry_run": dry_run,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "report_before": await generate_data_quality_report(database)
+    }
+    
+    # Cleanup orphaned inventory
+    from scripts.data_cleanup import (
+        cleanup_orphaned_inventory, 
+        fix_missing_landing_prices, 
+        validate_inventory_stock_references
+    )
+    
+    results["orphaned_cleanup"] = await cleanup_orphaned_inventory(database, dry_run)
+    results["landing_price_fix"] = await fix_missing_landing_prices(database, dry_run)
+    results["reference_validation"] = await validate_inventory_stock_references(database, dry_run)
+    
+    if not dry_run:
+        results["report_after"] = await generate_data_quality_report(database)
+        
+        # Create audit log
+        await create_audit_log(
+            action="DATA_CLEANUP_EXECUTED",
+            entity_type="inventory",
+            entity_id="all",
+            user_id=current_user["id"],
+            user_name=current_user["name"],
+            user_role=current_user.get("role", 6),
+            entity_name="Data Quality Cleanup",
+            details={
+                "orphaned_deleted": results["orphaned_cleanup"]["orphaned_deleted"],
+                "lp_fixed": results["landing_price_fix"]["lp_fixed"],
+                "metadata_updated": results["reference_validation"]["updated_metadata"],
+                "health_before": results["report_before"]["summary"]["health_score"],
+                "health_after": results["report_after"]["summary"]["health_score"]
+            }
+        )
+        
+        logger.info(f"Data cleanup executed by {current_user['name']}: "
+                   f"{results['orphaned_cleanup']['orphaned_deleted']} orphaned deleted, "
+                   f"{results['landing_price_fix']['lp_fixed']} LP fixed")
+    
+    return {
+        "success": True,
+        "message": "Dry run completed" if dry_run else "Data cleanup completed",
+        "dry_run": dry_run,
+        "results": results
+    }
+
