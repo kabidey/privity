@@ -288,6 +288,10 @@ function App() {
                           <Route path="/bi-reports" element={<BIReports />} />
                           <Route path="/whatsapp" element={<WhatsAppNotifications />} />
                           <Route path="/notifications" element={<NotificationDashboard />} />
+                          {/* Fixed Income Module */}
+                          <Route path="/fi-instruments" element={<FISecurityMaster />} />
+                          <Route path="/fi-orders" element={<FIOrders />} />
+                          <Route path="/fi-reports" element={<FIReports />} />
                         </Routes>
                         </Layout>
                         {/* Notification Permission Banner */}
