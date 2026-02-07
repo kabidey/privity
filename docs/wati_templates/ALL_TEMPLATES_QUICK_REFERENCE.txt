@@ -1,0 +1,365 @@
+# WATI TEMPLATE QUICK REFERENCE
+# Copy-paste ready templates for Wati Dashboard
+
+================================================================================
+## UTILITY TEMPLATES (Transaction-based - Faster Approval)
+================================================================================
+
+### 1. privity_booking_confirmation
+Category: UTILITY
+Header: Booking Confirmed ✅
+Body:
+Dear {{1}},
+
+Your share booking has been confirmed.
+
+*Booking Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+• Price: ₹{{5}} per share
+• Total Amount: ₹{{6}}
+
+Thank you for choosing SMIFS Private Equity.
+Footer: For queries, contact your relationship manager.
+
+---
+
+### 2. privity_booking_pending
+Category: UTILITY
+Header: Booking Received 📋
+Body:
+Dear {{1}},
+
+Your booking request has been received and is pending approval.
+
+*Booking Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+
+Our team will review and approve your booking shortly. You will receive a confirmation once approved.
+Footer: Thank you for your patience.
+
+---
+
+### 3. privity_booking_approved
+Category: UTILITY
+Header: Booking Approved ✅
+Body:
+Dear {{1}},
+
+Great news! Your booking has been approved.
+
+*Booking Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+• Total Amount: ₹{{5}}
+
+*Next Steps:*
+Please complete the payment to proceed with share transfer.
+Footer: Contact us for any queries.
+
+---
+
+### 4. privity_payment_reminder
+Category: UTILITY
+Header: Payment Reminder 💰
+Body:
+Dear {{1}},
+
+This is a friendly reminder for your pending payment.
+
+*Payment Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Pending Amount: ₹{{4}}
+• Due Since: {{5}} days
+
+Please complete the payment at your earliest convenience to proceed with share transfer.
+Footer: Ignore if already paid.
+
+---
+
+### 5. privity_payment_received
+Category: UTILITY
+Header: Payment Received ✅
+Body:
+Dear {{1}},
+
+We have received your payment. Thank you!
+
+*Payment Details:*
+• Booking No: {{2}}
+• Amount Received: ₹{{3}}
+• Payment Mode: {{4}}
+• Date: {{5}}
+
+Your booking is now being processed for share transfer.
+Footer: Thank you for your business.
+
+---
+
+### 6. privity_payment_complete
+Category: UTILITY
+Header: Payment Complete 🎉
+Body:
+Dear {{1}},
+
+Your payment is now complete!
+
+*Booking Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+• Total Paid: ₹{{5}}
+
+Your shares are now queued for DP transfer. We will notify you once the transfer is complete.
+Footer: Thank you for choosing SMIFS PE.
+
+---
+
+### 7. privity_dp_ready
+Category: UTILITY
+Header: Shares Ready for Transfer 📊
+Body:
+Dear {{1}},
+
+Your shares are ready for DP transfer!
+
+*Transfer Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+
+Please ensure your Demat account details are updated. The transfer will be initiated shortly.
+
+*Your DP Details on Record:*
+• DP ID: {{5}}
+• Client ID: {{6}}
+Footer: Contact us if details need updating.
+
+---
+
+### 8. privity_dp_transferred
+Category: UTILITY
+Header: Shares Transferred ✅
+Body:
+Dear {{1}},
+
+Great news! Your shares have been successfully transferred to your Demat account.
+
+*Transfer Details:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+• Transfer Date: {{5}}
+
+Please check your Demat account to confirm receipt.
+Footer: Thank you for investing with SMIFS PE.
+
+---
+
+### 9. privity_document_reminder
+Category: UTILITY
+Header: Document Required 📄
+Body:
+Dear {{1}},
+
+Your KYC documents are pending. Please upload the following:
+
+*Required Documents:*
+• PAN Card
+• Cancelled Cheque / Bank Proof
+• CML Copy (Demat Statement)
+
+*Your Status:*
+• Client ID: {{2}}
+• Documents Pending: {{3}}
+
+Please upload documents at your earliest to enable share booking.
+Footer: Contact us for assistance.
+
+---
+
+### 10. privity_client_approved
+Category: UTILITY
+Header: KYC Approved ✅
+Body:
+Dear {{1}},
+
+Your KYC verification is complete and approved!
+
+*Account Details:*
+• Client ID: {{2}}
+• PAN: {{3}}
+• Status: Verified
+
+You can now book shares through SMIFS Private Equity. Explore our current inventory of unlisted and pre-IPO shares.
+Footer: Contact your RM for investment guidance.
+
+---
+
+### 11. privity_booking_cancelled
+Category: UTILITY
+Header: Booking Cancelled ❌
+Body:
+Dear {{1}},
+
+Your booking has been cancelled as requested.
+
+*Cancelled Booking:*
+• Booking No: {{2}}
+• Stock: {{3}}
+• Quantity: {{4}} shares
+
+*Refund Status:*
+{{5}}
+
+If this was not requested by you, please contact us immediately.
+Footer: SMIFS PE Support - pe@smifs.com
+
+---
+
+### 12. privity_commission_paid
+Category: UTILITY
+Header: Commission Credited 💰
+Body:
+Dear {{1}},
+
+Your referral commission has been processed!
+
+*Commission Details:*
+• Reference: {{2}}
+• Amount: ₹{{3}}
+• For Booking: {{4}}
+• Payment Date: {{5}}
+
+Thank you for your continued partnership.
+Footer: SMIFS PE Partner Program
+
+---
+
+### 13. privity_confirmation_note
+Category: UTILITY
+Header: Confirmation Note Ready 📄
+Body:
+Dear {{1}},
+
+Your Confirmation Note is ready for download.
+
+*Details:*
+• Note Number: {{2}}
+• Booking: {{3}}
+• Stock: {{4}}
+• Date: {{5}}
+
+Please download and retain this document for your records.
+Footer: SMIFS Private Equity
+
+================================================================================
+## MARKETING TEMPLATES (Promotional - May take longer to approve)
+================================================================================
+
+### 14. privity_welcome_client
+Category: MARKETING
+Header: Welcome to SMIFS PE! 🎉
+Body:
+Dear {{1}},
+
+Welcome to SMIFS Private Equity!
+
+We are delighted to have you onboard. You now have access to exclusive unlisted and pre-IPO share opportunities.
+
+*Your Account:*
+• Client ID: {{2}}
+• Relationship Manager: {{3}}
+
+*What's Next:*
+1. Complete your KYC documents
+2. Explore available stocks
+3. Place your first booking
+
+Thank you for choosing us for your private equity investments.
+Footer: SMIFS Private Equity - pe@smifs.com
+
+---
+
+### 15. privity_welcome_partner
+Category: MARKETING
+Header: Partnership Confirmed! 🤝
+Body:
+Dear {{1}},
+
+Welcome to the SMIFS PE Partner Network!
+
+Your business partner account has been activated.
+
+*Partner Details:*
+• Partner ID: {{2}}
+• Commission Rate: {{3}}%
+• Account Manager: {{4}}
+
+*Partner Benefits:*
+• Competitive commission structure
+• Real-time booking dashboard
+• Dedicated support
+
+Login to your partner portal to start referring clients.
+Footer: SMIFS Private Equity Partner Program
+
+---
+
+### 16. privity_price_alert
+Category: MARKETING
+Header: Price Update 📈
+Body:
+Dear {{1}},
+
+Stock price update for your watchlist:
+
+*{{2}}*
+• Current Price: ₹{{3}}
+• Change: {{4}}
+• Updated: {{5}}
+
+This stock is available for booking. Contact us to secure your allocation.
+Footer: SMIFS PE - Unlisted & Pre-IPO Shares
+
+---
+
+### 17. privity_pe_report
+Category: MARKETING
+Header: PE Inventory Update 📊
+Body:
+Dear {{1}},
+
+Here's today's PE inventory snapshot:
+
+*Available Stocks: {{2}}*
+*Top Picks:*
+{{3}}
+
+*Market Highlights:*
+{{4}}
+
+For detailed pricing and availability, contact your relationship manager or visit our portal.
+Footer: SMIFS Private Equity - pe@smifs.com
+
+================================================================================
+## AUTHENTICATION TEMPLATE
+================================================================================
+
+### 18. privity_otp_verification
+Category: AUTHENTICATION
+Body:
+Your PRIVITY verification code is: {{1}}
+
+This OTP is valid for 10 minutes. Do not share this code with anyone.
+
+If you did not request this, please ignore this message.
+Footer: SMIFS Private Equity
+Button: Copy Code (COPY_CODE type)
+
+================================================================================
