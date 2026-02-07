@@ -16,7 +16,7 @@ import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://popup-agreement-ui.preview.emergentagent.com"
+    BASE_URL = "https://fixed-income-test.preview.emergentagent.com"
 
 class TestBugFixes:
     """Bug fix tests for iteration 71"""

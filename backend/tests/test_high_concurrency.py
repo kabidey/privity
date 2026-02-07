@@ -9,7 +9,7 @@ import aiohttp
 import time
 from typing import List, Tuple
 
-API_URL = "https://popup-agreement-ui.preview.emergentagent.com"
+API_URL = "https://fixed-income-test.preview.emergentagent.com"
 
 async def login(session: aiohttp.ClientSession) -> str:
     """Get authentication token."""

@@ -13,7 +13,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Tuple
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://popup-agreement-ui.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fixed-income-test.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 PE_DESK_EMAIL = "pedesk@smifs.com"
