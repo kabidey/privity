@@ -17,7 +17,7 @@ Your share booking has been confirmed.
 • Booking No: {{2}}
 • Stock: {{3}}
 • Quantity: {{4}} shares
-• Price: ₹{{5}} per share
+• Sale Price: ₹{{5}} per share
 • Total Amount: ₹{{6}}
 
 Thank you for choosing SMIFS Private Equity.
