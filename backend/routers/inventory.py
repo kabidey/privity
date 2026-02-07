@@ -12,19 +12,14 @@ from database import db
 from models import Inventory as InventoryModel
 from utils.auth import get_current_user
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level
 )
 from utils.demo_isolation import add_demo_filter
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
-
-
-# Helper function for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 class UpdateLandingPriceRequest(BaseModel):
