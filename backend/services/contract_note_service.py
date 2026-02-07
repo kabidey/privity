@@ -419,7 +419,7 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     elements.append(Paragraph("<b>TERMS & CONDITIONS</b>", section_title))
     
     terms = [
-        "1. This contract note is issued for the sale of unlisted equity shares.",
+        "1. This confirmation note is issued for the sale of unlisted equity shares.",
         "2. All FEMA related compliance (if any) is the sole responsibility of the purchaser.",
         "3. The purchaser is responsible for all regulatory compliances including Income Tax and GST.",
         "4. Unlisted securities may have limited liquidity and their value can fluctuate.",
