@@ -815,7 +815,7 @@ const Login = () => {
                           {registrationStep === 'form' ? (
                             <>
                               <div className="space-y-2">
-                                <Label className="text-white/80">Full Name <span className="text-red-400">*</span></Label>
+                                <Label className="text-white">Full Name <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="name" placeholder="Your name" value={formData.name}
                                   onChange={handleChange} required className="bg-white/10 border-white/20 text-white" data-testid="name" />
                               </div>
