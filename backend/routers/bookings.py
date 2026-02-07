@@ -47,10 +47,7 @@ import asyncio
 _booking_number_lock = asyncio.Lock()
 
 
-# Helper function for backward compatibility with is_pe_level
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager). For sync contexts."""
-    return role in [1, 2]
+# is_pe_level is now imported from services.permission_service
 
 
 def is_pe_desk_only(role: int) -> bool:
