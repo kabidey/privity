@@ -47,12 +47,7 @@ import asyncio
 _booking_number_lock = asyncio.Lock()
 
 
-# is_pe_level is now imported from services.permission_service
-
-
-def is_pe_desk_only(role: int) -> bool:
-    """Check if role is PE Desk only. For sync contexts."""
-    return role == 1
+# is_pe_level and is_pe_desk are now imported from services.permission_service
 
 
 async def generate_booking_number() -> str:
