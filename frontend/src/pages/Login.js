@@ -744,12 +744,12 @@ const Login = () => {
             <CardContent className="space-y-4">
               {registrationSuccess ? (
                 <div className="space-y-4">
-                  <div className={`p-4 bg-${currentTheme.primary}-500/20 border border-${currentTheme.primary}-500/30 rounded-xl`}>
+              <div className={`p-4 bg-${currentTheme.primary}-500/20 border border-${currentTheme.primary}-400/30 rounded-xl`}>
                     <div className="flex items-center gap-3">
                       <Mail className={`w-5 h-5 text-${currentTheme.primary}-400`} />
                       <div>
-                        <p className="font-medium text-white">Registration Submitted!</p>
-                        <p className="text-sm text-white">{registeredEmail} is pending approval.</p>
+                                <p className="font-semibold text-white">Registration Submitted!</p>
+                        <p className="text-sm text-gray-200">{registeredEmail} is pending approval.</p>
                       </div>
                     </div>
                   </div>
@@ -760,15 +760,15 @@ const Login = () => {
                 </div>
               ) : mobileRequired ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl">
+                  <div className="p-4 bg-amber-500/15 border border-amber-400/30 rounded-xl">
                     <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-amber-400" />
-                      <p className="text-white text-sm">Update your mobile to continue</p>
+                      <Phone className="w-5 h-5 text-amber-300" />
+                      <p className="text-gray-100 text-sm font-medium">Update your mobile to continue</p>
                     </div>
                   </div>
                   <Input type="tel" placeholder="10-digit mobile" value={mobileUpdateNumber}
                     onChange={(e) => setMobileUpdateNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    className="bg-white/15 border-white/40 text-white" data-testid="mobile-input" />
+                    className="bg-white/15 border-white/50 text-white placeholder:text-gray-400" data-testid="mobile-input" />
                   <Button onClick={handleMobileUpdate} disabled={updatingMobile}
                     className={`w-full bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                     {updatingMobile ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Update & Continue
@@ -792,14 +792,14 @@ const Login = () => {
                   {loginType === 'employee' && (
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div className="space-y-2">
-                        <Label className="text-white">Email</Label>
+                        <Label className="text-white font-medium">Email</Label>
                         <Input type="email" name="email" placeholder="you@company.com" value={formData.email}
-                          onChange={handleChange} required className="bg-white/10 border-white/30 text-white placeholder:text-white/60" data-testid="email" />
+                          onChange={handleChange} required className="bg-white/10 border-white/40 text-white placeholder:text-gray-400" data-testid="email" />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-white">Password</Label>
+                        <Label className="text-white font-medium">Password</Label>
                         <Input type="password" name="password" placeholder="••••••••" value={formData.password}
-                          onChange={handleChange} required className="bg-white/10 border-white/30 text-white placeholder:text-white/60" data-testid="password" />
+                          onChange={handleChange} required className="bg-white/10 border-white/40 text-white placeholder:text-gray-400" data-testid="password" />
                       </div>
                       
                       {isLogin && (
@@ -815,28 +815,27 @@ const Login = () => {
                           {registrationStep === 'form' ? (
                             <>
                               <div className="space-y-2">
-                                <Label className="text-white">Full Name <span className="text-red-400">*</span></Label>
+                              <Label className="text-white font-medium">Full Name <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="name" placeholder="Your name" value={formData.name}
-                                  onChange={handleChange} required className="bg-white/15 border-white/40 text-white" data-testid="name" />
+                                  onChange={handleChange} required className="bg-white/15 border-white/50 text-white placeholder:text-gray-400" data-testid="name" />
                               </div>
-                              <div className="space-y-2">
-                                <Label className="text-white">Mobile Number <span className="text-red-400">*</span></Label>
+                              <Label className="text-white font-medium">Mobile Number <span className="text-red-400">*</span></Label>
                                 <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
                                   onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                                  maxLength={10} required className="bg-white/15 border-white/40 text-white" data-testid="mobile" />
+                                  maxLength={10} required className="bg-white/15 border-white/50 text-white placeholder:text-gray-400" data-testid="mobile" />
                                 <p className="text-gray-300 text-xs font-medium">Required for SMS/WhatsApp notifications</p>
                               </div>
                               <div className="space-y-2">
                                 <Label className="text-white">PAN Number <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                                   onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
-                                  maxLength={10} required className="bg-white/15 border-white/40 text-white font-mono" data-testid="pan" />
+                                  maxLength={10} required className="bg-white/15 border-white/50 text-white font-mono placeholder:text-gray-400" data-testid="pan" />
                                 <p className="text-gray-300 text-xs font-medium">Required for KYC verification</p>
                               </div>
                               
                               {/* Domain restriction warning */}
-                              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                                <p className="text-amber-300 text-xs flex items-center gap-2">
+                              <div className="p-3 bg-amber-500/15 border border-amber-400/30 rounded-lg">
+                                <p className="text-amber-200 text-xs flex items-center gap-2 font-medium">
                                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                   Registration is only available for @smifs.com and @smifs.co.in email addresses
                                 </p>
@@ -849,19 +848,19 @@ const Login = () => {
                                 <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-${currentTheme.primary}-500/20 mb-3`}>
                                   <Mail className={`w-6 h-6 text-${currentTheme.primary}-400`} />
                                 </div>
-                                <h3 className="text-white text-lg font-semibold">Verify Your Email</h3>
-                                <p className={`text-${currentTheme.primary}-300 text-sm mt-1`}>OTP sent to {formData.email}</p>
+                              <h3 className="text-white text-lg font-bold">Verify Your Email</h3>
+                                <p className={`text-${currentTheme.primary}-200 text-sm mt-1 font-medium`}>OTP sent to {formData.email}</p>
                               </div>
                               
                               <div className="space-y-2">
-                                <Label className="text-white">Enter 6-digit OTP</Label>
+                                <Label className="text-white font-medium">Enter 6-digit OTP</Label>
                                 <Input 
                                   type="text" 
                                   value={registrationOtp}
                                   onChange={(e) => setRegistrationOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                   placeholder="000000"
                                   maxLength={6}
-                                  className="bg-white/15 border-white/40 text-white text-center text-xl tracking-widest font-mono"
+                                  className="bg-white/15 border-white/50 text-white text-center text-xl tracking-widest font-mono placeholder:text-gray-400"
                                   data-testid="registration-otp"
                                 />
                                 {otpTimer > 0 && (
@@ -920,12 +919,12 @@ const Login = () => {
                       )}
                       
                       {captchaRequired && (
-                        <div className="space-y-2 p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl">
-                          <Label className="text-amber-300 flex items-center gap-2">
+                        <div className="space-y-2 p-3 bg-amber-500/15 border border-amber-400/30 rounded-xl">
+                          <Label className="text-amber-200 flex items-center gap-2 font-medium">
                             <AlertCircle className="w-4 h-4" /> {captchaQuestion}
                           </Label>
                           <Input type="text" placeholder="Answer" value={captchaAnswer}
-                            onChange={(e) => setCaptchaAnswer(e.target.value)} className="bg-white/15 border-white/40 text-white" />
+                            onChange={(e) => setCaptchaAnswer(e.target.value)} className="bg-white/15 border-white/50 text-white placeholder:text-gray-400" />
                         </div>
                       )}
                       
@@ -948,9 +947,9 @@ const Login = () => {
                         <>
                           <div className="space-y-2">
                             <Label className="text-white">Registered Mobile</Label>
-                            <Input type="tel" placeholder="10-digit mobile" value={formData.mobile_number}
+                          <Input type="tel" placeholder="10-digit mobile" value={formData.mobile_number}
                               onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                              className="bg-white/15 border-white/40 text-white" data-testid="bp-mobile" />
+                              className="bg-white/15 border-white/50 text-white placeholder:text-gray-400" data-testid="bp-mobile" />
                           </div>
                           <Button onClick={handleBpOtpRequest} disabled={loading}
                             className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
@@ -959,17 +958,17 @@ const Login = () => {
                         </>
                       ) : (
                         <>
-                          <div className={`p-3 bg-${currentTheme.primary}-500/20 border border-${currentTheme.primary}-500/30 rounded-xl text-center`}>
-                            <p className={`text-${currentTheme.primary}-300 text-sm`}>OTP sent to {formData.mobile_number}</p>
+                          <div className={`p-3 bg-${currentTheme.primary}-500/20 border border-${currentTheme.primary}-400/30 rounded-xl text-center`}>
+                            <p className={`text-${currentTheme.primary}-200 text-sm font-medium`}>OTP sent to {formData.mobile_number}</p>
                           </div>
                           <Input type="text" placeholder="6-digit OTP" value={bpOtp}
                             onChange={(e) => setBpOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} maxLength={6}
-                            className="bg-white/15 border-white/40 text-white text-center text-xl tracking-widest font-mono" data-testid="otp" />
+                            className="bg-white/15 border-white/50 text-white text-center text-xl tracking-widest font-mono placeholder:text-gray-400" data-testid="otp" />
                           <Button onClick={handleBpOtpVerify} disabled={loading}
                             className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Login'}
                           </Button>
-                          <Button variant="ghost" onClick={() => setBpOtpSent(false)} className="w-full text-white hover:text-white hover:bg-white/10">
+                      <Button variant="ghost" onClick={() => setBpOtpSent(false)} className="w-full text-gray-200 font-medium hover:text-white hover:bg-white/10">
                             <ArrowLeft className="w-4 h-4 mr-2" /> Change Number
                           </Button>
                         </>
@@ -977,13 +976,13 @@ const Login = () => {
                     </div>
                   )}
 
-                  {ssoConfig?.enabled && isLogin && loginType === 'employee' && (
+                    {ssoConfig?.enabled && isLogin && loginType === 'employee' && (
                     <>
                       <div className="relative my-4">
-                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/30"></span></div>
-                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-transparent px-2 text-white/80">Or</span></div>
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/40"></span></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-transparent px-2 text-gray-200 font-medium">Or</span></div>
                       </div>
-                      <Button variant="outline" onClick={handleSsoLogin} disabled={ssoLoading} className="w-full border-white/40 text-white hover:bg-white/20">
+                      <Button variant="outline" onClick={handleSsoLogin} disabled={ssoLoading} className="w-full border-white/50 text-white font-medium hover:bg-white/20">
                         {ssoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Building2 className="w-4 h-4 mr-2" />} Microsoft SSO
                       </Button>
                     </>
@@ -1003,7 +1002,7 @@ const Login = () => {
           </Card>
 
           <div className="mt-4 text-center">
-            <Button variant="ghost" onClick={handleDemoMode} disabled={demoLoading} className="text-white hover:text-white hover:bg-white/20" data-testid="demo">
+            <Button variant="ghost" onClick={handleDemoMode} disabled={demoLoading} className="text-gray-200 font-medium hover:text-white hover:bg-white/20" data-testid="demo">
               {demoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />} Try Demo
             </Button>
           </div>
@@ -1011,9 +1010,9 @@ const Login = () => {
 
         {/* Footer */}
         <div className="mt-8 text-center animate-fade-in" style={{animationDelay: '0.6s'}}>
-          <p className="text-white/90 text-xs">© 2026 SMIFS Private Equity. All rights reserved.</p>
-          <p className="text-white/80 text-xs mt-1">Powered by Privity | v{getFullVersion()}</p>
-          <p className="text-emerald-400 text-xs mt-2 font-medium tracking-wide">✨ Vibe Coded by Somnath Dey</p>
+          <p className="text-gray-200 text-xs font-medium">© 2026 SMIFS Private Equity. All rights reserved.</p>
+          <p className="text-gray-300 text-xs mt-1 font-medium">Powered by Privity | v{getFullVersion()}</p>
+          <p className="text-emerald-300 text-xs mt-2 font-semibold tracking-wide drop-shadow-sm">✨ Vibe Coded by Somnath Dey</p>
         </div>
       </div>
 
