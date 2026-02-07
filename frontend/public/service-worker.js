@@ -89,6 +89,12 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Check if request should never be cached
+function shouldNeverCache(url) {
+  const pathname = url.pathname;
+  return NEVER_CACHE_PATTERNS.some(pattern => pattern.test(pathname));
+}
+
 // Check if request should always go to network
 function shouldAlwaysFetchFromNetwork(url) {
   const pathname = url.pathname;
@@ -112,6 +118,12 @@ self.addEventListener('fetch', (event) => {
 
   // Skip chrome-extension and other non-http(s) requests
   if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // NEVER cache auth-related requests - always go to network
+  if (shouldNeverCache(url)) {
+    event.respondWith(fetch(request));
     return;
   }
 
