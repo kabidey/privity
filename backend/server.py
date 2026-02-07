@@ -592,6 +592,11 @@ app.include_router(whatsapp_router, prefix="/api")
 app.include_router(demo_router, prefix="/api")
 app.include_router(payments_router, prefix="/api")
 
+# Fixed Income Module
+app.include_router(fi_instruments_router, prefix="/api")
+app.include_router(fi_orders_router, prefix="/api")
+app.include_router(fi_reports_router, prefix="/api")
+
 
 # ====================
 # Static Files Mount
