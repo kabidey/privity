@@ -779,7 +779,7 @@ const Login = () => {
                   {isLogin && (
                     <Tabs value={loginType} onValueChange={setLoginType} className="mb-4">
                       <TabsList className="grid w-full grid-cols-2 bg-white/10">
-                        <TabsTrigger value="employee" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-white/60`}>
+                        <TabsTrigger value="employee" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-white/80`}>
                           <Building2 className="w-4 h-4 mr-2" /> Employee
                         </TabsTrigger>
                         <TabsTrigger value="partner" className={`data-[state=active]:bg-${currentTheme.primary}-500 data-[state=active]:text-white text-white/60`}>
