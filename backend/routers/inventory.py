@@ -763,6 +763,8 @@ async def send_consolidated_pe_report(
         "message": message,
         "report_time": report_time_ist,
         "stocks_included": len(valid_items),
+        "stocks_in_stock": len(items_in_stock),
+        "stocks_out_of_stock": items_out_of_stock,
         "stocks_with_lp": len(items_with_lp),
         "stocks_without_lp": items_without_lp,
         "results": results
