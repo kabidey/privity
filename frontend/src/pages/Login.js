@@ -749,7 +749,7 @@ const Login = () => {
                       <Mail className={`w-5 h-5 text-${currentTheme.primary}-400`} />
                       <div>
                         <p className="font-medium text-white">Registration Submitted!</p>
-                        <p className="text-sm text-white/60">{registeredEmail} is pending approval.</p>
+                        <p className="text-sm text-white/80">{registeredEmail} is pending approval.</p>
                       </div>
                     </div>
                   </div>
