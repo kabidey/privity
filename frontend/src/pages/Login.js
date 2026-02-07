@@ -768,7 +768,7 @@ const Login = () => {
                   </div>
                   <Input type="tel" placeholder="10-digit mobile" value={mobileUpdateNumber}
                     onChange={(e) => setMobileUpdateNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    className="bg-white/10 border-white/20 text-white" data-testid="mobile-input" />
+                    className="bg-white/15 border-white/40 text-white" data-testid="mobile-input" />
                   <Button onClick={handleMobileUpdate} disabled={updatingMobile}
                     className={`w-full bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                     {updatingMobile ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Update & Continue
@@ -817,20 +817,20 @@ const Login = () => {
                               <div className="space-y-2">
                                 <Label className="text-white">Full Name <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="name" placeholder="Your name" value={formData.name}
-                                  onChange={handleChange} required className="bg-white/10 border-white/20 text-white" data-testid="name" />
+                                  onChange={handleChange} required className="bg-white/15 border-white/40 text-white" data-testid="name" />
                               </div>
                               <div className="space-y-2">
                                 <Label className="text-white">Mobile Number <span className="text-red-400">*</span></Label>
                                 <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
                                   onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                                  maxLength={10} required className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
+                                  maxLength={10} required className="bg-white/15 border-white/40 text-white" data-testid="mobile" />
                                 <p className="text-white/90 text-xs">Required for SMS/WhatsApp notifications</p>
                               </div>
                               <div className="space-y-2">
                                 <Label className="text-white">PAN Number <span className="text-red-400">*</span></Label>
                                 <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                                   onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
-                                  maxLength={10} required className="bg-white/10 border-white/20 text-white font-mono" data-testid="pan" />
+                                  maxLength={10} required className="bg-white/15 border-white/40 text-white font-mono" data-testid="pan" />
                                 <p className="text-white/90 text-xs">Required for KYC verification</p>
                               </div>
                               
@@ -861,7 +861,7 @@ const Login = () => {
                                   onChange={(e) => setRegistrationOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                   placeholder="000000"
                                   maxLength={6}
-                                  className="bg-white/10 border-white/20 text-white text-center text-xl tracking-widest font-mono"
+                                  className="bg-white/15 border-white/40 text-white text-center text-xl tracking-widest font-mono"
                                   data-testid="registration-otp"
                                 />
                                 {otpTimer > 0 && (
@@ -925,7 +925,7 @@ const Login = () => {
                             <AlertCircle className="w-4 h-4" /> {captchaQuestion}
                           </Label>
                           <Input type="text" placeholder="Answer" value={captchaAnswer}
-                            onChange={(e) => setCaptchaAnswer(e.target.value)} className="bg-white/10 border-white/20 text-white" />
+                            onChange={(e) => setCaptchaAnswer(e.target.value)} className="bg-white/15 border-white/40 text-white" />
                         </div>
                       )}
                       
@@ -950,7 +950,7 @@ const Login = () => {
                             <Label className="text-white/80">Registered Mobile</Label>
                             <Input type="tel" placeholder="10-digit mobile" value={formData.mobile_number}
                               onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                              className="bg-white/10 border-white/20 text-white" data-testid="bp-mobile" />
+                              className="bg-white/15 border-white/40 text-white" data-testid="bp-mobile" />
                           </div>
                           <Button onClick={handleBpOtpRequest} disabled={loading}
                             className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
@@ -964,7 +964,7 @@ const Login = () => {
                           </div>
                           <Input type="text" placeholder="6-digit OTP" value={bpOtp}
                             onChange={(e) => setBpOtp(e.target.value.replace(/\D/g, '').slice(0, 6))} maxLength={6}
-                            className="bg-white/10 border-white/20 text-white text-center text-xl tracking-widest font-mono" data-testid="otp" />
+                            className="bg-white/15 border-white/40 text-white text-center text-xl tracking-widest font-mono" data-testid="otp" />
                           <Button onClick={handleBpOtpVerify} disabled={loading}
                             className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Login'}
