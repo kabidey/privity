@@ -262,7 +262,7 @@ async def create_booking(
         if mapped_employee_id != user_id and created_by != user_id:
             raise HTTPException(
                 status_code=403, 
-                detail=f"You can only create bookings for clients mapped to you or clients you created. This client is mapped to someone else."
+                detail="You can only create bookings for clients mapped to you or clients you created. This client is mapped to someone else."
             )
     
     # Verify stock exists
