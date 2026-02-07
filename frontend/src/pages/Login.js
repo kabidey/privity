@@ -404,13 +404,22 @@ const Login = () => {
           return;
         }
         
+        // Validate PAN number (required, format: ABCDE1234F)
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        const cleanPan = formData.pan_number?.toUpperCase().trim() || '';
+        if (!cleanPan || !panRegex.test(cleanPan)) {
+          toast.error('Please enter a valid PAN number (e.g., ABCDE1234F)');
+          setLoading(false);
+          return;
+        }
+        
         // Send registration with mobile number
         await api.post('/auth/register', {
           email: formData.email,
           password: formData.password,
           name: formData.name,
           mobile_number: cleanMobile,
-          pan_number: formData.pan_number || null,
+          pan_number: cleanPan,
         });
         setRegistrationSuccess(true);
         setRegisteredEmail(formData.email);
