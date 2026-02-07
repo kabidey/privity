@@ -506,14 +506,25 @@ async def send_consolidated_pe_report(
     from services.email_service import send_email
     from datetime import datetime, timezone
     
-    # Get ALL inventory items
+    # Get ALL inventory items with available quantity
     inventory_items = await db.inventory.find(
         {"available_quantity": {"$gt": 0}},
         {"_id": 0}
     ).sort("stock_symbol", 1).to_list(1000)
     
     if not inventory_items:
-        raise HTTPException(status_code=400, detail="No inventory items found")
+        raise HTTPException(status_code=400, detail="No inventory items found with available quantity")
+    
+    # Filter out items without proper stock symbol (data quality)
+    valid_items = [item for item in inventory_items if item.get("stock_symbol") and item.get("stock_symbol") != "Unknown"]
+    items_without_symbol = len(inventory_items) - len(valid_items)
+    
+    # Count items with and without LP
+    items_with_lp = [item for item in valid_items if item.get("landing_price") and item.get("landing_price") > 0]
+    items_without_lp = len(valid_items) - len(items_with_lp)
+    
+    if not valid_items:
+        raise HTTPException(status_code=400, detail="No valid inventory items found (all items have missing stock symbols)")
     
     # Get company master details
     company = await db.company_master.find_one({"_id": "company_settings"}, {"_id": 0})
@@ -540,12 +551,12 @@ async def send_consolidated_pe_report(
     report_time = datetime.now(timezone.utc)
     report_time_ist = report_time.strftime("%d %B %Y, %I:%M %p IST")
     
-    # Build inventory table rows
+    # Build inventory table rows - only include valid items
     table_rows = ""
-    for idx, item in enumerate(inventory_items):
+    for idx, item in enumerate(valid_items):
         bg_color = "#ffffff" if idx % 2 == 0 else "#f9fafb"
         lp = item.get("landing_price", 0)
-        lp_formatted = f"₹{lp:,.2f}" if lp else "N/A"
+        lp_formatted = f"₹{lp:,.2f}" if lp and lp > 0 else '<span style="color: #9ca3af;">Not Set</span>'
         
         table_rows += f"""
         <tr style="background-color: {bg_color};">
@@ -561,6 +572,17 @@ async def send_consolidated_pe_report(
         logo_html = f'<img src="{company["logo_url"]}" alt="{company["company_name"]}" style="max-height: 60px; max-width: 200px; object-fit: contain;">'
     else:
         logo_html = f'<div style="font-size: 24px; font-weight: bold; color: #064E3B;">{company.get("company_name", "SMIFS")}</div>'
+    
+    # Add warning note if some items don't have LP
+    lp_warning = ""
+    if items_without_lp > 0:
+        lp_warning = f"""
+        <div style="background-color: #fef3c7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; color: #92400e; font-size: 13px;">
+                <strong>Note:</strong> {items_without_lp} stock(s) do not have Landing Price set yet. Contact PE Desk for pricing.
+            </p>
+        </div>
+        """
     
     html_content = f"""
 <!DOCTYPE html>
@@ -593,6 +615,8 @@ async def send_consolidated_pe_report(
                 Please find below the current inventory of available unlisted and pre-IPO shares for your consideration.
             </p>
             
+            {lp_warning}
+            
             <!-- Inventory Table -->
             <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
                 <table style="width: 100%; border-collapse: collapse;">
@@ -610,7 +634,8 @@ async def send_consolidated_pe_report(
             </div>
             
             <p style="color: #6b7280; font-size: 13px; margin-top: 25px; line-height: 1.6;">
-                Total Stocks Available: <strong>{len(inventory_items)}</strong>
+                Total Stocks Available: <strong>{len(valid_items)}</strong>
+                {f' ({len(items_with_lp)} with pricing)' if items_without_lp > 0 else ''}
             </p>
             
             <!-- CTA -->
@@ -660,10 +685,11 @@ async def send_consolidated_pe_report(
 </html>
 """
     
-    # Send to all users
+    # Send to all users with better error tracking
     results = {
         "total_users": len(users),
         "emails_sent": 0,
+        "emails_failed": 0,
         "errors": []
     }
     
@@ -681,6 +707,7 @@ async def send_consolidated_pe_report(
                 )
                 results["emails_sent"] += 1
             except Exception as e:
+                results["emails_failed"] += 1
                 logger.error(f"Failed to send PE Report to {user_email}: {str(e)}")
                 results["errors"].append({"email": user_email, "error": str(e)})
     
@@ -695,20 +722,35 @@ async def send_consolidated_pe_report(
         user_role=current_user.get("role", 6),
         entity_name="PE Inventory Report",
         details={
-            "total_stocks": len(inventory_items),
+            "total_stocks": len(valid_items),
+            "stocks_with_lp": len(items_with_lp),
+            "stocks_without_lp": items_without_lp,
+            "skipped_invalid": items_without_symbol,
             "total_users": results["total_users"],
             "emails_sent": results["emails_sent"],
+            "emails_failed": results["emails_failed"],
             "errors_count": len(results["errors"]),
             "report_time": report_time_ist
         }
     )
     
-    logger.info(f"PE Inventory Report sent to {results['emails_sent']} users by {current_user['name']}")
+    logger.info(f"PE Inventory Report: {results['emails_sent']} sent, {results['emails_failed']} failed by {current_user['name']}")
+    
+    # Build detailed response message
+    if results["emails_failed"] == 0:
+        message = f"✅ PE Report sent successfully to {results['emails_sent']} users"
+    elif results["emails_sent"] > 0:
+        message = f"⚠️ PE Report sent to {results['emails_sent']} users, {results['emails_failed']} failed"
+    else:
+        message = f"❌ Failed to send PE Report. {results['emails_failed']} emails failed."
     
     return {
-        "message": f"PE Report sent successfully to {results['emails_sent']} users",
+        "success": results["emails_sent"] > 0,
+        "message": message,
         "report_time": report_time_ist,
-        "stocks_included": len(inventory_items),
+        "stocks_included": len(valid_items),
+        "stocks_with_lp": len(items_with_lp),
+        "stocks_without_lp": items_without_lp,
         "results": results
     }
 
