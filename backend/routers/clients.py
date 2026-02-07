@@ -270,7 +270,11 @@ async def get_clients(
     # Role-based access:
     # 1 (PE Desk), 2 (PE Manager) - See all clients/vendors
     # 4 (Viewer) - See all clients/vendors (read-only)
+    # 5 (Partners Desk) - See all clients (for BP mapping purposes), no vendor access
     # Others - See clients based on hierarchy (self + subordinates)
+    
+    # Helper to check if Partners Desk
+    is_partners_desk = user_role == 5
     
     if is_pe_level(user_role):
         # PE Level sees everything
@@ -280,6 +284,11 @@ async def get_clients(
         # Viewer sees all (read-only)
         if is_vendor is not None:
             query["is_vendor"] = is_vendor
+    elif is_partners_desk:
+        # Partners Desk sees all clients (for BP management) but no vendors
+        if is_vendor == True:
+            raise HTTPException(status_code=403, detail="You do not have access to vendors")
+        query["is_vendor"] = False
     else:
         # All other roles - use hierarchy to show team's clients
         if is_vendor == True:
