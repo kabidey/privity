@@ -878,7 +878,7 @@ const Login = () => {
                                     setRegistrationStep('form');
                                     setRegistrationOtp('');
                                   }}
-                                  className="text-white/60 text-sm hover:text-white flex items-center gap-1"
+                                  className="text-white/90 text-sm hover:text-white flex items-center gap-1"
                                 >
                                   <ArrowLeft className="w-4 h-4" /> Back
                                 </button>
