@@ -384,20 +384,22 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     # ==================== TRANSACTION DETAILS ====================
     elements.append(Paragraph("TRANSACTION DETAILS", section_title))
     
-    stock_name = stock.get("name", "N/A") if stock else "N/A"
-    stock_symbol = stock.get("symbol", "N/A") if stock else "N/A"
-    isin = stock.get("isin_number", "N/A") if stock else "N/A"
+    stock_name = safe_str(stock.get("name") if stock else None)
+    stock_symbol = safe_str(stock.get("symbol") if stock else None)
+    isin = safe_str(stock.get("isin_number") if stock else None)
     face_value = stock.get("face_value", 1) if stock else 1
+    if face_value is None:
+        face_value = 1
     
-    quantity = booking.get("quantity", 0)
-    rate = booking.get("selling_price", 0)
+    quantity = booking.get("quantity", 0) or 0
+    rate = booking.get("selling_price", 0) or 0
     gross_amount = quantity * rate
     
     # Truncate long stock names
     stock_display = stock_symbol
-    if stock_name and len(stock_name) > 25:
+    if stock_name != "N/A" and len(stock_name) > 25:
         stock_display = f"{stock_symbol}\n{stock_name[:25]}..."
-    elif stock_name:
+    elif stock_name != "N/A":
         stock_display = f"{stock_symbol}\n{stock_name}"
     
     # Transaction table header
