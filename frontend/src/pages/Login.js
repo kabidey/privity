@@ -48,6 +48,12 @@ const Login = () => {
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaQuestion, setCaptchaQuestion] = useState('');
   const [captchaAnswer, setCaptchaAnswer] = useState('');
+  
+  // OTP Registration Flow States
+  const [registrationStep, setRegistrationStep] = useState('form'); // 'form' | 'otp'
+  const [registrationOtp, setRegistrationOtp] = useState('');
+  const [resendingOtp, setResendingOtp] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
 
   // All 69 SMIFS PE Quotes - Memoized to avoid re-renders
   const allQuotes = useMemo(() => [
