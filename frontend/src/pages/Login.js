@@ -905,6 +905,16 @@ const Login = () => {
                         </>
                       )}
                       
+                      {/* Error Display */}
+                      {formError && (
+                        <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-xl animate-shake">
+                          <p className="text-red-300 text-sm flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            {formError}
+                          </p>
+                        </div>
+                      )}
+                      
                       {captchaRequired && (
                         <div className="space-y-2 p-3 bg-amber-500/20 border border-amber-500/30 rounded-xl">
                           <Label className="text-amber-300 flex items-center gap-2">
