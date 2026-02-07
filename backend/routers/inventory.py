@@ -637,6 +637,7 @@ async def send_consolidated_pe_report(
                             <th style="padding: 16px; text-align: left; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Stock Code</th>
                             <th style="padding: 16px; text-align: left; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Stock Name</th>
                             <th style="padding: 16px; text-align: right; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Landing Price (LP)</th>
+                            <th style="padding: 16px; text-align: center; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -646,8 +647,9 @@ async def send_consolidated_pe_report(
             </div>
             
             <p style="color: #6b7280; font-size: 13px; margin-top: 25px; line-height: 1.6;">
-                Total Stocks Available: <strong>{len(valid_items)}</strong>
-                {f' ({len(items_with_lp)} with pricing)' if items_without_lp > 0 else ''}
+                Total Stocks: <strong>{len(valid_items)}</strong> 
+                ({len(items_in_stock)} available, {items_out_of_stock} out of stock)
+                {f' • {len(items_with_lp)} with pricing' if items_without_lp > 0 else ''}
             </p>
             
             <!-- CTA -->
