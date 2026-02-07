@@ -13,16 +13,11 @@ import io
 from database import db
 from routers.auth import get_current_user
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_desk
 )
 
 router = APIRouter(prefix="/bulk-upload", tags=["Bulk Upload"])
-
-
-# Helper function for backward compatibility
-def is_pe_desk_only(role: int) -> bool:
-    """Check if role is PE Desk only."""
-    return role == 1
 
 
 # ============== Sample CSV Templates ==============
