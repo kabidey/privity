@@ -865,7 +865,7 @@ const Login = () => {
                                   data-testid="registration-otp"
                                 />
                                 {otpTimer > 0 && (
-                                  <p className="text-white/40 text-xs text-center">
+                                  <p className="text-white/70 text-xs text-center">
                                     OTP expires in {Math.floor(otpTimer / 60)}:{String(otpTimer % 60).padStart(2, '0')}
                                   </p>
                                 )}
