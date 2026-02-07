@@ -852,12 +852,12 @@ async def send_loss_approval_email(
     cc_email: Optional[str] = None
 ):
     """Send email for fully approved loss booking with confirmation buttons"""
-    subject = f"Action Required: Confirm Loss Booking - {stock_symbol} | {booking_number}"
+    subject = f"Action Required: Confirm Booking - {stock_symbol} | {booking_number}"
     body = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #10b981;">Booking Fully Approved - Please Confirm ✓</h2>
         <p>Dear {client_name},</p>
-        <p>Your loss booking order has been <strong style="color: #10b981;">FULLY APPROVED</strong>. Please confirm your acceptance to proceed.</p>
+        <p>Your booking order has been <strong style="color: #10b981;">FULLY APPROVED</strong>. Please confirm your acceptance to proceed.</p>
         
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
             <tr style="background-color: #f3f4f6;">
@@ -873,12 +873,12 @@ async def send_loss_approval_email(
                 <td style="padding: 10px; border: 1px solid #e5e7eb;">{quantity}</td>
             </tr>
             <tr>
-                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Buying Price</strong></td>
-                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{buying_price:,.2f}</td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Sale Price</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{selling_price:,.2f}</td>
             </tr>
-            <tr style="background-color: #fef3c7;">
-                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Selling Price</strong></td>
-                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{selling_price:,.2f} <span style="color: #dc2626;">(Loss Transaction)</span></td>
+            <tr style="background-color: #f3f4f6;">
+                <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Value</strong></td>
+                <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{(selling_price * quantity):,.2f}</td>
             </tr>
         </table>
         
@@ -894,7 +894,7 @@ async def send_loss_approval_email(
             </a>
         </div>
         
-        <p style="color: #6b7280; font-size: 14px;">This is a loss transaction booking. Please review carefully before confirming.</p>
+        <p style="color: #6b7280; font-size: 14px;">Please review carefully before confirming.</p>
         
         <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
     </div>
