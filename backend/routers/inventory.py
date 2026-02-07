@@ -737,6 +737,8 @@ async def send_consolidated_pe_report(
         entity_name="PE Inventory Report",
         details={
             "total_stocks": len(valid_items),
+            "stocks_in_stock": len(items_in_stock),
+            "stocks_out_of_stock": items_out_of_stock,
             "stocks_with_lp": len(items_with_lp),
             "stocks_without_lp": items_without_lp,
             "skipped_invalid": items_without_symbol,
