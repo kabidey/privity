@@ -31,6 +31,7 @@ const ContractNotes = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [regenerating, setRegenerating] = useState(null);
+  const [generatingMissing, setGeneratingMissing] = useState(false);
   
   // Filters
   const [filters, setFilters] = useState({
