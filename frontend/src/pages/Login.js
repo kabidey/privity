@@ -479,6 +479,10 @@ const Login = () => {
         setCaptchaRequired(true);
         setCaptchaToken(captchaData?.captcha_token || '');
         setCaptchaQuestion(captchaData?.captcha_question || '');
+        
+        // Show the error message from the backend (e.g., "Invalid email or password. 2 attempts remaining.")
+        const captchaMessage = captchaData?.message || 'Please verify you are not a robot';
+        setFormError(captchaMessage);
         toast.warning('Please answer the security question');
         return;
       }
