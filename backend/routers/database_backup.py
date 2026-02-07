@@ -1241,7 +1241,7 @@ async def create_gridfs_backup(
     
     Returns a downloadable ZIP file containing all GridFS files with metadata.
     """
-    if not is_pe_desk_only(current_user.get("role", 6)):
+    if not is_pe_desk(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can create GridFS backups")
     
     try:
@@ -1332,7 +1332,7 @@ async def restore_gridfs_from_backup(
         file: ZIP file containing GridFS backup
         skip_existing: If True, skip files that already exist in GridFS
     """
-    if not is_pe_desk_only(current_user.get("role", 6)):
+    if not is_pe_desk(current_user.get("role", 6)):
         raise HTTPException(status_code=403, detail="Only PE Desk can restore GridFS files")
     
     if not file.filename.endswith('.zip'):
