@@ -87,14 +87,14 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent 
-        className="sm:max-w-xl w-[95vw] max-h-[85vh] h-auto p-0 overflow-hidden"
+        className="sm:max-w-xl w-[95vw] max-h-[80vh] p-0 overflow-hidden flex flex-col"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         hideCloseButton
         data-testid="user-agreement-modal"
       >
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-3 sm:p-4 text-white">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-3 sm:p-4 text-white flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-xl flex-shrink-0">
               <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -110,8 +110,8 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
           </div>
         </div>
 
-        {/* Agreement Content - Scrollable */}
-        <div className="p-3 sm:p-4 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 180px)' }}>
+        {/* Agreement Content - Scrollable, takes remaining space */}
+        <div className="p-3 sm:p-4 overflow-y-auto flex-1 min-h-0">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
@@ -119,7 +119,7 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
           ) : (
             <>
               <ScrollArea 
-                className="h-[200px] sm:h-[220px] border rounded-lg p-3 bg-slate-50 dark:bg-slate-900"
+                className="h-[150px] sm:h-[180px] border rounded-lg p-3 bg-slate-50 dark:bg-slate-900"
                 onScrollCapture={handleScroll}
               >
                 <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -150,7 +150,7 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
         </div>
 
         {/* Footer - Always visible at bottom */}
-        <div className="p-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+        <div className="p-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex-shrink-0">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
             <Button
               variant="outline"
