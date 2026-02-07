@@ -10,7 +10,9 @@ from database import db
 from models import DashboardStats
 from utils.auth import get_current_user
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level,
+    get_booking_visibility_filter
 )
 from utils.demo_isolation import add_demo_filter
 
@@ -18,12 +20,6 @@ from utils.demo_isolation import add_demo_filter
 IST = pytz.timezone('Asia/Kolkata')
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
-
-
-# Helper function for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 @router.get("/stats", response_model=DashboardStats)
