@@ -70,7 +70,7 @@ async def get_contract_notes(
     limit: int = Query(50, ge=1, le=500),
     skip: int = Query(0, ge=0),
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("contract_notes.view", "view contract notes"))
+    _: None = Depends(require_permission("contract_notes.view", "view confirmation notes"))
 ):
     """
     Get contract notes with filters (requires contract_notes.view permission)
@@ -115,7 +115,7 @@ async def get_contract_notes(
 async def get_contract_note(
     note_id: str,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("contract_notes.view", "view contract notes"))
+    _: None = Depends(require_permission("contract_notes.view", "view confirmation notes"))
 ):
     """Get single contract note by ID (requires contract_notes.view permission)"""
     user_role = current_user.get("role", 6)
@@ -137,7 +137,7 @@ async def get_contract_note(
 async def generate_contract_note(
     booking_id: str,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("contract_notes.generate", "generate contract notes"))
+    _: None = Depends(require_permission("contract_notes.generate", "generate confirmation notes"))
 ):
     """
     Generate contract note for a booking (requires contract_notes.generate permission)
@@ -203,7 +203,7 @@ async def generate_contract_note(
 @router.post("/generate-missing")
 async def generate_missing_contract_notes(
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("contract_notes.generate", "generate missing contract notes"))
+    _: None = Depends(require_permission("contract_notes.generate", "generate missing confirmation notes"))
 ):
     """
     Generate contract notes for all bookings that:
@@ -487,7 +487,7 @@ async def get_contract_note_by_booking(
 async def regenerate_contract_note(
     note_id: str,
     current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("contract_notes.generate", "regenerate contract note"))
+    _: None = Depends(require_permission("contract_notes.generate", "regenerate confirmation note"))
 ):
     """
     Regenerate an existing contract note PDF
