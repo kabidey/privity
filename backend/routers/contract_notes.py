@@ -32,10 +32,13 @@ router = APIRouter(prefix="/contract-notes", tags=["Confirmation Notes"])
 
 
 @router.get("/preview-sample")
-async def preview_sample_conformation_note():
+async def preview_sample_conformation_note(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.view", "preview sample confirmation note"))
+):
     """
     Generate a sample Conformation Note PDF for preview/testing purposes.
-    This endpoint does not require authentication - for testing only.
+    Requires authentication and permission to view contract notes.
     Returns the PDF directly for download/viewing.
     """
     from services.contract_note_service import generate_contract_note_pdf
