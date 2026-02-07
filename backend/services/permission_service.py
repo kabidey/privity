@@ -338,3 +338,101 @@ async def require_pe_level(user: dict, action_name: str = "perform this action")
             detail=f"Permission denied. {role_name} role does not have PE-level access to {action_name}."
         )
 
+
+
+# ===============================
+# Client/Booking Visibility Helpers
+# ===============================
+
+async def get_client_visibility_filter(user: dict) -> dict:
+    """
+    Get MongoDB filter for client visibility based on user role.
+    
+    Returns a filter dict that should be used in client queries.
+    
+    PE Desk (1), PE Manager (2), Viewer (4), Partners Desk (5) can see all clients.
+    Finance (3) can see all clients.
+    Business Partners (6) see only their mapped clients.
+    Employees (7) see only their mapped clients.
+    """
+    role = user.get("role", 7)
+    user_id = str(user.get("_id", user.get("id", "")))
+    
+    # Roles with full client visibility
+    if role in [1, 2, 3, 4, 5]:  # PE Desk, PE Manager, Finance, Viewer, Partners Desk
+        return {}  # No filter - see all clients
+    
+    # Business Partners see their mapped clients
+    if role == 6:
+        return {"mapped_to": user_id}
+    
+    # Employees see their mapped clients
+    return {"mapped_to": user_id}
+
+
+async def get_booking_visibility_filter(user: dict) -> dict:
+    """
+    Get MongoDB filter for booking visibility based on user role.
+    
+    Returns a filter dict that should be used in booking queries.
+    
+    PE Desk (1), PE Manager (2) can see all bookings.
+    Finance (3), Viewer (4), Partners Desk (5) can see all bookings.
+    Business Partners (6) see bookings for their mapped clients.
+    Employees (7) see their own bookings or their team's bookings.
+    """
+    role = user.get("role", 7)
+    user_id = str(user.get("_id", user.get("id", "")))
+    
+    # Roles with full booking visibility
+    if role in [1, 2, 3, 4, 5]:  # PE Desk, PE Manager, Finance, Viewer, Partners Desk
+        return {}  # No filter - see all bookings
+    
+    # Business Partners see bookings for their mapped clients
+    if role == 6:
+        # First get their mapped client IDs
+        from database import db
+        clients = await db.clients.find({"mapped_to": user_id}, {"_id": 1}).to_list(None)
+        client_ids = [str(c["_id"]) for c in clients]
+        return {"client_id": {"$in": client_ids}} if client_ids else {"client_id": "__none__"}
+    
+    # Employees see their own bookings
+    return {"created_by_id": user_id}
+
+
+async def get_user_visibility_filter(user: dict) -> dict:
+    """
+    Get MongoDB filter for user/employee visibility based on user role.
+    
+    Returns a filter dict for user queries.
+    
+    PE Desk (1), PE Manager (2), Partners Desk (5) can see all users.
+    Others have limited visibility.
+    """
+    role = user.get("role", 7)
+    
+    # Roles with full user visibility
+    if role in [1, 2, 5]:  # PE Desk, PE Manager, Partners Desk
+        return {}  # No filter - see all users
+    
+    # Others see only approved users
+    return {"is_approved": True}
+
+
+async def can_view_all_clients(user: dict) -> bool:
+    """Check if user can view all clients (not just mapped ones)."""
+    role = user.get("role", 7)
+    return role in [1, 2, 3, 4, 5]  # PE Desk, PE Manager, Finance, Viewer, Partners Desk
+
+
+async def can_view_all_bookings(user: dict) -> bool:
+    """Check if user can view all bookings."""
+    return await has_permission(user, "bookings.view_all")
+
+
+async def can_view_all_users(user: dict) -> bool:
+    """Check if user can view all users."""
+    role = user.get("role", 7)
+    return role in [1, 2, 5]  # PE Desk, PE Manager, Partners Desk
+
+
