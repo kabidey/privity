@@ -7,12 +7,19 @@ const DYNAMIC_CACHE_NAME = `privity-dynamic-${SW_VERSION}`;
 
 console.log(`[ServiceWorker] Version ${SW_VERSION} loading...`);
 
-// Static assets to cache immediately
+// Static assets to cache immediately (minimal - only truly static files)
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/privity-logo.png',
+];
+
+// Patterns that should ALWAYS fetch from network (never serve stale)
+const ALWAYS_NETWORK_PATTERNS = [
+  /\/static\/js\//,      // React JS bundles
+  /\/static\/css\//,     // React CSS bundles  
+  /\.chunk\.(js|css)$/,  // Code-split chunks
+  /main\.[a-f0-9]+\.(js|css)$/,  // Main bundles with hash
+  /index\.html$/,        // Always get fresh index.html
 ];
 
 // API endpoints to cache with network-first strategy
@@ -73,6 +80,12 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Check if request should always go to network
+function shouldAlwaysFetchFromNetwork(url) {
+  const pathname = url.pathname;
+  return ALWAYS_NETWORK_PATTERNS.some(pattern => pattern.test(pathname));
+}
+
 // Fetch event - serve from cache or network
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -99,7 +112,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets - Cache first, fallback to network
+  // JS/CSS bundles and index.html - ALWAYS network first (critical for updates)
+  if (shouldAlwaysFetchFromNetwork(url)) {
+    event.respondWith(networkFirstStrategy(request));
+    return;
+  }
+
+  // Other static assets (images, fonts) - Cache first for performance
   event.respondWith(cacheFirstStrategy(request));
 });
 
