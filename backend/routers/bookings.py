@@ -2276,8 +2276,9 @@ async def mark_dp_transferred(
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("dp.transfer", "mark DP as transferred"))
 ):
-    """Mark a booking as DP transferred and send notification to client"""
+    """Mark a booking as DP transferred, generate contract note, and send notification to client"""
     from services.email_service import send_stock_transferred_email
+    from services.contract_note_service import create_and_save_contract_note
     
     user_role = current_user.get("role", 6)
     
@@ -2299,6 +2300,8 @@ async def mark_dp_transferred(
         {"$set": {
             "dp_status": "transferred",
             "dp_type": dp_type,
+            "stock_transferred": True,
+            "stock_transfer_date": transfer_time.strftime("%d-%b-%Y"),
             "dp_transferred_at": transfer_time.isoformat(),
             "dp_transferred_by": current_user["id"],
             "dp_transferred_by_name": current_user["name"]
@@ -2312,6 +2315,25 @@ async def mark_dp_transferred(
             {"stock_id": booking.get("stock_id")},
             {"$inc": {"available_quantity": -booking.get("quantity", 0)}}
         )
+    
+    # Auto-generate and store contract note
+    contract_note = None
+    try:
+        # Check if contract note already exists
+        existing_cn = await db.contract_notes.find_one({"booking_id": booking_id}, {"_id": 0})
+        if not existing_cn:
+            contract_note = await create_and_save_contract_note(
+                booking_id=booking_id,
+                user_id=current_user["id"],
+                user_name=current_user["name"]
+            )
+            logger.info(f"Contract note {contract_note.get('contract_note_number')} auto-generated for booking {booking_id}")
+        else:
+            contract_note = existing_cn
+            logger.info(f"Contract note already exists for booking {booking_id}")
+    except Exception as e:
+        logger.error(f"Failed to auto-generate contract note for booking {booking_id}: {str(e)}")
+        # Continue even if contract note generation fails
     
     # Get client and stock details for email
     client = await db.clients.find_one({"id": booking.get("client_id")}, {"_id": 0})
