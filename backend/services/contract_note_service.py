@@ -465,15 +465,15 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     bank_data = [
         [
             Paragraph("<b>Bank Name</b>", label_style),
-            Paragraph(company.get("company_bank_name", "N/A"), value_style),
+            Paragraph(company.get("company_bank_name") or "N/A", value_style),
             Paragraph("<b>Branch</b>", label_style),
-            Paragraph(company.get("company_bank_branch", "N/A"), value_style)
+            Paragraph(company.get("company_bank_branch") or "N/A", value_style)
         ],
         [
             Paragraph("<b>Account No.</b>", label_style),
-            Paragraph(company.get("company_bank_account", "N/A"), value_style),
+            Paragraph(company.get("company_bank_account") or "N/A", value_style),
             Paragraph("<b>IFSC</b>", label_style),
-            Paragraph(company.get("company_bank_ifsc", "N/A"), value_style)
+            Paragraph(company.get("company_bank_ifsc") or "N/A", value_style)
         ],
     ]
     
