@@ -37,6 +37,19 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 07, 2026)
 
+#### ✅ Bug Fix - Agreement Popup Button Visibility (Feb 07, 2026)
+- **Issue:** The "I Agree" button in the User Agreement modal was only visible when browser zoom was reduced to 75%
+- **Root Cause:** The modal's content area had fixed height calculations (`maxHeight: 'calc(85vh - 180px)'`) that didn't properly account for flexbox layout, causing the footer with the "I Agree" button to be pushed off-screen at normal zoom levels
+- **Solution:** Refactored the modal layout to use proper flexbox with:
+  - `flex flex-col` on DialogContent for proper column layout
+  - `flex-shrink-0` on header and footer to prevent them from shrinking
+  - `flex-1 min-h-0` on content area to allow it to shrink while keeping header/footer visible
+  - Reduced ScrollArea height from `h-[200px] sm:h-[220px]` to `h-[150px] sm:h-[180px]` for more breathing room
+  - Reduced modal max-height from `85vh` to `80vh`
+- **Files Modified:**
+  - `/app/frontend/src/components/UserAgreementModal.js` - Complete layout refactoring
+- **Test Status:** Verified via screenshots at multiple viewport sizes (1920x800, 1366x768, 1280x600, 375x667 mobile) - "I Agree" button visible in all cases
+
 #### ✅ Bug Fix - OTP Registration Missing Password Field (Feb 07, 2026)
 - **Issue:** OTP registration endpoint returned 500 Internal Server Error
 - **Root Cause:** UserCreate Pydantic model was missing `password` field, causing AttributeError when accessing `user_data.password`
