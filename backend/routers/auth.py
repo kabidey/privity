@@ -188,7 +188,216 @@ async def register(user_data: UserCreate, request: Request = None):
     }
 
 
-from middleware.security import login_tracker, SecurityAuditLogger
+# ============== OTP-Based Registration ==============
+# Temporary storage for pending registrations (in production, use Redis with TTL)
+pending_registrations = {}
+
+@router.post("/register/request-otp")
+async def request_registration_otp(user_data: UserCreate, request: Request = None):
+    """
+    Step 1 of OTP-based registration.
+    Validates user data and sends OTP to email.
+    """
+    # Check email domain restriction
+    email_domain = user_data.email.split('@')[-1].lower()
+    if email_domain not in ALLOWED_EMAIL_DOMAINS:
+        raise HTTPException(
+            status_code=400, 
+            detail="Registration is restricted to employees with @smifs.com or @smifs.co.in email addresses"
+        )
+    
+    email_lower = user_data.email.lower()
+    
+    existing_user = await db.users.find_one({"email": email_lower}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Validate mobile number (required)
+    if not user_data.mobile_number:
+        raise HTTPException(status_code=400, detail="Mobile number is required for SMS/WhatsApp notifications")
+    
+    mobile_number = ''.join(filter(str.isdigit, user_data.mobile_number))
+    if len(mobile_number) != 10:
+        raise HTTPException(status_code=400, detail="Mobile number must be exactly 10 digits")
+    
+    # Check for duplicate mobile among users
+    existing_mobile_user = await db.users.find_one({"mobile_number": mobile_number}, {"_id": 0, "name": 1, "email": 1})
+    if existing_mobile_user:
+        raise HTTPException(
+            status_code=400, 
+            detail="Mobile number already registered with another employee account"
+        )
+    
+    # Validate PAN (required)
+    if not user_data.pan_number:
+        raise HTTPException(status_code=400, detail="PAN number is required for employee registration")
+    
+    pan_number = user_data.pan_number.upper().strip()
+    if len(pan_number) != 10:
+        raise HTTPException(status_code=400, detail="PAN number must be exactly 10 characters")
+    
+    # Validate PAN format
+    import re
+    pan_regex = r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$'
+    if not re.match(pan_regex, pan_number):
+        raise HTTPException(status_code=400, detail="Invalid PAN format. Expected format: ABCDE1234F")
+    
+    # Check for duplicate PAN among users
+    existing_pan_user = await db.users.find_one({"pan_number": pan_number}, {"_id": 0, "name": 1, "email": 1})
+    if existing_pan_user:
+        raise HTTPException(
+            status_code=400, 
+            detail="PAN already registered with another employee account"
+        )
+    
+    # Check if PAN belongs to RP
+    existing_rp = await db.referral_partners.find_one({"pan_number": pan_number}, {"_id": 0, "name": 1, "rp_code": 1})
+    if existing_rp:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot register: This PAN belongs to an existing Referral Partner ({existing_rp.get('name', 'Unknown')})"
+        )
+    
+    # Check if PAN belongs to Client
+    existing_client = await db.clients.find_one({"pan_number": pan_number}, {"_id": 0, "name": 1})
+    if existing_client:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot register: This PAN belongs to an existing Client ({existing_client.get('name', 'Unknown')})"
+        )
+    
+    # Generate 6-digit OTP
+    otp = generate_otp()
+    otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    # Store pending registration
+    pending_registrations[email_lower] = {
+        "email": email_lower,
+        "name": user_data.name,
+        "password": user_data.password,
+        "pan_number": pan_number,
+        "mobile_number": mobile_number,
+        "otp": otp,
+        "otp_expiry": otp_expiry,
+        "attempts": 0
+    }
+    
+    # Send OTP email
+    try:
+        await send_otp_email(email_lower, otp, user_data.name)
+    except Exception as e:
+        del pending_registrations[email_lower]
+        raise HTTPException(status_code=500, detail="Failed to send OTP email. Please try again.")
+    
+    return {
+        "message": f"OTP sent to {email_lower}. Please verify within 10 minutes.",
+        "email": email_lower
+    }
+
+
+@router.post("/register/verify-otp")
+async def verify_registration_otp(email: str, otp: str):
+    """
+    Step 2 of OTP-based registration.
+    Verifies OTP and creates the user account.
+    """
+    email_lower = email.lower()
+    
+    # Check if there's a pending registration
+    pending = pending_registrations.get(email_lower)
+    if not pending:
+        raise HTTPException(status_code=400, detail="No pending registration found. Please start the registration process again.")
+    
+    # Check if OTP has expired
+    if datetime.now(timezone.utc) > pending["otp_expiry"]:
+        del pending_registrations[email_lower]
+        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+    
+    # Check attempts
+    if pending["attempts"] >= 3:
+        del pending_registrations[email_lower]
+        raise HTTPException(status_code=400, detail="Too many failed attempts. Please start the registration process again.")
+    
+    # Verify OTP
+    if pending["otp"] != otp:
+        pending["attempts"] += 1
+        remaining = 3 - pending["attempts"]
+        raise HTTPException(status_code=400, detail=f"Invalid OTP. {remaining} attempts remaining.")
+    
+    # OTP verified - create user account
+    user_id = str(uuid.uuid4())
+    hashed_pw = hash_password(pending["password"])
+    
+    user_doc = {
+        "id": user_id,
+        "email": pending["email"],
+        "password": hashed_pw,
+        "name": pending["name"],
+        "pan_number": pending["pan_number"],
+        "mobile_number": pending["mobile_number"],
+        "role": 7,  # Employee role
+        "must_change_password": True,  # Force password change on first login
+        "agreement_accepted": False,  # Must accept agreement after login
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "email_verified": True,
+        "email_verified_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.insert_one(user_doc)
+    
+    # Remove from pending registrations
+    del pending_registrations[email_lower]
+    
+    # Create audit log
+    await create_audit_log(
+        action="USER_REGISTER_OTP",
+        entity_type="user",
+        entity_id=user_id,
+        user_id=user_id,
+        user_name=pending["name"],
+        user_role=7,
+        entity_name=pending["name"],
+        details={"email": pending["email"], "role": 7, "pan_number": pending["pan_number"], "otp_verified": True}
+    )
+    
+    return {
+        "message": "Registration successful! You can now login with your email and password.",
+        "email": pending["email"]
+    }
+
+
+@router.post("/register/resend-otp")
+async def resend_registration_otp(email: str):
+    """
+    Resend OTP for pending registration.
+    """
+    email_lower = email.lower()
+    
+    pending = pending_registrations.get(email_lower)
+    if not pending:
+        raise HTTPException(status_code=400, detail="No pending registration found. Please start the registration process again.")
+    
+    # Generate new OTP
+    otp = generate_otp()
+    otp_expiry = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    pending["otp"] = otp
+    pending["otp_expiry"] = otp_expiry
+    pending["attempts"] = 0
+    
+    # Send OTP email
+    try:
+        await send_otp_email(email_lower, otp, pending["name"])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to send OTP email. Please try again.")
+    
+    return {
+        "message": f"New OTP sent to {email_lower}. Please verify within 10 minutes.",
+        "email": email_lower
+    }
+
+
+
 from services.captcha_service import captcha_service, SecurityAlertService
 
 @router.post("/login", response_model=TokenResponse)
