@@ -37,6 +37,55 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 07, 2026)
 
+#### ✅ Fix - Notification Dashboard Blank Screen (Feb 07, 2026)
+- **Issue:** Clicking on Notification was causing a blank screen
+- **Root Cause:** Incorrect destructuring in NotificationDashboard.js - `const { currentUser: user }` should be `const { user }`
+- **Solution:** Fixed the useCurrentUser hook destructuring
+- **Files Modified:** `/app/frontend/src/pages/NotificationDashboard.js`
+
+#### ✅ Fix - Critical Linting & Import Errors (Feb 07, 2026)
+- **Issues Fixed:**
+  - `F821 Undefined name 'total_amount'` in bookings.py - Added missing calculation before notification
+  - `F821 Undefined name 'check_permission'` in bookings.py & clients.py - Added missing imports
+  - Import error for `DEFAULT_EMAIL_TEMPLATES` - Fixed imports in email_service.py and email_templates.py
+- **Files Modified:** 
+  - `/app/backend/routers/bookings.py`
+  - `/app/backend/routers/clients.py`
+  - `/app/backend/services/email_service.py`
+  - `/app/backend/routers/email_templates.py`
+
+#### ✅ Refactor - Login.js Split into Components (Feb 07, 2026)
+- **Before:** 1036 lines in single Login.js file
+- **After:** 535 lines in Login.js + reusable components
+- **New Components Created:**
+  - `/app/frontend/src/components/auth/constants.js` - PE quotes, floating keywords, themes
+  - `/app/frontend/src/components/auth/FloatingIcons.jsx` - Animated background icons
+  - `/app/frontend/src/components/auth/TypewriterQuote.jsx` - Quote typewriter effect
+  - `/app/frontend/src/components/auth/LoginForm.jsx` - Employee login form
+  - `/app/frontend/src/components/auth/RegistrationForm.jsx` - OTP registration form
+  - `/app/frontend/src/components/auth/PartnerLogin.jsx` - Business partner OTP login
+  - `/app/frontend/src/components/auth/OtpInput.jsx` - Reusable OTP input component
+  - `/app/frontend/src/components/auth/index.js` - Export barrel file
+- **Benefits:** Better maintainability, reusable components, clearer code structure
+
+#### ✅ Enhancement - Centralized RBAC Service (Feb 07, 2026)
+- **Added new helper functions to permission_service.py:**
+  - `get_client_visibility_filter()` - MongoDB filter for client queries based on role
+  - `get_booking_visibility_filter()` - MongoDB filter for booking queries based on role
+  - `get_user_visibility_filter()` - MongoDB filter for user queries based on role
+  - `can_view_all_clients()` - Check if user has full client visibility
+  - `can_view_all_bookings()` - Check if user has full booking visibility
+  - `can_view_all_users()` - Check if user has full user visibility
+- **Purpose:** Prevent recurring RBAC bugs by centralizing permission logic
+
+#### ✅ Investigation - Email Template Root Cause (Feb 07, 2026)
+- **Investigation Summary:**
+  - Email templates can be overridden via database (`email_templates` collection)
+  - Possible entry points: Manual editing via PUT endpoint, data migration, direct DB access
+  - Verification endpoint exists: `GET /api/email-templates/verify`
+  - Reset endpoint exists: `POST /api/email-templates/sync-all`
+- **Recommendation:** Admin should run `/api/email-templates/verify` to check for issues, then `/api/email-templates/sync-all` to reset all templates
+
 #### ✅ Fix - Login Page Text Prominence (Feb 07, 2026)
 - **Issue:** User reported that multiple text elements on the login page had poor contrast and were hard to read against the dark gradient background
 - **Solution:** Updated all text elements to use fully opaque colors with increased font weights:
