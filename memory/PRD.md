@@ -70,13 +70,26 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 #### ✅ Enhancement - Centralized RBAC Service (Feb 07, 2026)
 - **Added new helper functions to permission_service.py:**
+  - `is_pe_level(role)` - Check if role is PE Desk or PE Manager
+  - `is_pe_desk(role)` - Check if role is PE Desk only
+  - `is_finance_level(role)` - Check if role has finance access
+  - `is_partners_desk(role)` - Check if role is Partners Desk
+  - `can_view_all_data(role)` - Check if role can view all data (not just mapped)
   - `get_client_visibility_filter()` - MongoDB filter for client queries based on role
   - `get_booking_visibility_filter()` - MongoDB filter for booking queries based on role
   - `get_user_visibility_filter()` - MongoDB filter for user queries based on role
   - `can_view_all_clients()` - Check if user has full client visibility
   - `can_view_all_bookings()` - Check if user has full booking visibility
   - `can_view_all_users()` - Check if user has full user visibility
-- **Purpose:** Prevent recurring RBAC bugs by centralizing permission logic
+- **Routers updated to use centralized RBAC:**
+  - `/app/backend/routers/dashboard.py` - Removed duplicate is_pe_level
+  - `/app/backend/routers/inventory.py` - Removed duplicate is_pe_level
+  - `/app/backend/routers/reports.py` - Removed duplicate is_pe_level
+  - `/app/backend/routers/database_backup.py` - Removed duplicate is_pe_level, is_pe_desk_only
+  - `/app/backend/routers/clients.py` - Removed duplicate is_pe_level
+  - `/app/backend/routers/users.py` - Removed duplicate is_pe_level, is_pe_desk_only
+  - `/app/backend/routers/bookings.py` - Removed duplicate is_pe_level
+- **Purpose:** Prevent recurring RBAC bugs by centralizing all permission logic in a single service
 
 #### ✅ Investigation - Email Template Root Cause (Feb 07, 2026)
 - **Investigation Summary:**
