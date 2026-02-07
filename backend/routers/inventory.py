@@ -601,126 +601,94 @@ async def send_consolidated_pe_report(
             <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:11px;">{availability}</td>
         </tr>"""
     
-    # Build the beautiful HTML email
+    # Build the compact HTML email
     logo_html = ""
     if company.get("logo_url"):
-        logo_html = f'<img src="{company["logo_url"]}" alt="{company["company_name"]}" style="max-height: 60px; max-width: 200px; object-fit: contain;">'
+        logo_html = f'<img src="{company["logo_url"]}" alt="{company["company_name"]}" style="max-height:40px;max-width:150px;">'
     else:
-        logo_html = f'<div style="font-size: 24px; font-weight: bold; color: #064E3B;">{company.get("company_name", "SMIFS")}</div>'
+        logo_html = f'<div style="font-size:18px;font-weight:bold;color:#fff;">{company.get("company_name", "SMIFS PE")}</div>'
     
-    # Add warning note if some items don't have LP
+    # Compact warning note if some items don't have LP
     lp_warning = ""
     if items_without_lp > 0:
-        lp_warning = f"""
-        <div style="background-color: #fef3c7; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
-            <p style="margin: 0; color: #92400e; font-size: 13px;">
-                <strong>Note:</strong> {items_without_lp} stock(s) do not have Landing Price set yet. Contact PE Desk for pricing.
-            </p>
-        </div>
-        """
+        lp_warning = f'<p style="background:#fef3c7;padding:8px 12px;border-radius:4px;margin:0 0 15px 0;font-size:11px;color:#92400e;"><b>Note:</b> {items_without_lp} stock(s) without LP. Contact PE Desk.</p>'
     
-    html_content = f"""
-<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #f3f4f6;">
-    <div style="max-width: 800px; margin: 0 auto; background-color: #ffffff;">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background:#f3f4f6;font-size:12px;">
+<div style="max-width:600px;margin:0 auto;background:#fff;">
+    
+    <!-- Header -->
+    <div style="background:#064E3B;padding:15px 20px;text-align:center;">
+        {logo_html}
+        <h1 style="color:#fff;margin:8px 0 0 0;font-size:16px;font-weight:600;">PE Inventory Report</h1>
+    </div>
+    
+    <!-- Timestamp -->
+    <div style="background:#ecfdf5;padding:8px 20px;border-bottom:1px solid #10b981;">
+        <p style="margin:0;color:#065f46;font-size:11px;"><b>Generated:</b> {report_time_ist}</p>
+    </div>
+    
+    <!-- Content -->
+    <div style="padding:15px 20px;">
+        <p style="color:#374151;font-size:12px;line-height:1.5;margin:0 0 12px 0;">
+            Current inventory of unlisted and pre-IPO shares. <span style="color:#16a34a;">●</span> Available <span style="color:#dc2626;">○</span> Out of Stock
+        </p>
         
-        <!-- Header with Logo -->
-        <div style="background: linear-gradient(135deg, #064E3B 0%, #065f46 100%); padding: 30px 40px; text-align: center;">
-            {logo_html}
-            <h1 style="color: #ffffff; margin: 15px 0 5px 0; font-size: 26px; font-weight: 600;">PE Inventory Report</h1>
-            <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 14px;">Private Equity Unlisted Shares</p>
-        </div>
+        {lp_warning}
         
-        <!-- Report Timestamp -->
-        <div style="background-color: #ecfdf5; padding: 12px 40px; border-bottom: 2px solid #10b981;">
-            <p style="margin: 0; color: #065f46; font-size: 13px;">
-                <strong>Report Generated:</strong> {report_time_ist}
-            </p>
-        </div>
+        <!-- Table -->
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;font-size:11px;">
+            <thead>
+                <tr style="background:#064E3B;">
+                    <th style="padding:8px 6px;text-align:left;color:#fff;font-size:10px;font-weight:600;">CODE</th>
+                    <th style="padding:8px 6px;text-align:left;color:#fff;font-size:10px;font-weight:600;">STOCK NAME</th>
+                    <th style="padding:8px 6px;text-align:right;color:#fff;font-size:10px;font-weight:600;">LP</th>
+                    <th style="padding:8px 6px;text-align:center;color:#fff;font-size:10px;font-weight:600;width:30px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {table_rows}
+            </tbody>
+        </table>
         
-        <!-- Main Content -->
-        <div style="padding: 30px 40px;">
-            <p style="color: #374151; font-size: 15px; line-height: 1.6; margin-bottom: 25px;">
-                Dear Investor,<br><br>
-                Please find below the current inventory of available unlisted and pre-IPO shares for your consideration.
-            </p>
-            
-            {lp_warning}
-            
-            <!-- Inventory Table -->
-            <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: linear-gradient(135deg, #064E3B 0%, #047857 100%);">
-                            <th style="padding: 16px; text-align: left; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Stock Code</th>
-                            <th style="padding: 16px; text-align: left; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Stock Name</th>
-                            <th style="padding: 16px; text-align: right; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Landing Price (LP)</th>
-                            <th style="padding: 16px; text-align: center; color: #ffffff; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {table_rows}
-                    </tbody>
-                </table>
-            </div>
-            
-            <p style="color: #6b7280; font-size: 13px; margin-top: 25px; line-height: 1.6;">
-                Total Stocks: <strong>{len(valid_items)}</strong> 
-                ({len(items_in_stock)} available, {items_out_of_stock} out of stock)
-                {f' • {len(items_with_lp)} with pricing' if items_without_lp > 0 else ''}
-            </p>
-            
-            <!-- CTA -->
-            <div style="text-align: center; margin: 35px 0;">
-                <p style="color: #374151; margin-bottom: 15px;">Interested in any of these opportunities?</p>
-                <a href="{company.get('custom_domain', 'https://pesmifs.com')}/bookings" 
-                   style="display: inline-block; background: linear-gradient(135deg, #064E3B, #059669); color: #ffffff; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">
-                    Book Now
-                </a>
-            </div>
-        </div>
+        <p style="color:#6b7280;font-size:10px;margin:10px 0;">
+            Total: <b>{len(valid_items)}</b> ({len(items_in_stock)} available) {f'• {len(items_with_lp)} priced' if items_without_lp > 0 else ''}
+        </p>
         
-        <!-- Disclaimer -->
-        <div style="background-color: #fef3c7; padding: 20px 40px; border-top: 1px solid #fbbf24; border-bottom: 1px solid #fbbf24;">
-            <p style="margin: 0; color: #92400e; font-size: 12px; line-height: 1.6;">
-                <strong>⚠️ DISCLAIMER:</strong> This is an <strong>indicative report</strong> for informational purposes only. 
-                Prices and availability are subject to change without prior notice. This does not constitute investment advice. 
-                Please consult your financial advisor before making any investment decisions. Past performance does not guarantee future results.
-                SMIFS Limited is a SEBI registered entity.
-            </p>
-        </div>
-        
-        <!-- Footer -->
-        <div style="background-color: #1f2937; padding: 30px 40px; text-align: center;">
-            <div style="margin-bottom: 20px;">
-                <p style="color: #ffffff; font-size: 16px; font-weight: 600; margin: 0 0 5px 0;">{company.get('company_name', 'SMIFS Private Equity')}</p>
-                <p style="color: #9ca3af; font-size: 13px; margin: 0; line-height: 1.6;">
-                    {company.get('address', '')}
-                </p>
-            </div>
-            
-            <div style="border-top: 1px solid #374151; padding-top: 20px; margin-top: 20px;">
-                <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-                    📞 {company.get('phone', '')} &nbsp;|&nbsp; 
-                    ✉️ {company.get('email', 'pe@smifs.com')} &nbsp;|&nbsp;
-                    🌐 {company.get('website', 'www.smifs.com')}
-                </p>
-            </div>
-            
-            <p style="color: #6b7280; font-size: 11px; margin: 20px 0 0 0;">
-                © {datetime.now().year} {company.get('company_name', 'SMIFS')}. All rights reserved.<br>
-                This email was sent to you as a registered user of SMIFS Private Equity platform.
-            </p>
+        <!-- CTA -->
+        <div style="text-align:center;margin:15px 0;">
+            <a href="{company.get('custom_domain', 'https://pesmifs.com')}/bookings" 
+               style="display:inline-block;background:#064E3B;color:#fff;padding:10px 25px;text-decoration:none;border-radius:5px;font-size:12px;font-weight:600;">
+                Book Now
+            </a>
         </div>
     </div>
+    
+    <!-- Disclaimer -->
+    <div style="background:#fef3c7;padding:10px 20px;border-top:1px solid #fbbf24;">
+        <p style="margin:0;color:#92400e;font-size:9px;line-height:1.4;">
+            <b>DISCLAIMER:</b> Indicative report for information only. Prices subject to change. Not investment advice. Consult financial advisor. SMIFS Ltd is SEBI registered.
+        </p>
+    </div>
+    
+    <!-- Footer -->
+    <div style="background:#1f2937;padding:15px 20px;text-align:center;">
+        <p style="color:#fff;font-size:11px;margin:0 0 5px 0;font-weight:600;">{company.get('company_name', 'SMIFS PE')}</p>
+        <p style="color:#9ca3af;font-size:9px;margin:0;line-height:1.4;">
+            {company.get('address', '')}
+        </p>
+        <p style="color:#9ca3af;font-size:9px;margin:8px 0 0 0;">
+            {company.get('phone', '')} | {company.get('email', 'pe@smifs.com')} | {company.get('website', 'www.smifs.com')}
+        </p>
+        <p style="color:#6b7280;font-size:8px;margin:10px 0 0 0;">
+            © {datetime.now().year} {company.get('company_name', 'SMIFS')}
+        </p>
+    </div>
+</div>
 </body>
-</html>
-"""
+</html>"""
     
     # Send to all users with better error tracking
     results = {
