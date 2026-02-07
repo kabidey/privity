@@ -27,6 +27,7 @@ import {
   LoginForm,
   RegistrationForm,
   PartnerLogin,
+  CacheClearPrompt,
   LOGIN_THEMES,
   LOGO_URL
 } from '../components/auth';
