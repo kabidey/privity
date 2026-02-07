@@ -702,15 +702,16 @@ const Login = () => {
                       {!isLogin && (
                         <>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Full Name</Label>
+                            <Label className="text-white/80">Full Name <span className="text-red-400">*</span></Label>
                             <Input type="text" name="name" placeholder="Your name" value={formData.name}
                               onChange={handleChange} required className="bg-white/10 border-white/20 text-white" data-testid="name" />
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Mobile Number <span className="text-white/40 text-xs">(Optional)</span></Label>
+                            <Label className="text-white/80">Mobile Number <span className="text-red-400">*</span></Label>
                             <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
                               onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                              maxLength={10} className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
+                              maxLength={10} required className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
+                            <p className="text-white/40 text-xs">Required for SMS/WhatsApp notifications</p>
                           </div>
                           <div className="space-y-2">
                             <Label className="text-white/80">PAN Number <span className="text-white/40 text-xs">(Optional)</span></Label>
