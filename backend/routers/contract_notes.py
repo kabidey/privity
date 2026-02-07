@@ -155,14 +155,14 @@ async def generate_contract_note(
     if existing:
         raise HTTPException(
             status_code=400, 
-            detail=f"Contract note already exists: {existing.get('contract_note_number')}"
+            detail=f"Confirmation note already exists: {existing.get('contract_note_number')}"
         )
     
     # Check if DP transfer is complete
     if not booking.get("stock_transferred"):
         raise HTTPException(
             status_code=400,
-            detail="Cannot generate contract note - DP transfer not complete"
+            detail="Cannot generate confirmation note - DP transfer not complete"
         )
     
     try:
@@ -197,7 +197,7 @@ async def generate_contract_note(
         }
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate contract note: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate confirmation note: {str(e)}")
 
 
 @router.post("/generate-missing")
@@ -595,4 +595,4 @@ async def regenerate_contract_note(
     
     except Exception as e:
         logger.error(f"Failed to regenerate contract note {note_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to regenerate contract note: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to regenerate confirmation note: {str(e)}")
