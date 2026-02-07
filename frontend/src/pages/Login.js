@@ -54,6 +54,9 @@ const Login = () => {
   const [registrationOtp, setRegistrationOtp] = useState('');
   const [resendingOtp, setResendingOtp] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
+  
+  // Error display state
+  const [formError, setFormError] = useState('');
 
   // All 69 SMIFS PE Quotes - Memoized to avoid re-renders
   const allQuotes = useMemo(() => [
