@@ -1689,21 +1689,26 @@ async def send_dp_ready_email(
     # Wrap with company logo header
     body = wrap_email_with_branding(body, company_info)
     
-    # Send email
-    await send_email(
-        to_email=client_email,
-        subject=subject,
-        body=body,
-        cc_emails=[cc_email] if cc_email else None
-    )
+    # Send email to ALL client email addresses
+    all_emails = get_all_client_emails(client)
+    
+    for email in all_emails:
+        try:
+            await send_email(
+                to_email=email,
+                subject=subject,
+                body=body,
+                cc_emails=[cc_email] if cc_email and email == all_emails[0] else None  # CC only on first email
+            )
+            logging.info(f"DP Ready email sent for booking {booking_number} to {email}")
+        except Exception as e:
+            logging.error(f"Failed to send DP Ready email to {email}: {e}")
     
     # Send WhatsApp notification
     try:
         await send_dp_ready_whatsapp(client, booking, stock)
     except Exception as e:
         logging.error(f"Failed to send DP Ready WhatsApp: {e}")
-    
-    logging.info(f"DP Ready email sent for booking {booking_number} to {client_email}")
 
 
 async def send_dp_ready_whatsapp(client: dict, booking: dict, stock: dict):
