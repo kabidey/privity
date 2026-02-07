@@ -90,15 +90,13 @@ Build a Share Booking System for managing client share bookings, inventory track
   - `can_view_all_clients()` - Check if user has full client visibility
   - `can_view_all_bookings()` - Check if user has full booking visibility
   - `can_view_all_users()` - Check if user has full user visibility
-- **Routers updated to use centralized RBAC:**
-  - `/app/backend/routers/dashboard.py` - Removed duplicate is_pe_level
-  - `/app/backend/routers/inventory.py` - Removed duplicate is_pe_level
-  - `/app/backend/routers/reports.py` - Removed duplicate is_pe_level
-  - `/app/backend/routers/database_backup.py` - Removed duplicate is_pe_level, is_pe_desk_only
-  - `/app/backend/routers/clients.py` - Removed duplicate is_pe_level
-  - `/app/backend/routers/users.py` - Removed duplicate is_pe_level, is_pe_desk_only
-  - `/app/backend/routers/bookings.py` - Removed duplicate is_pe_level
-- **Purpose:** Prevent recurring RBAC bugs by centralizing all permission logic in a single service
+- **ALL 18 routers updated** to use centralized helpers (removed duplicate definitions):
+  - Core: `dashboard.py`, `inventory.py`, `reports.py`, `bookings.py`, `clients.py`, `users.py`
+  - Finance: `finance.py`, `purchases.py`
+  - Partners: `business_partners.py`, `referral_partners.py`, `revenue_dashboard.py`
+  - Admin: `database_backup.py`, `roles.py`, `kill_switch.py`, `bulk_upload.py`
+  - Misc: `stocks.py`, `analytics.py`, `contract_notes.py`, `email_logs.py`, `files.py`, `research.py`, `two_factor.py`, `audit_logs.py`
+- **Purpose:** Single source of truth for all permission logic - prevents recurring RBAC bugs
 
 #### ✅ Investigation - Email Template Root Cause (Feb 07, 2026)
 - **Investigation Summary:**
