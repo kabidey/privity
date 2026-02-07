@@ -831,7 +831,7 @@ const Login = () => {
                                 <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
                                   onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
                                   maxLength={10} required className="bg-white/10 border-white/20 text-white font-mono" data-testid="pan" />
-                                <p className="text-white/70 text-xs">Required for KYC verification</p>
+                                <p className="text-white/90 text-xs">Required for KYC verification</p>
                               </div>
                               
                               {/* Domain restriction warning */}
