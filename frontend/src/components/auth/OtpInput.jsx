@@ -64,7 +64,11 @@ const OtpInput = ({
           Resend OTP
         </Button>
         <Button
-          onClick={onSubmit}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            onSubmit(e);
+          }}
           disabled={loading || value.length !== 6}
           className={`flex-1 bg-gradient-to-r from-${theme.primary}-500 to-${theme.secondary}-500`}
         >
