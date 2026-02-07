@@ -87,20 +87,20 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent 
-        className="sm:max-w-2xl max-h-[90vh] p-0 flex flex-col"
+        className="sm:max-w-xl w-[95vw] max-h-[85vh] h-auto p-0 overflow-hidden"
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         hideCloseButton
         data-testid="user-agreement-modal"
       >
-        {/* Header */}
-        <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 text-white flex-shrink-0">
-          <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <Shield className="h-5 w-5" />
+        {/* Header - Fixed at top */}
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-3 sm:p-4 text-white">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-xl flex-shrink-0">
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold text-white">
+              <DialogTitle className="text-base sm:text-lg font-bold text-white">
                 User Agreement
               </DialogTitle>
               <DialogDescription className="text-slate-300 text-xs">
@@ -110,16 +110,16 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
           </div>
         </div>
 
-        {/* Agreement Content */}
-        <div className="p-4 flex-1 overflow-hidden flex flex-col min-h-0">
+        {/* Agreement Content - Scrollable */}
+        <div className="p-3 sm:p-4 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 180px)' }}>
           {loading ? (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
             </div>
           ) : (
             <>
               <ScrollArea 
-                className="h-[280px] border rounded-lg p-3 bg-slate-50 dark:bg-slate-900 flex-shrink-0"
+                className="h-[200px] sm:h-[220px] border rounded-lg p-3 bg-slate-50 dark:bg-slate-900"
                 onScrollCapture={handleScroll}
               >
                 <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -130,17 +130,17 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
               </ScrollArea>
 
               {/* Confirmation Checkbox */}
-              <div className="flex items-start gap-2 mt-3 p-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex-shrink-0">
+              <div className="flex items-start gap-2 mt-3 p-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                 <Checkbox 
                   id="agreement-checkbox"
                   checked={hasRead}
                   onCheckedChange={setHasRead}
-                  className="mt-0.5"
+                  className="mt-0.5 flex-shrink-0"
                   data-testid="agreement-checkbox"
                 />
                 <label 
                   htmlFor="agreement-checkbox" 
-                  className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer"
+                  className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer leading-tight"
                 >
                   I have read, understood, and agree to be bound by the terms and conditions stated above.
                 </label>
@@ -149,13 +149,13 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
           )}
         </div>
 
-        {/* Footer - Always visible */}
-        <div className="p-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex-shrink-0">
-          <div className="flex items-center justify-between w-full gap-2">
+        {/* Footer - Always visible at bottom */}
+        <div className="p-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
             <Button
               variant="outline"
               onClick={handleDecline}
-              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+              className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 order-2 sm:order-1 h-9 sm:h-10 text-sm"
               data-testid="decline-agreement-btn"
             >
               <LogOut className="h-3.5 w-3.5 mr-1.5" />
@@ -164,7 +164,7 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
             <Button
               onClick={handleAccept}
               disabled={!hasRead || accepting}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white order-1 sm:order-2 h-10 sm:h-10 text-sm font-semibold"
               data-testid="accept-agreement-btn"
             >
               {accepting ? (
@@ -174,7 +174,7 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
                 </>
               ) : (
                 <>
-                  <Check className="h-3.5 w-3.5 mr-1.5" />
+                  <Check className="h-4 w-4 mr-1.5" />
                   I Agree
                 </>
               )}
