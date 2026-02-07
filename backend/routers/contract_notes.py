@@ -35,9 +35,11 @@ router = APIRouter(prefix="/contract-notes", tags=["Confirmation Notes"])
 async def preview_sample_conformation_note():
     """
     Generate a sample Conformation Note PDF for preview/testing purposes.
-    This endpoint does not require authentication.
+    This endpoint does not require authentication - for testing only.
     Returns the PDF directly for download/viewing.
     """
+    from services.contract_note_service import generate_contract_note_pdf
+    
     # Create sample data
     sample_booking = {
         "id": "sample-booking-001",
@@ -62,7 +64,9 @@ async def preview_sample_conformation_note():
             headers={"Content-Disposition": 'inline; filename="Sample_Conformation_Note.pdf"'}
         )
     except Exception as e:
+        import traceback
         logger.error(f"Failed to generate sample conformation note: {e}")
+        logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to generate sample: {str(e)}")
 
 
