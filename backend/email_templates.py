@@ -1458,8 +1458,8 @@ DEFAULT_EMAIL_TEMPLATES = {
                                 <p style="color: #064E3B; margin: 0; font-size: 20px; font-weight: bold;">{{stock_symbol}}</p>
                             </td>
                             <td style="padding: 15px; text-align: center;">
-                                <p style="color: #6b7280; margin: 0 0 5px 0; font-size: 13px;">LANDING PRICE</p>
-                                <p style="color: #10b981; margin: 0; font-size: 24px; font-weight: bold;">₹{{landing_price}}</p>
+                                <p style="color: #6b7280; margin: 0 0 5px 0; font-size: 13px;">SALE PRICE</p>
+                                <p style="color: #10b981; margin: 0; font-size: 24px; font-weight: bold;">₹{{sale_price}}</p>
                             </td>
                         </tr>
                     </table>
@@ -1512,7 +1512,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </div>
         </div>
         """,
-        "variables": ["recipient_name", "stock_symbol", "stock_name", "landing_price", "sector", "lot_size", "min_investment", "available_quantity", "booking_url", "company_name", "company_address", "company_phone", "company_email"],
+        "variables": ["recipient_name", "stock_symbol", "stock_name", "sale_price", "sector", "lot_size", "min_investment", "available_quantity", "booking_url", "company_name", "company_address", "company_phone", "company_email"],
         "is_active": True
     }
 }
