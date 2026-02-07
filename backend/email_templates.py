@@ -193,13 +193,13 @@ DEFAULT_EMAIL_TEMPLATES = {
                     <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Quantity</strong></td>
                     <td style="padding: 10px; border: 1px solid #e5e7eb;">{{quantity}}</td>
                 </tr>
-                <tr>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Buying Price</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{{buying_price}}</td>
-                </tr>
                 <tr style="background-color: #fef3c7;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Selling Price</strong></td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{{selling_price}} <span style="color: #dc2626;">(Loss Transaction)</span></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Sale Price</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{{selling_price}}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Total Value</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb;">₹{{total_value}}</td>
                 </tr>
             </table>
             
@@ -209,11 +209,11 @@ DEFAULT_EMAIL_TEMPLATES = {
                 <a href="{{deny_url}}" style="display: inline-block; background-color: #ef4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">✗ DENY BOOKING</a>
             </div>
             
-            <p style="color: #6b7280; font-size: 14px;">This is a loss transaction booking. Please review carefully before confirming.</p>
+            <p style="color: #6b7280; font-size: 14px;">Please review carefully before confirming.</p>
             <p>Best regards,<br><strong>SMIFS Private Equity System</strong></p>
         </div>
         """,
-        "variables": ["client_name", "booking_number", "stock_symbol", "quantity", "buying_price", "selling_price", "accept_url", "deny_url"],
+        "variables": ["client_name", "booking_number", "stock_symbol", "quantity", "selling_price", "total_value", "accept_url", "deny_url"],
         "is_active": True
     },
     "booking_status_updated": {
