@@ -197,6 +197,79 @@ async def generate_contract_note(
         raise HTTPException(status_code=500, detail=f"Failed to generate contract note: {str(e)}")
 
 
+@router.post("/generate-missing")
+async def generate_missing_contract_notes(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("contract_notes.generate", "generate missing contract notes"))
+):
+    """
+    Generate contract notes for all bookings that:
+    - Have DP transfer complete (stock_transferred=True or dp_status=transferred)
+    - Do not have a contract note yet
+    
+    Useful for backfilling missing contract notes
+    """
+    # Find bookings with completed DP transfer but no contract note
+    transferred_bookings = await db.bookings.find({
+        "$or": [
+            {"stock_transferred": True},
+            {"dp_status": "transferred"}
+        ]
+    }, {"_id": 0, "id": 1, "booking_number": 1}).to_list(10000)
+    
+    results = {
+        "total_transferred": len(transferred_bookings),
+        "already_have_cn": 0,
+        "generated": 0,
+        "failed": 0,
+        "errors": []
+    }
+    
+    for booking in transferred_bookings:
+        booking_id = booking.get("id")
+        
+        # Check if contract note exists
+        existing = await db.contract_notes.find_one({"booking_id": booking_id}, {"_id": 0, "contract_note_number": 1})
+        if existing:
+            results["already_have_cn"] += 1
+            continue
+        
+        # Generate contract note
+        try:
+            cn_doc = await create_and_save_contract_note(
+                booking_id=booking_id,
+                user_id=current_user["id"],
+                user_name=current_user["name"]
+            )
+            results["generated"] += 1
+            logger.info(f"Generated missing CN {cn_doc.get('contract_note_number')} for booking {booking_id}")
+        except Exception as e:
+            results["failed"] += 1
+            results["errors"].append({
+                "booking_id": booking_id,
+                "booking_number": booking.get("booking_number"),
+                "error": str(e)
+            })
+            logger.error(f"Failed to generate CN for booking {booking_id}: {str(e)}")
+    
+    # Create audit log
+    await create_audit_log(
+        action="MISSING_CONTRACT_NOTES_GENERATED",
+        entity_type="contract_note",
+        entity_id="batch_generation",
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 6),
+        entity_name="Batch Generation",
+        details=results
+    )
+    
+    return {
+        "message": f"Generated {results['generated']} missing contract notes",
+        "results": results
+    }
+
+
 @router.get("/download/{note_id}")
 async def download_contract_note(
     note_id: str,
