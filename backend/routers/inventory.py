@@ -580,28 +580,26 @@ async def send_consolidated_pe_report(
     report_time = datetime.now(timezone.utc)
     report_time_ist = report_time.strftime("%d %B %Y, %I:%M %p IST")
     
-    # Build inventory table rows - only include valid items
+    # Build inventory table rows - compact design for many stocks
     table_rows = ""
     for idx, item in enumerate(valid_items):
-        bg_color = "#ffffff" if idx % 2 == 0 else "#f9fafb"
-        lp = item.get("landing_price", 0)
-        lp_formatted = f"₹{lp:,.2f}" if lp and lp > 0 else '<span style="color: #9ca3af;">Not Set</span>'
+        bg_color = "#fff" if idx % 2 == 0 else "#f8f9fa"
+        lp = item.get("_resolved_lp", 0)
+        lp_formatted = f"₹{lp:,.2f}" if lp and lp > 0 else '<span style="color:#999;">-</span>'
         
-        # Show availability status
+        # Show availability status - compact
         avail_qty = item.get("available_quantity", 0)
         if avail_qty > 0:
-            availability = f'<span style="color: #059669; font-weight: 500;">Available</span>'
+            availability = '<span style="color:#16a34a;">●</span>'
         else:
-            availability = f'<span style="color: #dc2626; font-weight: 500;">Out of Stock</span>'
+            availability = '<span style="color:#dc2626;">○</span>'
         
-        table_rows += f"""
-        <tr style="background-color: {bg_color};">
-            <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; font-family: 'Courier New', monospace; font-weight: 600; color: #064E3B;">{item.get('stock_symbol', 'N/A')}</td>
-            <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; color: #374151;">{item.get('stock_name', 'N/A')}</td>
-            <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: 600; color: #059669; font-size: 15px;">{lp_formatted}</td>
-            <td style="padding: 14px 16px; border-bottom: 1px solid #e5e7eb; text-align: center; font-size: 13px;">{availability}</td>
-        </tr>
-        """
+        table_rows += f"""<tr style="background:{bg_color};">
+            <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-family:monospace;font-size:11px;font-weight:600;color:#064E3B;">{item.get('stock_symbol', '-')}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:11px;color:#374151;">{item.get('stock_name', '-')}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600;color:#059669;font-size:11px;">{lp_formatted}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:11px;">{availability}</td>
+        </tr>"""
     
     # Build the beautiful HTML email
     logo_html = ""
