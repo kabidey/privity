@@ -21,7 +21,8 @@ from services.permission_service import (
     require_permission,
     check_permission,
     get_client_visibility_filter,
-    can_view_all_clients
+    can_view_all_clients,
+    is_pe_level
 )
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
@@ -31,12 +32,6 @@ from services.file_storage import upload_file_to_gridfs, get_file_url
 from utils.demo_isolation import add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(tags=["Clients"])
-
-
-# Helper functions for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 def is_pe_desk_only(role: int) -> bool:
