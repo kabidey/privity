@@ -1003,7 +1003,7 @@ const Login = () => {
           </Card>
 
           <div className="mt-4 text-center">
-            <Button variant="ghost" onClick={handleDemoMode} disabled={demoLoading} className="text-white/50 hover:text-white hover:bg-white/10" data-testid="demo">
+            <Button variant="ghost" onClick={handleDemoMode} disabled={demoLoading} className="text-white/80 hover:text-white hover:bg-white/10" data-testid="demo">
               {demoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />} Try Demo
             </Button>
           </div>
