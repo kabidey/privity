@@ -712,20 +712,20 @@ DEFAULT_EMAIL_TEMPLATES = {
     },
     "contract_note": {
         "key": "contract_note",
-        "name": "Contract Note Email",
-        "subject": "Contract Note - {{contract_note_number}} | {{stock_symbol}}",
+        "name": "Confirmation Note Email",
+        "subject": "Confirmation Note - {{contract_note_number}} | {{stock_symbol}}",
         "body": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #064E3B;">Contract Note</h2>
+            <h2 style="color: #064E3B;">Confirmation Note</h2>
             <p>Dear {{client_name}},</p>
-            <p>Please find attached your Contract Note for the following transaction:</p>
+            <p>Please find attached your Confirmation Note for the following transaction:</p>
             
             <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border: 1px solid #e5e7eb;">
                 <tr style="background-color: #064E3B; color: white;">
                     <th colspan="2" style="padding: 12px; text-align: left;">Transaction Details</th>
                 </tr>
                 <tr style="background-color: #f3f4f6;">
-                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Contract Note Number</strong></td>
+                    <td style="padding: 10px; border: 1px solid #e5e7eb; width: 40%;"><strong>Confirmation Note Number</strong></td>
                     <td style="padding: 10px; border: 1px solid #e5e7eb; font-family: monospace;">{{contract_note_number}}</td>
                 </tr>
                 <tr>
@@ -751,7 +751,7 @@ DEFAULT_EMAIL_TEMPLATES = {
             </table>
             
             <div style="background-color: #d1fae5; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0;">
-                <p style="margin: 0; color: #065f46;">📎 <strong>The Contract Note PDF is attached to this email.</strong></p>
+                <p style="margin: 0; color: #065f46;">📎 <strong>The Confirmation Note PDF is attached to this email.</strong></p>
             </div>
             
             <p style="color: #6b7280; font-size: 14px;">Please keep this document for your records. If you have any queries, please contact our PE Desk.</p>
