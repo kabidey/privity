@@ -463,9 +463,11 @@ const Login = () => {
     } catch (error) {
       const errorResponse = error.response?.data;
       const errorDetail = errorResponse?.detail;
+      const statusCode = error.response?.status;
       
+      // Handle CAPTCHA requirement
       const isCaptchaRequired = 
-        error.response?.status === 428 || 
+        statusCode === 428 || 
         (typeof errorDetail === 'object' && errorDetail?.captcha_required);
       
       if (isCaptchaRequired) {
@@ -474,10 +476,51 @@ const Login = () => {
         setCaptchaToken(captchaData?.captcha_token || '');
         setCaptchaQuestion(captchaData?.captcha_question || '');
         toast.warning('Please answer the security question');
-      } else {
-        let message = typeof errorDetail === 'string' ? errorDetail : errorDetail?.message || 'An error occurred';
-        toast.error(message);
+        return;
       }
+      
+      // Extract error message
+      let message = 'An unexpected error occurred. Please try again.';
+      
+      if (typeof errorDetail === 'string') {
+        message = errorDetail;
+      } else if (typeof errorDetail === 'object' && errorDetail?.message) {
+        message = errorDetail.message;
+      } else if (error.message) {
+        message = error.message;
+      }
+      
+      // Enhance error messages based on status codes and context
+      if (statusCode === 401) {
+        message = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (statusCode === 403) {
+        if (message.includes('approved')) {
+          message = 'Your account is pending approval. Please contact admin.';
+        } else if (message.includes('locked')) {
+          message = 'Account locked due to too many failed attempts. Please try again later or reset your password.';
+        } else {
+          message = `Access denied: ${message}`;
+        }
+      } else if (statusCode === 404) {
+        message = 'Account not found. Please check your email or register a new account.';
+      } else if (statusCode === 400) {
+        // Keep the backend message as it's usually specific
+        message = message || 'Invalid request. Please check your input.';
+      } else if (statusCode === 429) {
+        message = 'Too many attempts. Please wait a few minutes before trying again.';
+      } else if (statusCode === 500) {
+        message = 'Server error. Please try again later or contact support.';
+      } else if (!error.response) {
+        message = 'Network error. Please check your internet connection.';
+      }
+      
+      // Show error with longer duration for important messages
+      toast.error(message, { 
+        duration: statusCode === 403 || statusCode === 429 ? 6000 : 4000 
+      });
+      
+      // Set form error for inline display
+      setFormError(message);
     } finally {
       setLoading(false);
     }
