@@ -947,8 +947,8 @@ const Login = () => {
                       {!bpOtpSent ? (
                         <>
                           <div className="space-y-2">
-                            <Label className="text-white">Registered Mobile</Label>
-                          <Input type="tel" placeholder="10-digit mobile" value={formData.mobile_number}
+                            <Label className="text-white font-medium">Registered Mobile</Label>
+                            <Input type="tel" placeholder="10-digit mobile" value={formData.mobile_number}
                               onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
                               className="bg-white/15 border-white/50 text-white placeholder:text-gray-400" data-testid="bp-mobile" />
                           </div>
@@ -969,7 +969,7 @@ const Login = () => {
                             className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Login'}
                           </Button>
-                      <Button variant="ghost" onClick={() => setBpOtpSent(false)} className="w-full text-gray-200 font-medium hover:text-white hover:bg-white/10">
+                          <Button variant="ghost" onClick={() => setBpOtpSent(false)} className="w-full text-gray-200 font-medium hover:text-white hover:bg-white/10">
                             <ArrowLeft className="w-4 h-4 mr-2" /> Change Number
                           </Button>
                         </>
