@@ -15,8 +15,9 @@ from typing import Optional, Dict, Any, List
 
 from config import (
     EMAIL_HOST, EMAIL_PORT, EMAIL_USERNAME, EMAIL_PASSWORD, EMAIL_FROM,
-    OTP_EXPIRY_MINUTES, DEFAULT_EMAIL_TEMPLATES
+    OTP_EXPIRY_MINUTES
 )
+from email_templates import DEFAULT_EMAIL_TEMPLATES
 
 
 async def get_base_url() -> str:
