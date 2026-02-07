@@ -658,9 +658,9 @@ async def change_password(data: ChangePassword, current_user: dict = Depends(get
     return {"message": "Password changed successfully"}
 
 
-@router.post("/update-mobile")
+@router.put("/update-mobile")
 async def update_mobile_number(
-    mobile_number: str = Body(..., embed=True),
+    mobile: str = Body(..., embed=True),
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -668,7 +668,7 @@ async def update_mobile_number(
     Required for users who registered before mobile field was mandatory.
     """
     # Clean and validate mobile number (10 digits)
-    clean_mobile = ''.join(filter(str.isdigit, mobile_number))
+    clean_mobile = ''.join(filter(str.isdigit, mobile))
     if len(clean_mobile) != 10:
         raise HTTPException(status_code=400, detail="Mobile number must be exactly 10 digits")
     
