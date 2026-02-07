@@ -396,12 +396,20 @@ const Login = () => {
           return;
         }
         
+        // Validate mobile number (required)
+        const cleanMobile = formData.mobile_number?.replace(/\D/g, '') || '';
+        if (cleanMobile.length !== 10) {
+          toast.error('Please enter a valid 10-digit mobile number');
+          setLoading(false);
+          return;
+        }
+        
         // Send registration with mobile number
         await api.post('/auth/register', {
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          mobile_number: formData.mobile_number || null,
+          mobile_number: cleanMobile,
           pan_number: formData.pan_number || null,
         });
         setRegistrationSuccess(true);
