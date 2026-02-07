@@ -24,6 +24,7 @@ class AuditLog(BaseModel):
 # ============== User Models ==============
 class UserCreate(BaseModel):
     email: EmailStr
+    password: Optional[str] = None  # Optional for admin-created users, required for OTP registration
     name: str
     pan_number: Optional[str] = None  # Required for non-superadmin users
     mobile_number: Optional[str] = None  # 10-digit mobile for SMS/WhatsApp notifications
