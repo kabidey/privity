@@ -763,7 +763,7 @@ const Login = () => {
                   <div className="p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl">
                     <div className="flex items-center gap-3">
                       <Phone className="w-5 h-5 text-amber-400" />
-                      <p className="text-white/80 text-sm">Update your mobile to continue</p>
+                      <p className="text-white text-sm">Update your mobile to continue</p>
                     </div>
                   </div>
                   <Input type="tel" placeholder="10-digit mobile" value={mobileUpdateNumber}
