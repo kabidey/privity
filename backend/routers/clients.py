@@ -346,11 +346,13 @@ async def get_clients(
     clients = await db.clients.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
     
     # Add can_book field to each client
-    # PE Level can book for any client, others can only book for clients mapped to them OR created by them
+    # PE Level and Partners Desk can book for any client they can see
+    # Others can only book for clients mapped to them OR created by them
     result = []
     for c in clients:
         client_data = dict(c)
-        if is_pe_level(user_role):
+        if is_pe_level(user_role) or is_partners_desk:
+            # PE Level and Partners Desk can book for any client they can see
             client_data["can_book"] = True
         else:
             # User can book if:
