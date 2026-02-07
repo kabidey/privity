@@ -23,17 +23,12 @@ from services.audit_service import create_audit_log
 from services.email_service import send_templated_email
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level
 )
 from utils.demo_isolation import add_demo_filter
 
 router = APIRouter(tags=["Referral Partners"])
-
-
-# Helper function for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 async def generate_rp_code() -> str:
