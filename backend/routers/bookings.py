@@ -562,6 +562,9 @@ async def create_booking(
         {"booking_id": booking_id, "booking_number": booking_number, "client_name": client["name"], "stock_symbol": stock["symbol"]}
     )
     
+    # Calculate total amount for notification
+    total_amount = booking_data.quantity * booking_data.selling_price
+    
     # Send role-based email notification for new booking
     try:
         from services.role_notification_service import notify_new_booking
