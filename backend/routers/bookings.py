@@ -14,6 +14,8 @@ import os
 import io
 import logging
 
+logger = logging.getLogger(__name__)
+
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
