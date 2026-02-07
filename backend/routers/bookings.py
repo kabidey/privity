@@ -27,7 +27,8 @@ from services.permission_service import (
     require_permission,
     check_permission,
     get_booking_visibility_filter,
-    is_pe_level
+    is_pe_level,
+    is_pe_desk
 )
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
