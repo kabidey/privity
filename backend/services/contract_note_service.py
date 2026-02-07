@@ -197,8 +197,8 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     elements = []
     
     # ==================== HEADER SECTION ====================
-    company_name = company.get("company_name", "SMIFS Capital Markets Ltd")
-    company_address = company.get("company_address", "")
+    company_name = safe_str(company.get("company_name"), "SMIFS Capital Markets Ltd")
+    company_address = safe_str(company.get("company_address"), "")
     logo_url = company.get("logo_url")
     
     # Build header with or without logo
@@ -230,12 +230,15 @@ async def generate_contract_note_pdf(booking: dict) -> io.BytesIO:
     
     # Registration details in a single line
     reg_parts = []
-    if company.get("company_cin"):
-        reg_parts.append(f"CIN: {company.get('company_cin')}")
-    if company.get("company_pan"):
-        reg_parts.append(f"PAN: {company.get('company_pan')}")
-    if company.get("company_gst"):
-        reg_parts.append(f"GST: {company.get('company_gst')}")
+    cin = company.get("company_cin")
+    pan = company.get("company_pan")
+    gst = company.get("company_gst")
+    if cin:
+        reg_parts.append(f"CIN: {cin}")
+    if pan:
+        reg_parts.append(f"PAN: {pan}")
+    if gst:
+        reg_parts.append(f"GST: {gst}")
     
     if reg_parts:
         header_elements.append(Paragraph(" | ".join(reg_parts), ParagraphStyle(
