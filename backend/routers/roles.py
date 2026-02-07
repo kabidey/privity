@@ -12,16 +12,11 @@ from database import db
 from routers.auth import get_current_user
 from services.permission_service import (
     has_permission,
-    require_permission
+    require_permission,
+    is_pe_desk
 )
 
 router = APIRouter(prefix="/roles", tags=["Roles"])
-
-
-# Helper function for backward compatibility
-def is_pe_desk_only(role: int) -> bool:
-    """Check if role is PE Desk only."""
-    return role == 1
 
 
 # Define all available permissions in the system
