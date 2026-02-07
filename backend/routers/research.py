@@ -14,16 +14,11 @@ from database import db
 from routers.auth import get_current_user
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level
 )
 
 router = APIRouter(prefix="/research", tags=["Research"])
-
-
-# Helper function for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
 
 
 # Upload directory (for backward compatibility)
