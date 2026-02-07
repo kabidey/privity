@@ -863,7 +863,12 @@ const Login = () => {
                       <Button type="submit" disabled={loading}
                         className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500 hover:from-${currentTheme.primary}-600 hover:to-${currentTheme.secondary}-600 text-white font-semibold shadow-lg shadow-${currentTheme.primary}-500/25 transition-all hover:scale-[1.02]`}
                         data-testid="submit">
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>{isLogin ? 'Sign In' : 'Create Account'}<ChevronRight className="w-5 h-5 ml-2" /></>}
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                          <>
+                            {isLogin ? 'Sign In' : (registrationStep === 'otp' ? 'Verify OTP' : 'Send OTP')}
+                            <ChevronRight className="w-5 h-5 ml-2" />
+                          </>
+                        )}
                       </Button>
                     </form>
                   )}
