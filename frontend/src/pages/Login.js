@@ -947,7 +947,7 @@ const Login = () => {
                       {!bpOtpSent ? (
                         <>
                           <div className="space-y-2">
-                            <Label className="text-white/80">Registered Mobile</Label>
+                            <Label className="text-white">Registered Mobile</Label>
                             <Input type="tel" placeholder="10-digit mobile" value={formData.mobile_number}
                               onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
                               className="bg-white/15 border-white/40 text-white" data-testid="bp-mobile" />
@@ -969,7 +969,7 @@ const Login = () => {
                             className={`w-full h-12 bg-gradient-to-r from-${currentTheme.primary}-500 to-${currentTheme.secondary}-500`}>
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Login'}
                           </Button>
-                          <Button variant="ghost" onClick={() => setBpOtpSent(false)} className="w-full text-white/60 hover:text-white">
+                          <Button variant="ghost" onClick={() => setBpOtpSent(false)} className="w-full text-white hover:text-white hover:bg-white/10">
                             <ArrowLeft className="w-4 h-4 mr-2" /> Change Number
                           </Button>
                         </>
@@ -980,10 +980,10 @@ const Login = () => {
                   {ssoConfig?.enabled && isLogin && loginType === 'employee' && (
                     <>
                       <div className="relative my-4">
-                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/20"></span></div>
-                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-transparent px-2 text-white/40">Or</span></div>
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/30"></span></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-transparent px-2 text-white/80">Or</span></div>
                       </div>
-                      <Button variant="outline" onClick={handleSsoLogin} disabled={ssoLoading} className="w-full border-white/20 text-white hover:bg-white/10">
+                      <Button variant="outline" onClick={handleSsoLogin} disabled={ssoLoading} className="w-full border-white/40 text-white hover:bg-white/20">
                         {ssoLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Building2 className="w-4 h-4 mr-2" />} Microsoft SSO
                       </Button>
                     </>
