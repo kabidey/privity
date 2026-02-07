@@ -745,33 +745,100 @@ const Login = () => {
                       
                       {!isLogin && (
                         <>
-                          <div className="space-y-2">
-                            <Label className="text-white/80">Full Name <span className="text-red-400">*</span></Label>
-                            <Input type="text" name="name" placeholder="Your name" value={formData.name}
-                              onChange={handleChange} required className="bg-white/10 border-white/20 text-white" data-testid="name" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-white/80">Mobile Number <span className="text-red-400">*</span></Label>
-                            <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
-                              onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                              maxLength={10} required className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
-                            <p className="text-white/40 text-xs">Required for SMS/WhatsApp notifications</p>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-white/80">PAN Number <span className="text-red-400">*</span></Label>
-                            <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
-                              onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
-                              maxLength={10} required className="bg-white/10 border-white/20 text-white font-mono" data-testid="pan" />
-                            <p className="text-white/40 text-xs">Required for KYC verification</p>
-                          </div>
-                          
-                          {/* Domain restriction warning */}
-                          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                            <p className="text-amber-300 text-xs flex items-center gap-2">
-                              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                              Registration is only available for @smifs.com and @smifs.co.in email addresses
-                            </p>
-                          </div>
+                          {registrationStep === 'form' ? (
+                            <>
+                              <div className="space-y-2">
+                                <Label className="text-white/80">Full Name <span className="text-red-400">*</span></Label>
+                                <Input type="text" name="name" placeholder="Your name" value={formData.name}
+                                  onChange={handleChange} required className="bg-white/10 border-white/20 text-white" data-testid="name" />
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-white/80">Mobile Number <span className="text-red-400">*</span></Label>
+                                <Input type="tel" name="mobile_number" placeholder="10-digit mobile number" value={formData.mobile_number}
+                                  onChange={(e) => setFormData({...formData, mobile_number: e.target.value.replace(/\D/g, '').slice(0, 10)})}
+                                  maxLength={10} required className="bg-white/10 border-white/20 text-white" data-testid="mobile" />
+                                <p className="text-white/40 text-xs">Required for SMS/WhatsApp notifications</p>
+                              </div>
+                              <div className="space-y-2">
+                                <Label className="text-white/80">PAN Number <span className="text-red-400">*</span></Label>
+                                <Input type="text" name="pan_number" placeholder="ABCDE1234F" value={formData.pan_number}
+                                  onChange={(e) => setFormData({...formData, pan_number: e.target.value.toUpperCase()})}
+                                  maxLength={10} required className="bg-white/10 border-white/20 text-white font-mono" data-testid="pan" />
+                                <p className="text-white/40 text-xs">Required for KYC verification</p>
+                              </div>
+                              
+                              {/* Domain restriction warning */}
+                              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                                <p className="text-amber-300 text-xs flex items-center gap-2">
+                                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                  Registration is only available for @smifs.com and @smifs.co.in email addresses
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              {/* OTP Verification Step */}
+                              <div className="text-center mb-4">
+                                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-${currentTheme.primary}-500/20 mb-3`}>
+                                  <Mail className={`w-6 h-6 text-${currentTheme.primary}-400`} />
+                                </div>
+                                <h3 className="text-white text-lg font-semibold">Verify Your Email</h3>
+                                <p className={`text-${currentTheme.primary}-300 text-sm mt-1`}>OTP sent to {formData.email}</p>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <Label className="text-white/80">Enter 6-digit OTP</Label>
+                                <Input 
+                                  type="text" 
+                                  value={registrationOtp}
+                                  onChange={(e) => setRegistrationOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                  placeholder="000000"
+                                  maxLength={6}
+                                  className="bg-white/10 border-white/20 text-white text-center text-xl tracking-widest font-mono"
+                                  data-testid="registration-otp"
+                                />
+                                {otpTimer > 0 && (
+                                  <p className="text-white/40 text-xs text-center">
+                                    OTP expires in {Math.floor(otpTimer / 60)}:{String(otpTimer % 60).padStart(2, '0')}
+                                  </p>
+                                )}
+                              </div>
+                              
+                              <div className="flex justify-between items-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setRegistrationStep('form');
+                                    setRegistrationOtp('');
+                                  }}
+                                  className="text-white/60 text-sm hover:text-white flex items-center gap-1"
+                                >
+                                  <ArrowLeft className="w-4 h-4" /> Back
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    setResendingOtp(true);
+                                    try {
+                                      await api.post('/auth/register/resend-otp', null, {
+                                        params: { email: formData.email }
+                                      });
+                                      setOtpTimer(600);
+                                      toast.success('New OTP sent!');
+                                    } catch (err) {
+                                      toast.error(err.response?.data?.detail || 'Failed to resend OTP');
+                                    } finally {
+                                      setResendingOtp(false);
+                                    }
+                                  }}
+                                  disabled={resendingOtp || otpTimer > 540}
+                                  className={`text-${currentTheme.primary}-400 text-sm hover:text-${currentTheme.primary}-300 disabled:opacity-50 disabled:cursor-not-allowed`}
+                                >
+                                  {resendingOtp ? 'Sending...' : 'Resend OTP'}
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </>
                       )}
                       
