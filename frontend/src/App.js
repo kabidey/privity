@@ -230,6 +230,7 @@ function App() {
             <FloatingProgressWidget />
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/test-agreement-modal" element={<TestAgreementModal />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               {/* Public route for client booking confirmation */}
               <Route path="/booking-confirm/:bookingId/:token/:action" element={<BookingConfirm />} />
