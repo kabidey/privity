@@ -837,16 +837,16 @@ GET         /api/fixed-income/reports/export/cash-flow-csv
 ## Prioritized Backlog
 
 ### P0 - Critical
-- None currently
+- None currently (Fixed Income module fully tested and working)
 
 ### P1 - High Priority
-- RBAC Endpoint Audit Phase 4 continuation
-- Integration testing for document upload flow
+- **Primary Market IPO/NFO Subscription Workflow** - Backend + UI for new security subscriptions
+- Real-time Market Data API Integration (requires NSE/BSE API credentials)
 
 ### P2 - Medium Priority
+- Mobile-responsive refinements for Fixed Income UI
 - WhatsApp bulk notification automation
-- Idea history & versioning
-- Collaboration features
+- RBAC Endpoint Audit Phase 4 continuation
 
 ### P3 - Low Priority
 - Export functionality enhancements
