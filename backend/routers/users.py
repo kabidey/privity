@@ -13,7 +13,10 @@ from config import ROLES
 from models import User
 from utils.auth import get_current_user
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_level,
+    is_pe_desk,
+    get_user_visibility_filter
 )
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -43,17 +46,6 @@ async def get_role_name(role_id: int) -> str:
         return custom_role.get("name", f"Custom Role {role_id}")
     
     return "Unknown Role"
-
-
-# Helper functions for backward compatibility
-def is_pe_level(role: int) -> bool:
-    """Check if role is PE level (PE Desk or PE Manager)."""
-    return role in [1, 2]
-
-
-def is_pe_desk_only(role: int) -> bool:
-    """Check if role is PE Desk only."""
-    return role == 1
 
 
 def can_manage_business_partners(role: int) -> bool:
