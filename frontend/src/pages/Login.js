@@ -794,7 +794,7 @@ const Login = () => {
                       <div className="space-y-2">
                         <Label className="text-white">Email</Label>
                         <Input type="email" name="email" placeholder="you@company.com" value={formData.email}
-                          onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/40" data-testid="email" />
+                          onChange={handleChange} required className="bg-white/10 border-white/30 text-white placeholder:text-white/60" data-testid="email" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-white">Password</Label>
