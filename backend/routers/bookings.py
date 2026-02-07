@@ -24,7 +24,8 @@ from config import check_viewer_restriction
 from models import BookingCreate, Booking, BookingWithDetails
 from utils.auth import get_current_user
 from services.permission_service import (
-    require_permission
+    require_permission,
+    check_permission
 )
 from services.notification_service import notify_roles, create_notification
 from services.audit_service import create_audit_log
