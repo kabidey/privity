@@ -37,6 +37,21 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 07, 2026)
 
+#### ✅ Conformation Note Redesign (Feb 07, 2026)
+- **Issue:** User reported text overlapping issues and wanted the document renamed to "Conformation Note" with better aesthetics
+- **Solution:** Complete redesign of the PDF generation with:
+  - **Title:** Changed from "Confirmation Note" to "CONFORMATION NOTE CUM BILL"
+  - **Color Scheme:** Professional emerald green (#054D3B) with gold accents
+  - **Layout:** Clean sections with proper spacing, light background tints, and decorative dividers
+  - **Tables:** Properly spaced with colored headers and alternating backgrounds
+  - **Typography:** Clear hierarchy with Helvetica fonts, proper label/value styling
+  - **Null Safety:** Added `safe_str()` helper function to handle None values gracefully
+  - **Sample Preview:** Added `/api/contract-notes/preview-sample` endpoint for testing
+- **Files Modified:**
+  - `/app/backend/services/contract_note_service.py` - Complete PDF template redesign
+  - `/app/backend/routers/contract_notes.py` - Added preview endpoint
+- **Test:** PDF generates successfully (5267 bytes) with proper formatting
+
 #### ✅ Bug Fix - Contract Note Download & Email Attachment (Feb 07, 2026)
 - **Issue:** Contract/Confirmation notes were being generated but:
   1. Could not be downloaded (404 error)
