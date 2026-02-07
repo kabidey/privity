@@ -342,12 +342,12 @@ const FISecurityMaster = () => {
                 data-testid="search-input"
               />
             </div>
-            <Select value={filters.credit_rating} onValueChange={(v) => setFilters(prev => ({ ...prev, credit_rating: v }))}>
+            <Select value={filters.credit_rating || "all"} onValueChange={(v) => setFilters(prev => ({ ...prev, credit_rating: v === "all" ? "" : v }))}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Rating" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Ratings</SelectItem>
+                <SelectItem value="all">All Ratings</SelectItem>
                 {CREDIT_RATINGS.map(r => (
                   <SelectItem key={r} value={r}>{r}</SelectItem>
                 ))}
