@@ -13,17 +13,12 @@ from routers.auth import get_current_user
 from models import Stock, StockCreate, CorporateAction, CorporateActionCreate
 from services.email_service import send_email
 from services.permission_service import (
-    require_permission
+    require_permission,
+    is_pe_desk
 )
 from utils.demo_isolation import add_demo_filter, mark_as_demo, require_demo_access
 
 router = APIRouter(tags=["Stocks"])
-
-
-# Helper function for backward compatibility
-def is_pe_desk_only(role: int) -> bool:
-    """Check if role is PE Desk only."""
-    return role == 1
 
 
 # ============== Helper Functions ==============
