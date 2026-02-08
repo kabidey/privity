@@ -37,6 +37,22 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Booking Payment Status & Vendor Creation Fix (Feb 08, 2026)
+
+**Bug Fix 1: Payment Status Badge**
+- Fully paid bookings were showing "Pending" instead of "Paid"
+- Fixed `getPaymentBadge` function to check for both `'paid'` and `'completed'` statuses
+- File: `/app/frontend/src/pages/Bookings.js` (line 749-760)
+
+**Bug Fix 2: Vendor Creation Workflow**
+- Removed "Add Vendor" button from Vendors page
+- Replaced with "Clone from Client" button
+- New workflow: Create client first → Clone as Vendor
+- Clone dialog shows searchable list of clients (non-vendors)
+- Uses existing backend endpoint: `POST /api/clients/{id}/clone?target_type=vendor`
+
+**Testing:** 100% (all frontend features verified) - `/app/test_reports/iteration_91.json`
+
 #### ✅ Yield Curve Analytics & Portfolio Optimization (Feb 08, 2026)
 
 **New Module:** `/app/backend/fixed_income/yield_curve_analytics.py`
