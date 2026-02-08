@@ -74,7 +74,8 @@ const Layout = ({ children }) => {
     isViewer, 
     isPartnersDesk, 
     isBusinessPartner, 
-    isEmployee 
+    isEmployee,
+    isLicenseAdmin
   } = useCurrentUser();
   
   // Use permissions hook for dynamic menu access
