@@ -318,6 +318,16 @@ const Layout = ({ children }) => {
   const fiModuleLicensed = isFILicensed || isExempt;
   
   if (hasFixedIncomeModule) {
+    // FI Dashboard - first item in FI section
+    if (hasPermission('fixed_income.view') || isPELevel) {
+      menuItems.push({ 
+        icon: BarChart3, 
+        label: 'FI Dashboard', 
+        path: '/fi-dashboard',
+        licensed: fiModuleLicensed,
+        licenseMessage: !fiModuleLicensed ? 'Fixed Income module not licensed' : null
+      });
+    }
     if (hasPermission('fixed_income.view') || isPELevel || isViewer) {
       menuItems.push({ 
         icon: TrendingUp, 
