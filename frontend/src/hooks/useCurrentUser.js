@@ -87,6 +87,9 @@ export function useCurrentUser() {
   
   const role = user?.role || 7; // Default to Employee
   
+  // Check if user is the hidden license admin (role=0 and is_license_admin=true)
+  const isLicenseAdmin = role === 0 && user?.is_license_admin === true;
+  
   // Role checks
   const isPELevel = checkIsPELevel(role);
   const isPEDesk = checkIsPEDesk(role);
