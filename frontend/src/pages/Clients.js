@@ -679,6 +679,7 @@ const Clients = () => {
         formDataObj.append('is_proprietor', isProprietor === true ? 'true' : 'false');
         formDataObj.append('has_name_mismatch', nameMismatchDetected ? 'true' : 'false');
         formDataObj.append('bank_accounts', JSON.stringify(formData.bank_accounts || []));
+        formDataObj.append('modules', JSON.stringify(formData.modules || ['private_equity']));
         
         // Add mandatory documents
         if (docFiles.pan_card) {
