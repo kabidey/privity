@@ -538,16 +538,16 @@ async def get_user_hierarchy(current_user: dict = Depends(get_current_user)):
     user_role = current_user.get("role", 6)
     user_id = current_user.get("id")
     
-    # PE Level can see all users
+    # PE Level can see all users (except hidden license admin)
     if is_pe_level(user_role):
-        users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+        users = await db.users.find({"is_hidden": {"$ne": True}}, {"_id": 0, "password": 0}).to_list(1000)
     else:
         # Get subordinates using new hierarchy
         subordinate_ids = await get_all_subordinates(user_id)
         all_ids = [user_id] + subordinate_ids
         
         users = await db.users.find(
-            {"id": {"$in": all_ids}},
+            {"id": {"$in": all_ids}, "is_hidden": {"$ne": True}},
             {"_id": 0, "password": 0}
         ).to_list(1000)
     
