@@ -106,7 +106,7 @@ const FIOrders = () => {
 
   const fetchInstruments = async () => {
     try {
-      const response = await api.get('/api/fixed-income/instruments?limit=500');
+      const response = await api.get('/fixed-income/instruments?limit=500');
       setInstruments(response.data.instruments || []);
     } catch (error) {
       console.error('Error fetching instruments:', error);
@@ -125,7 +125,7 @@ const FIOrders = () => {
     }
 
     try {
-      const response = await api.post('/api/fixed-income/instruments/calculate-pricing', null, {
+      const response = await api.post('/fixed-income/instruments/calculate-pricing', null, {
         params: {
           isin: formData.isin,
           clean_price: parseFloat(formData.clean_price),
@@ -181,7 +181,7 @@ const FIOrders = () => {
         notes: formData.notes,
       };
 
-      const response = await api.post('/api/fixed-income/orders', payload);
+      const response = await api.post('/fixed-income/orders', payload);
       toast.success(`Order ${response.data.order_number} created successfully`);
       setCreateDialogOpen(false);
       resetForm();

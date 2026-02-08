@@ -160,7 +160,7 @@ const FISecurityMaster = () => {
         await api.put(`/api/fixed-income/instruments/${editingInstrument.id}`, payload);
         toast.success('Instrument updated successfully');
       } else {
-        await api.post('/api/fixed-income/instruments', payload);
+        await api.post('/fixed-income/instruments', payload);
         toast.success('Instrument created successfully');
       }
       
@@ -192,7 +192,7 @@ const FISecurityMaster = () => {
     }
 
     try {
-      const response = await api.post('/api/fixed-income/instruments/calculate-pricing', null, {
+      const response = await api.post('/fixed-income/instruments/calculate-pricing', null, {
         params: {
           isin: calcData.isin,
           clean_price: parseFloat(calcData.clean_price),
@@ -213,7 +213,7 @@ const FISecurityMaster = () => {
     }
 
     try {
-      const response = await api.post('/api/fixed-income/instruments/price-from-yield', null, {
+      const response = await api.post('/fixed-income/instruments/price-from-yield', null, {
         params: {
           isin: calcData.isin,
           target_ytm: parseFloat(calcData.target_ytm),

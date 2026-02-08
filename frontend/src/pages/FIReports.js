@@ -45,7 +45,7 @@ const FIReports = () => {
 
   const fetchClients = async () => {
     try {
-      const response = await api.get('/api/clients?limit=500');
+      const response = await api.get('/clients?limit=500');
       setClients(response.data.clients || []);
     } catch (error) {
       console.error('Error fetching clients:', error);
