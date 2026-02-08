@@ -130,7 +130,10 @@ const Login = () => {
         const response = await api.post('/auth/login', loginData);
         const { token, user, mobile_required } = response.data;
         
-        if (mobile_required) {
+        // License admin doesn't need mobile number and goes directly to /licence
+        const isLicenseAdmin = user?.is_license_admin === true || user?.role === 0;
+        
+        if (mobile_required && !isLicenseAdmin) {
           setMobileRequired(true);
           localStorage.setItem('token', token);
           toast.info('Please update your mobile number to continue');
@@ -140,7 +143,13 @@ const Login = () => {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
         toast.success('Login successful!');
-        navigate('/');
+        
+        // License admin goes directly to license management
+        if (isLicenseAdmin) {
+          navigate('/licence');
+        } else {
+          navigate('/');
+        }
       } else {
         // OTP-Based Registration
         if (registrationStep === 'form') {
