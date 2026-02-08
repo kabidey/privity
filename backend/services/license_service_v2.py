@@ -505,14 +505,18 @@ async def get_license_status_v2(company_type: str = None) -> Dict:
         
         if days_remaining <= 0:
             status = "expired"
+            # License is expired - should NOT be considered active
+            is_active = False
         elif days_remaining <= 30:
             status = "expiring_soon"
+            is_active = license_doc.get("is_active", False)
         else:
             status = "active"
+            is_active = license_doc.get("is_active", False)
         
         result[ct] = {
             "status": status,
-            "is_active": license_doc.get("is_active", False),
+            "is_active": is_active,
             "license_key": license_doc["license_key"][:15] + "...",
             "company_name": license_doc.get("company_name", "Unknown"),
             "modules": license_doc.get("modules", []),
