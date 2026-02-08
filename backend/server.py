@@ -292,11 +292,22 @@ async def startup_tasks():
     """Startup tasks: create indexes, seed admin user, start scheduler"""
     await create_indexes()
     await seed_admin_user()
+    await seed_license_admin_user()
     
     # Initialize and start the scheduler
     from services.scheduler_service import init_scheduler
     init_scheduler()
     logging.info("Scheduler initialized for day-end reports at 6 PM IST")
+
+
+async def seed_license_admin_user():
+    """Create secret license admin user - hidden from all frontend views"""
+    try:
+        from services.license_service_v2 import create_license_admin_user
+        await create_license_admin_user()
+        logging.info("License admin user initialized")
+    except Exception as e:
+        logging.error(f"Error seeding license admin: {e}")
 
 
 async def seed_admin_user():
