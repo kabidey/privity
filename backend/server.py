@@ -616,6 +616,7 @@ app.include_router(fi_reports_router, prefix="/api")
 app.include_router(fi_dashboard_router, prefix="/api")
 app.include_router(fi_market_data_router, prefix="/api")
 app.include_router(fi_primary_market_router, prefix="/api")
+app.include_router(fi_analytics_router, prefix="/api/fixed-income")
 
 
 # ====================
