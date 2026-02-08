@@ -457,11 +457,11 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: LayoutDashboard, label: 'My Dashboard', path: '/bp-dashboard' });
   }
 
-  // Account Security - visible to all users (2FA settings, change password)
-  menuItems.push({ icon: ShieldCheck, label: 'Account Security', path: '/account-security' });
-
-  // Help & Tutorial - visible to all users
-  menuItems.push({ icon: HelpCircle, label: 'Help & Tutorial', path: '/help' });
+  // Account Security and Help - visible to all users EXCEPT license admin
+  if (!isLicenseAdmin) {
+    menuItems.push({ icon: ShieldCheck, label: 'Account Security', path: '/account-security' });
+    menuItems.push({ icon: HelpCircle, label: 'Help & Tutorial', path: '/help' });
+  }
   
   // PE availability status (from server - are any PE users online?)
   const isPeAvailable = peStatus.pe_online;
