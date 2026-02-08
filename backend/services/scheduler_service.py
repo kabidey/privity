@@ -98,6 +98,74 @@ async def run_whatsapp_automations():
             pass
 
 
+async def check_license_expiry():
+    """
+    Job function to check and update expired licenses.
+    Runs daily at midnight IST.
+    Marks licenses as expired and deactivates them.
+    """
+    from database import db
+    from datetime import timezone
+    
+    print(f"[{datetime.now(IST)}] Starting license expiry check job...")
+    
+    try:
+        now = datetime.now(timezone.utc)
+        
+        # Find all active licenses that have expired
+        expired_licenses = await db.licenses_v2.find({
+            "is_active": True,
+            "expires_at": {"$lt": now.isoformat()}
+        }).to_list(None)
+        
+        expired_count = 0
+        for license_doc in expired_licenses:
+            # Mark as expired and deactivate
+            await db.licenses_v2.update_one(
+                {"license_key": license_doc["license_key"]},
+                {
+                    "$set": {
+                        "is_active": False,
+                        "status": "expired",
+                        "expired_at": now.isoformat()
+                    }
+                }
+            )
+            expired_count += 1
+            print(f"  Expired license: {license_doc['license_key'][:15]}... for {license_doc.get('company_name', 'Unknown')}")
+        
+        result = {"expired_count": expired_count, "checked_at": now.isoformat()}
+        print(f"[{datetime.now(IST)}] License expiry check completed: {expired_count} licenses expired")
+        
+        # Log job execution
+        await db.scheduled_job_runs.insert_one({
+            "job_name": "license_expiry_check",
+            "status": "success",
+            "result": result,
+            "executed_at": datetime.now(IST).isoformat(),
+            "executed_at_utc": now.isoformat()
+        })
+        
+        return result
+        
+    except Exception as e:
+        print(f"[{datetime.now(IST)}] License expiry check failed: {e}")
+        
+        # Log job failure
+        try:
+            await db.scheduled_job_runs.insert_one({
+                "job_name": "license_expiry_check",
+                "status": "failed",
+                "error": str(e),
+                "executed_at": datetime.now(IST).isoformat(),
+                "executed_at_utc": datetime.utcnow().isoformat()
+            })
+        except:
+            pass
+        
+        return {"error": str(e)}
+
+
 def init_scheduler():
     """Initialize and start the scheduler"""
     global scheduler
