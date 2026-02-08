@@ -75,7 +75,7 @@ import { useState, useEffect } from 'react';
 import api from './utils/api';
 import './App.css';
 
-const PrivateRoute = ({ children, allowLicenseAdmin = false }) => {
+const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   
   if (!token) {
@@ -89,8 +89,8 @@ const PrivateRoute = ({ children, allowLicenseAdmin = false }) => {
       const user = JSON.parse(userStr);
       const isLicenseAdmin = user?.is_license_admin === true || user?.role === 0;
       
-      // License admin can only access /licence route
-      if (isLicenseAdmin && !allowLicenseAdmin) {
+      // License admin can only access /licence route - redirect from any other route
+      if (isLicenseAdmin && !window.location.pathname.startsWith('/licence')) {
         return <Navigate to="/licence" />;
       }
     }
