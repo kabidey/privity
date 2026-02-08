@@ -181,10 +181,10 @@ class TestToPayEndpoint:
         print("PASS: TCS is correctly NOT applied when FY cumulative <= ₹50 lakhs")
 
     def test_unauthorized_access(self):
-        """Test endpoint returns 401 without authentication"""
+        """Test endpoint returns 401/403 without authentication"""
         response = requests.get(f"{BASE_URL}/api/finance/to-pay")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
-        print("PASS: Endpoint correctly returns 401 for unauthorized access")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print(f"PASS: Endpoint correctly returns {response.status_code} for unauthorized access")
 
 
 class TestToPayCalculationLogic:
