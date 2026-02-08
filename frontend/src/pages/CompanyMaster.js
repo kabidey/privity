@@ -476,6 +476,46 @@ const CompanyMaster = () => {
         </div>
       </div>
 
+      {/* Company Selection Tabs */}
+      {companies.length > 0 && (
+        <Tabs value={selectedCompanyId} onValueChange={setSelectedCompanyId} className="w-full">
+          <TabsList className="grid grid-cols-2 w-full max-w-md mb-4">
+            {companies.map((company) => (
+              <TabsTrigger 
+                key={company.id} 
+                value={company.id}
+                className="flex items-center gap-2"
+                data-testid={`company-tab-${company.company_type}`}
+              >
+                {company.company_type === 'private_equity' ? (
+                  <Briefcase className="w-4 h-4" />
+                ) : (
+                  <TrendingUp className="w-4 h-4" />
+                )}
+                {company.company_name || (company.company_type === 'private_equity' ? 'Private Equity' : 'Fixed Income')}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      )}
+
+      {/* Company Type Badge */}
+      {formData.company_type && (
+        <Badge variant="outline" className={`${formData.company_type === 'private_equity' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'}`}>
+          {formData.company_type === 'private_equity' ? (
+            <>
+              <Briefcase className="w-3 h-3 mr-1" />
+              Private Equity Module
+            </>
+          ) : (
+            <>
+              <TrendingUp className="w-3 h-3 mr-1" />
+              Fixed Income Module
+            </>
+          )}
+        </Badge>
+      )}
+
       {/* Company Logo Section */}
       <Card>
         <CardHeader>
