@@ -491,9 +491,10 @@ async def get_nsdl_database_statistics(
     _: None = Depends(require_permission("fixed_income.view", "view NSDL statistics"))
 ):
     """
-    Get statistics about the NSDL instrument database.
+    Get statistics about the bond instrument database.
+    Includes data from both local database and available for live lookup.
     """
-    from .nsdl_search_service import NSDL_BOND_DATABASE
+    from .bond_scraping_service import BOND_DATABASE, DataSource
     
     # Count by type
     by_type = {}
@@ -501,7 +502,7 @@ async def get_nsdl_database_statistics(
     by_sector = {}
     issuers = set()
     
-    for inst in NSDL_BOND_DATABASE:
+    for inst in BOND_DATABASE:
         inst_type = inst.get("instrument_type", "UNKNOWN")
         rating = inst.get("credit_rating", "UNRATED")
         sector = inst.get("sector", "Unknown")
@@ -514,16 +515,22 @@ async def get_nsdl_database_statistics(
             issuers.add(issuer)
     
     # Count how many are already imported
-    existing = await db.fi_instruments.count_documents({"source": {"$in": ["NSDL_IMPORT", "public_import"]}})
+    existing = await db.fi_instruments.count_documents({"source": {"$in": ["NSDL_IMPORT", "public_import", "LIVE_LOOKUP", "multi_source_import"]}})
     
     return {
-        "total_instruments": len(NSDL_BOND_DATABASE),
+        "total_instruments_in_database": len(BOND_DATABASE),
         "unique_issuers": len(issuers),
         "already_imported": existing,
-        "available_to_import": len(NSDL_BOND_DATABASE) - existing,
+        "available_to_import": len(BOND_DATABASE) - existing,
         "by_instrument_type": by_type,
         "by_credit_rating": by_rating,
-        "by_sector": by_sector
+        "by_sector": by_sector,
+        "data_sources": {
+            "primary": ["indiabondsinfo.nsdl.com", "rbi.org.in"],
+            "secondary": ["indiabonds.com", "smest.in", "wintwealth.com", "thefixedincome.com", "goldenpi.com", "bondbazaar.com"],
+            "exchange": ["nseindia.com", "bseindia.com"]
+        },
+        "live_lookup_enabled": True
     }
 
 
