@@ -444,6 +444,12 @@ const Layout = ({ children }) => {
     menuItems.push({ icon: Users, label: 'Team Revenue', path: '/employee-revenue' });
   }
 
+  // License Admin - has their own limited menu (CLANDESTINE - only license management)
+  if (isLicenseAdmin) {
+    menuItems.length = 0; // Clear existing menu
+    menuItems.push({ icon: Shield, label: 'License Management', path: '/licence' });
+  }
+
   // BP Dashboard - for Business Partners only
   if (isBusinessPartner) {
     // BP has their own limited menu
