@@ -37,6 +37,34 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Finance "To Pay" Tab - Vendor Payment Calculations (Feb 08, 2026)
+
+**New Feature:** Added "To Pay" tab to Finance page for vendor payment calculations.
+
+**Calculation Formula:**
+- **A = Gross Consideration** = Purchase Price × Number of Shares
+- **B = TCS** = @0.1% (Section 194Q) - applies when FY cumulative payments to vendor exceed ₹50 lakhs
+- **C = Stamp Duty** = @0.015% of Gross Consideration
+- **D = Net Payable** = A - B - C (Amount to pay to Vendor)
+
+**Backend Endpoint:** `GET /api/finance/to-pay`
+- Returns full calculation breakdown per purchase
+- Tracks vendor's FY cumulative payments for TCS threshold
+- Calculates remaining amount to pay
+
+**Frontend Features:**
+- Summary cards showing totals (A, B, C, D, Remaining)
+- Formula reference section
+- Table with vendor, stock, quantity, price, and all calculation columns
+- TCS applicable badge for vendors exceeding threshold
+- Color-coded columns for easy reading
+
+**Files:**
+- `/app/backend/routers/finance.py` - New endpoint
+- `/app/frontend/src/pages/Finance.js` - To Pay tab UI
+
+**Testing:** 100% (14/14 backend, all frontend verified) - `/app/test_reports/iteration_92.json`
+
 #### ✅ Booking Payment Status & Vendor Creation Fix (Feb 08, 2026)
 
 **Bug Fix 1: Payment Status Badge**
