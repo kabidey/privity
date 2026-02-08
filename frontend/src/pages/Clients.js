@@ -1650,6 +1650,46 @@ const Clients = () => {
                       <Label>Pin Code</Label>
                       <Input data-testid="client-pincode-input" value={formData.pin_code} onChange={(e) => setFormData({ ...formData, pin_code: e.target.value })} />
                     </div>
+                    
+                    {/* Module Access Selection */}
+                    <div className="space-y-2 col-span-2">
+                      <Label>Module Access *</Label>
+                      <div className="flex gap-4 p-3 border rounded-lg bg-slate-50">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.modules?.includes('private_equity')}
+                            onChange={(e) => {
+                              const newModules = e.target.checked 
+                                ? [...(formData.modules || []), 'private_equity'].filter((v, i, a) => a.indexOf(v) === i)
+                                : (formData.modules || []).filter(m => m !== 'private_equity');
+                              setFormData({ ...formData, modules: newModules.length ? newModules : ['private_equity'] });
+                            }}
+                            className="w-4 h-4 text-blue-600 rounded"
+                            data-testid="module-pe-checkbox"
+                          />
+                          <span className="text-sm font-medium">Private Equity</span>
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">Bookings, Stocks, Inventory</Badge>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.modules?.includes('fixed_income')}
+                            onChange={(e) => {
+                              const newModules = e.target.checked 
+                                ? [...(formData.modules || []), 'fixed_income'].filter((v, i, a) => a.indexOf(v) === i)
+                                : (formData.modules || []).filter(m => m !== 'fixed_income');
+                              setFormData({ ...formData, modules: newModules.length ? newModules : ['private_equity'] });
+                            }}
+                            className="w-4 h-4 text-teal-600 rounded"
+                            data-testid="module-fi-checkbox"
+                          />
+                          <span className="text-sm font-medium">Fixed Income</span>
+                          <Badge variant="outline" className="text-xs bg-teal-50 text-teal-700">NCDs, Bonds, IPO/NFO</Badge>
+                        </label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Select which modules this client can access. At least one module is required.</p>
+                    </div>
                   </div>
                   <div className="flex justify-end gap-2 pt-4">
                     <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
