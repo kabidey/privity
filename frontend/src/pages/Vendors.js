@@ -294,8 +294,9 @@ const Vendors = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate mandatory documents for new vendors
-    if (!validateDocuments()) {
+    // This form is now only for editing existing vendors
+    if (!editingVendor) {
+      toast.error('Please use "Clone from Client" to create new vendors');
       return;
     }
     
@@ -308,22 +309,14 @@ const Vendors = () => {
         is_proprietor: isProprietor === true,
         has_name_mismatch: nameMismatchDetected
       };
-      let vendorId;
       
-      if (editingVendor) {
-        await api.put(`/clients/${editingVendor.id}`, payload);
-        vendorId = editingVendor.id;
-        toast.success('Vendor updated successfully');
-      } else {
-        const response = await api.post('/clients', payload);
-        vendorId = response.data.id;
-        toast.success('Vendor created successfully');
-      }
+      await api.put(`/clients/${editingVendor.id}`, payload);
+      toast.success('Vendor updated successfully');
       
-      // Upload documents
+      // Upload documents if any
       const hasDocuments = Object.values(docFiles).some(f => f !== null);
-      if (hasDocuments && vendorId) {
-        await uploadDocuments(vendorId);
+      if (hasDocuments) {
+        await uploadDocuments(editingVendor.id);
         toast.success('Documents uploaded successfully');
       }
       
