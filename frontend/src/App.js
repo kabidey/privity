@@ -4,6 +4,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { LicenseProvider } from './contexts/LicenseContext';
 import { DemoProvider } from './contexts/DemoContext';
+import { checkVersionAndClearCache } from './version';
 import FloatingNotifications from './components/FloatingNotifications';
 import NotificationDialog from './components/NotificationDialog';
 import NotificationPermissionBanner from './components/NotificationPermissionBanner';
@@ -28,6 +29,9 @@ import UserManagement from './pages/UserManagement';
 import Analytics from './pages/Analytics';
 import EmailTemplates from './pages/EmailTemplates';
 import EmailLogs from './pages/EmailLogs';
+
+// Check version and clear cache on app load
+checkVersionAndClearCache();
 import EmailServerConfig from './pages/EmailServerConfig';
 import DPReceivables from './pages/DPReceivables';
 import DPTransferClient from './pages/DPTransferClient';
