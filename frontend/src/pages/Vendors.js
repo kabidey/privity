@@ -87,6 +87,51 @@ const Vendors = () => {
     }
   };
 
+  // Fetch clients for clone dialog
+  const fetchClients = async () => {
+    setLoadingClients(true);
+    try {
+      const response = await api.get('/clients?is_vendor=false');
+      setClients(response.data);
+    } catch (error) {
+      toast.error('Failed to load clients');
+    } finally {
+      setLoadingClients(false);
+    }
+  };
+
+  // Clone client as vendor
+  const handleCloneClientAsVendor = async (clientId) => {
+    setCloningClientId(clientId);
+    try {
+      const response = await api.post(`/clients/${clientId}/clone?target_type=vendor`);
+      toast.success(response.data.message || 'Client cloned as vendor successfully');
+      setCloneDialogOpen(false);
+      setClientSearchQuery('');
+      fetchVendors();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to clone client as vendor');
+    } finally {
+      setCloningClientId(null);
+    }
+  };
+
+  // Open clone dialog and fetch clients
+  const openCloneDialog = () => {
+    setCloneDialogOpen(true);
+    fetchClients();
+  };
+
+  // Filter clients based on search
+  const filteredClients = clients.filter(client => {
+    const search = clientSearchQuery.toLowerCase();
+    return (
+      client.name?.toLowerCase().includes(search) ||
+      client.pan_number?.toLowerCase().includes(search) ||
+      client.email?.toLowerCase().includes(search)
+    );
+  });
+
   const handleFileChange = async (docType, file) => {
     if (!file) return;
     
