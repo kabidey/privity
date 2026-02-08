@@ -749,6 +749,7 @@ const Bookings = () => {
   const getPaymentBadge = (booking) => {
     const status = booking.payment_status || 'pending';
     switch (status) {
+      case 'paid':
       case 'completed':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Paid</Badge>;
       case 'partial':
