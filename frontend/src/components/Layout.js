@@ -50,7 +50,8 @@ import {
   HardDrive,
   HelpCircle,
   MessageCircle,
-  Bell
+  Bell,
+  Landmark
 } from 'lucide-react';
 
 const Layout = ({ children }) => {
