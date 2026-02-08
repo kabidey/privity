@@ -160,7 +160,7 @@ async def check_license_expiry():
                 "executed_at": datetime.now(IST).isoformat(),
                 "executed_at_utc": datetime.utcnow().isoformat()
             })
-        except:
+        except Exception:
             pass
         
         return {"error": str(e)}
