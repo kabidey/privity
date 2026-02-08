@@ -714,3 +714,82 @@ async def bulk_update_market_data(
         "errors": errors
     }
 
+
+# ==================== PUBLIC DATA IMPORT ====================
+
+@router.post("/import-public-data")
+async def import_public_instruments_endpoint(
+    overwrite: bool = Query(False, description="Overwrite existing instruments"),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("fixed_income.instrument_create", "import public instruments"))
+):
+    """
+    Import Indian NCD, Bond, and G-Sec data from public sources.
+    
+    This endpoint populates the Security Master with curated data from:
+    - NSE listed NCDs and Bonds
+    - BSE listed NCDs
+    - Government Securities (G-Secs)
+    
+    Data includes instruments from major issuers like:
+    - Reliance Industries, HDFC, ICICI Bank, SBI
+    - NBFCs: Bajaj Finance, Muthoot, Shriram, Tata Capital
+    - Government of India Securities
+    
+    Args:
+        overwrite: If True, update existing instruments with new data
+    
+    Returns:
+        Import statistics including count of imported, updated, and skipped instruments
+    """
+    from .public_data_importer import import_public_instruments
+    
+    try:
+        result = await import_public_instruments(source="curated", overwrite=overwrite)
+        return {
+            "message": "Public data import completed successfully",
+            "statistics": result
+        }
+    except Exception as e:
+        logger.error(f"Error importing public data: {e}")
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
+@router.get("/available-public-instruments")
+async def get_available_public_instruments(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("fixed_income.view", "view available public instruments"))
+):
+    """
+    Get list of available public instruments that can be imported.
+    Shows what instruments will be added when import is triggered.
+    """
+    from .public_data_importer import SAMPLE_INDIAN_NCDS
+    
+    # Group by type and rating
+    by_type = {}
+    by_rating = {}
+    
+    for inst in SAMPLE_INDIAN_NCDS:
+        inst_type = inst.get("instrument_type", "UNKNOWN")
+        rating = inst.get("credit_rating", "UNRATED")
+        
+        by_type[inst_type] = by_type.get(inst_type, 0) + 1
+        by_rating[rating] = by_rating.get(rating, 0) + 1
+    
+    return {
+        "total_available": len(SAMPLE_INDIAN_NCDS),
+        "by_type": by_type,
+        "by_rating": by_rating,
+        "instruments": [
+            {
+                "isin": i["isin"],
+                "issuer_name": i["issuer_name"],
+                "instrument_type": i["instrument_type"],
+                "coupon_rate": i["coupon_rate"],
+                "credit_rating": i["credit_rating"],
+                "maturity_date": i["maturity_date"]
+            }
+            for i in SAMPLE_INDIAN_NCDS
+        ]
+    }
