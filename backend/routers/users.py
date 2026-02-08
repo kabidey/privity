@@ -114,9 +114,9 @@ async def get_employees(
     _: None = Depends(require_permission("users.view", "view employee list"))
 ):
     """Get list of all users for client mapping (requires users.view permission)"""
-    # Return all users for client mapping
+    # Return all users for client mapping, excluding hidden users (like license admin)
     users = await db.users.find(
-        {},
+        {"is_hidden": {"$ne": True}},
         {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
     ).to_list(1000)
     
