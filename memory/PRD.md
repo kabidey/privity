@@ -37,6 +37,41 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Module-Based Permission System (Feb 08, 2026)
+**Implemented granular module activation for Private Equity and Fixed Income:**
+
+**Permission Structure:**
+- `module.private_equity` - Activates PE module features
+- `module.fixed_income` - Activates FI module features
+
+**Backend Changes (`/app/backend/services/permission_service.py`):**
+- Added `module` category with `private_equity` and `fixed_income` permissions
+- Extended `fixed_income` permissions with granular options:
+  - `instrument_view`, `instrument_create`, `instrument_edit`, `instrument_delete`, `instrument_bulk_upload`
+  - `order_view`, `order_create`, `order_edit`, `order_approve`, `order_settle`
+  - `report_view`, `report_export`, `payment_record`, `market_data_refresh`
+  - `portfolio_optimize`, `coupon_notifications`
+- Updated DEFAULT_ROLES to include module permissions per role
+
+**Frontend Changes (`/app/frontend/src/pages/RoleManagement.js`):**
+- Added Module Activation section in role edit dialog with toggle switches
+- Visual Permissions view shows module badges (Private Equity blue, Fixed Income teal)
+- categoryInfo now groups permissions by module (pe, fi, common)
+
+**Navigation Conditional (`/app/frontend/src/components/Layout.js`):**
+- Fixed Income menu items (FI Instruments, FI Orders, FI Reports) only visible when `module.fixed_income` permission is granted
+
+**Role-Module Mapping:**
+| Role | Private Equity | Fixed Income |
+|------|---------------|--------------|
+| PE Desk | ✓ (Full Access) | ✓ (Full Access) |
+| PE Manager | ✓ | ✓ |
+| Finance | ✓ | ✓ |
+| Viewer | ✓ | ✓ |
+| Partners Desk | ✓ | ✗ |
+| Business Partner | ✓ | ✗ |
+| Employee | ✓ | ✓ |
+
 #### ✅ Multiple Companies Support (Feb 08, 2026)
 **Created two separate companies under Company Master:**
 
