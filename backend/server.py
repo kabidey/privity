@@ -34,7 +34,7 @@ from services.notification_service import ws_manager
 # Create the main app
 app = FastAPI(
     title="PRIVITY - Private Equity System",
-    version="2.0.0",
+    version="7.2.2.1",
     description="Share Booking Management System with Role-based Access Control"
 )
 
@@ -86,7 +86,7 @@ async def health_check():
     health = {
         "status": "ok",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "version": "2.0.0",
+        "version": "7.2.2.1",
         "checks": {}
     }
     
@@ -682,9 +682,9 @@ async def robots_txt():
 @app.get("/health")
 async def health_check_root():
     """Root health check endpoint for Kubernetes liveness/readiness probes"""
-    return {"status": "healthy", "version": "2.0.0"}
+    return {"status": "healthy", "version": "7.2.2.1"}
 
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "version": "2.0.0"}
+    return {"status": "healthy", "version": "7.2.2.1"}
