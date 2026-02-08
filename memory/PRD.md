@@ -37,6 +37,31 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Public Data Import for Security Master (Feb 08, 2026)
+**Auto-populated Indian NCDs, Bonds, and G-Secs from curated public sources:**
+
+**Instruments Imported (26 total):**
+- **NCDs (15)**: Reliance, HDFC, Bajaj Finance, Muthoot, Mahindra Finance, Shriram, Tata Capital, Cholamandalam, Edelweiss, JM Financial, IIFL, Piramal, Sundaram, Aditya Birla, HDB Financial
+- **Bonds (6)**: SBI AT1, Reliance, Tata Steel, L&T, NTPC Green Bond, PFC, REC
+- **G-Secs (3)**: Government of India 2032, 2033, 2037
+
+**Data Fields:**
+- ISIN, Issuer Name, Instrument Type (NCD/BOND/GSEC)
+- Face Value, Coupon Rate, Coupon Frequency
+- Issue Date, Maturity Date
+- Credit Rating (AAA to A+, SOVEREIGN for G-Secs)
+- Rating Agency (CRISIL, ICRA, CARE, GOI)
+- Current Market Price, Listing Exchange, Sector
+
+**Backend Implementation:**
+- `/app/backend/fixed_income/public_data_importer.py` - Curated instrument data
+- `POST /api/fixed-income/instruments/import-public-data` - Trigger import
+- `GET /api/fixed-income/instruments/available-public-instruments` - Preview available
+
+**Frontend:**
+- "Import NCDs/Bonds" button in Security Master header
+- One-click import with success toast showing statistics
+
 #### ✅ Client Module Segregation (Feb 08, 2026)
 **Each client now has module access control:**
 
