@@ -213,15 +213,22 @@ class TestPrimaryMarketBids(TestAuthSetup):
     @pytest.fixture(scope="class")
     def open_issue(self, api_client):
         """Get or create an open issue for testing bids"""
-        # Check for existing open issue
+        from datetime import date
+        today = date.today()
+        today_str = today.isoformat()
+        
+        # Check for existing open issue with valid subscription window
         response = api_client.get(f"{BASE_URL}/api/fixed-income/primary-market/issues?status=open")
         if response.status_code == 200:
             data = response.json()
-            if data.get("issues") and len(data["issues"]) > 0:
-                return data["issues"][0]
+            for issue in data.get("issues", []):
+                # Check if subscription window is actually open
+                open_date = issue.get("issue_open_date", "")
+                close_date = issue.get("issue_close_date", "")
+                if open_date <= today_str <= close_date:
+                    return issue
         
-        # Create a new issue and open it
-        today = date.today()
+        # Create a new issue and open it with current date in window
         test_isin = f"INE{uuid.uuid4().hex[:6].upper()}02010"
         
         issue_data = {
@@ -237,7 +244,7 @@ class TestPrimaryMarketBids(TestAuthSetup):
             "maturity_date": (today + timedelta(days=365*3)).isoformat(),
             "credit_rating": "AA",
             "rating_agency": "CRISIL",
-            "issue_open_date": (today - timedelta(days=1)).isoformat(),  # Already open
+            "issue_open_date": (today - timedelta(days=1)).isoformat(),  # Yesterday - already open
             "issue_close_date": (today + timedelta(days=30)).isoformat(),
             "min_application_size": 1,
             "lot_size": 1,
