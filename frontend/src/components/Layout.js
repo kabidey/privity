@@ -209,68 +209,150 @@ const Layout = ({ children }) => {
   
   // Inventory - based on permission
   if (hasPermission('inventory.view') || !isBusinessPartner) {
-    menuItems.push({ icon: Boxes, label: 'Inventory', path: '/inventory' });
+    const inventoryLicensed = isFeatureLicensed('inventory').isLicensed;
+    menuItems.push({ 
+      icon: Boxes, 
+      label: 'Inventory', 
+      path: '/inventory',
+      licensed: inventoryLicensed || isExempt,
+      licenseMessage: !inventoryLicensed && !isExempt ? 'Feature not licensed' : null
+    });
   }
   
   // Bookings - based on permission
   if (hasPermission('bookings.view') || !isBusinessPartner) {
-    menuItems.push({ icon: FileText, label: 'Bookings', path: '/bookings' });
+    const bookingsLicensed = isFeatureLicensed('bookings').isLicensed;
+    menuItems.push({ 
+      icon: FileText, 
+      label: 'Bookings', 
+      path: '/bookings',
+      licensed: bookingsLicensed || isExempt,
+      licenseMessage: !bookingsLicensed && !isExempt ? 'Feature not licensed' : null
+    });
   }
   
   // Reports - based on permission
   if (hasPermission('reports.view') || !isBusinessPartner) {
-    menuItems.push({ icon: BarChart3, label: 'Reports', path: '/reports' });
+    const reportsLicensed = isFeatureLicensed('reports').isLicensed;
+    menuItems.push({ 
+      icon: BarChart3, 
+      label: 'Reports', 
+      path: '/reports',
+      licensed: reportsLicensed || isExempt,
+      licenseMessage: !reportsLicensed && !isExempt ? 'Feature not licensed' : null
+    });
   }
 
   // Finance - based on permission
   if (hasPermission('finance.view') || isFinance || isPELevel || isViewer) {
-    menuItems.push({ icon: Banknote, label: 'Finance', path: '/finance' });
+    const financeLicensed = isFeatureLicensed('finance').isLicensed;
+    menuItems.push({ 
+      icon: Banknote, 
+      label: 'Finance', 
+      path: '/finance',
+      licensed: financeLicensed || isExempt,
+      licenseMessage: !financeLicensed && !isExempt ? 'Feature not licensed' : null
+    });
   }
 
   // User Management - based on permission
   if (hasPermission('users.view') || isPELevel || isViewer) {
-    menuItems.push({ icon: UserCog, label: 'Users', path: '/users' });
+    menuItems.push({ icon: UserCog, label: 'Users', path: '/users', licensed: true });
   }
 
   // Role Management - based on permission (PE Desk only by default)
   if (hasPermission('roles.view') || isPEDesk) {
-    menuItems.push({ icon: Shield, label: 'Role Management', path: '/roles' });
+    menuItems.push({ icon: Shield, label: 'Role Management', path: '/roles', licensed: true });
   }
 
   // Referral Partners - based on permission
   if (hasPermission('referral_partners.view') || isPELevel || isEmployee || isPartnersDesk || isViewer) {
-    menuItems.push({ icon: UserPlus, label: 'Referral Partners', path: '/referral-partners' });
+    const rpLicensed = isFeatureLicensed('referral_partners').isLicensed;
+    menuItems.push({ 
+      icon: UserPlus, 
+      label: 'Referral Partners', 
+      path: '/referral-partners',
+      licensed: rpLicensed || isExempt,
+      licenseMessage: !rpLicensed && !isExempt ? 'Feature not licensed' : null
+    });
   }
 
   // Business Partners - based on permission
   if (hasPermission('business_partners.view') || isPELevel || isPartnersDesk || isViewer) {
-    menuItems.push({ icon: Building2, label: 'Business Partners', path: '/business-partners' });
+    const bpLicensed = isFeatureLicensed('business_partners').isLicensed;
+    menuItems.push({ 
+      icon: Building2, 
+      label: 'Business Partners', 
+      path: '/business-partners',
+      licensed: bpLicensed || isExempt,
+      licenseMessage: !bpLicensed && !isExempt ? 'Feature not licensed' : null
+    });
   }
 
   // Analytics - based on permission
   if (hasPermission('analytics.view') || isPELevel || isViewer) {
-    menuItems.push({ icon: PieChart, label: 'Analytics', path: '/analytics' });
+    const analyticsLicensed = isFeatureLicensed('analytics').isLicensed;
+    menuItems.push({ 
+      icon: PieChart, 
+      label: 'Analytics', 
+      path: '/analytics',
+      licensed: analyticsLicensed || isExempt,
+      licenseMessage: !analyticsLicensed && !isExempt ? 'Feature not licensed' : null
+    });
   }
   
   // Confirmation Notes - based on permission
   if (hasPermission('contract_notes.view') || isPELevel || isViewer) {
-    menuItems.push({ icon: FileText, label: 'Confirmation Notes', path: '/contract-notes' });
+    const cnLicensed = isFeatureLicensed('contract_notes').isLicensed;
+    menuItems.push({ 
+      icon: FileText, 
+      label: 'Confirmation Notes', 
+      path: '/contract-notes',
+      licensed: cnLicensed || isExempt,
+      licenseMessage: !cnLicensed && !isExempt ? 'Feature not licensed' : null
+    });
   }
   
-  // Fixed Income Module - requires module.fixed_income permission
+  // Fixed Income Module - requires module.fixed_income permission AND license
   const hasFixedIncomeModule = hasPermission('module.fixed_income') || isPEDesk;
+  const fiModuleLicensed = isFILicensed || isExempt;
+  
   if (hasFixedIncomeModule) {
     if (hasPermission('fixed_income.view') || isPELevel || isViewer) {
-      menuItems.push({ icon: TrendingUp, label: 'FI Instruments', path: '/fi-instruments' });
+      menuItems.push({ 
+        icon: TrendingUp, 
+        label: 'FI Instruments', 
+        path: '/fi-instruments',
+        licensed: fiModuleLicensed,
+        licenseMessage: !fiModuleLicensed ? 'Fixed Income module not licensed' : null
+      });
     }
     if (hasPermission('fixed_income.order_view') || isPELevel) {
-      menuItems.push({ icon: FileText, label: 'FI Orders', path: '/fi-orders' });
+      menuItems.push({ 
+        icon: FileText, 
+        label: 'FI Orders', 
+        path: '/fi-orders',
+        licensed: fiModuleLicensed,
+        licenseMessage: !fiModuleLicensed ? 'Fixed Income module not licensed' : null
+      });
     }
     if (hasPermission('fixed_income.view') || isPELevel) {
-      menuItems.push({ icon: Landmark, label: 'FI IPO/NFO', path: '/fi-primary-market' });
+      menuItems.push({ 
+        icon: Landmark, 
+        label: 'FI IPO/NFO', 
+        path: '/fi-primary-market',
+        licensed: fiModuleLicensed,
+        licenseMessage: !fiModuleLicensed ? 'Fixed Income module not licensed' : null
+      });
     }
     if (hasPermission('fixed_income.report_view') || isPELevel || isViewer) {
-      menuItems.push({ icon: PieChart, label: 'FI Reports', path: '/fi-reports' });
+      menuItems.push({ 
+        icon: PieChart, 
+        label: 'FI Reports', 
+        path: '/fi-reports',
+        licensed: fiModuleLicensed,
+        licenseMessage: !fiModuleLicensed ? 'Fixed Income module not licensed' : null
+      });
     }
   }
   
