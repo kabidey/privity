@@ -60,6 +60,7 @@ import NotificationDashboard from './pages/NotificationDashboard';
 import FISecurityMaster from './pages/FISecurityMaster';
 import FIOrders from './pages/FIOrders';
 import FIReports from './pages/FIReports';
+import FIPrimaryMarket from './pages/FIPrimaryMarket';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
 import InstallPWA from './components/InstallPWA';
