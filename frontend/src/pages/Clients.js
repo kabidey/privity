@@ -936,6 +936,7 @@ const Clients = () => {
       address: client.address || '',
       pin_code: client.pin_code || '',
       bank_accounts: client.bank_accounts || [],
+      modules: client.modules || ['private_equity'],
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null });
     setOcrResults({});
