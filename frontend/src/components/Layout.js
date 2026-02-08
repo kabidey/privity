@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useLicense } from '../contexts/LicenseContext';
 import NotificationBell from './NotificationBell';
 import ThemeSelector from './ThemeSelector';
 import KillSwitch from './KillSwitch';
@@ -28,6 +29,7 @@ import {
   Settings,
   UserCog,
   PieChart,
+  Lock,
   Mail,
   MailCheck,
   Banknote,
