@@ -80,6 +80,9 @@ const Layout = ({ children }) => {
   // Use permissions hook for dynamic menu access
   const { hasPermission, canAccess } = usePermissions();
   
+  // License context for feature gating
+  const { isFeatureLicensed, isModuleLicensed, isPELicensed, isFILicensed, isExempt } = useLicense();
+  
   const { theme } = useTheme();
   
   // Changelog modal hook
