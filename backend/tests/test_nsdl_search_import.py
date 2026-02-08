@@ -304,19 +304,21 @@ class TestNSDLSearchImport:
     # ========== Authorization Tests ==========
     
     def test_nsdl_search_requires_auth(self):
-        """Test NSDL search requires authentication"""
+        """Test NSDL search requires authentication (returns 401 or 403)"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
             params={"query": "Reliance", "search_type": "company"}
         )
-        assert response.status_code == 401
+        # Bot protection middleware returns 403, auth middleware returns 401
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
 
     def test_nsdl_import_requires_auth(self):
-        """Test NSDL import requires authentication"""
+        """Test NSDL import requires authentication (returns 401 or 403)"""
         response = requests.post(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-import/INE002A08427"
         )
-        assert response.status_code == 401
+        # Bot protection middleware returns 403, auth middleware returns 401
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
 
 
 class TestNSDLSearchResponseFields:
