@@ -37,6 +37,56 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Live NSDL Lookup Feature (Feb 08, 2026)
+
+**Implemented automatic live web scraping when ISIN not found locally:**
+
+**Feature Behavior:**
+- When searching for a specific ISIN that doesn't exist in the local database
+- System automatically scrapes real-time data from 3 sources:
+  1. **indiabondsinfo.nsdl.com** - Official NSDL database
+  2. **indiabonds.com** - Bond marketplace
+  3. **smest.in** - Bond investment platform
+- If found, instrument is auto-imported to Security Master in the same request
+
+**Backend Implementation:**
+- `/app/backend/fixed_income/live_lookup_service.py` - LiveBondLookup class
+  - Parallel scraping from all 3 sources
+  - Data merging and validation
+  - Auto-import on successful lookup
+- Updated `/api/fixed-income/instruments/nsdl-search` endpoint with `live_lookup=true` param
+- New `/api/fixed-income/instruments/live-lookup/{isin}` endpoint for direct lookup
+
+**API Response Structure:**
+```json
+{
+  "query": "INE123A01234",
+  "search_type": "all",
+  "total_results": 0,
+  "results": [],
+  "live_lookup_attempted": true,
+  "live_lookup_result": {
+    "success": false,
+    "message": "No data found for ISIN INE123A01234 from any source",
+    "sources_tried": ["indiabondsinfo.nsdl.com", "indiabonds.com", "smest.in"],
+    "errors": []
+  }
+}
+```
+
+**Frontend Updates (`FISecurityMaster.js`):**
+- NSDL Search now passes `live_lookup=true` parameter
+- Toast notifications for live lookup status
+- "LIVE" badge on search results found via live lookup
+- "Auto-Imported" badge for instruments auto-imported during search
+
+**Testing Results:**
+- Backend: 100% (16/16 passed)
+- Frontend: 100% (All UI elements verified)
+- Test report: `/app/test_reports/iteration_85.json`
+
+**Note:** Web scraping requires network access to external sites. In restricted environments, scraping will fail gracefully with informative error messages.
+
 #### ✅ Multi-Source Bond Data Import (Feb 08, 2026)
 
 **Implemented comprehensive multi-source import system:**
