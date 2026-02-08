@@ -9,7 +9,7 @@ import logging
 from typing import Optional, List
 from datetime import date, datetime
 from decimal import Decimal
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Body
 
 from database import db
 from utils.auth import get_current_user
