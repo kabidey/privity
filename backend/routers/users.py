@@ -372,11 +372,14 @@ async def get_potential_managers(
     _: None = Depends(require_permission("users.view", "view potential managers"))
 ):
     """Get list of users who can be managers (hierarchy level > 1 or PE Level)"""
-    # Get users with hierarchy level > 1 or PE roles
+    # Get users with hierarchy level > 1 or PE roles, excluding hidden users
     users = await db.users.find(
-        {"$or": [
-            {"hierarchy_level": {"$gt": 1}},
-            {"role": {"$in": [1, 2]}}
+        {"$and": [
+            {"is_hidden": {"$ne": True}},
+            {"$or": [
+                {"hierarchy_level": {"$gt": 1}},
+                {"role": {"$in": [1, 2]}}
+            ]}
         ]},
         {"_id": 0, "id": 1, "name": 1, "email": 1, "hierarchy_level": 1, "role": 1}
     ).to_list(1000)
@@ -401,7 +404,7 @@ async def get_my_subordinates(current_user: dict = Depends(get_current_user)):
         return []
     
     users = await db.users.find(
-        {"id": {"$in": subordinate_ids}},
+        {"id": {"$in": subordinate_ids}, "is_hidden": {"$ne": True}},
         {"_id": 0, "password": 0}
     ).to_list(1000)
     
@@ -418,7 +421,7 @@ async def get_my_subordinates(current_user: dict = Depends(get_current_user)):
 async def get_my_direct_reports(current_user: dict = Depends(get_current_user)):
     """Get users who directly report to current user"""
     users = await db.users.find(
-        {"reports_to": current_user["id"]},
+        {"reports_to": current_user["id"], "is_hidden": {"$ne": True}},
         {"_id": 0, "password": 0}
     ).to_list(1000)
     
