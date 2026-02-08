@@ -31,6 +31,7 @@ from services.email_service import send_email, get_email_template
 from services.ocr_service import process_document_ocr
 from services.file_storage import upload_file_to_gridfs, get_file_url
 from utils.demo_isolation import add_demo_filter, mark_as_demo, require_demo_access
+from middleware.license_enforcement import license_enforcer
 
 router = APIRouter(tags=["Clients"])
 
