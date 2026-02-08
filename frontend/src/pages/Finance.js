@@ -990,6 +990,190 @@ const Finance = () => {
           </Card>
         </TabsContent>
 
+        {/* To Pay Tab - Vendor Payment Calculations */}
+        <TabsContent value="to-pay">
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Banknote className="h-5 w-5" />
+                  Vendor Payments - To Pay
+                </CardTitle>
+                <CardDescription>
+                  Calculate amounts payable to vendors with TCS (@0.1% if FY ≥₹50L) and Stamp Duty (@0.015%)
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {toPayData.financial_year || 'Current FY'}
+                </Badge>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={fetchToPayData}
+                  disabled={loadingToPay}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-1 ${loadingToPay ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Summary Cards */}
+              {toPayData.summary && (
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                  <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                    <CardContent className="p-4">
+                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">A. Gross Total</div>
+                      <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                        {formatCurrency(toPayData.summary.total_gross_consideration || 0)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                    <CardContent className="p-4">
+                      <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">B. Total TCS</div>
+                      <div className="text-lg font-bold text-amber-700 dark:text-amber-300">
+                        {formatCurrency(toPayData.summary.total_tcs || 0)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
+                    <CardContent className="p-4">
+                      <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">C. Total Stamp Duty</div>
+                      <div className="text-lg font-bold text-purple-700 dark:text-purple-300">
+                        {formatCurrency(toPayData.summary.total_stamp_duty || 0)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                    <CardContent className="p-4">
+                      <div className="text-xs text-green-600 dark:text-green-400 font-medium">D. Net Payable</div>
+                      <div className="text-lg font-bold text-green-700 dark:text-green-300">
+                        {formatCurrency(toPayData.summary.total_net_payable || 0)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                    <CardContent className="p-4">
+                      <div className="text-xs text-red-600 dark:text-red-400 font-medium">Remaining</div>
+                      <div className="text-lg font-bold text-red-700 dark:text-red-300">
+                        {formatCurrency(toPayData.summary.total_remaining || 0)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Formula Reference */}
+              <div className="bg-muted/50 rounded-lg p-3 mb-4 text-sm">
+                <div className="font-medium mb-1">Calculation Formula:</div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-muted-foreground">
+                  <div><span className="font-semibold">A</span> = Price × Qty (Gross)</div>
+                  <div><span className="font-semibold">B</span> = TCS @0.1% (if FY ≥₹50L)</div>
+                  <div><span className="font-semibold">C</span> = Stamp Duty @0.015%</div>
+                  <div><span className="font-semibold">D</span> = A - B - C (Net Payable)</div>
+                </div>
+              </div>
+
+              {/* Table */}
+              {loadingToPay ? (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : toPayData.to_pay_list?.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Banknote className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No pending vendor payments</p>
+                </div>
+              ) : (
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold">Vendor</TableHead>
+                        <TableHead className="font-semibold">Stock</TableHead>
+                        <TableHead className="text-right font-semibold">Qty</TableHead>
+                        <TableHead className="text-right font-semibold">Price</TableHead>
+                        <TableHead className="text-right font-semibold bg-blue-50 dark:bg-blue-900/20">A. Gross</TableHead>
+                        <TableHead className="text-right font-semibold bg-amber-50 dark:bg-amber-900/20">B. TCS</TableHead>
+                        <TableHead className="text-right font-semibold bg-purple-50 dark:bg-purple-900/20">C. Stamp</TableHead>
+                        <TableHead className="text-right font-semibold bg-green-50 dark:bg-green-900/20">D. Net Pay</TableHead>
+                        <TableHead className="text-right font-semibold">Remaining</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {toPayData.to_pay_list?.map((item) => (
+                        <TableRow key={item.purchase_id} className="hover:bg-muted/30">
+                          <TableCell>
+                            <div className="font-medium">{item.vendor_name}</div>
+                            <div className="text-xs text-muted-foreground">{item.vendor_pan}</div>
+                            {item.tcs_threshold_exceeded && (
+                              <Badge variant="outline" className="text-xs mt-1 text-amber-600 border-amber-300">
+                                TCS Applicable
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">{item.stock_symbol}</div>
+                            <div className="text-xs text-muted-foreground">{item.purchase_number}</div>
+                          </TableCell>
+                          <TableCell className="text-right font-mono">{item.quantity?.toLocaleString()}</TableCell>
+                          <TableCell className="text-right font-mono">₹{item.price_per_unit?.toLocaleString()}</TableCell>
+                          <TableCell className="text-right font-mono bg-blue-50/50 dark:bg-blue-900/10 font-semibold">
+                            {formatCurrency(item.gross_consideration)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono bg-amber-50/50 dark:bg-amber-900/10">
+                            {item.tcs_applicable ? (
+                              <div>
+                                <div className="font-semibold text-amber-700 dark:text-amber-400">
+                                  {formatCurrency(item.tcs_amount)}
+                                </div>
+                                <div className="text-xs text-muted-foreground">@{item.tcs_rate}%</div>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right font-mono bg-purple-50/50 dark:bg-purple-900/10">
+                            <div>
+                              <div>{formatCurrency(item.stamp_duty_amount)}</div>
+                              <div className="text-xs text-muted-foreground">@{item.stamp_duty_rate}%</div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-mono bg-green-50/50 dark:bg-green-900/10 font-semibold text-green-700 dark:text-green-400">
+                            {formatCurrency(item.net_payable)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {item.remaining_to_pay > 0 ? (
+                              <div className="font-semibold text-red-600 dark:text-red-400">
+                                {formatCurrency(item.remaining_to_pay)}
+                              </div>
+                            ) : (
+                              <Badge className="bg-green-100 text-green-800">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Paid
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {/* TCS Info */}
+              <div className="mt-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>TCS @0.1% applies when cumulative vendor payments exceed ₹50 lakhs in a Financial Year (Section 194Q)</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* TCS Collected Tab */}
         <TabsContent value="tcs">
           <Card>
