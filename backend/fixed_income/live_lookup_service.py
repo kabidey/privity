@@ -164,14 +164,14 @@ class LiveBondLookup:
                         elif 'coupon' in label and 'rate' in label:
                             try:
                                 data['coupon_rate'] = float(re.sub(r'[^0-9.]', '', value))
-                            except:
+                            except (ValueError, TypeError):
                                 pass
                         elif 'maturity' in label:
                             data['maturity_date'] = value
                         elif 'face value' in label:
                             try:
                                 data['face_value'] = float(re.sub(r'[^0-9.]', '', value))
-                            except:
+                            except (ValueError, TypeError):
                                 pass
                         elif 'rating' in label or 'credit' in label:
                             data['credit_rating'] = value.upper() if value else None
