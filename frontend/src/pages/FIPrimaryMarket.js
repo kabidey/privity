@@ -142,10 +142,18 @@ const FIPrimaryMarket = () => {
 
   const fetchClients = async () => {
     try {
-      const response = await api.get('/clients?limit=500');
-      setClients(response.data.clients || []);
+      // Fetch only clients with Fixed Income module access
+      const response = await api.get('/clients/by-module/fixed_income');
+      setClients(response.data || []);
     } catch (error) {
       console.error('Failed to load clients');
+      // Fallback to all clients if new endpoint fails
+      try {
+        const fallback = await api.get('/clients?limit=500');
+        setClients(fallback.data.clients || []);
+      } catch (e) {
+        console.error('Fallback also failed');
+      }
     }
   };
 
