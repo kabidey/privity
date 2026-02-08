@@ -22,7 +22,7 @@ class TestNSDLSearchImport:
     def auth_token(self):
         """Get authentication token for PE user"""
         response = requests.post(
-            f"{BASE_URL}/api/login",
+            f"{BASE_URL}/api/auth/login",
             json={"email": "pe@smifs.com", "password": "Kutta@123"}
         )
         assert response.status_code == 200, f"Login failed: {response.text}"
@@ -326,7 +326,7 @@ class TestNSDLSearchResponseFields:
     def auth_headers(self):
         """Get authentication headers"""
         response = requests.post(
-            f"{BASE_URL}/api/login",
+            f"{BASE_URL}/api/auth/login",
             json={"email": "pe@smifs.com", "password": "Kutta@123"}
         )
         token = response.json().get("token")
