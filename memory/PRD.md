@@ -37,6 +37,29 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Client Module Segregation (Feb 08, 2026)
+**Each client now has module access control:**
+
+**Backend Changes:**
+- Added `modules` field to ClientCreate and Client models (array: `["private_equity", "fixed_income"]`)
+- New endpoint: `GET /api/clients/by-module/{module}` - Filter clients by module
+- New endpoint: `GET /api/company-master/agreements` - Returns both company agreements (public)
+- Legacy clients without modules field default to Private Equity
+
+**Frontend Changes:**
+- **Clients Page**: Module Access checkboxes (Private Equity / Fixed Income) in client creation/edit form
+- **FI Orders/IPO**: Only shows clients with `fixed_income` module access
+- **User Agreement Modal**: Shows both PE and FI agreements side-by-side with individual checkboxes
+
+**User Agreement Flow:**
+1. User logs in
+2. Modal shows two cards: PE agreement and FI agreement
+3. User must check both agreement checkboxes
+4. Click "I Agree to All" to proceed
+5. Progress indicator shows accepted count
+
+**Testing:** 100% backend (9/9), 100% frontend pass
+
 #### ✅ Primary Market IPO/NFO Subscription Workflow (Feb 08, 2026)
 **Backend Implementation (`/app/backend/fixed_income/router_primary_market.py`):**
 - Full IPO/NFO issue management (Create, List, Status Update)
