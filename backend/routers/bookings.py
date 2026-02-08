@@ -40,6 +40,7 @@ from services.inventory_service import (
     check_stock_availability
 )
 from utils.demo_isolation import add_demo_filter, mark_as_demo, require_demo_access
+from middleware.license_enforcement import license_enforcer
 
 router = APIRouter(tags=["Bookings"])
 
