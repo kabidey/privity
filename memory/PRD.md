@@ -37,6 +37,29 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ License Admin Hidden & Expiry Verification (Feb 08, 2026)
+
+**Verified license admin security:**
+- License admin (`deynet@gmail.com`) with `role=0` and `is_hidden=True` is completely hidden from:
+  - `/api/users` - User listing
+  - `/api/users/employees` - Employee listing
+  - `/api/users/all` - All users listing  
+  - `/api/users/managers` - Manager listing
+  - `/api/users/hierarchy/potential-managers` - Hierarchy queries
+  - `/api/users/team/subordinates` - Team queries
+  - `/api/users/team/direct-reports` - Direct reports queries
+- License admin CAN log in and access `/licence` management page
+- Regular users (PE/FI) CANNOT access license management endpoints (403 Forbidden)
+
+**License expiry real-time checking:**
+- License status endpoint returns proper expiry information (`days_remaining`, `expires_at`, `status`)
+- Statuses: `active` (>30 days), `expiring_soon` (≤30 days), `expired` (≤0 days)
+- Expired licenses automatically marked `is_active: False` in status response
+- Daily scheduled job at 12:05 AM IST to deactivate expired licenses in database
+
+**Test Results:** 100% (20/20 backend tests passed, all frontend UI verified)
+**Test Report:** `/app/test_reports/iteration_86.json`
+
 #### ✅ Live NSDL Lookup Feature (Feb 08, 2026)
 
 **Implemented automatic live web scraping when ISIN not found locally:**
