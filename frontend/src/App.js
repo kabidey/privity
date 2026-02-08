@@ -65,6 +65,7 @@ import FISecurityMaster from './pages/FISecurityMaster';
 import FIOrders from './pages/FIOrders';
 import FIReports from './pages/FIReports';
 import FIPrimaryMarket from './pages/FIPrimaryMarket';
+import FIDashboard from './pages/FIDashboard';
 import LicenseManagement from './pages/LicenseManagement';
 import Layout from './components/Layout';
 import GroupChat from './components/GroupChat';
