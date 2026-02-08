@@ -65,6 +65,14 @@ const FISecurityMaster = () => {
     credit_rating: '',
   });
 
+  // NSDL Search State
+  const [nsdlSearchOpen, setNsdlSearchOpen] = useState(false);
+  const [nsdlSearchQuery, setNsdlSearchQuery] = useState('');
+  const [nsdlSearchType, setNsdlSearchType] = useState('all');
+  const [nsdlSearchResults, setNsdlSearchResults] = useState([]);
+  const [nsdlSearching, setNsdlSearching] = useState(false);
+  const [nsdlImporting, setNsdlImporting] = useState({});
+
   const [formData, setFormData] = useState({
     isin: '',
     instrument_type: 'NCD',
