@@ -61,6 +61,10 @@ const Finance = () => {
   const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
   const [selectedCommission, setSelectedCommission] = useState(null);
   
+  // To Pay tab state
+  const [toPayData, setToPayData] = useState({ to_pay_list: [], summary: {} });
+  const [loadingToPay, setLoadingToPay] = useState(false);
+  
   // TCS Financial Year selection
   const [selectedTcsFY, setSelectedTcsFY] = useState(() => {
     const now = new Date();
