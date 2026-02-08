@@ -3,47 +3,75 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import api from '../utils/api';
-import { FileText, Shield, LogOut, Check } from 'lucide-react';
+import { Shield, LogOut, Check, Briefcase, TrendingUp, Building2 } from 'lucide-react';
 
 const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
-  const [agreementText, setAgreementText] = useState('');
+  const [agreements, setAgreements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
-  const [hasRead, setHasRead] = useState(false);
-  const [scrolledToBottom, setScrolledToBottom] = useState(false);
+  const [acceptedAgreements, setAcceptedAgreements] = useState({});
 
   useEffect(() => {
     if (isOpen) {
-      fetchAgreement();
+      fetchAgreements();
     }
   }, [isOpen]);
 
-  const fetchAgreement = async () => {
+  const fetchAgreements = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/company-master/user-agreement');
-      setAgreementText(response.data.user_agreement_text || 'No agreement text configured.');
+      const response = await api.get('/company-master/agreements');
+      const agreementsList = response.data.agreements || [];
+      setAgreements(agreementsList);
+      
+      // Initialize accepted state for each agreement
+      const initialAccepted = {};
+      agreementsList.forEach(a => {
+        initialAccepted[a.company_id] = false;
+      });
+      setAcceptedAgreements(initialAccepted);
     } catch (error) {
-      console.error('Failed to fetch agreement:', error);
-      setAgreementText('Unable to load agreement text. Please contact support.');
+      console.error('Failed to fetch agreements:', error);
+      // Fallback to single agreement
+      try {
+        const fallback = await api.get('/company-master/user-agreement');
+        setAgreements([{
+          company_id: 'default',
+          company_name: 'SMIFS',
+          company_type: 'default',
+          agreement_text: fallback.data.user_agreement_text || 'No agreement text configured.',
+          logo_url: null
+        }]);
+        setAcceptedAgreements({ default: false });
+      } catch (e) {
+        setAgreements([{
+          company_id: 'error',
+          company_name: 'Error',
+          company_type: 'error',
+          agreement_text: 'Unable to load agreement text. Please contact support.',
+          logo_url: null
+        }]);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleScroll = (e) => {
-    const target = e.target;
-    const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
-    if (isAtBottom && !scrolledToBottom) {
-      setScrolledToBottom(true);
-    }
+  const allAccepted = Object.values(acceptedAgreements).every(v => v === true) && agreements.length > 0;
+
+  const handleAcceptChange = (companyId, checked) => {
+    setAcceptedAgreements(prev => ({
+      ...prev,
+      [companyId]: checked
+    }));
   };
 
   const handleAccept = async () => {
-    if (!hasRead) {
-      toast.error('Please confirm that you have read and understood the agreement');
+    if (!allAccepted) {
+      toast.error('Please accept all company agreements to continue');
       return;
     }
 
@@ -57,7 +85,7 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
       user.agreement_accepted_at = new Date().toISOString();
       localStorage.setItem('user', JSON.stringify(user));
       
-      toast.success('Agreement accepted successfully');
+      toast.success('Agreements accepted successfully');
       onAccept();
     } catch (error) {
       toast.error('Failed to accept agreement. Please try again.');
@@ -84,10 +112,34 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
     }
   };
 
+  const getCompanyIcon = (type) => {
+    switch (type) {
+      case 'private_equity':
+        return <Briefcase className="h-4 w-4" />;
+      case 'fixed_income':
+        return <TrendingUp className="h-4 w-4" />;
+      default:
+        return <Building2 className="h-4 w-4" />;
+    }
+  };
+
+  const getCompanyColor = (type) => {
+    switch (type) {
+      case 'private_equity':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'fixed_income':
+        return 'bg-teal-100 text-teal-800 border-teal-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const isSingleAgreement = agreements.length === 1;
+
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent 
-        className="sm:max-w-xl w-[95vw] max-h-[80vh] p-0 overflow-hidden flex flex-col"
+        className={`${isSingleAgreement ? 'sm:max-w-xl' : 'sm:max-w-4xl'} w-[95vw] max-h-[85vh] p-0 overflow-hidden flex flex-col`}
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         hideCloseButton
@@ -101,10 +153,13 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
             </div>
             <div>
               <DialogTitle className="text-base sm:text-lg font-bold text-white">
-                User Agreement
+                User Agreement{agreements.length > 1 ? 's' : ''}
               </DialogTitle>
               <DialogDescription className="text-slate-300 text-xs">
-                Please read and accept the terms to continue
+                {agreements.length > 1 
+                  ? 'Please read and accept all company agreements to continue'
+                  : 'Please read and accept the terms to continue'
+                }
               </DialogDescription>
             </div>
           </div>
@@ -117,40 +172,77 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
             </div>
           ) : (
-            <>
-              <ScrollArea 
-                className="h-[150px] sm:h-[180px] border rounded-lg p-3 bg-slate-50 dark:bg-slate-900"
-                onScrollCapture={handleScroll}
-              >
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <pre className="whitespace-pre-wrap font-sans text-xs text-gray-700 dark:text-gray-300">
-                    {agreementText}
-                  </pre>
-                </div>
-              </ScrollArea>
-
-              {/* Confirmation Checkbox */}
-              <div className="flex items-start gap-2 mt-3 p-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                <Checkbox 
-                  id="agreement-checkbox"
-                  checked={hasRead}
-                  onCheckedChange={setHasRead}
-                  className="mt-0.5 flex-shrink-0"
-                  data-testid="agreement-checkbox"
-                />
-                <label 
-                  htmlFor="agreement-checkbox" 
-                  className="text-xs text-amber-800 dark:text-amber-200 cursor-pointer leading-tight"
+            <div className={`${isSingleAgreement ? '' : 'grid grid-cols-1 md:grid-cols-2 gap-4'}`}>
+              {agreements.map((agreement) => (
+                <div 
+                  key={agreement.company_id} 
+                  className={`border rounded-lg overflow-hidden ${acceptedAgreements[agreement.company_id] ? 'border-emerald-300 bg-emerald-50/30' : 'border-gray-200'}`}
                 >
-                  I have read, understood, and agree to be bound by the terms and conditions stated above.
-                </label>
-              </div>
-            </>
+                  {/* Company Header */}
+                  <div className={`p-3 border-b flex items-center gap-2 ${getCompanyColor(agreement.company_type)}`}>
+                    {getCompanyIcon(agreement.company_type)}
+                    <span className="font-semibold text-sm">{agreement.company_name}</span>
+                    <Badge variant="outline" className="text-xs ml-auto">
+                      {agreement.company_type === 'private_equity' ? 'PE Module' : 
+                       agreement.company_type === 'fixed_income' ? 'FI Module' : 'General'}
+                    </Badge>
+                  </div>
+                  
+                  {/* Agreement Text */}
+                  <ScrollArea className={`${isSingleAgreement ? 'h-[180px]' : 'h-[150px]'} p-3 bg-white`}>
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap font-sans text-xs text-gray-700">
+                        {agreement.agreement_text}
+                      </pre>
+                    </div>
+                  </ScrollArea>
+                  
+                  {/* Acceptance Checkbox */}
+                  <div className={`p-2.5 border-t flex items-start gap-2 ${acceptedAgreements[agreement.company_id] ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                    <Checkbox 
+                      id={`agreement-${agreement.company_id}`}
+                      checked={acceptedAgreements[agreement.company_id]}
+                      onCheckedChange={(checked) => handleAcceptChange(agreement.company_id, checked)}
+                      className="mt-0.5 flex-shrink-0"
+                      data-testid={`agreement-checkbox-${agreement.company_type}`}
+                    />
+                    <label 
+                      htmlFor={`agreement-${agreement.company_id}`}
+                      className={`text-xs cursor-pointer leading-tight ${acceptedAgreements[agreement.company_id] ? 'text-emerald-800' : 'text-amber-800'}`}
+                    >
+                      I accept the terms of <strong>{agreement.company_name}</strong>
+                    </label>
+                    {acceptedAgreements[agreement.company_id] && (
+                      <Check className="h-4 w-4 text-emerald-600 ml-auto flex-shrink-0" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
         {/* Footer - Always visible at bottom */}
         <div className="p-3 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 flex-shrink-0">
+          {/* Progress indicator for multiple agreements */}
+          {agreements.length > 1 && (
+            <div className="mb-2 flex items-center gap-2 text-xs text-gray-600">
+              <span>Accepted:</span>
+              <div className="flex gap-1">
+                {agreements.map((a) => (
+                  <div 
+                    key={a.company_id}
+                    className={`w-3 h-3 rounded-full ${acceptedAgreements[a.company_id] ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                    title={a.company_name}
+                  />
+                ))}
+              </div>
+              <span className="ml-auto">
+                {Object.values(acceptedAgreements).filter(v => v).length} of {agreements.length}
+              </span>
+            </div>
+          )}
+          
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
             <Button
               variant="outline"
@@ -163,7 +255,7 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
             </Button>
             <Button
               onClick={handleAccept}
-              disabled={!hasRead || accepting}
+              disabled={!allAccepted || accepting}
               className="bg-emerald-600 hover:bg-emerald-700 text-white order-1 sm:order-2 h-10 sm:h-10 text-sm font-semibold"
               data-testid="accept-agreement-btn"
             >
@@ -175,7 +267,7 @@ const UserAgreementModal = ({ isOpen, onAccept, onDecline }) => {
               ) : (
                 <>
                   <Check className="h-4 w-4 mr-1.5" />
-                  I Agree
+                  I Agree to All
                 </>
               )}
             </Button>
