@@ -37,6 +37,67 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Granular License Management System V2 (Feb 08, 2026)
+**Complete revamp of the licensing system with granular feature control:**
+
+**Backend Implementation:**
+- `/app/backend/services/license_service_v2.py` - Comprehensive license service
+- `/app/backend/routers/license_v2.py` - License management API endpoints
+
+**License Types:**
+- **Private Equity License** (PRIV-PE-XXXX-XXXX-XXXX)
+- **Fixed Income License** (PRIV-FI-XXXX-XXXX-XXXX)
+
+**Licensable Components:**
+- **Modules (2)**: Private Equity, Fixed Income
+- **Features (26)**: Clients, Bookings, Inventory, Vendors, Purchases, Stocks, Reports, Analytics, BI Reports, WhatsApp, Email, OCR, Documents, Referral Partners, Business Partners, FI Instruments, FI Orders, FI Reports, FI Primary Market, User Management, Role Management, Audit Logs, Database Backup, Company Master, Finance, Contract Notes
+- **Usage Limits (5)**: Max Users, Max Clients, Max Bookings/Month, Max FI Orders/Month, Max Storage (GB)
+
+**Secret License Admin:**
+- Email: `deynet@gmail.com`
+- Password: `Kutta@123`
+- Role: 0 (License Admin)
+- Hidden from ALL user listings (is_hidden=true)
+- Created automatically on server startup
+
+**API Endpoints:**
+- `GET /api/licence/verify-admin` - Check if user is license admin
+- `GET /api/licence/definitions` - Get all licensable modules, features, limits
+- `POST /api/licence/generate` - Generate new license key with granular permissions
+- `POST /api/licence/activate` - Activate a license key
+- `POST /api/licence/revoke` - Revoke a license
+- `GET /api/licence/all` - List all licenses
+- `GET /api/licence/status` - Get PE and FI license status
+- `GET /api/licence/check/status` - Check license for current user
+- `POST /api/licence/check/feature` - Check if feature is licensed
+- `GET /api/licence/check/module/{module}` - Check if module is licensed
+- `GET /api/licence/check/usage/{limit_type}/{company_type}` - Check usage limits
+
+**Frontend (`/app/frontend/src/pages/LicenseManagement.js`):**
+- Route: `/licence` (accessible only to license admin)
+- PE License and FI License status cards
+- License History table with all generated licenses
+- Generate License dialog with:
+  - Basic tab: Company Type, Name, Duration, Modules
+  - Features tab: 26 toggleable features with Select All/Clear All
+  - Usage Limits tab: Configurable limits (-1 for unlimited)
+- Activate License dialog
+- Copy license key functionality
+- Revoke license action
+
+**Security:**
+- License admin user is hidden from:
+  - `/api/users` endpoint
+  - `/api/users/employees` endpoint
+  - All user management pages
+- All license management endpoints require `require_license_admin` dependency
+- Regular users (even PE Desk) cannot access license endpoints
+
+**Testing Results:**
+- Backend: 100% (18/18 passed)
+- Frontend: 100% (UI verification complete)
+- Test report: `/app/test_reports/iteration_82.json`
+
 #### ✅ NSDL Search & Import Feature (Feb 08, 2026)
 **Implemented ISIN/Company search and import facility for Fixed Income Security Master:**
 
