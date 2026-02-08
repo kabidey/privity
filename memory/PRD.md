@@ -37,6 +37,58 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ License Enforcement, Client Segregation & FI Dashboard (Feb 08, 2026)
+
+**1. License Enforcement (Frontend + Backend)**
+
+*Backend Implementation (`/app/backend/middleware/license_enforcement.py`):*
+- `LicenseEnforcer` class with `require_feature()` and `require_module()` methods
+- Integrated into key routers: bookings.py, router_instruments.py
+- SMIFS employees (`@smifs.com`) exempt from license checks
+- Returns 403 with structured error: `{error: "feature_not_licensed", message: "...", contact_admin: true}`
+
+*Frontend Implementation:*
+- Updated `LicenseContext.js` with V2 granular licensing support
+- `isFeatureLicensed(feature)` and `isModuleLicensed(module)` functions
+- `LicenseGate.js` component - wraps features, shows overlay for unlicensed
+- `Layout.js` updated - shows lock icon on unlicensed menu items
+
+*Feature-to-Module Mapping:*
+- PE Features: bookings, inventory, vendors, purchases, stocks, referral_partners, business_partners
+- FI Features: fi_instruments, fi_orders, fi_reports, fi_primary_market
+- Core Features: clients, reports, analytics, whatsapp, user_management
+
+**2. Client Data Segregation by Module**
+
+*Approach:* Using existing `modules` field on clients collection (["private_equity", "fixed_income"])
+
+*API Endpoints:*
+- `GET /api/clients/by-module/{module}` - Returns clients for specific module
+- Module filtering applied in client dropdowns throughout the app
+
+**3. Module-Specific Dashboards**
+
+*FI Dashboard (`/fi-dashboard`):*
+- **Frontend**: `/app/frontend/src/pages/FIDashboard.js`
+- **Backend**: `/app/backend/fixed_income/router_dashboard.py`
+- **API**: `GET /api/fixed-income/dashboard`
+
+*Dashboard Sections:*
+- Summary Cards: Total AUM, Holdings, Avg YTM, Accrued Interest
+- Holdings by Type: NCD, BOND, GSEC breakdown with progress bars
+- Holdings by Credit Rating: AAA, AA+, AA distribution
+- Upcoming Maturities: Next 90 days with days-to-maturity
+- Upcoming Coupon Payments: Next 30 days cash flows
+- Recent Orders: Latest 10 FI orders with status
+- Quick Actions: Security Master, New Order, IPO/NFO, Reports
+
+*PE Dashboard:* Pre-existing at `/dashboard` (PEDashboard.js)
+
+**Testing Results:**
+- Backend: 100% (21/21 passed)
+- Frontend: 100% (All UI verified)
+- Test report: `/app/test_reports/iteration_83.json`
+
 #### ✅ Granular License Management System V2 (Feb 08, 2026)
 **Complete revamp of the licensing system with granular feature control:**
 
