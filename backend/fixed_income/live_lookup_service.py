@@ -399,7 +399,7 @@ async def live_lookup_and_import(isin: str) -> Dict:
     if latest and latest.get("id"):
         try:
             num = int(latest["id"].split("-")[-1]) + 1
-        except:
+        except (ValueError, TypeError, IndexError):
             num = 1
     
     instrument_id = f"FI-{num:06d}"
