@@ -37,6 +37,50 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Yield Curve Analytics & Portfolio Optimization (Feb 08, 2026)
+
+**New Module:** `/app/backend/fixed_income/yield_curve_analytics.py`
+**New Module:** `/app/backend/fixed_income/advanced_portfolio_optimizer.py`
+**New Router:** `/app/backend/fixed_income/router_analytics.py`
+
+**Yield Curve Features:**
+- G-Sec (risk-free) yield curve construction
+- Corporate yield curves by rating (AAA, AA, A, BBB)
+- Forward rate curve derivation
+- Multiple interpolation methods:
+  - Linear interpolation
+  - Cubic spline interpolation
+  - Nelson-Siegel parametric model
+  - Svensson (extended Nelson-Siegel) model
+- Credit spread analysis vs benchmark
+- Key rate duration calculations
+- Curve shift analysis (parallel, twist, butterfly)
+
+**Portfolio Optimization Features:**
+- Modern Portfolio Theory (Markowitz) optimization
+- Multiple optimization objectives:
+  - **Maximize Yield**: Best yield subject to duration/risk constraints
+  - **Target Duration**: Duration immunization / liability matching
+  - **Minimize Risk**: Lowest credit risk with yield floor
+- Efficient frontier calculation
+- Risk metrics: VaR (95%/99%), duration, convexity, spread duration
+- Rebalancing trade recommendations
+
+**API Endpoints:**
+- `GET /api/fixed-income/analytics/yield-curves` - Get yield curves
+- `GET /api/fixed-income/analytics/yield-curves/chart` - Chart-formatted data
+- `GET /api/fixed-income/analytics/spread-analysis/{rating}` - Spread analysis
+- `POST /api/fixed-income/analytics/efficient-frontier` - Risk-return frontier
+- `GET /api/fixed-income/analytics/portfolio/{client_id}` - Portfolio analysis
+- `POST /api/fixed-income/analytics/portfolio/optimize` - Run optimization
+- `GET /api/fixed-income/analytics/risk-metrics/{client_id}` - Detailed risk metrics
+
+**Dependencies Added:** `scipy` (for optimization and curve fitting)
+
+**Testing:** 100% (19/19 backend tests passed) - `/app/test_reports/iteration_89.json`
+
+**Note:** Spread analysis for tenors below 4.13y may show extrapolation artifacts due to limited G-Sec benchmark data.
+
 #### ✅ Consolidated Bond Scraping Service (Feb 08, 2026)
 
 **Refactored web scraping into unified service with expanded data sources:**
