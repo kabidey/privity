@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="14" failures="3" skipped="1" tests="18" time="0.476" timestamp="2026-02-08T09:45:56.815143+00:00" hostname="agent-env-596dc16c-0a2e-4d50-93e8-1df630dd8bfd"><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_by_company_name_reliance" time="0.099"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_by_company_name_hdfc" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_by_isin_partial" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_by_isin_full" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_all_fields" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_by_rating" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_minimum_query_length" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_no_results" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_filter_by_instrument_type" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_import_single_instrument" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_import_already_imported_error" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_import_invalid_isin" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_statistics_endpoint" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_import_multiple" time="0.000"><error message="failed on setup with &quot;AssertionError: Login failed: {&quot;detail&quot;:&quot;Access denied&quot;}&#10;assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code&quot;">backend/tests/test_nsdl_search_import.py:28: in auth_token
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Access denied"}
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</error></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_search_requires_auth" time="0.042"><failure message="assert 403 == 401&#10; +  where 403 = &lt;Response [403]&gt;.status_code">backend/tests/test_nsdl_search_import.py:312: in test_nsdl_search_requires_auth
+    assert response.status_code == 401
+E   assert 403 == 401
+E    +  where 403 = &lt;Response [403]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchImport" name="test_nsdl_import_requires_auth" time="0.041"><failure message="assert 403 == 401&#10; +  where 403 = &lt;Response [403]&gt;.status_code">backend/tests/test_nsdl_search_import.py:319: in test_nsdl_import_requires_auth
+    assert response.status_code == 401
+E   assert 403 == 401
+E    +  where 403 = &lt;Response [403]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchResponseFields" name="test_search_result_has_all_required_fields" time="0.084"><failure message="assert 403 == 200&#10; +  where 403 = &lt;Response [403]&gt;.status_code">backend/tests/test_nsdl_search_import.py:342: in test_search_result_has_all_required_fields
+    assert response.status_code == 200
+E   assert 403 == 200
+E    +  where 403 = &lt;Response [403]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_nsdl_search_import.TestNSDLSearchResponseFields" name="test_import_result_structure" time="0.040"><skipped type="pytest.skip" message="No importable instruments found">/app/backend/tests/test_nsdl_search_import.py:369: No importable instruments found</skipped></testcase></testsuite></testsuites>
