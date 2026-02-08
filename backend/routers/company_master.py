@@ -276,6 +276,7 @@ By clicking "I Agree", you confirm that you have read, understood, and agree to 
     return CompanyMasterResponse(
         id=master.get("id", "company_settings"),
         company_name=master.get("company_name"),
+        company_type=master.get("company_type"),
         company_address=master.get("company_address"),
         company_cin=master.get("company_cin"),
         company_gst=master.get("company_gst"),
@@ -297,6 +298,76 @@ By clicking "I Agree", you confirm that you have read, understood, and agree to 
         updated_at=master.get("updated_at"),
         updated_by=master.get("updated_by")
     )
+
+
+@router.get("/{company_id}", response_model=CompanyMasterResponse)
+async def get_company_by_id(
+    company_id: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.view", "view company"))
+):
+    """Get a specific company by ID"""
+    company = await db.company_master.find_one({"id": company_id})
+    
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    return company_to_response(company)
+
+
+@router.put("/{company_id}", response_model=CompanyMasterResponse)
+async def update_company_by_id(
+    company_id: str,
+    data: CompanyMasterCreate,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.edit", "update company"))
+):
+    """Update a specific company by ID"""
+    # Check company exists
+    company = await db.company_master.find_one({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    update_data = {
+        "company_name": data.company_name,
+        "company_type": data.company_type,
+        "company_address": data.company_address,
+        "company_cin": data.company_cin,
+        "company_gst": data.company_gst,
+        "company_pan": data.company_pan.upper() if data.company_pan else None,
+        "cdsl_dp_id": data.cdsl_dp_id,
+        "nsdl_dp_id": data.nsdl_dp_id,
+        "company_tan": data.company_tan.upper() if data.company_tan else None,
+        "company_bank_name": data.company_bank_name,
+        "company_bank_account": data.company_bank_account,
+        "company_bank_ifsc": data.company_bank_ifsc.upper() if data.company_bank_ifsc else None,
+        "company_bank_branch": data.company_bank_branch,
+        "user_agreement_text": data.user_agreement_text,
+        "custom_domain": data.custom_domain.rstrip('/') if data.custom_domain else None,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user["name"]
+    }
+    
+    await db.company_master.update_one(
+        {"id": company_id},
+        {"$set": update_data}
+    )
+    
+    # Create audit log
+    await create_audit_log(
+        action="COMPANY_UPDATE",
+        entity_type="company_master",
+        entity_id=company_id,
+        user_id=current_user["id"],
+        user_name=current_user["name"],
+        user_role=current_user.get("role", 1),
+        entity_name=data.company_name or company_id,
+        details={"updated_fields": list(update_data.keys())}
+    )
+    
+    # Fetch updated company
+    updated = await db.company_master.find_one({"id": company_id})
+    return company_to_response(updated)
 
 
 @router.put("", response_model=CompanyMasterResponse)
