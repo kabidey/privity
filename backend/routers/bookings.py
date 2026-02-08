@@ -134,6 +134,9 @@ async def create_booking(
     - All other roles: Can only book for clients mapped to them
     - Viewers: Cannot create bookings (read-only access)
     """
+    # License enforcement for bookings feature
+    await license_enforcer.require_feature("bookings", "private_equity", current_user)
+    
     user_role = current_user.get("role", 7)
     user_id = current_user.get("id")
     
