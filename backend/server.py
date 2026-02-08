@@ -599,6 +599,7 @@ app.include_router(fi_instruments_router, prefix="/api")
 app.include_router(fi_orders_router, prefix="/api")
 app.include_router(fi_reports_router, prefix="/api")
 app.include_router(fi_market_data_router, prefix="/api")
+app.include_router(fi_primary_market_router, prefix="/api")
 
 
 # ====================
