@@ -111,14 +111,24 @@ const FISecurityMaster = () => {
   const handleImportPublicData = async () => {
     try {
       setImportingPublicData(true);
-      const response = await api.post('/fixed-income/instruments/import-public-data?overwrite=false');
+      toast.info('Starting multi-source import from NSDL, IndiaBonds, Smest...');
+      
+      // Use the new multi-source import endpoint
+      const response = await api.post('/fixed-income/instruments/import-all-sources');
       const stats = response.data.statistics;
+      
       toast.success(
-        `Import completed! Imported: ${stats.imported}, Updated: ${stats.updated}, Skipped: ${stats.skipped}`
+        `Import completed! Sources: ${stats.sources?.join(', ')}. Imported: ${stats.imported}, Updated: ${stats.updated}. Total scraped: ${stats.total_scraped}`
       );
+      
+      if (stats.errors_count > 0) {
+        toast.warning(`${stats.errors_count} errors occurred. Check console for details.`);
+        console.log('Import errors:', stats.sample_errors);
+      }
+      
       fetchInstruments();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to import public data');
+      toast.error(error.response?.data?.detail || 'Failed to import from sources');
     } finally {
       setImportingPublicData(false);
     }
