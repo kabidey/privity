@@ -37,6 +37,35 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Primary Market IPO/NFO Subscription Workflow (Feb 08, 2026)
+**Backend Implementation (`/app/backend/fixed_income/router_primary_market.py`):**
+- Full IPO/NFO issue management (Create, List, Status Update)
+- Bid submission workflow (Submit, Confirm Payment, View)
+- Pro-rata allotment processing
+- Email notifications for bid confirmations
+
+**API Endpoints:**
+- `POST /api/fixed-income/primary-market/issues` - Create new issue
+- `GET /api/fixed-income/primary-market/issues` - List all issues
+- `GET /api/fixed-income/primary-market/active-issues` - Get open issues
+- `PATCH /api/fixed-income/primary-market/issues/{id}/status` - Update status
+- `POST /api/fixed-income/primary-market/bids` - Submit bid
+- `GET /api/fixed-income/primary-market/bids` - List bids
+- `PATCH /api/fixed-income/primary-market/bids/{id}/confirm-payment` - Confirm payment
+- `POST /api/fixed-income/primary-market/issues/{id}/process-allotment` - Process allotment
+
+**Frontend Implementation (`/app/frontend/src/pages/FIPrimaryMarket.js`):**
+- Summary cards (Open Issues, Upcoming, Total, My Bids)
+- Tabs: Active Issues, All Issues, My Bids
+- Create Issue dialog with all NCD/Bond fields
+- Subscribe dialog with client selection, quantity, payment mode
+- Status management buttons (Open, Close, Allot)
+
+**Workflow:**
+1. PE Desk creates issue (draft) → Opens issue → Clients submit bids → Issue closed → Allotment processed
+
+**Testing:** 100% backend (17/17 tests), 100% frontend UI pass
+
 #### ✅ Module-Based Permission System (Feb 08, 2026)
 **Implemented granular module activation for Private Equity and Fixed Income:**
 
