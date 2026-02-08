@@ -376,6 +376,56 @@ async def get_pending_clients(
     return [Client(**c) for c in clients]
 
 
+@router.get("/clients/by-module/{module}", response_model=List[Client])
+async def get_clients_by_module(
+    module: str,
+    search: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("clients.view", "view clients"))
+):
+    """Get clients filtered by module (private_equity or fixed_income)."""
+    # Validate module
+    valid_modules = ["private_equity", "fixed_income"]
+    if module not in valid_modules:
+        raise HTTPException(status_code=400, detail=f"Invalid module. Must be one of: {valid_modules}")
+    
+    # Base query - non-vendors only, active, approved, with module access
+    query = {
+        "is_vendor": False,
+        "is_active": True,
+        "approval_status": "approved",
+        "$or": [
+            {"modules": module},
+            {"modules": {"$exists": False}},  # Legacy clients default to PE
+        ]
+    }
+    
+    # For legacy clients without modules field, only include in PE module
+    if module == "fixed_income":
+        query = {
+            "is_vendor": False,
+            "is_active": True,
+            "approval_status": "approved",
+            "modules": module
+        }
+    
+    # Add search filter
+    if search:
+        query["$and"] = query.get("$and", []) + [{
+            "$or": [
+                {"name": {"$regex": search, "$options": "i"}},
+                {"pan_number": {"$regex": search, "$options": "i"}},
+                {"otc_ucc": {"$regex": search, "$options": "i"}}
+            ]
+        }]
+    
+    # Add demo isolation filter
+    query = add_demo_filter(query, current_user)
+    
+    clients = await db.clients.find(query, {"_id": 0}).sort("name", 1).to_list(500)
+    return [Client(**c) for c in clients]
+
+
 @router.get("/clients/{client_id}", response_model=Client)
 async def get_client(
     client_id: str,
