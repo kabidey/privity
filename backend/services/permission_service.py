@@ -127,6 +127,10 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
     """
     # All available permissions in the system
     ALL_PERMISSIONS = {
+        # MODULE ACTIVATION - These control which modules a role can access
+        "module": ["private_equity", "fixed_income"],
+        
+        # Private Equity Module Permissions
         "dashboard": ["view", "pe_view", "my_view"],
         "bookings": ["view", "view_all", "create", "edit", "delete", "approve", 
                      "record_payment", "delete_payment", "export",
@@ -160,7 +164,13 @@ def expand_permissions(raw_permissions: List[str]) -> Set[str]:
         "notifications": ["whatsapp_view", "whatsapp_connect", "whatsapp_templates", 
                          "whatsapp_send", "whatsapp_bulk", "whatsapp_history", "whatsapp_config"],
         "chat": ["view", "send"],
-        "files": ["view", "upload", "delete"]
+        "files": ["view", "upload", "delete"],
+        
+        # Fixed Income Module Permissions
+        "fixed_income": ["view", "instrument_view", "instrument_create", "instrument_edit", "instrument_delete",
+                        "instrument_bulk_upload", "order_view", "order_create", "order_edit", "order_approve",
+                        "order_settle", "report_view", "report_export", "payment_record", "market_data_refresh",
+                        "portfolio_optimize", "coupon_notifications"]
     }
     
     expanded = set()
