@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import api from '../utils/api';
 import { useProtectedPage } from '../hooks/useProtectedPage';
@@ -20,7 +21,9 @@ import {
   FileCheck,
   Eye,
   RefreshCw,
-  ImageIcon
+  ImageIcon,
+  TrendingUp,
+  Briefcase
 } from 'lucide-react';
 
 const CompanyMaster = () => {
@@ -29,6 +32,8 @@ const CompanyMaster = () => {
   const [uploading, setUploading] = useState({});
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoUrl, setLogoUrl] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState(null);
   /**
    * CRITICAL FIX - DO NOT MODIFY
    * logoKey is used for cache-busting to force logo refresh after upload.
@@ -38,6 +43,7 @@ const CompanyMaster = () => {
   const [logoKey, setLogoKey] = useState(Date.now());
   const [formData, setFormData] = useState({
     company_name: '',
+    company_type: '',
     company_address: '',
     company_cin: '',
     company_gst: '',
