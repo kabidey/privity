@@ -148,6 +148,7 @@ export function useCurrentUser() {
     isPartnersDesk,
     isBusinessPartner,
     isEmployee,
+    isLicenseAdmin,
     
     // Permission checks
     canRecordPayments,
