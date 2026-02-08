@@ -412,6 +412,52 @@ async def import_multiple_nsdl_instruments(
     return results
 
 
+@router.post("/live-lookup/{isin}")
+async def live_lookup_isin(
+    isin: str,
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("fixed_income.instrument_create", "live lookup instrument"))
+):
+    """
+    Perform live web lookup for a specific ISIN.
+    
+    This endpoint scrapes real-time bond data from:
+    1. indiabondsinfo.nsdl.com - Official NSDL database
+    2. indiabonds.com - Bond marketplace
+    3. smest.in - Bond investment platform
+    
+    If found, the instrument is automatically imported to the Security Master.
+    
+    Args:
+        isin: The ISIN code to look up (e.g., "INE002A08427")
+    
+    Returns:
+        Lookup result with the imported instrument details if successful
+    """
+    from .live_lookup_service import live_lookup_and_import
+    
+    # Validate ISIN format
+    if not _is_valid_isin_format(isin):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid ISIN format: {isin}. Indian ISINs start with 'IN' followed by 10-12 alphanumeric characters."
+        )
+    
+    result = await live_lookup_and_import(isin.upper().strip())
+    
+    if not result["success"]:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "message": result.get("message", "Instrument not found"),
+                "sources_tried": result.get("sources_tried", []),
+                "errors": result.get("errors", [])
+            }
+        )
+    
+    return result
+
+
 @router.get("/nsdl-statistics")
 async def get_nsdl_database_statistics(
     current_user: dict = Depends(get_current_user),
