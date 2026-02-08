@@ -58,6 +58,8 @@ class User(BaseModel):
     hierarchy_level_name: Optional[str] = "Employee"
     reports_to: Optional[str] = None  # User ID of the manager
     reports_to_name: Optional[str] = None  # Manager's name for display
+    # License admin flag (hidden user for clandestine license management)
+    is_license_admin: Optional[bool] = None
 
 
 class TokenResponse(BaseModel):
