@@ -65,6 +65,9 @@ async def create_instrument(
     
     Requires: fixed_income.create permission (PE Desk, PE Manager)
     """
+    # License enforcement for FI instruments feature
+    await license_enforcer.require_feature("fi_instruments", "fixed_income", current_user)
+    
     # Check if ISIN already exists
     existing = await db.fi_instruments.find_one({"isin": instrument.isin})
     if existing:
