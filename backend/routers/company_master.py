@@ -300,6 +300,110 @@ By clicking "I Agree", you confirm that you have read, understood, and agree to 
     )
 
 
+# ============== Public Endpoints (No Auth) - Must be before /{company_id} ==============
+@router.get("/user-agreement")
+async def get_user_agreement():
+    """
+    Get user agreement text (public - no auth required)
+    Used to show agreement to users on first login
+    Returns legacy single agreement for backward compatibility
+    """
+    master = await db.company_master.find_one({"_id": "company_settings"})
+    
+    default_agreement = """TERMS OF USE AND USER AGREEMENT
+
+By accessing and using the PRIVITY Share Booking System, you agree to the following terms and conditions:
+
+1. CONFIDENTIALITY
+You agree to maintain the confidentiality of all information accessed through this system.
+
+2. AUTHORIZED USE
+This system is intended solely for authorized business purposes.
+
+3. COMPLIANCE
+You agree to comply with all applicable laws, regulations, and company policies.
+
+By clicking "I Agree", you confirm that you have read, understood, and agree to these terms."""
+    
+    if not master:
+        return {"user_agreement_text": default_agreement}
+    
+    return {"user_agreement_text": master.get("user_agreement_text") or default_agreement}
+
+
+@router.get("/agreements")
+async def get_all_company_agreements():
+    """
+    Get user agreements from all companies (PE and FI).
+    Returns both company agreements for side-by-side display.
+    Public endpoint - no auth required (used during first login).
+    """
+    # Fetch PE company
+    pe_company = await db.company_master.find_one({"id": "pe_company"})
+    # Fetch FI company
+    fi_company = await db.company_master.find_one({"id": "fi_company"})
+    # Fallback to legacy single company if no multi-company setup
+    legacy_company = await db.company_master.find_one({"_id": "company_settings"})
+    
+    default_agreement = """TERMS OF USE AND USER AGREEMENT
+
+By accessing and using this system, you agree to the following terms and conditions:
+
+1. CONFIDENTIALITY
+You agree to maintain the confidentiality of all information accessed through this system.
+
+2. AUTHORIZED USE
+This system is intended solely for authorized business purposes.
+
+3. COMPLIANCE
+You agree to comply with all applicable laws, regulations, and company policies.
+
+By clicking "I Agree", you confirm that you have read, understood, and agree to these terms."""
+
+    agreements = []
+    
+    if pe_company:
+        agreements.append({
+            "company_id": "pe_company",
+            "company_name": pe_company.get("company_name", "SMIFS Private Equity"),
+            "company_type": "private_equity",
+            "agreement_text": pe_company.get("user_agreement_text") or default_agreement,
+            "logo_url": pe_company.get("logo_url")
+        })
+    
+    if fi_company:
+        agreements.append({
+            "company_id": "fi_company",
+            "company_name": fi_company.get("company_name", "SMIFS Fixed Income"),
+            "company_type": "fixed_income",
+            "agreement_text": fi_company.get("user_agreement_text") or default_agreement,
+            "logo_url": fi_company.get("logo_url")
+        })
+    
+    # If no multi-company setup, return legacy single company
+    if not agreements and legacy_company:
+        agreements.append({
+            "company_id": "company_settings",
+            "company_name": legacy_company.get("company_name", "SMIFS"),
+            "company_type": "legacy",
+            "agreement_text": legacy_company.get("user_agreement_text") or default_agreement,
+            "logo_url": legacy_company.get("logo_url")
+        })
+    
+    # If nothing exists, return default
+    if not agreements:
+        agreements.append({
+            "company_id": "default",
+            "company_name": "SMIFS",
+            "company_type": "default",
+            "agreement_text": default_agreement,
+            "logo_url": None
+        })
+    
+    return {"agreements": agreements}
+
+
+# ============== Authenticated Endpoints ==============
 @router.get("/{company_id}", response_model=CompanyMasterResponse)
 async def get_company_by_id(
     company_id: str,
