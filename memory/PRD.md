@@ -37,6 +37,43 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Consolidated Bond Scraping Service (Feb 08, 2026)
+
+**Refactored web scraping into unified service with expanded data sources:**
+
+**New File:** `/app/backend/fixed_income/bond_scraping_service.py`
+
+**Data Sources Supported:**
+- **Primary (Official):**
+  - `indiabondsinfo.nsdl.com` - Official NSDL database
+  - `rbi.org.in` - RBI Government Securities
+  
+- **Secondary (Marketplaces):**
+  - `indiabonds.com` - Bond marketplace
+  - `smest.in` - Bond investment platform
+  - `wintwealth.com` - Bond trading platform
+  - `thefixedincome.com` - Fixed income marketplace
+  - `goldenpi.com` - Bond investment platform
+  - `bondbazaar.com` - Bond marketplace
+  
+- **Exchange Data:**
+  - `nseindia.com` - NSE Debt Market
+  - `bseindia.com` - BSE Debt Segment
+
+**Bond Database Expanded:**
+- **72 instruments** from **45 unique issuers**
+- Ratings: AAA (9), AA+ (4), AA (8+), A+ (2), A (4), A- (2), BBB+ (1), SOVEREIGN (13)
+- Types: NCD (47), BOND (12), GSEC (8), SDL (5)
+- Sectors: NBFC, Banking, Infrastructure, Energy, Government, Housing Finance, etc.
+
+**New API Features:**
+- `rating_filter` - Filter search by credit rating (AAA, AA+, AA, etc.)
+- `sector_filter` - Filter search by sector (Infrastructure, NBFC, etc.)
+- Enhanced statistics endpoint with data source categories
+- `confidence_score` in live lookup results (based on sources found)
+
+**Testing:** 100% (25/25 backend tests passed) - `/app/test_reports/iteration_87.json`
+
 #### ✅ License Admin Hidden & Expiry Verification (Feb 08, 2026)
 
 **Verified license admin security:**
