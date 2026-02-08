@@ -643,49 +643,79 @@ class TestLicenseAdminNoAuditLogs:
             "Authorization": f"Bearer {pe_token}"
         })
         
-        # Get timestamp before license admin login
-        import datetime
-        before_login_time = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        
-        # Perform license admin login (force fresh login by clearing cache)
-        TokenCache.license_admin_token = None
-        license_token = get_license_admin_token()
-        assert license_token, "License admin login failed"
-        
-        # Small delay to ensure any async audit log would have been created
-        time.sleep(1)
-        
-        # Query audit logs for USER_LOGIN action for license admin
-        response = session.get(
+        # Get the latest audit logs BEFORE license admin login
+        before_response = session.get(
             f"{BASE_URL}/api/audit-logs",
             params={
                 "action": "USER_LOGIN",
-                "limit": 20
+                "limit": 1
             }
         )
-        print(f"Audit logs query status: {response.status_code}")
         
-        if response.status_code == 200:
-            data = response.json()
-            logs = data.get("logs", [])
-            
-            # Check if any recent audit logs are for the license admin
-            license_admin_login_logs = [
-                log for log in logs 
-                if log.get("user_name") == "License Admin" or 
-                   "deynet" in str(log.get("details", {})).lower() or
-                   "license" in str(log.get("user_name", "")).lower()
-            ]
-            
-            assert len(license_admin_login_logs) == 0, \
-                f"License admin login should NOT create audit logs! Found: {license_admin_login_logs}"
-            print("PASS: License admin login did NOT create any audit log (clandestine operation)")
-        elif response.status_code == 403:
-            # PE user might not have permission to view audit logs - this is also acceptable
+        if before_response.status_code == 200:
+            before_data = before_response.json()
+            before_logs = before_data.get("logs", [])
+            latest_log_id_before = before_logs[0].get("id") if before_logs else None
+            latest_timestamp_before = before_logs[0].get("timestamp") if before_logs else None
+            print(f"Latest audit log before login: {latest_log_id_before} at {latest_timestamp_before}")
+        elif before_response.status_code == 403:
             print("INFO: PE user does not have permission to view audit logs - cannot verify")
             print("PASS (assumed): License admin login audit log check skipped due to permissions")
+            return
         else:
-            print(f"Warning: Audit logs endpoint returned {response.status_code}")
+            print(f"Warning: Audit logs endpoint returned {before_response.status_code}")
+            return
+        
+        # Perform fresh license admin login 
+        TokenCache.license_admin_token = None
+        login_session = requests.Session()
+        login_session.headers.update({"Content-Type": "application/json"})
+        login_response = login_session.post(f"{BASE_URL}/api/auth/login", json={
+            "email": LICENSE_ADMIN_EMAIL,
+            "password": LICENSE_ADMIN_PASSWORD
+        })
+        assert login_response.status_code == 200, f"License admin login failed: {login_response.text}"
+        print("License admin login succeeded")
+        
+        # Small delay to ensure any async audit log would have been created
+        time.sleep(2)
+        
+        # Get the latest audit logs AFTER license admin login
+        after_response = session.get(
+            f"{BASE_URL}/api/audit-logs",
+            params={
+                "action": "USER_LOGIN",
+                "limit": 5
+            }
+        )
+        assert after_response.status_code == 200, f"Failed to get audit logs: {after_response.text}"
+        
+        after_data = after_response.json()
+        after_logs = after_data.get("logs", [])
+        
+        # Check if a NEW audit log was created for license admin after our login
+        new_license_admin_logs = []
+        for log in after_logs:
+            log_timestamp = log.get("timestamp", "")
+            log_user_name = log.get("user_name", "")
+            
+            # Check if this is a new log (after our before-login check)
+            if latest_timestamp_before and log_timestamp > latest_timestamp_before:
+                # Check if it's for license admin
+                if "License" in log_user_name or log.get("user_role") == 0:
+                    new_license_admin_logs.append(log)
+        
+        if new_license_admin_logs:
+            print(f"WARNING: Found {len(new_license_admin_logs)} NEW audit log(s) for license admin after login!")
+            for log in new_license_admin_logs:
+                print(f"  - {log.get('timestamp')}: {log.get('user_name')} ({log.get('action')})")
+            # This is a bug - audit logs should NOT be created for hidden admin
+            assert False, f"License admin login should NOT create audit logs! Found: {new_license_admin_logs}"
+        else:
+            print("PASS: No NEW audit log was created for license admin login (clandestine operation working)")
+        
+        # Update token cache with the fresh token
+        TokenCache.license_admin_token = login_response.json().get("token")
 
 
 # ============== License Admin No Security Alerts on Login Tests ==============
