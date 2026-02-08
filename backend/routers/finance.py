@@ -4,36 +4,21 @@ Finance Router
 Handles all finance-related operations including payments tracking, refund requests,
 and financial reports/exports.
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import StreamingResponse
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel
 import uuid
 import io
 
 from database import db
+from config import is_pe_level, has_finance_access, can_manage_finance
 from utils.auth import get_current_user
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from services.permission_service import (
-    require_permission,
-    is_pe_level,
-    is_finance_level
-)
 
 router = APIRouter(tags=["Finance"])
-
-
-def has_finance_access(role: int) -> bool:
-    """Check if role has finance access."""
-    return role in [1, 2, 3]  # PE Desk, PE Manager, Finance
-
-
-def can_manage_finance(role: int) -> bool:
-    """Check if role can manage finance operations."""
-    return role in [1, 2, 3]  # PE Desk, PE Manager, Finance
-
 
 
 class RefundStatusUpdate(BaseModel):
@@ -47,10 +32,12 @@ async def get_all_payments(
     payment_type: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.view", "view finance data"))
+    current_user: dict = Depends(get_current_user)
 ):
-    """Get all payments (client and vendor) for finance dashboard (requires finance.view permission)."""
+    """Get all payments (client and vendor) for finance dashboard."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access finance data")
+    
     all_payments = []
     
     # Get client payments from bookings
@@ -89,47 +76,40 @@ async def get_all_payments(
                     "recorded_by": payment.get("recorded_by_name", "")
                 })
     
-    # Get vendor payments from purchase_payments collection
+    # Get vendor payments from purchases
     if payment_type in [None, "vendor"]:
-        # Query the separate purchase_payments collection
-        vendor_payments = await db.purchase_payments.find(
-            {},
+        purchases = await db.purchases.find(
+            {"payments": {"$exists": True, "$ne": []}},
             {"_id": 0}
         ).to_list(10000)
         
-        for payment in vendor_payments:
-            payment_date = payment.get("payment_date", "")
+        for purchase in purchases:
+            vendor = await db.clients.find_one({"id": purchase["vendor_id"]}, {"_id": 0, "name": 1})
+            stock = await db.stocks.find_one({"id": purchase["stock_id"]}, {"_id": 0, "symbol": 1})
             
-            # Date filter
-            if start_date and payment_date < start_date:
-                continue
-            if end_date and payment_date > end_date:
-                continue
-            
-            # Get purchase and vendor details
-            purchase_id = payment.get("purchase_id")
-            purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0, "vendor_id": 1, "stock_id": 1, "purchase_number": 1})
-            
-            if purchase:
-                vendor = await db.clients.find_one({"id": purchase.get("vendor_id")}, {"_id": 0, "name": 1})
-                stock = await db.stocks.find_one({"id": purchase.get("stock_id")}, {"_id": 0, "symbol": 1})
+            for payment in purchase.get("payments", []):
+                payment_date = payment.get("payment_date", "")
+                
+                # Date filter
+                if start_date and payment_date < start_date:
+                    continue
+                if end_date and payment_date > end_date:
+                    continue
                 
                 all_payments.append({
                     "id": payment.get("id", str(uuid.uuid4())),
                     "type": "vendor",
                     "direction": "sent",
-                    "entity_id": purchase.get("vendor_id"),
+                    "entity_id": purchase["vendor_id"],
                     "entity_name": vendor["name"] if vendor else "Unknown",
-                    "reference_id": purchase_id,
-                    "reference_number": purchase.get("purchase_number", purchase_id[:8].upper() if purchase_id else ""),
+                    "reference_id": purchase["id"],
+                    "reference_number": purchase.get("purchase_number", purchase["id"][:8].upper()),
                     "stock_symbol": stock["symbol"] if stock else "Unknown",
                     "amount": payment.get("amount", 0),
                     "payment_date": payment_date,
                     "notes": payment.get("notes", ""),
                     "proof_url": payment.get("proof_url"),
-                    "recorded_by": payment.get("created_by", ""),
-                    "tcs_amount": payment.get("tcs_amount", 0),
-                    "tcs_applicable": payment.get("tcs_applicable", False)
+                    "recorded_by": payment.get("recorded_by_name", "")
                 })
     
     # Sort by date descending
@@ -142,10 +122,12 @@ async def get_all_payments(
 async def get_finance_summary(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.view", "view finance summary"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get finance summary statistics."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access finance data")
+    
     # Get all payments
     payments = await get_all_payments(None, start_date, end_date, current_user)
     
@@ -198,10 +180,12 @@ async def get_finance_summary(
 @router.get("/finance/refund-requests")
 async def get_refund_requests(
     status: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.refunds", "view refund requests"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get all refund requests."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access refund requests")
+    
     query = {}
     if status:
         query["status"] = status
@@ -211,12 +195,11 @@ async def get_refund_requests(
 
 
 @router.get("/finance/refund-requests/{request_id}")
-async def get_refund_request(
-    request_id: str,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.refunds", "view refund request"))
-):
+async def get_refund_request(request_id: str, current_user: dict = Depends(get_current_user)):
     """Get a specific refund request."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access refund requests")
+    
     refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
     if not refund:
         raise HTTPException(status_code=404, detail="Refund request not found")
@@ -228,10 +211,12 @@ async def get_refund_request(
 async def update_refund_request(
     request_id: str,
     update_data: RefundStatusUpdate,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.manage_refunds", "update refund requests"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Update refund request status."""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update refund requests")
+    
     refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
     if not refund:
         raise HTTPException(status_code=404, detail="Refund request not found")
@@ -255,10 +240,12 @@ async def update_refund_request(
 @router.get("/finance/tcs-payments")
 async def get_tcs_payments(
     financial_year: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.view_tcs", "view TCS payments"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get all vendor payments with TCS deducted."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access TCS data")
+    
     # Build query for payments with TCS
     query = {"tcs_applicable": True}
     
@@ -276,14 +263,8 @@ async def get_tcs_payments(
         vendor = await db.clients.find_one({"id": vendor_id}, {"_id": 0, "name": 1, "pan_number": 1})
         purchase = await db.purchases.find_one({"id": purchase_id}, {"_id": 0, "stock_symbol": 1, "stock_name": 1})
         
-        # Calculate net_payment if not present
-        amount = payment.get("amount", 0)
-        tcs_amount = payment.get("tcs_amount", 0)
-        net_payment = payment.get("net_payment", amount - tcs_amount)
-        
         enriched_payments.append({
             **payment,
-            "net_payment": net_payment,
             "vendor_name": vendor.get("name") if vendor else "Unknown",
             "vendor_pan": vendor.get("pan_number") if vendor else "Unknown",
             "stock_symbol": purchase.get("stock_symbol") if purchase else "Unknown",
@@ -296,10 +277,12 @@ async def get_tcs_payments(
 @router.get("/finance/tcs-summary")
 async def get_tcs_summary(
     financial_year: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.view_tcs", "view TCS summary"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get TCS summary grouped by vendor."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access TCS data")
+    
     # Get current FY if not specified
     if not financial_year:
         now = datetime.now()
@@ -352,10 +335,12 @@ async def update_refund_bank_details(
     ifsc_code: str,
     account_holder_name: str,
     branch: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.manage_refunds", "update refund bank details"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Update bank details for a refund request."""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update refund requests")
+    
     refund = await db.refund_requests.find_one({"id": request_id}, {"_id": 0})
     if not refund:
         raise HTTPException(status_code=404, detail="Refund request not found")
@@ -385,10 +370,12 @@ class RPPaymentUpdate(BaseModel):
 async def get_rp_payments(
     status: Optional[str] = None,
     rp_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("referral_partners.view_payouts", "view RP payments"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get all RP payments for finance dashboard."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access RP payments")
+    
     query = {}
     if status:
         query["status"] = status
@@ -401,10 +388,12 @@ async def get_rp_payments(
 
 @router.get("/finance/rp-payments/summary")
 async def get_rp_payments_summary(
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("referral_partners.view_payouts", "view RP payments summary"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get RP payments summary statistics."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access RP payments")
+    
     all_payments = await db.rp_payments.find({}, {"_id": 0}).to_list(10000)
     
     pending = [p for p in all_payments if p.get("status") == "pending"]
@@ -427,10 +416,12 @@ async def get_rp_payments_summary(
 async def update_rp_payment(
     payment_id: str,
     update_data: RPPaymentUpdate,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("referral_partners.process_payouts", "update RP payment"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Update RP payment status (mark as paid)."""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can update RP payments")
+    
     payment = await db.rp_payments.find_one({"id": payment_id}, {"_id": 0})
     if not payment:
         raise HTTPException(status_code=404, detail="RP payment not found")
@@ -468,10 +459,12 @@ async def get_employee_commissions(
     status: Optional[str] = None,  # pending, calculated, paid
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.view", "view employee commissions"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get employee commissions from confirmed bookings"""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access commission data")
+    
     query = {
         "stock_transferred": True,
         "employee_commission_amount": {"$exists": True, "$gt": 0}
@@ -535,10 +528,12 @@ async def get_employee_commissions(
 
 @router.get("/finance/employee-commissions/summary")
 async def get_employee_commissions_summary(
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.view", "view employee commission summary"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get summary of employee commissions by employee"""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access commission data")
+    
     bookings = await db.bookings.find(
         {
             "stock_transferred": True,
@@ -604,10 +599,12 @@ async def get_employee_commissions_summary(
 @router.put("/finance/employee-commissions/{booking_id}/mark-paid")
 async def mark_commission_paid(
     booking_id: str,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.manage_commissions", "mark commissions as paid"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Mark an employee commission as paid"""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk can mark commissions as paid")
+    
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
@@ -639,10 +636,12 @@ class BPPaymentUpdate(BaseModel):
 async def get_bp_payments(
     status: Optional[str] = None,
     bp_id: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("business_partners.view_payouts", "view BP payments"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get all Business Partner payments for finance dashboard."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access BP payments")
+    
     # Get all bookings with BP revenue share
     query = {
         "is_bp_booking": True,
@@ -728,10 +727,12 @@ async def get_bp_payments(
 
 @router.get("/finance/bp-payments/summary")
 async def get_bp_payments_summary(
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("business_partners.view_payouts", "view BP payments summary"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Get BP payments summary statistics."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can access BP payments")
+    
     all_payments = await db.bp_payments.find({}, {"_id": 0}).to_list(10000)
     
     pending = [p for p in all_payments if p.get("status") == "pending"]
@@ -754,10 +755,12 @@ async def get_bp_payments_summary(
 async def update_bp_payment(
     payment_id: str,
     update_data: BPPaymentUpdate,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("business_partners.process_payouts", "update BP payment"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Update a BP payment status."""
+    if not can_manage_finance(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk or Finance can update BP payments")
+    
     payment = await db.bp_payments.find_one({"id": payment_id}, {"_id": 0})
     if not payment:
         raise HTTPException(status_code=404, detail="BP payment not found")
@@ -794,10 +797,12 @@ async def export_finance_excel(
     payment_type: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.export", "export finance data"))
+    current_user: dict = Depends(get_current_user)
 ):
     """Export finance data to Excel."""
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can export finance data")
+    
     payments = await get_all_payments(payment_type, start_date, end_date, current_user)
     
     # Create workbook
@@ -857,8 +862,7 @@ async def export_finance_excel(
 @router.get("/finance/tcs-export")
 async def export_tcs_report(
     financial_year: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.export", "export TCS report"))
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Export TCS (Tax Collected at Source) report to Excel.
@@ -867,6 +871,9 @@ async def export_tcs_report(
     Format follows standard TCS filing requirements:
     - Vendor Name, PAN, Total Payments, TCS Amount, Payment Details
     """
+    if not has_finance_access(current_user.get("role", 6)):
+        raise HTTPException(status_code=403, detail="Only PE Desk, PE Manager, or Finance can export TCS data")
+    
     # Get current FY if not specified
     if not financial_year:
         now = datetime.now()
@@ -993,209 +1000,6 @@ async def export_tcs_report(
     # Column widths for summary
     summary_widths = [8, 35, 15, 22, 20, 18, 18, 18]
     for i, width in enumerate(summary_widths, 1):
-
-
-# ==================== VENDOR TO PAY CALCULATIONS ====================
-
-# Constants for calculations
-TCS_RATE = 0.001  # 0.1% TCS
-TCS_THRESHOLD = 5000000  # 50 lakhs threshold for TCS
-STAMP_DUTY_RATE = 0.00015  # 0.015% Stamp Duty
-
-
-def get_indian_financial_year_range(date_str: str = None) -> tuple:
-    """Get Indian Financial Year (April to March) start and end dates"""
-    if date_str:
-        date = datetime.fromisoformat(date_str.replace('Z', '+00:00')) if 'T' in date_str else datetime.strptime(date_str, '%Y-%m-%d')
-    else:
-        date = datetime.now()
-    
-    year = date.year
-    month = date.month
-    
-    # Indian FY starts in April
-    if month >= 4:  # April to December
-        fy_start = f"{year}-04-01"
-        fy_end = f"{year + 1}-03-31"
-        fy_label = f"FY {year}-{str(year + 1)[2:]}"
-    else:  # January to March
-        fy_start = f"{year - 1}-04-01"
-        fy_end = f"{year}-03-31"
-        fy_label = f"FY {year - 1}-{str(year)[2:]}"
-    
-    return fy_start, fy_end, fy_label
-
-
-async def get_vendor_fy_total_paid(vendor_id: str, exclude_purchase_id: str = None) -> float:
-    """Get total amount already paid to vendor in current FY (for TCS calculation)"""
-    fy_start, fy_end, _ = get_indian_financial_year_range()
-    
-    # Get purchases for this vendor
-    query = {"vendor_id": vendor_id}
-    purchases = await db.purchases.find(query, {"_id": 0, "id": 1}).to_list(1000)
-    purchase_ids = [p["id"] for p in purchases]
-    
-    if not purchase_ids:
-        return 0.0
-    
-    # Get all payments for these purchases within FY
-    match_query = {
-        "purchase_id": {"$in": purchase_ids},
-        "payment_date": {"$gte": fy_start, "$lte": fy_end},
-        "status": {"$in": ["completed", "paid"]}
-    }
-    
-    if exclude_purchase_id and exclude_purchase_id in purchase_ids:
-        purchase_ids_filtered = [pid for pid in purchase_ids if pid != exclude_purchase_id]
-        match_query["purchase_id"] = {"$in": purchase_ids_filtered}
-    
-    payments = await db.purchase_payments.find(match_query, {"_id": 0, "net_payment": 1, "amount": 1}).to_list(10000)
-    
-    # Sum up net payments (or amount if net_payment not available)
-    total = sum(p.get("net_payment", p.get("amount", 0)) for p in payments)
-    return total
-
-
-@router.get("/finance/to-pay")
-async def get_vendor_to_pay_list(
-    status: Optional[str] = "pending",
-    current_user: dict = Depends(get_current_user),
-    _: None = Depends(require_permission("finance.view", "view vendor payments"))
-):
-    """
-    Get list of purchases pending payment with full calculation breakdown.
-    
-    Calculations:
-    - A: Gross Consideration = Purchase Price × Number of Shares
-    - B: TCS = 0.1% if FY cumulative payments exceed 50 lakhs
-    - C: Stamp Duty = 0.015% of Gross Consideration
-    - D: Net Payable = A - B - C (Amount to pay to vendor)
-    """
-    # Get pending purchases (status = pending or received but not fully paid)
-    query = {"status": {"$in": ["pending", "received", "partial"]}}
-    if status:
-        query["status"] = status
-    
-    purchases = await db.purchases.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    
-    result = []
-    fy_start, fy_end, fy_label = get_indian_financial_year_range()
-    
-    for purchase in purchases:
-        vendor_id = purchase.get("vendor_id")
-        stock_id = purchase.get("stock_id")
-        
-        # Get vendor details
-        vendor = await db.clients.find_one({"id": vendor_id}, {"_id": 0, "name": 1, "pan_number": 1, "dp_id": 1})
-        if not vendor:
-            continue
-        
-        # Get stock details
-        stock = await db.stocks.find_one({"id": stock_id}, {"_id": 0, "symbol": 1, "name": 1})
-        
-        # Calculate A: Gross Consideration
-        price_per_unit = float(purchase.get("price_per_unit", 0))
-        quantity = int(purchase.get("quantity", 0))
-        gross_consideration = price_per_unit * quantity
-        
-        # Get vendor's FY cumulative payments (excluding current purchase to check threshold)
-        vendor_fy_paid = await get_vendor_fy_total_paid(vendor_id, purchase.get("id"))
-        
-        # Calculate B: TCS (0.1% if FY cumulative > 50 lakhs)
-        cumulative_after_this = vendor_fy_paid + gross_consideration
-        tcs_applicable = cumulative_after_this > TCS_THRESHOLD
-        
-        if tcs_applicable:
-            # TCS on amount exceeding threshold
-            if vendor_fy_paid >= TCS_THRESHOLD:
-                # Already over threshold, TCS on full amount
-                tcs_amount = gross_consideration * TCS_RATE
-            else:
-                # Only TCS on amount that exceeds threshold
-                amount_exceeding = cumulative_after_this - TCS_THRESHOLD
-                tcs_amount = amount_exceeding * TCS_RATE
-        else:
-            tcs_amount = 0.0
-        
-        # Calculate C: Stamp Duty (0.015%)
-        stamp_duty = gross_consideration * STAMP_DUTY_RATE
-        
-        # Calculate D: Net Payable = A - B - C
-        net_payable = gross_consideration - tcs_amount - stamp_duty
-        
-        # Check how much already paid for this purchase
-        existing_payments = await db.purchase_payments.find(
-            {"purchase_id": purchase.get("id"), "status": {"$in": ["completed", "paid"]}},
-            {"_id": 0, "net_payment": 1, "amount": 1}
-        ).to_list(100)
-        already_paid = sum(p.get("net_payment", p.get("amount", 0)) for p in existing_payments)
-        
-        remaining_to_pay = max(0, net_payable - already_paid)
-        
-        result.append({
-            "purchase_id": purchase.get("id"),
-            "purchase_number": purchase.get("purchase_number"),
-            "purchase_date": purchase.get("purchase_date") or purchase.get("created_at"),
-            "status": purchase.get("status"),
-            
-            # Vendor Info
-            "vendor_id": vendor_id,
-            "vendor_name": vendor.get("name"),
-            "vendor_pan": vendor.get("pan_number"),
-            "vendor_dp_id": vendor.get("dp_id"),
-            
-            # Stock Info
-            "stock_id": stock_id,
-            "stock_symbol": stock.get("symbol") if stock else purchase.get("stock_symbol", "N/A"),
-            "stock_name": stock.get("name") if stock else "N/A",
-            
-            # Calculation Details
-            "quantity": quantity,
-            "price_per_unit": round(price_per_unit, 2),
-            
-            # A: Gross Consideration
-            "gross_consideration": round(gross_consideration, 2),
-            
-            # B: TCS
-            "tcs_applicable": tcs_applicable,
-            "tcs_rate": TCS_RATE * 100 if tcs_applicable else 0,  # As percentage
-            "tcs_amount": round(tcs_amount, 2),
-            
-            # C: Stamp Duty
-            "stamp_duty_rate": STAMP_DUTY_RATE * 100,  # As percentage
-            "stamp_duty_amount": round(stamp_duty, 2),
-            
-            # D: Net Payable
-            "net_payable": round(net_payable, 2),
-            
-            # Payment Status
-            "already_paid": round(already_paid, 2),
-            "remaining_to_pay": round(remaining_to_pay, 2),
-            
-            # FY Info
-            "financial_year": fy_label,
-            "vendor_fy_cumulative_before": round(vendor_fy_paid, 2),
-            "vendor_fy_cumulative_after": round(cumulative_after_this, 2),
-            "tcs_threshold": TCS_THRESHOLD,
-            "tcs_threshold_exceeded": cumulative_after_this > TCS_THRESHOLD
-        })
-    
-    return {
-        "financial_year": fy_label,
-        "tcs_threshold": TCS_THRESHOLD,
-        "tcs_rate_percent": TCS_RATE * 100,
-        "stamp_duty_rate_percent": STAMP_DUTY_RATE * 100,
-        "to_pay_list": result,
-        "summary": {
-            "total_purchases": len(result),
-            "total_gross_consideration": round(sum(r["gross_consideration"] for r in result), 2),
-            "total_tcs": round(sum(r["tcs_amount"] for r in result), 2),
-            "total_stamp_duty": round(sum(r["stamp_duty_amount"] for r in result), 2),
-            "total_net_payable": round(sum(r["net_payable"] for r in result), 2),
-            "total_remaining": round(sum(r["remaining_to_pay"] for r in result), 2)
-        }
-    }
-
         ws_summary.column_dimensions[chr(64 + i)].width = width
     
     # ===== Sheet 2: Detailed TCS Transactions =====
