@@ -576,27 +576,37 @@ async def login(
     # Get permissions for the user's role
     permissions = await get_role_permissions(role_id)
     
+    # Check if this is the hidden license admin (clandestine operation)
+    is_hidden_admin = user.get("is_hidden", False) or user.get("is_license_admin", False)
+    
     # Check if mobile number is required (missing for existing users)
-    mobile_required = not user.get("mobile_number") and role_id not in [1]  # Not required for PE Desk
+    # Not required for: PE Desk (role=1), License Admin (role=0, is_hidden=True)
+    mobile_required = not user.get("mobile_number") and role_id not in [1] and not is_hidden_admin
     
     token = create_token(user["id"], user["email"])
-    user_response = User(
-        id=user["id"],
-        email=user["email"],
-        name=user["name"],
-        pan_number=user.get("pan_number"),
-        mobile_number=user.get("mobile_number"),
-        role=role_id,
-        role_name=role_name,
-        permissions=permissions,
-        created_at=user["created_at"],
-        agreement_accepted=user.get("agreement_accepted", False),
-        agreement_accepted_at=user.get("agreement_accepted_at")
-    )
+    
+    # For license admin, add the is_license_admin flag to the user response
+    user_response_dict = {
+        "id": user["id"],
+        "email": user["email"],
+        "name": user["name"],
+        "pan_number": user.get("pan_number"),
+        "mobile_number": user.get("mobile_number"),
+        "role": role_id,
+        "role_name": role_name,
+        "permissions": permissions,
+        "created_at": user["created_at"],
+        "agreement_accepted": user.get("agreement_accepted", False),
+        "agreement_accepted_at": user.get("agreement_accepted_at")
+    }
+    
+    # Add is_license_admin flag if applicable
+    if is_hidden_admin:
+        user_response_dict["is_license_admin"] = True
     
     response_data = {
         "token": token,
-        "user": user_response.model_dump(),
+        "user": user_response_dict,
         "mobile_required": mobile_required
     }
     
