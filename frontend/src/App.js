@@ -75,9 +75,30 @@ import { useState, useEffect } from 'react';
 import api from './utils/api';
 import './App.css';
 
-const PrivateRoute = ({ children }) => {
+const PrivateRoute = ({ children, allowLicenseAdmin = false }) => {
   const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" />;
+  
+  if (!token) {
+    return <Navigate to="/login" />;
+  }
+  
+  // Check if user is license admin
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      const isLicenseAdmin = user?.is_license_admin === true || user?.role === 0;
+      
+      // License admin can only access /licence route
+      if (isLicenseAdmin && !allowLicenseAdmin) {
+        return <Navigate to="/licence" />;
+      }
+    }
+  } catch (e) {
+    // If parsing fails, just continue
+  }
+  
+  return children;
 };
 
 // Proxy session wrapper - checks and displays proxy banner
