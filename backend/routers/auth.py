@@ -585,28 +585,24 @@ async def login(
     
     token = create_token(user["id"], user["email"])
     
-    # For license admin, add the is_license_admin flag to the user response
-    user_response_dict = {
-        "id": user["id"],
-        "email": user["email"],
-        "name": user["name"],
-        "pan_number": user.get("pan_number"),
-        "mobile_number": user.get("mobile_number"),
-        "role": role_id,
-        "role_name": role_name,
-        "permissions": permissions,
-        "created_at": user["created_at"],
-        "agreement_accepted": user.get("agreement_accepted", False),
-        "agreement_accepted_at": user.get("agreement_accepted_at")
-    }
-    
-    # Add is_license_admin flag if applicable
-    if is_hidden_admin:
-        user_response_dict["is_license_admin"] = True
+    user_response = User(
+        id=user["id"],
+        email=user["email"],
+        name=user["name"],
+        pan_number=user.get("pan_number"),
+        mobile_number=user.get("mobile_number"),
+        role=role_id,
+        role_name=role_name,
+        permissions=permissions,
+        created_at=user["created_at"],
+        agreement_accepted=user.get("agreement_accepted", False),
+        agreement_accepted_at=user.get("agreement_accepted_at"),
+        is_license_admin=True if is_hidden_admin else None
+    )
     
     response_data = {
         "token": token,
-        "user": user_response_dict,
+        "user": user_response.model_dump(),
         "mobile_required": mobile_required
     }
     
