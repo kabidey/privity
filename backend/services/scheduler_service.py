@@ -197,12 +197,23 @@ def init_scheduler():
         misfire_grace_time=3600  # 1 hour grace period if missed
     )
     
+    # Schedule license expiry check at midnight IST daily
+    scheduler.add_job(
+        check_license_expiry,
+        trigger=CronTrigger(hour=0, minute=5, timezone=IST),
+        id='license_expiry_check',
+        name='License Expiry Check',
+        replace_existing=True,
+        misfire_grace_time=3600  # 1 hour grace period if missed
+    )
+    
     # Start the scheduler
     scheduler.start()
     
     print(f"[{datetime.now(IST)}] Scheduler started with IST timezone")
     print("Day-end reports scheduled for 6:00 PM IST daily")
     print("WhatsApp automations scheduled for 10:00 AM IST daily")
+    print("License expiry check scheduled for 12:05 AM IST daily")
     
     # Print next run times
     for job in scheduler.get_jobs():
