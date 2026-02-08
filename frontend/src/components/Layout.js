@@ -260,6 +260,9 @@ const Layout = ({ children }) => {
     if (hasPermission('fixed_income.order_view') || isPELevel) {
       menuItems.push({ icon: FileText, label: 'FI Orders', path: '/fi-orders' });
     }
+    if (hasPermission('fixed_income.view') || isPELevel) {
+      menuItems.push({ icon: Landmark, label: 'FI IPO/NFO', path: '/fi-primary-market' });
+    }
     if (hasPermission('fixed_income.report_view') || isPELevel || isViewer) {
       menuItems.push({ icon: PieChart, label: 'FI Reports', path: '/fi-reports' });
     }
