@@ -89,10 +89,18 @@ const FIOrders = () => {
 
   const fetchClients = async () => {
     try {
-      const response = await api.get('/api/clients?limit=500');
-      setClients(response.data.clients || []);
+      // Fetch only clients with Fixed Income module access
+      const response = await api.get('/clients/by-module/fixed_income');
+      setClients(response.data || []);
     } catch (error) {
       console.error('Error fetching clients:', error);
+      // Fallback to all clients
+      try {
+        const fallback = await api.get('/clients?limit=500');
+        setClients(fallback.data.clients || []);
+      } catch (e) {
+        console.error('Fallback failed:', e);
+      }
     }
   };
 
