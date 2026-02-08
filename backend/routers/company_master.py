@@ -23,6 +23,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class CompanyMasterCreate(BaseModel):
     company_name: Optional[str] = None
+    company_type: Optional[str] = None  # 'private_equity' or 'fixed_income'
     company_address: Optional[str] = None
     company_cin: Optional[str] = None
     company_gst: Optional[str] = None
@@ -41,6 +42,7 @@ class CompanyMasterCreate(BaseModel):
 class CompanyMasterResponse(BaseModel):
     id: str
     company_name: Optional[str] = None
+    company_type: Optional[str] = None  # 'private_equity' or 'fixed_income'
     company_address: Optional[str] = None
     company_cin: Optional[str] = None
     company_gst: Optional[str] = None
@@ -67,6 +69,9 @@ class CompanyMasterResponse(BaseModel):
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
 
+
+# Valid company types
+VALID_COMPANY_TYPES = ["private_equity", "fixed_income"]
 
 def check_pe_desk(current_user: dict):
     """Verify user is PE Desk (role 1)"""
