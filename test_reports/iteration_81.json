@@ -1,0 +1,83 @@
+{
+  "summary": "NSDL Search & Import feature testing complete. Backend APIs (15/15 passed, 3 skipped - already imported instruments). Frontend UI verified - NSDL Search dialog opens, search works (company name + ISIN), results table displays correctly, Import buttons functional.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_nsdl_search_import.py",
+    "/app/test_reports/pytest/nsdl_search_import_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_nsdl_search_import.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 passed, 3 skipped)",
+    "frontend": "100% (All NSDL search/import features working)"
+  },
+  "test_credentials": {
+    "email": "pe@smifs.com",
+    "password": "Kutta@123"
+  },
+  "seed_data_creation": "None - used existing NSDL mock database with ~60 instruments",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "NSDL Search and Import feature fully implemented with MOCK NSDL database. Backend uses static NSDL_BOND_DATABASE in nsdl_search_service.py (~60 instruments). Frontend NSDL Search dialog accessible via 'NSDL Search' button on FI Security Master page (/fi-instruments).",
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": [
+      "/api/fixed-income/instruments/nsdl-search - uses NSDL_BOND_DATABASE from nsdl_search_service.py",
+      "/api/fixed-income/instruments/nsdl-import/{isin} - imports from mock database into MongoDB",
+      "/api/fixed-income/instruments/nsdl-import-multiple - bulk import from mock database",
+      "/api/fixed-income/instruments/nsdl-statistics - statistics from mock database"
+    ]
+  },
+  "tests_verified": {
+    "backend_api": {
+      "NSDL Search - company name 'Reliance'": "PASS - Returns multiple Reliance instruments",
+      "NSDL Search - company name 'HDFC'": "PASS - Returns HDFC instruments",
+      "NSDL Search - partial ISIN 'INE002A'": "PASS - Returns matching ISINs",
+      "NSDL Search - full ISIN 'INE002A08427'": "PASS - Returns exact match",
+      "NSDL Search - search_type 'all'": "PASS - Searches all fields",
+      "NSDL Search - rating search 'AAA'": "PASS - Returns AAA rated instruments only",
+      "NSDL Search - minimum query validation": "PASS - Returns 422 for <2 char query",
+      "NSDL Search - no results": "PASS - Returns empty array for non-existent company",
+      "NSDL Search - filter by instrument_type 'NCD'": "PASS - Returns only NCDs",
+      "NSDL Import - already imported error": "PASS - Returns 400 with 'already exists' message",
+      "NSDL Import - invalid ISIN error": "PASS - Returns 400 with 'not found' message",
+      "NSDL Statistics endpoint": "PASS - Returns total_instruments, by_type, by_rating, by_sector",
+      "Authentication required for search": "PASS - Returns 403 without auth",
+      "Authentication required for import": "PASS - Returns 403 without auth"
+    },
+    "frontend_ui": {
+      "FI Security Master page loads": "PASS - data-testid='fi-security-master' present",
+      "NSDL Search button visible": "PASS - data-testid='nsdl-search-btn' present",
+      "NSDL Search dialog opens": "PASS - Dialog modal opens on button click",
+      "Search input functional": "PASS - data-testid='nsdl-search-input' present and working",
+      "Search type dropdown": "PASS - All Fields, ISIN Only, Company Only, By Rating options",
+      "Search button works": "PASS - Triggers API call and displays results",
+      "Results table displays": "PASS - Shows ISIN, Issuer, Type, Coupon, Rating, Maturity columns",
+      "Import buttons shown": "PASS - Green Import button for importable instruments",
+      "Imported badge shown": "PASS - Shows 'Imported' badge for already imported instruments",
+      "Import All Available button": "PASS - Present when importable instruments exist",
+      "Main table with instruments": "PASS - Showing 28 instruments"
+    },
+    "api_response_structure": {
+      "/api/fixed-income/instruments/nsdl-search": {
+        "query": "Reliance",
+        "search_type": "company",
+        "total_results": 3,
+        "results": [
+          {"isin": "INE002A08427", "issuer_name": "Reliance Industries Limited", "instrument_type": "NCD", "coupon_rate": 8.75, "credit_rating": "AAA", "can_import": true, "already_imported": false}
+        ]
+      }
+    }
+  }
+}
