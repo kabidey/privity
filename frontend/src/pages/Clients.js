@@ -1077,6 +1077,7 @@ const Clients = () => {
       phone: '', mobile: '', pan_number: '', dp_id: '',
       dp_type: 'outside', trading_ucc: '',
       address: '', pin_code: '', bank_accounts: [],
+      modules: ['private_equity'],
     });
     setDocFiles({ pan_card: null, cml_copy: null, cancelled_cheque: null, bank_declaration: null });
     setOcrResults({});
