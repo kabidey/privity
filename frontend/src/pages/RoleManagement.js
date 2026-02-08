@@ -307,8 +307,19 @@ const RoleManagement = () => {
           <Badge className={role.color || 'bg-gray-100'}>{role.name}</Badge>
           <span className="text-xs text-muted-foreground">{perms.length} permissions</span>
         </div>
+        {/* Module Activation Status */}
+        <div className="flex gap-2 mb-3">
+          <Badge className={hasPrivateEquity ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}>
+            {hasPrivateEquity ? <Check className="h-3 w-3 mr-1" /> : <X className="h-3 w-3 mr-1" />}
+            Private Equity
+          </Badge>
+          <Badge className={hasFixedIncome ? "bg-teal-500 text-white" : "bg-gray-200 text-gray-500"}>
+            {hasFixedIncome ? <Check className="h-3 w-3 mr-1" /> : <X className="h-3 w-3 mr-1" />}
+            Fixed Income
+          </Badge>
+        </div>
         <div className="flex flex-wrap gap-2">
-          {Object.entries(categoryInfo).map(([key, info]) => {
+          {Object.entries(categoryInfo).filter(([key]) => key !== 'module').map(([key, info]) => {
             const hasCategory = categories.has(key) || perms.includes(`${key}.*`);
             return (
               <div 
