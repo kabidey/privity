@@ -124,6 +124,68 @@ const FISecurityMaster = () => {
     }
   };
 
+  // NSDL Search Functions
+  const handleNsdlSearch = async () => {
+    if (!nsdlSearchQuery || nsdlSearchQuery.length < 2) {
+      toast.error('Please enter at least 2 characters to search');
+      return;
+    }
+    try {
+      setNsdlSearching(true);
+      const params = new URLSearchParams({
+        query: nsdlSearchQuery,
+        search_type: nsdlSearchType,
+        limit: '50'
+      });
+      const response = await api.get(`/fixed-income/instruments/nsdl-search?${params}`);
+      setNsdlSearchResults(response.data.results || []);
+      if (response.data.results?.length === 0) {
+        toast.info('No instruments found matching your search');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Search failed');
+    } finally {
+      setNsdlSearching(false);
+    }
+  };
+
+  const handleNsdlImport = async (isin) => {
+    try {
+      setNsdlImporting(prev => ({ ...prev, [isin]: true }));
+      const response = await api.post(`/fixed-income/instruments/nsdl-import/${isin}`);
+      toast.success(`Imported ${isin}: ${response.data.instrument?.issuer_name}`);
+      // Update the result to show as imported
+      setNsdlSearchResults(prev => prev.map(r => 
+        r.isin === isin ? { ...r, already_imported: true, can_import: false } : r
+      ));
+      fetchInstruments();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || `Failed to import ${isin}`);
+    } finally {
+      setNsdlImporting(prev => ({ ...prev, [isin]: false }));
+    }
+  };
+
+  const handleNsdlImportAll = async () => {
+    const importable = nsdlSearchResults.filter(r => r.can_import);
+    if (importable.length === 0) {
+      toast.info('All instruments are already imported');
+      return;
+    }
+    try {
+      setNsdlSearching(true);
+      const isins = importable.map(r => r.isin);
+      const response = await api.post('/fixed-income/instruments/nsdl-import-multiple', isins);
+      toast.success(`Import complete: ${response.data.successful} succeeded, ${response.data.failed} failed`);
+      setNsdlSearchResults(prev => prev.map(r => ({ ...r, already_imported: true, can_import: false })));
+      fetchInstruments();
+    } catch (error) {
+      toast.error('Bulk import failed');
+    } finally {
+      setNsdlSearching(false);
+    }
+  };
+
   const fetchInstruments = useCallback(async () => {
     setLoading(true);
     try {
