@@ -881,6 +881,49 @@ async def bulk_update_market_data(
 
 # ==================== PUBLIC DATA IMPORT ====================
 
+@router.post("/import-all-sources")
+async def import_from_all_sources(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("fixed_income.instrument_create", "import from all sources"))
+):
+    """
+    Import bond data from all available sources:
+    - indiabondsinfo.nsdl.com (official NSDL database)
+    - indiabonds.com (bond marketplace)
+    - smest.in (bond investment platform)
+    
+    Features:
+    - Deduplication by ISIN (no duplicates)
+    - Data merging from multiple sources
+    - Comprehensive field extraction
+    - Updates existing records with new data
+    
+    Returns:
+        Import statistics including sources scraped, imported, updated counts
+    """
+    from .multi_source_importer import import_all_to_database
+    
+    try:
+        logger.info(f"Multi-source import triggered by {current_user.get('name')}")
+        result = await import_all_to_database()
+        
+        return {
+            "success": True,
+            "message": "Multi-source import completed successfully",
+            "statistics": {
+                "total_scraped": result.get("total_scraped", 0),
+                "imported": result.get("imported", 0),
+                "updated": result.get("updated", 0),
+                "sources": result.get("sources", []),
+                "errors_count": len(result.get("errors", [])),
+                "sample_errors": result.get("errors", [])[:5]
+            }
+        }
+    except Exception as e:
+        logger.error(f"Multi-source import failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
 @router.post("/import-public-data")
 async def import_public_instruments_endpoint(
     overwrite: bool = Query(False, description="Overwrite existing instruments"),
