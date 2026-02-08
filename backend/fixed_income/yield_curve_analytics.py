@@ -551,11 +551,10 @@ class YieldCurveAnalytics:
                 continue
             
             base_rate = curve.get_rate(tenor)
-            shift = shift_bps / 100  # Convert bps to percentage
             
-            # Approximate duration using price change
-            # DV01 ≈ -modified_duration * price * 0.0001
-            # For a unit position, KRD ≈ tenor * (base_rate - shifted_rate) / shift
+            # Key rate duration approximation
+            # KRD measures sensitivity to a 1bp shift at this specific tenor
+            # Approximate using modified duration formula
             
             krds.append({
                 "tenor": tenor,
