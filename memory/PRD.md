@@ -118,6 +118,30 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 **Testing:** 100% (25/25 backend tests passed) - `/app/test_reports/iteration_87.json`
 
+#### ✅ License Admin Clandestine Operation Enhanced (Feb 08, 2026)
+
+**License Admin UI Restrictions:**
+- Only shows "License Management" menu item (no other menus)
+- Redirected directly to `/licence` page after login
+- Cannot access any other routes (automatically redirected back to `/licence`)
+- No mobile number prompt on login (`mobile_required: false`)
+- User model includes `is_license_admin` flag
+
+**Bug Fixed:**
+- JavaScript `||` operator treated `role=0` as falsy, defaulting to role=7
+- Fix: Changed `user?.role || 7` to `user?.role ?? 7` (nullish coalescing)
+- Location: `/app/frontend/src/hooks/useCurrentUser.js` line 88
+
+**Files Updated:**
+- `/app/backend/models/__init__.py` - Added `is_license_admin` field to User model
+- `/app/backend/routers/auth.py` - Returns `is_license_admin: true` for hidden admin
+- `/app/frontend/src/hooks/useCurrentUser.js` - Fixed role defaulting, added `isLicenseAdmin` check
+- `/app/frontend/src/components/Layout.js` - Menu restriction for license admin
+- `/app/frontend/src/App.js` - Route restriction for license admin
+- `/app/frontend/src/pages/Login.js` - Redirect to `/licence` for license admin
+
+**Testing:** 100% (10/10 backend, all frontend verified) - `/app/test_reports/iteration_90.json`
+
 #### ✅ License Admin Hidden & Expiry Verification (Feb 08, 2026)
 
 **License Admin Clandestine Operation (FULLY VERIFIED):**
