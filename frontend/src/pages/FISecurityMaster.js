@@ -145,11 +145,27 @@ const FISecurityMaster = () => {
       const params = new URLSearchParams({
         query: nsdlSearchQuery,
         search_type: nsdlSearchType,
-        limit: '50'
+        limit: '50',
+        live_lookup: 'true'  // Enable live web lookup
       });
       const response = await api.get(`/fixed-income/instruments/nsdl-search?${params}`);
       setNsdlSearchResults(response.data.results || []);
-      if (response.data.results?.length === 0) {
+      
+      // Check if live lookup was attempted
+      if (response.data.live_lookup_attempted) {
+        const liveLookup = response.data.live_lookup_result;
+        if (liveLookup?.success && liveLookup?.newly_imported) {
+          toast.success(`Live lookup found and imported: ${response.data.results[0]?.issuer_name || nsdlSearchQuery}`, {
+            duration: 5000,
+            description: `Sources: ${liveLookup.sources_found?.join(', ') || 'Web'}`
+          });
+          fetchInstruments(); // Refresh the list
+        } else if (!liveLookup?.success && response.data.results?.length === 0) {
+          toast.info('No instruments found locally. Live web lookup attempted but no data found.', {
+            duration: 4000
+          });
+        }
+      } else if (response.data.results?.length === 0) {
         toast.info('No instruments found matching your search');
       }
     } catch (error) {
