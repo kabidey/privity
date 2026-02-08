@@ -62,6 +62,7 @@ const Clients = () => {
     address: '',
     pin_code: '',
     bank_accounts: [],
+    modules: ['private_equity'],  // Module access: private_equity, fixed_income
   });
   
   // Wizard step state
