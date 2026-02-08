@@ -179,6 +179,7 @@ class Client(BaseModel):
     has_name_mismatch: bool = False  # Flag if name mismatch was detected during creation
     bank_proof_url: Optional[str] = None  # Bank proof document for proprietors with name mismatch
     bank_proof_uploaded_by: Optional[str] = None  # Who uploaded the bank proof
+    modules: List[str] = ["private_equity"]  # Modules client has access to: private_equity, fixed_income
     bank_proof_uploaded_at: Optional[str] = None  # When the bank proof was uploaded
     # Clone tracking
     is_cloned: bool = False  # True if this was cloned from another client/vendor
