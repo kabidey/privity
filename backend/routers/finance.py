@@ -15,6 +15,7 @@ import io
 from database import db
 from config import is_pe_level, has_finance_access, can_manage_finance
 from utils.auth import get_current_user
+from services.permission_service import require_permission
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 
