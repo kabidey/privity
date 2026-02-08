@@ -722,6 +722,60 @@ const RoleManagement = () => {
                 </Button>
               </div>
               
+              {/* MODULE ACTIVATION SECTION */}
+              <div className="border rounded-md p-4 mb-4 bg-slate-50">
+                <Label className="text-sm font-semibold mb-3 block">Module Activation</Label>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Enable which modules this role can access. Permissions within disabled modules will not be available.
+                </p>
+                <div className="flex gap-4">
+                  <div className="flex items-center space-x-3 p-3 border rounded-md bg-white flex-1">
+                    <Switch
+                      id="module-pe"
+                      checked={formData.permissions.includes('module.private_equity')}
+                      onCheckedChange={(checked) => {
+                        setFormData(prev => {
+                          const perms = new Set(prev.permissions);
+                          if (checked) {
+                            perms.add('module.private_equity');
+                          } else {
+                            perms.delete('module.private_equity');
+                          }
+                          return { ...prev, permissions: Array.from(perms) };
+                        });
+                      }}
+                      data-testid="module-pe-switch"
+                    />
+                    <div>
+                      <Label htmlFor="module-pe" className="cursor-pointer font-medium">Private Equity</Label>
+                      <p className="text-xs text-muted-foreground">Bookings, Stocks, Inventory, DP Operations</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 border rounded-md bg-white flex-1">
+                    <Switch
+                      id="module-fi"
+                      checked={formData.permissions.includes('module.fixed_income')}
+                      onCheckedChange={(checked) => {
+                        setFormData(prev => {
+                          const perms = new Set(prev.permissions);
+                          if (checked) {
+                            perms.add('module.fixed_income');
+                          } else {
+                            perms.delete('module.fixed_income');
+                          }
+                          return { ...prev, permissions: Array.from(perms) };
+                        });
+                      }}
+                      data-testid="module-fi-switch"
+                    />
+                    <div>
+                      <Label htmlFor="module-fi" className="cursor-pointer font-medium">Fixed Income</Label>
+                      <p className="text-xs text-muted-foreground">NCDs, Bonds, G-Secs, Orders, Reports</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <ScrollArea className="h-[350px] border rounded-md p-4">
                 <Accordion type="multiple" className="w-full" defaultValue={Object.keys(permissions).slice(0, 3)}>
                   {Object.entries(permissions).map(([categoryKey, category]) => (
