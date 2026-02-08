@@ -310,10 +310,11 @@ class TestLicenseCheckEndpoints:
         print(f"PASS: License status check returns module status")
     
     def test_licence_check_feature_bookings(self, pe_token):
-        """Test /api/licence/check/feature for bookings"""
-        response = requests.get(
-            f"{BASE_URL}/api/licence/check/feature?feature=bookings",
-            headers=auth_headers(pe_token)
+        """Test /api/licence/check/feature for bookings (POST method)"""
+        response = requests.post(
+            f"{BASE_URL}/api/licence/check/feature",
+            headers=auth_headers(pe_token),
+            json={"feature": "bookings", "company_type": "private_equity"}
         )
         assert response.status_code == 200, f"Feature check failed: {response.status_code} {response.text}"
         data = response.json()
@@ -321,10 +322,11 @@ class TestLicenseCheckEndpoints:
         print(f"PASS: Feature check for bookings - licensed: {data.get('is_licensed')}")
     
     def test_licence_check_feature_fi_instruments(self, pe_token):
-        """Test /api/licence/check/feature for fi_instruments"""
-        response = requests.get(
-            f"{BASE_URL}/api/licence/check/feature?feature=fi_instruments",
-            headers=auth_headers(pe_token)
+        """Test /api/licence/check/feature for fi_instruments (POST method)"""
+        response = requests.post(
+            f"{BASE_URL}/api/licence/check/feature",
+            headers=auth_headers(pe_token),
+            json={"feature": "fi_instruments", "company_type": "fixed_income"}
         )
         assert response.status_code == 200, f"Feature check failed: {response.status_code} {response.text}"
         data = response.json()
