@@ -229,13 +229,15 @@ async def search_nsdl_instruments(
     query: str = Query(..., min_length=2, description="Search term (ISIN or company name)"),
     search_type: str = Query("all", description="Search type: all, isin, company, rating"),
     instrument_type: Optional[str] = Query(None, description="Filter by type: NCD, BOND, GSEC, SDL"),
+    rating_filter: Optional[str] = Query(None, description="Filter by rating: AAA, AA+, AA, A+, A, etc."),
+    sector_filter: Optional[str] = Query(None, description="Filter by sector"),
     limit: int = Query(50, le=100, description="Maximum results"),
     live_lookup: bool = Query(True, description="Enable live web lookup if ISIN not found locally"),
     current_user: dict = Depends(get_current_user),
     _: None = Depends(require_permission("fixed_income.view", "search NSDL instruments"))
 ):
     """
-    Search NSDL database for NCDs, Bonds, and G-Secs.
+    Search bond database for NCDs, Bonds, and G-Secs.
     
     Search by:
     - ISIN: Exact or partial ISIN code (e.g., "INE002A" or full ISIN)
@@ -244,72 +246,97 @@ async def search_nsdl_instruments(
     
     **Live Lookup Feature:**
     When searching for a specific ISIN that is not found in the local database,
-    the system will automatically attempt to scrape real-time data from:
-    1. indiabondsinfo.nsdl.com - Official NSDL database
-    2. indiabonds.com - Bond marketplace
-    3. smest.in - Bond investment platform
+    the system will automatically attempt to scrape real-time data from 10+ sources:
+    - indiabondsinfo.nsdl.com - Official NSDL database
+    - indiabonds.com - Bond marketplace
+    - smest.in - Bond investment platform
+    - wintwealth.com - Bond trading platform
+    - goldenpi.com - Bond investment platform
+    - nseindia.com - NSE Debt Market
+    - And more...
     
     If found, the instrument is automatically imported to the Security Master.
     
     Returns instruments available for import into Security Master.
     """
-    from .nsdl_search_service import search_nsdl_database
+    # Use the new consolidated service for local search
+    from .bond_scraping_service import search_local_database
     
-    results = search_nsdl_database(
+    results = search_local_database(
         query=query,
         search_type=search_type,
         instrument_type=instrument_type,
+        rating_filter=rating_filter,
+        sector_filter=sector_filter,
         limit=limit
     )
     
     live_lookup_result = None
     live_lookup_attempted = False
     
-    # If no results and query looks like an ISIN, try live lookup
+    # If no results and query looks like an ISIN, try live lookup from all sources
     if not results and live_lookup and _is_valid_isin_format(query):
-        logger.info(f"No local results for ISIN {query}, attempting live lookup...")
+        logger.info(f"No local results for ISIN {query}, attempting live lookup from multiple sources...")
         live_lookup_attempted = True
         
         try:
-            from .live_lookup_service import live_lookup_and_import
+            from .bond_scraping_service import BondScrapingService
             
-            lookup_result = await live_lookup_and_import(query.upper().strip())
-            
-            if lookup_result.get("success"):
-                # Add the found instrument to results
-                instrument = lookup_result.get("instrument", {})
-                live_result = {
-                    "isin": instrument.get("isin", query),
-                    "issuer_name": instrument.get("issuer_name", "Unknown"),
-                    "issue_name": instrument.get("issue_name", ""),
-                    "instrument_type": instrument.get("instrument_type", "NCD"),
-                    "face_value": instrument.get("face_value", 1000),
-                    "coupon_rate": instrument.get("coupon_rate", 0),
-                    "maturity_date": instrument.get("maturity_date", ""),
-                    "credit_rating": instrument.get("credit_rating", ""),
-                    "source": "LIVE_LOOKUP",
-                    "sources_found": lookup_result.get("sources_found", []),
-                    "already_imported": lookup_result.get("newly_imported", True),
-                    "can_import": False,  # Already imported via live lookup
-                    "live_lookup": True
-                }
-                results.append(live_result)
+            # Use the consolidated scraping service
+            scraper = BondScrapingService()
+            try:
+                bond_data = await scraper.lookup_isin(query.upper().strip())
                 
-                live_lookup_result = {
-                    "success": True,
-                    "message": lookup_result.get("message"),
-                    "newly_imported": lookup_result.get("newly_imported", False),
-                    "sources_found": lookup_result.get("sources_found", [])
-                }
-                logger.info(f"Live lookup successful for {query}")
-            else:
-                live_lookup_result = {
-                    "success": False,
-                    "message": lookup_result.get("message", "Not found"),
-                    "sources_tried": lookup_result.get("sources_tried", []),
-                    "errors": lookup_result.get("errors", [])
-                }
-                logger.info(f"Live lookup found no data for {query}")
+                if bond_data:
+                    # Import to database
+                    from .live_lookup_service import live_lookup_and_import
+                    lookup_result = await live_lookup_and_import(query.upper().strip())
+                    
+                    if lookup_result.get("success"):
+                        instrument = lookup_result.get("instrument", {})
+                        live_result = {
+                            "isin": instrument.get("isin", query),
+                            "issuer_name": instrument.get("issuer_name", bond_data.issuer_name or "Unknown"),
+                            "issue_name": instrument.get("issue_name", bond_data.issue_name or ""),
+                            "instrument_type": instrument.get("instrument_type", bond_data.instrument_type),
+                            "face_value": instrument.get("face_value", bond_data.face_value),
+                            "coupon_rate": instrument.get("coupon_rate", bond_data.coupon_rate),
+                            "maturity_date": instrument.get("maturity_date", bond_data.maturity_date),
+                            "credit_rating": instrument.get("credit_rating", bond_data.credit_rating),
+                            "source": "LIVE_LOOKUP",
+                            "sources_found": bond_data.sources,
+                            "confidence_score": bond_data.confidence_score,
+                            "already_imported": True,
+                            "can_import": False,
+                            "live_lookup": True
+                        }
+                        results.append(live_result)
+                        
+                        live_lookup_result = {
+                            "success": True,
+                            "message": lookup_result.get("message"),
+                            "newly_imported": lookup_result.get("newly_imported", False),
+                            "sources_found": bond_data.sources,
+                            "confidence_score": bond_data.confidence_score
+                        }
+                        logger.info(f"Live lookup successful for {query} from {len(bond_data.sources)} sources")
+                    else:
+                        live_lookup_result = {
+                            "success": False,
+                            "message": lookup_result.get("message", "Import failed"),
+                            "sources_tried": bond_data.sources,
+                            "errors": lookup_result.get("errors", [])
+                        }
+                else:
+                    live_lookup_result = {
+                        "success": False,
+                        "message": f"No data found for ISIN {query} from any source",
+                        "sources_tried": [],
+                        "errors": scraper.errors
+                    }
+                    logger.info(f"Live lookup found no data for {query}")
+            finally:
+                await scraper.close()
                 
         except Exception as e:
             logger.error(f"Live lookup failed for {query}: {e}")
