@@ -510,6 +510,7 @@ from fixed_income.router_instruments import router as fi_instruments_router
 from fixed_income.router_orders import router as fi_orders_router
 from fixed_income.router_reports import router as fi_reports_router
 from fixed_income.market_data_service import router as fi_market_data_router
+from fixed_income.router_primary_market import router as fi_primary_market_router
 
 # Bulk Operations
 from routers.bulk_upload import router as bulk_upload_router
