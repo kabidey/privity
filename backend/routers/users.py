@@ -645,7 +645,7 @@ async def get_subordinates(user_id: str, current_user: dict = Depends(get_curren
         return []
     
     subordinates = await db.users.find(
-        {"id": {"$in": subordinate_ids}},
+        {"id": {"$in": subordinate_ids}, "is_hidden": {"$ne": True}},
         {"_id": 0, "password": 0}
     ).to_list(1000)
     
