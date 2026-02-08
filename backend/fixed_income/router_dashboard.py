@@ -197,6 +197,135 @@ async def get_fi_dashboard(
                 ytm_distribution[4]["count"] += 1
                 ytm_distribution[4]["value"] += value
         
+        # Duration Analysis (Macaulay Duration approximation)
+        duration_distribution = [
+            {"range": "< 1 year", "count": 0, "value": 0},
+            {"range": "1-3 years", "count": 0, "value": 0},
+            {"range": "3-5 years", "count": 0, "value": 0},
+            {"range": "5-7 years", "count": 0, "value": 0},
+            {"range": "7+ years", "count": 0, "value": 0}
+        ]
+        
+        total_duration_weighted = 0
+        total_duration_value = 0
+        
+        for h in holdings:
+            inst = instruments.get(h.get("isin"), {})
+            value = float(h.get("face_value", 0)) * int(h.get("quantity", 0))
+            
+            # Calculate years to maturity as proxy for duration
+            maturity_str = inst.get("maturity_date")
+            years_to_maturity = 0
+            
+            if maturity_str:
+                try:
+                    if isinstance(maturity_str, str):
+                        maturity_date = datetime.fromisoformat(maturity_str.replace("Z", "+00:00")).date()
+                    else:
+                        maturity_date = maturity_str
+                    years_to_maturity = (maturity_date - today).days / 365.0
+                except:
+                    pass
+            
+            # Simple duration approximation (modified duration ~ years to maturity for low coupon bonds)
+            duration = max(0, years_to_maturity * 0.9)  # Approximate
+            total_duration_weighted += duration * value
+            total_duration_value += value
+            
+            if years_to_maturity < 1:
+                duration_distribution[0]["count"] += 1
+                duration_distribution[0]["value"] += value
+            elif years_to_maturity < 3:
+                duration_distribution[1]["count"] += 1
+                duration_distribution[1]["value"] += value
+            elif years_to_maturity < 5:
+                duration_distribution[2]["count"] += 1
+                duration_distribution[2]["value"] += value
+            elif years_to_maturity < 7:
+                duration_distribution[3]["count"] += 1
+                duration_distribution[3]["value"] += value
+            else:
+                duration_distribution[4]["count"] += 1
+                duration_distribution[4]["value"] += value
+        
+        avg_duration = total_duration_weighted / total_duration_value if total_duration_value > 0 else 0
+        
+        # Sector Breakdown
+        sector_breakdown = {}
+        for h in holdings:
+            inst = instruments.get(h.get("isin"), {})
+            sector = inst.get("sector", "Other")
+            if not sector:
+                sector = "Other"
+            value = float(h.get("face_value", 0)) * int(h.get("quantity", 0))
+            
+            if sector not in sector_breakdown:
+                sector_breakdown[sector] = {"count": 0, "value": 0}
+            sector_breakdown[sector]["count"] += 1
+            sector_breakdown[sector]["value"] += value
+        
+        # Convert sector breakdown to sorted list
+        sector_list = [
+            {"sector": k, "count": v["count"], "value": v["value"]}
+            for k, v in sorted(sector_breakdown.items(), key=lambda x: x[1]["value"], reverse=True)
+        ]
+        
+        # Cash Flow Calendar (next 12 months)
+        cash_flow_calendar = []
+        for month_offset in range(12):
+            month_start = (today.replace(day=1) + timedelta(days=32 * month_offset)).replace(day=1)
+            if month_offset == 0:
+                month_start = today.replace(day=1)
+            month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            
+            month_coupons = 0
+            month_maturities = 0
+            
+            for h in holdings:
+                inst = instruments.get(h.get("isin"), {})
+                value = float(h.get("face_value", 0)) * int(h.get("quantity", 0))
+                coupon_rate = float(inst.get("coupon_rate", 0))
+                
+                # Estimate coupon (simplified - assume semi-annual)
+                if coupon_rate > 0:
+                    # Check if this month might have a coupon
+                    issue_date_str = inst.get("issue_date")
+                    if issue_date_str:
+                        try:
+                            if isinstance(issue_date_str, str):
+                                issue_date = datetime.fromisoformat(issue_date_str.replace("Z", "+00:00")).date()
+                            else:
+                                issue_date = issue_date_str
+                            
+                            # Check if coupon falls in this month (simplified)
+                            months_since_issue = (month_start.year - issue_date.year) * 12 + (month_start.month - issue_date.month)
+                            if months_since_issue >= 0 and months_since_issue % 6 == 0:
+                                month_coupons += value * (coupon_rate / 100) / 2
+                        except:
+                            pass
+                
+                # Check for maturity
+                maturity_str = inst.get("maturity_date")
+                if maturity_str:
+                    try:
+                        if isinstance(maturity_str, str):
+                            maturity_date = datetime.fromisoformat(maturity_str.replace("Z", "+00:00")).date()
+                        else:
+                            maturity_date = maturity_str
+                        
+                        if month_start <= maturity_date <= month_end:
+                            month_maturities += value
+                    except:
+                        pass
+            
+            cash_flow_calendar.append({
+                "month": month_start.strftime("%b %Y"),
+                "month_key": month_start.strftime("%Y-%m"),
+                "coupons": round(month_coupons, 2),
+                "maturities": round(month_maturities, 2),
+                "total": round(month_coupons + month_maturities, 2)
+            })
+        
         # Get pending orders count
         pending_orders = await db.fi_orders.count_documents({"status": {"$in": ["pending", "approved"]}})
         
@@ -206,15 +335,19 @@ async def get_fi_dashboard(
                 "total_holdings": len(holdings),
                 "total_clients": len(client_ids),
                 "avg_ytm": round(avg_ytm, 2),
+                "avg_duration": round(avg_duration, 2),
                 "total_accrued_interest": total_accrued,
                 "pending_orders": pending_orders
             },
             "holdings_by_type": holdings_by_type,
             "holdings_by_rating": holdings_by_rating,
+            "sector_breakdown": sector_list,
+            "duration_distribution": duration_distribution,
             "upcoming_maturities": upcoming_maturities[:10],
             "upcoming_coupons": upcoming_coupons[:10],
             "recent_orders": recent_orders_formatted,
-            "ytm_distribution": ytm_distribution
+            "ytm_distribution": ytm_distribution,
+            "cash_flow_calendar": cash_flow_calendar
         }
         
     except Exception as e:
