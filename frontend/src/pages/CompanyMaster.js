@@ -87,8 +87,79 @@ const CompanyMaster = () => {
 
   useEffect(() => {
     if (!isAuthorized) return;
-    fetchCompanyMaster();
+    fetchCompanies();
   }, [isAuthorized]);
+
+  useEffect(() => {
+    if (selectedCompanyId) {
+      fetchCompanyById(selectedCompanyId);
+    }
+  }, [selectedCompanyId]);
+
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/company-master/list');
+      const companiesList = response.data;
+      setCompanies(companiesList);
+      
+      // Auto-select first company if available
+      if (companiesList.length > 0 && !selectedCompanyId) {
+        setSelectedCompanyId(companiesList[0].id);
+      }
+    } catch (error) {
+      toast.error('Failed to load companies');
+      // Fallback to old endpoint for backward compatibility
+      fetchCompanyMaster();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCompanyById = async (companyId) => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/company-master/${companyId}`);
+      const data = response.data;
+      
+      setFormData({
+        company_name: data.company_name || '',
+        company_type: data.company_type || '',
+        company_address: data.company_address || '',
+        company_cin: data.company_cin || '',
+        company_gst: data.company_gst || '',
+        company_pan: data.company_pan || '',
+        cdsl_dp_id: data.cdsl_dp_id || '',
+        nsdl_dp_id: data.nsdl_dp_id || '',
+        company_tan: data.company_tan || '',
+        company_bank_name: data.company_bank_name || '',
+        company_bank_account: data.company_bank_account || '',
+        company_bank_ifsc: data.company_bank_ifsc || '',
+        company_bank_branch: data.company_bank_branch || '',
+        user_agreement_text: data.user_agreement_text || '',
+        custom_domain: data.custom_domain || ''
+      });
+      
+      setDocuments({
+        cml_cdsl_url: data.cml_cdsl_url,
+        cml_nsdl_url: data.cml_nsdl_url,
+        cancelled_cheque_url: data.cancelled_cheque_url,
+        pan_card_url: data.pan_card_url
+      });
+      
+      setLogoUrl(data.logo_url);
+      setLogoKey(Date.now());
+      
+      setLastUpdated({
+        at: data.updated_at,
+        by: data.updated_by
+      });
+    } catch (error) {
+      toast.error('Failed to load company details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchCompanyMaster = async () => {
     try {
@@ -98,6 +169,7 @@ const CompanyMaster = () => {
       
       setFormData({
         company_name: data.company_name || '',
+        company_type: data.company_type || '',
         company_address: data.company_address || '',
         company_cin: data.company_cin || '',
         company_gst: data.company_gst || '',
@@ -136,9 +208,18 @@ const CompanyMaster = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put('/company-master', formData);
-      toast.success('Company master settings saved successfully');
-      fetchCompanyMaster();
+      if (selectedCompanyId) {
+        await api.put(`/company-master/${selectedCompanyId}`, formData);
+      } else {
+        await api.put('/company-master', formData);
+      }
+      toast.success('Company settings saved successfully');
+      if (selectedCompanyId) {
+        fetchCompanyById(selectedCompanyId);
+        fetchCompanies(); // Refresh company list to update names
+      } else {
+        fetchCompanyMaster();
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save settings');
     } finally {
