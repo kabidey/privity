@@ -103,7 +103,7 @@ const FISecurityMaster = () => {
   const handleImportPublicData = async () => {
     try {
       setImportingPublicData(true);
-      const response = await api.post('/api/fixed-income/instruments/import-public-data?overwrite=false');
+      const response = await api.post('/fixed-income/instruments/import-public-data?overwrite=false');
       const stats = response.data.statistics;
       toast.success(
         `Import completed! Imported: ${stats.imported}, Updated: ${stats.updated}, Skipped: ${stats.skipped}`
