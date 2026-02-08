@@ -15,6 +15,7 @@ from database import db
 from utils.auth import get_current_user
 from services.permission_service import require_permission, has_permission
 from config import is_pe_level
+from middleware.license_enforcement import license_enforcer
 
 from .models import (
     Instrument, InstrumentCreate, InstrumentUpdate,
