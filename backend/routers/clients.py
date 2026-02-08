@@ -470,6 +470,7 @@ async def update_client(
         "pin_code": client_data.pin_code,
         "is_vendor": client_data.is_vendor,
         "bank_accounts": [acc.model_dump() for acc in client_data.bank_accounts] if client_data.bank_accounts else existing.get("bank_accounts", []),
+        "modules": client_data.modules if client_data.modules else existing.get("modules", ["private_equity"]),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
