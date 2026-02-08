@@ -96,8 +96,25 @@ const FISecurityMaster = () => {
   });
 
   const [calcResult, setCalcResult] = useState(null);
+  const [importingPublicData, setImportingPublicData] = useState(false);
 
   const { isPEDesk, isPEManager, isPELevel } = useCurrentUser();
+
+  const handleImportPublicData = async () => {
+    try {
+      setImportingPublicData(true);
+      const response = await api.post('/api/fixed-income/instruments/import-public-data?overwrite=false');
+      const stats = response.data.statistics;
+      toast.success(
+        `Import completed! Imported: ${stats.imported}, Updated: ${stats.updated}, Skipped: ${stats.skipped}`
+      );
+      fetchInstruments();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to import public data');
+    } finally {
+      setImportingPublicData(false);
+    }
+  };
 
   const fetchInstruments = useCallback(async () => {
     setLoading(true);
