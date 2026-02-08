@@ -299,6 +299,7 @@ function App() {
                           <Route path="/fi-orders" element={<FIOrders />} />
                           <Route path="/fi-reports" element={<FIReports />} />
                           <Route path="/fi-primary-market" element={<FIPrimaryMarket />} />
+                          <Route path="/licence" element={<LicenseManagement />} />
                         </Routes>
                         </Layout>
                         {/* Notification Permission Banner */}
