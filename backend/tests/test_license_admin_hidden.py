@@ -174,6 +174,78 @@ class TestLicenseAdminHiddenFromUserLists:
             f"License admin {LICENSE_ADMIN_EMAIL} should NOT be in /api/users/employees list"
         print(f"PASS: License admin hidden from /api/users/employees (checked {len(users)} users)")
     
+    def test_license_admin_hidden_from_hierarchy_endpoint(self):
+        """Test /api/users/hierarchy does NOT include license admin"""
+        token = get_pe_user_token()
+        assert token, "Failed to get PE user token"
+        
+        session = requests.Session()
+        session.headers.update({
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        })
+        
+        response = session.get(f"{BASE_URL}/api/users/hierarchy")
+        print(f"GET /api/users/hierarchy status: {response.status_code}")
+        assert response.status_code == 200
+        
+        users = response.json()
+        user_emails = [u.get("email") for u in users]
+        
+        assert LICENSE_ADMIN_EMAIL not in user_emails, \
+            f"License admin {LICENSE_ADMIN_EMAIL} should NOT be in /api/users/hierarchy list"
+        print(f"PASS: License admin hidden from /api/users/hierarchy (checked {len(users)} users)")
+    
+    def test_license_admin_hidden_from_managers_list_endpoint(self):
+        """Test /api/users/managers-list does NOT include license admin"""
+        token = get_pe_user_token()
+        assert token, "Failed to get PE user token"
+        
+        session = requests.Session()
+        session.headers.update({
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        })
+        
+        response = session.get(f"{BASE_URL}/api/users/managers-list")
+        print(f"GET /api/users/managers-list status: {response.status_code}")
+        assert response.status_code == 200
+        
+        users = response.json()
+        user_emails = [u.get("email") for u in users]
+        
+        assert LICENSE_ADMIN_EMAIL not in user_emails, \
+            f"License admin {LICENSE_ADMIN_EMAIL} should NOT be in /api/users/managers-list"
+        print(f"PASS: License admin hidden from /api/users/managers-list (checked {len(users)} users)")
+    
+    def test_license_admin_hidden_from_user_subordinates_endpoint(self):
+        """Test /api/users/{user_id}/subordinates does NOT include license admin"""
+        token = get_pe_user_token()
+        assert token, "Failed to get PE user token"
+        
+        # First get the current user to get their ID
+        session = requests.Session()
+        session.headers.update({
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
+        })
+        
+        # Get current user info
+        me_response = session.get(f"{BASE_URL}/api/auth/me")
+        assert me_response.status_code == 200
+        user_id = me_response.json().get("id")
+        
+        response = session.get(f"{BASE_URL}/api/users/{user_id}/subordinates")
+        print(f"GET /api/users/{user_id}/subordinates status: {response.status_code}")
+        assert response.status_code == 200
+        
+        subordinates = response.json()
+        user_emails = [u.get("email") for u in subordinates if isinstance(u, dict)]
+        
+        assert LICENSE_ADMIN_EMAIL not in user_emails, \
+            f"License admin {LICENSE_ADMIN_EMAIL} should NOT be in subordinates list"
+        print(f"PASS: License admin hidden from /api/users/{{id}}/subordinates (checked {len(subordinates)} subordinates)")
+    
     def test_license_admin_hidden_from_potential_managers(self):
         """Test /api/users/hierarchy/potential-managers does NOT include license admin"""
         token = get_pe_user_token()
