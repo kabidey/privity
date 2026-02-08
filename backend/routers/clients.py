@@ -172,6 +172,8 @@ async def create_client(
         "is_cloned": False,
         "cloned_from_id": None,
         "cloned_from_type": None,
+        # Module access - which modules this client can use
+        "modules": client_data.modules if client_data.modules else ["private_equity"],
         "created_by": current_user["id"],
         "created_by_role": user_role,
         "created_at": datetime.now(timezone.utc).isoformat()
