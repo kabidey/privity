@@ -119,7 +119,7 @@ class TestRatingFilter:
         """Search for AAA rated instruments only"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "AAA", "rating_filter": "AAA", "limit": 50},
+            params={"query": "Finance", "rating_filter": "AAA", "limit": 50},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
@@ -139,7 +139,7 @@ class TestRatingFilter:
         """Search for AA+ rated instruments"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "AA", "rating_filter": "AA+", "limit": 50},
+            params={"query": "Finance", "rating_filter": "AA+", "limit": 50},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
