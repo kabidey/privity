@@ -141,7 +141,8 @@ async def get_users(
         skip: Number of records to skip (for pagination)
         limit: Maximum number of records to return
     """
-    query = {}
+    # Always exclude hidden users (like license admin)
+    query = {"is_hidden": {"$ne": True}}
     
     # Server-side search filter
     if search:
