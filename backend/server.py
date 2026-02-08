@@ -540,6 +540,7 @@ from routers.files import router as files_router
 from routers.two_factor import router as two_factor_router
 from routers.roles import router as roles_router
 from routers.license import router as license_router
+from routers.license_v2 import router as license_v2_router
 
 # Security Threats
 from routers.security import router as security_router
