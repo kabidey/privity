@@ -37,6 +37,41 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ NSDL Search & Import Feature (Feb 08, 2026)
+**Implemented ISIN/Company search and import facility for Fixed Income Security Master:**
+
+**Backend Implementation:**
+- `/app/backend/fixed_income/nsdl_search_service.py` - Mock NSDL database with ~60 instruments
+- Search endpoints in `/app/backend/fixed_income/router_instruments.py`:
+  - `GET /api/fixed-income/instruments/nsdl-search` - Search by ISIN, company name, or rating
+  - `POST /api/fixed-income/instruments/nsdl-import/{isin}` - Import single instrument
+  - `POST /api/fixed-income/instruments/nsdl-import-multiple` - Bulk import multiple instruments
+  - `GET /api/fixed-income/instruments/nsdl-statistics` - Database statistics
+
+**Mock Database Contents (~60 instruments):**
+- **NCDs (15+)**: Reliance, HDFC, Bajaj Finance, Muthoot, Mahindra Finance, Tata Capital, etc.
+- **Bonds (15+)**: ICICI Bank, SBI AT1, Tata Steel, L&T, NTPC, PFC, REC, IRFC, NHAI
+- **G-Secs (5)**: Government of India 2032-2039
+- **SDLs (3)**: Maharashtra, Gujarat, Karnataka State Development Loans
+
+**Frontend Implementation (`/app/frontend/src/pages/FISecurityMaster.js`):**
+- "NSDL Search" button in Security Master header (blue styling)
+- Search dialog with:
+  - Text input for ISIN or company name
+  - Dropdown filter: All Fields, ISIN Only, Company Only, By Rating
+  - Search results table with ISIN, Issuer, Type, Coupon, Rating, Maturity columns
+  - "Import" button for individual instruments (green)
+  - "Imported" badge for already imported instruments
+  - "Import All Available" button for bulk import
+  - Result count with available-to-import count
+
+**Testing Results:**
+- Backend: 100% (15/15 passed, 3 skipped for already imported)
+- Frontend: 100% (All UI elements verified)
+- Test report: `/app/test_reports/iteration_81.json`
+
+**Note:** This is a MOCK implementation using static data. For production, requires integration with real NSDL API.
+
 #### ✅ Public Data Import for Security Master (Feb 08, 2026)
 **Auto-populated Indian NCDs, Bonds, and G-Secs from curated public sources:**
 
