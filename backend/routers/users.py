@@ -671,18 +671,18 @@ async def get_managers_list(role: Optional[int] = None, current_user: dict = Dep
     
     if role == 5:  # Getting managers for employees
         managers = await db.users.find(
-            {"role": 4, "is_active": {"$ne": False}},
+            {"role": 4, "is_active": {"$ne": False}, "is_hidden": {"$ne": True}},
             {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
         ).to_list(100)
     elif role == 4:  # Getting zonal managers for managers
         managers = await db.users.find(
-            {"role": 3, "is_active": {"$ne": False}},
+            {"role": 3, "is_active": {"$ne": False}, "is_hidden": {"$ne": True}},
             {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
         ).to_list(100)
     else:
         # Return both managers and zonal managers
         managers = await db.users.find(
-            {"role": {"$in": [3, 4]}, "is_active": {"$ne": False}},
+            {"role": {"$in": [3, 4]}, "is_active": {"$ne": False}, "is_hidden": {"$ne": True}},
             {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
         ).to_list(100)
     
