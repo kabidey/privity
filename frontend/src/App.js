@@ -293,6 +293,7 @@ function App() {
                           <Route path="/fi-instruments" element={<FISecurityMaster />} />
                           <Route path="/fi-orders" element={<FIOrders />} />
                           <Route path="/fi-reports" element={<FIReports />} />
+                          <Route path="/fi-primary-market" element={<FIPrimaryMarket />} />
                         </Routes>
                         </Layout>
                         {/* Notification Permission Banner */}
