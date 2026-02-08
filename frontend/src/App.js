@@ -296,6 +296,7 @@ function App() {
                           <Route path="/whatsapp" element={<WhatsAppNotifications />} />
                           <Route path="/notifications" element={<NotificationDashboard />} />
                           {/* Fixed Income Module */}
+                          <Route path="/fi-dashboard" element={<FIDashboard />} />
                           <Route path="/fi-instruments" element={<FISecurityMaster />} />
                           <Route path="/fi-orders" element={<FIOrders />} />
                           <Route path="/fi-reports" element={<FIReports />} />
