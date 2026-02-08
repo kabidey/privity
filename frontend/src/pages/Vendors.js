@@ -514,16 +514,95 @@ const Vendors = () => {
               data-testid="vendor-search-input"
             />
           </div>
+          {/* Clone from Client Button */}
+          {canCreateVendor && (
+            <Button 
+              onClick={openCloneDialog}
+              className="rounded-sm" 
+              data-testid="clone-vendor-button"
+            >
+              <Copy className="mr-2 h-4 w-4" strokeWidth={1.5} />
+              Clone from Client
+            </Button>
+          )}
+          
+          {/* Clone from Client Dialog */}
+          <Dialog open={cloneDialogOpen} onOpenChange={setCloneDialogOpen}>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Clone Client as Vendor</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground mb-4">
+                Select a client to clone as a vendor. All client details including documents will be copied.
+              </p>
+              
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search clients by name, PAN, or email..."
+                  value={clientSearchQuery}
+                  onChange={(e) => setClientSearchQuery(e.target.value)}
+                  className="pl-9"
+                  data-testid="clone-client-search"
+                />
+              </div>
+              
+              <div className="max-h-96 overflow-y-auto border rounded-lg">
+                {loadingClients ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+                  </div>
+                ) : filteredClients.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {clientSearchQuery ? 'No clients found matching your search' : 'No clients available to clone'}
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>PAN</TableHead>
+                        <TableHead>DP ID</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredClients.map(client => (
+                        <TableRow key={client.id}>
+                          <TableCell className="font-medium">{client.name}</TableCell>
+                          <TableCell className="font-mono text-sm">{client.pan_number}</TableCell>
+                          <TableCell className="font-mono text-sm">{client.dp_id || '-'}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              onClick={() => handleCloneClientAsVendor(client.id)}
+                              disabled={cloningClientId === client.id}
+                              data-testid={`clone-client-${client.id}`}
+                            >
+                              {cloningClientId === client.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Copy className="h-4 w-4 mr-1" />
+                                  Clone as Vendor
+                                </>
+                              )}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Edit Vendor Dialog */}
           <Dialog open={dialogOpen} onOpenChange={(open) => {
             setDialogOpen(open);
             if (!open) resetForm();
           }}>
-            <DialogTrigger asChild>
-              <Button className="rounded-sm" data-testid="add-vendor-button">
-                <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                Add Vendor
-              </Button>
-            </DialogTrigger>
           <DialogContent className="sm:max-w-3xl" aria-describedby="vendor-dialog-description">
             <DialogHeader>
               <DialogTitle>{editingVendor ? 'Edit Vendor' : 'Add New Vendor'}</DialogTitle>
