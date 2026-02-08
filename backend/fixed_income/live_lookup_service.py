@@ -297,9 +297,7 @@ class LiveBondLookup:
             
             data = {}
             
-            # SMEST usually has structured bond info
-            bond_info = soup.find_all(['div', 'span', 'p'], class_=re.compile(r'bond|detail|value', re.I))
-            
+            # SMEST usually has structured bond info - use soup directly
             text = soup.get_text()
             
             # Extract key fields using regex
