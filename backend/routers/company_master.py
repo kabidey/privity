@@ -82,6 +82,132 @@ def check_pe_desk(current_user: dict):
         )
 
 
+def company_to_response(company: dict) -> CompanyMasterResponse:
+    """Convert a company document to CompanyMasterResponse"""
+    return CompanyMasterResponse(
+        id=company.get("id", company.get("_id", "")),
+        company_name=company.get("company_name"),
+        company_type=company.get("company_type"),
+        company_address=company.get("company_address"),
+        company_cin=company.get("company_cin"),
+        company_gst=company.get("company_gst"),
+        company_pan=company.get("company_pan"),
+        cdsl_dp_id=company.get("cdsl_dp_id"),
+        nsdl_dp_id=company.get("nsdl_dp_id"),
+        company_tan=company.get("company_tan"),
+        company_bank_name=company.get("company_bank_name"),
+        company_bank_account=company.get("company_bank_account"),
+        company_bank_ifsc=company.get("company_bank_ifsc"),
+        company_bank_branch=company.get("company_bank_branch"),
+        logo_url=company.get("logo_url"),
+        cml_cdsl_url=company.get("cml_cdsl_url"),
+        cml_nsdl_url=company.get("cml_nsdl_url"),
+        cancelled_cheque_url=company.get("cancelled_cheque_url"),
+        pan_card_url=company.get("pan_card_url"),
+        user_agreement_text=company.get("user_agreement_text"),
+        custom_domain=company.get("custom_domain"),
+        updated_at=company.get("updated_at"),
+        updated_by=company.get("updated_by")
+    )
+
+
+@router.get("/list", response_model=list)
+async def list_companies(
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("company.view", "list companies"))
+):
+    """List all companies (PE Desk only)"""
+    companies = await db.company_master.find({"id": {"$ne": "company_settings"}}).to_list(100)
+    
+    # If no companies exist, seed the default two companies
+    if len(companies) == 0:
+        await seed_default_companies(current_user)
+        companies = await db.company_master.find({"id": {"$ne": "company_settings"}}).to_list(100)
+    
+    return [company_to_response(c) for c in companies]
+
+
+async def seed_default_companies(current_user: dict):
+    """Seed the default Private Equity and Fixed Income companies"""
+    default_agreement = """TERMS OF USE AND USER AGREEMENT
+
+By accessing and using this system, you agree to the following terms and conditions:
+
+1. CONFIDENTIALITY
+You agree to maintain the confidentiality of all information accessed through this system.
+
+2. AUTHORIZED USE
+This system is intended solely for authorized business purposes.
+
+3. COMPLIANCE
+You agree to comply with all applicable laws, regulations, and company policies.
+
+By clicking "I Agree", you confirm that you have read, understood, and agree to these terms."""
+
+    pe_company = {
+        "id": "pe_company",
+        "company_name": "SMIFS Private Equity",
+        "company_type": "private_equity",
+        "company_address": "",
+        "company_cin": "",
+        "company_gst": "",
+        "company_pan": "",
+        "cdsl_dp_id": "",
+        "nsdl_dp_id": "",
+        "company_tan": "",
+        "company_bank_name": "",
+        "company_bank_account": "",
+        "company_bank_ifsc": "",
+        "company_bank_branch": "",
+        "logo_url": None,
+        "cml_cdsl_url": None,
+        "cml_nsdl_url": None,
+        "cancelled_cheque_url": None,
+        "pan_card_url": None,
+        "user_agreement_text": default_agreement,
+        "custom_domain": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user.get("name", "System")
+    }
+    
+    fi_company = {
+        "id": "fi_company",
+        "company_name": "SMIFS Fixed Income",
+        "company_type": "fixed_income",
+        "company_address": "",
+        "company_cin": "",
+        "company_gst": "",
+        "company_pan": "",
+        "cdsl_dp_id": "",
+        "nsdl_dp_id": "",
+        "company_tan": "",
+        "company_bank_name": "",
+        "company_bank_account": "",
+        "company_bank_ifsc": "",
+        "company_bank_branch": "",
+        "logo_url": None,
+        "cml_cdsl_url": None,
+        "cml_nsdl_url": None,
+        "cancelled_cheque_url": None,
+        "pan_card_url": None,
+        "user_agreement_text": default_agreement,
+        "custom_domain": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user.get("name", "System")
+    }
+    
+    # Check if they already exist before inserting
+    existing_pe = await db.company_master.find_one({"id": "pe_company"})
+    existing_fi = await db.company_master.find_one({"id": "fi_company"})
+    
+    if not existing_pe:
+        await db.company_master.insert_one(pe_company)
+    if not existing_fi:
+        await db.company_master.insert_one(fi_company)
+
+
 @router.get("", response_model=CompanyMasterResponse)
 async def get_company_master(
     current_user: dict = Depends(get_current_user),
