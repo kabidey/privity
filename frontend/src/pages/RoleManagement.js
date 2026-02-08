@@ -230,35 +230,43 @@ const RoleManagement = () => {
     const perms = role.permissions || [];
     const hasAll = perms.includes('*');
     
+    // Module activation status
+    const hasPrivateEquity = hasAll || perms.includes('module.private_equity');
+    const hasFixedIncome = hasAll || perms.includes('module.fixed_income');
+    
     // Map categories to their display info - includes all permission categories from backend
     const categoryInfo = {
-      dashboard: { icon: '📊', label: 'Dashboard', color: 'bg-blue-100 text-blue-800' },
-      bookings: { icon: '📝', label: 'Bookings', color: 'bg-green-100 text-green-800' },
-      clients: { icon: '👥', label: 'Clients', color: 'bg-purple-100 text-purple-800' },
-      client_approval: { icon: '✅', label: 'Client Approval', color: 'bg-teal-100 text-teal-800' },
-      stocks: { icon: '📈', label: 'Stocks', color: 'bg-orange-100 text-orange-800' },
-      inventory: { icon: '📦', label: 'Inventory', color: 'bg-yellow-100 text-yellow-800' },
-      purchases: { icon: '🛒', label: 'Purchases', color: 'bg-pink-100 text-pink-800' },
-      vendors: { icon: '🏪', label: 'Vendors', color: 'bg-indigo-100 text-indigo-800' },
-      contract_notes: { icon: '📄', label: 'Confirmation Notes', color: 'bg-cyan-100 text-cyan-800' },
-      finance: { icon: '💰', label: 'Finance', color: 'bg-emerald-100 text-emerald-800' },
-      analytics: { icon: '📉', label: 'Analytics', color: 'bg-violet-100 text-violet-800' },
-      users: { icon: '👤', label: 'Users', color: 'bg-rose-100 text-rose-800' },
-      roles: { icon: '🔐', label: 'Roles', color: 'bg-amber-100 text-amber-800' },
-      business_partners: { icon: '🤝', label: 'Business Partners', color: 'bg-lime-100 text-lime-800' },
-      referral_partners: { icon: '🔗', label: 'Referral Partners', color: 'bg-sky-100 text-sky-800' },
-      reports: { icon: '📊', label: 'Reports & BI', color: 'bg-fuchsia-100 text-fuchsia-800' },
-      dp: { icon: '🏦', label: 'DP Operations', color: 'bg-stone-100 text-stone-800' },
-      email: { icon: '📧', label: 'Email', color: 'bg-red-100 text-red-800' },
-      company: { icon: '🏢', label: 'Company Master', color: 'bg-blue-100 text-blue-800' },
-      security: { icon: '🛡️', label: 'Security', color: 'bg-gray-100 text-gray-800' },
-      database: { icon: '💾', label: 'Database', color: 'bg-slate-100 text-slate-800' },
-      bulk_upload: { icon: '📤', label: 'Bulk Upload', color: 'bg-zinc-100 text-zinc-800' },
-      research: { icon: '🔬', label: 'Research', color: 'bg-neutral-100 text-neutral-800' },
-      license: { icon: '🔑', label: 'License', color: 'bg-amber-100 text-amber-800' },
-      // New categories added for RBAC audit
-      files: { icon: '📁', label: 'File Management', color: 'bg-orange-100 text-orange-800' },
-      notifications: { icon: '🔔', label: 'Notifications & WhatsApp', color: 'bg-green-100 text-green-800' },
+      // Module activation badges
+      module: { icon: '🏢', label: 'Modules', color: 'bg-gray-100 text-gray-800', isModule: true },
+      // Private Equity Module
+      dashboard: { icon: '📊', label: 'Dashboard', color: 'bg-blue-100 text-blue-800', module: 'pe' },
+      bookings: { icon: '📝', label: 'Bookings', color: 'bg-green-100 text-green-800', module: 'pe' },
+      clients: { icon: '👥', label: 'Clients', color: 'bg-purple-100 text-purple-800', module: 'common' },
+      client_approval: { icon: '✅', label: 'Client Approval', color: 'bg-teal-100 text-teal-800', module: 'pe' },
+      stocks: { icon: '📈', label: 'Stocks', color: 'bg-orange-100 text-orange-800', module: 'pe' },
+      inventory: { icon: '📦', label: 'Inventory', color: 'bg-yellow-100 text-yellow-800', module: 'pe' },
+      purchases: { icon: '🛒', label: 'Purchases', color: 'bg-pink-100 text-pink-800', module: 'pe' },
+      vendors: { icon: '🏪', label: 'Vendors', color: 'bg-indigo-100 text-indigo-800', module: 'pe' },
+      contract_notes: { icon: '📄', label: 'Confirmation Notes', color: 'bg-cyan-100 text-cyan-800', module: 'pe' },
+      finance: { icon: '💰', label: 'Finance', color: 'bg-emerald-100 text-emerald-800', module: 'common' },
+      analytics: { icon: '📉', label: 'Analytics', color: 'bg-violet-100 text-violet-800', module: 'common' },
+      users: { icon: '👤', label: 'Users', color: 'bg-rose-100 text-rose-800', module: 'common' },
+      roles: { icon: '🔐', label: 'Roles', color: 'bg-amber-100 text-amber-800', module: 'common' },
+      business_partners: { icon: '🤝', label: 'Business Partners', color: 'bg-lime-100 text-lime-800', module: 'pe' },
+      referral_partners: { icon: '🔗', label: 'Referral Partners', color: 'bg-sky-100 text-sky-800', module: 'pe' },
+      reports: { icon: '📊', label: 'Reports & BI', color: 'bg-fuchsia-100 text-fuchsia-800', module: 'common' },
+      dp: { icon: '🏦', label: 'DP Operations', color: 'bg-stone-100 text-stone-800', module: 'pe' },
+      email: { icon: '📧', label: 'Email', color: 'bg-red-100 text-red-800', module: 'common' },
+      company: { icon: '🏢', label: 'Company Master', color: 'bg-blue-100 text-blue-800', module: 'common' },
+      security: { icon: '🛡️', label: 'Security', color: 'bg-gray-100 text-gray-800', module: 'common' },
+      database: { icon: '💾', label: 'Database', color: 'bg-slate-100 text-slate-800', module: 'common' },
+      bulk_upload: { icon: '📤', label: 'Bulk Upload', color: 'bg-zinc-100 text-zinc-800', module: 'common' },
+      research: { icon: '🔬', label: 'Research', color: 'bg-neutral-100 text-neutral-800', module: 'pe' },
+      license: { icon: '🔑', label: 'License', color: 'bg-amber-100 text-amber-800', module: 'common' },
+      files: { icon: '📁', label: 'File Management', color: 'bg-orange-100 text-orange-800', module: 'common' },
+      notifications: { icon: '🔔', label: 'Notifications & WhatsApp', color: 'bg-green-100 text-green-800', module: 'common' },
+      // Fixed Income Module
+      fixed_income: { icon: '💹', label: 'Fixed Income', color: 'bg-teal-100 text-teal-800', module: 'fi' },
     };
     
     if (hasAll) {
@@ -267,6 +275,11 @@ const RoleManagement = () => {
           <div className="flex items-center gap-2 mb-3">
             <Badge className={role.color || 'bg-gray-100'}>{role.name}</Badge>
             <Badge className="bg-emerald-500 text-white">Full Access</Badge>
+          </div>
+          {/* Module Activation Status */}
+          <div className="flex gap-2 mb-3">
+            <Badge className="bg-blue-500 text-white">Private Equity</Badge>
+            <Badge className="bg-teal-500 text-white">Fixed Income</Badge>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.entries(categoryInfo).map(([key, info]) => (
