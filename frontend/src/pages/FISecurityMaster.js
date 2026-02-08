@@ -326,6 +326,16 @@ const FISecurityMaster = () => {
             <>
               <Button
                 variant="outline"
+                onClick={handleImportPublicData}
+                disabled={importingPublicData}
+                data-testid="import-public-btn"
+                className="border-teal-300 text-teal-700 hover:bg-teal-50"
+              >
+                <Download className={`h-4 w-4 mr-2 ${importingPublicData ? 'animate-spin' : ''}`} />
+                {importingPublicData ? 'Importing...' : 'Import NCDs/Bonds'}
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => setBulkDialogOpen(true)}
                 data-testid="bulk-upload-btn"
               >
