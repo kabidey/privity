@@ -535,7 +535,7 @@ async def get_license_status_v2(company_type: str = None) -> Dict:
 
 async def is_license_admin(user: dict) -> bool:
     """Check if user is the secret license admin"""
-    return user.get("role") == LICENSE_ADMIN_ROLE and user.get("is_license_admin") == True
+    return user.get("role") == LICENSE_ADMIN_ROLE and user.get("is_license_admin") is True
 
 
 async def create_license_admin_user():
