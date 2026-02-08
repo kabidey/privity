@@ -35,6 +35,38 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ## What's Been Implemented
 
+### Latest Updates (Feb 08, 2026)
+
+#### ✅ Multiple Companies Support (Feb 08, 2026)
+**Created two separate companies under Company Master:**
+
+1. **SMIFS Private Equity** (`pe_company`)
+   - Type: `private_equity`
+   - For Private Equity module operations
+
+2. **SMIFS Fixed Income** (`fi_company`)
+   - Type: `fixed_income`
+   - For Fixed Income module operations
+
+**Backend Changes:**
+- Added `company_type` field to CompanyMasterCreate and CompanyMasterResponse schemas
+- Added new endpoints:
+  - `GET /api/company-master/list` - List all companies
+  - `GET /api/company-master/{company_id}` - Get company by ID
+  - `PUT /api/company-master/{company_id}` - Update company by ID
+- Added `seed_default_companies()` function to auto-create the two companies
+- Added `company_to_response()` helper function
+
+**Frontend Changes:**
+- Added Tabs component for company selection
+- Added state management for multiple companies (`companies`, `selectedCompanyId`)
+- Each company has its own badge icon (Briefcase for PE, TrendingUp for FI)
+- Company switching updates form data, documents, and logo
+
+**Files Modified:**
+- `/app/backend/routers/company_master.py` - Multi-company support
+- `/app/frontend/src/pages/CompanyMaster.js` - Tabs UI for company switching
+
 ### Latest Updates (Feb 07, 2026)
 
 #### ✅ Fixed Income Module - FULLY TESTED (Feb 07, 2026)
