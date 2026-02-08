@@ -187,12 +187,14 @@ class TestPrimaryMarketBids(TestAuthSetup):
     @pytest.fixture(scope="class")
     def test_client(self, api_client):
         """Get or create a test client for bid submission"""
-        # First try to get existing client
+        # First try to get existing client - API returns array directly
         response = api_client.get(f"{BASE_URL}/api/clients?limit=1")
         if response.status_code == 200:
             data = response.json()
-            if data.get("clients") and len(data["clients"]) > 0:
-                return data["clients"][0]
+            # API returns array directly, not {"clients": [...]}
+            clients = data if isinstance(data, list) else data.get("clients", [])
+            if clients and len(clients) > 0:
+                return clients[0]
         
         # Create a test client if none exists
         client_data = {
@@ -496,11 +498,13 @@ class TestAllotmentProcessing(TestAuthSetup):
         assert response.status_code == 200
         print("2. Opened issue")
         
-        # 3. Get a client
+        # 3. Get a client - API returns array directly
         response = api_client.get(f"{BASE_URL}/api/clients?limit=1")
-        if not response.json().get("clients"):
+        data = response.json()
+        clients = data if isinstance(data, list) else data.get("clients", [])
+        if not clients:
             pytest.skip("No clients available for bid")
-        client = response.json()["clients"][0]
+        client = clients[0]
         
         # 4. Submit a bid
         bid_data = {
@@ -623,11 +627,13 @@ class TestEdgeCases(TestAuthSetup):
             response = api_client.get(f"{BASE_URL}/api/fixed-income/primary-market/issues/{issue_id}")
             issue = response.json()
         
-        # Get a client
+        # Get a client - API returns array directly
         response = api_client.get(f"{BASE_URL}/api/clients?limit=1")
-        if not response.json().get("clients"):
+        data = response.json()
+        clients = data if isinstance(data, list) else data.get("clients", [])
+        if not clients:
             pytest.skip("No clients available")
-        client = response.json()["clients"][0]
+        client = clients[0]
         
         # Submit bid below minimum
         bid_data = {
