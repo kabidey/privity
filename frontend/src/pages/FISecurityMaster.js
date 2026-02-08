@@ -545,8 +545,15 @@ const FISecurityMaster = () => {
                   </TableHeader>
                   <TableBody>
                     {nsdlSearchResults.map((result) => (
-                      <TableRow key={result.isin} className={result.already_imported ? 'bg-gray-50' : ''}>
-                        <TableCell className="font-mono text-xs">{result.isin}</TableCell>
+                      <TableRow key={result.isin} className={result.already_imported ? 'bg-gray-50' : result.live_lookup ? 'bg-green-50' : ''}>
+                        <TableCell className="font-mono text-xs">
+                          {result.isin}
+                          {result.live_lookup && (
+                            <Badge variant="outline" className="ml-1 text-[10px] bg-green-100 text-green-700 border-green-300">
+                              LIVE
+                            </Badge>
+                          )}
+                        </TableCell>
                         <TableCell className="max-w-[200px] truncate" title={result.issuer_name}>
                           {result.issuer_name}
                         </TableCell>
@@ -563,15 +570,15 @@ const FISecurityMaster = () => {
                             result.credit_rating?.startsWith('AA') ? 'bg-blue-100 text-blue-800' :
                             'bg-gray-100 text-gray-800'
                           }>
-                            {result.credit_rating}
+                            {result.credit_rating || 'N/A'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs">{result.maturity_date}</TableCell>
+                        <TableCell className="text-xs">{result.maturity_date || 'N/A'}</TableCell>
                         <TableCell className="text-right">
                           {result.already_imported ? (
-                            <Badge variant="outline" className="text-gray-500">
+                            <Badge variant="outline" className={result.live_lookup ? "text-green-600 border-green-300" : "text-gray-500"}>
                               <Check className="h-3 w-3 mr-1" />
-                              Imported
+                              {result.live_lookup ? 'Auto-Imported' : 'Imported'}
                             </Badge>
                           ) : (
                             <Button
