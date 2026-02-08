@@ -24,6 +24,7 @@ from utils.auth import get_current_user
 from services.permission_service import require_permission, has_permission
 from services.email_service import send_email
 from config import is_pe_level, ROLES
+from middleware.license_enforcement import license_enforcer
 
 from .models import (
     FIOrder, FIOrderCreate, OrderStatus, OrderType,
