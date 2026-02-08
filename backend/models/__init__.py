@@ -139,6 +139,7 @@ class ClientCreate(BaseModel):
     is_vendor: bool = False
     is_proprietor: bool = False  # Flag for proprietorship entities
     has_name_mismatch: bool = False  # Flag if name mismatch was detected during creation
+    modules: List[str] = ["private_equity"]  # Modules client has access to: private_equity, fixed_income
 
 
 class Client(BaseModel):
