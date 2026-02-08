@@ -26,6 +26,13 @@ const Vendors = () => {
   const [ocrDialogOpen, setOcrDialogOpen] = useState(false);
   const [selectedOcrData, setSelectedOcrData] = useState(null);
   
+  // Clone from Client dialog states
+  const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
+  const [clients, setClients] = useState([]);
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [loadingClients, setLoadingClients] = useState(false);
+  const [cloningClientId, setCloningClientId] = useState(null);
+  
   // Name mismatch and proprietor workflow states
   const [ocrExtractedName, setOcrExtractedName] = useState('');
   const [nameMismatchDetected, setNameMismatchDetected] = useState(false);
