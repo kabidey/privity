@@ -128,7 +128,7 @@ const FISecurityMaster = () => {
       if (filters.credit_rating) params.append('credit_rating', filters.credit_rating);
       if (activeTab !== 'all') params.append('instrument_type', activeTab);
 
-      const response = await api.get(`/api/fixed-income/instruments?${params}`);
+      const response = await api.get(`/fixed-income/instruments?${params}`);
       setInstruments(response.data.instruments || []);
       setPagination(prev => ({ ...prev, total: response.data.total || 0 }));
     } catch (error) {
