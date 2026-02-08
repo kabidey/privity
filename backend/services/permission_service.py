@@ -16,28 +16,34 @@ logger = logging.getLogger(__name__)
 DEFAULT_ROLES = {
     1: {  # PE Desk
         "name": "PE Desk",
-        "permissions": ["*"]  # All permissions
+        "permissions": ["*"]  # All permissions including both modules
     },
     2: {  # PE Manager
         "name": "PE Manager",
         "permissions": [
+            # Module activation
+            "module.private_equity", "module.fixed_income",
+            # PE Module
             "dashboard.*", "bookings.*", "clients.*", "clients.rerun_ocr", "stocks.*", 
             "inventory.*", "purchases.*", "vendors.*", "finance.view",
             "finance.view_reports", "users.view", "business_partners.*",
             "referral_partners.*", "reports.*", "dp.*", "revenue.*",
             "research.*", "contract_notes.*",
-            # Fixed Income permissions
+            # Fixed Income Module
             "fixed_income.*"
         ]
     },
     3: {  # Finance
         "name": "Finance",
         "permissions": [
+            # Module activation
+            "module.private_equity", "module.fixed_income",
+            # PE Module
             "dashboard.view", "bookings.view", "bookings.view_all",
             "bookings.record_payment", "finance.*", "reports.view",
             "reports.view_reports", "purchases.view", "purchases.record_payment",
             "revenue.rp_view", "revenue.employee_view",
-            # Fixed Income - view and payment
+            # Fixed Income Module
             "fixed_income.view", "fixed_income.report_view", 
             "fixed_income.payment_record"
         ]
@@ -45,43 +51,50 @@ DEFAULT_ROLES = {
     4: {  # Viewer
         "name": "Viewer",
         "permissions": [
+            # Module activation
+            "module.private_equity", "module.fixed_income",
+            # PE Module
             "dashboard.view", "bookings.view", "bookings.view_all",
             "clients.view", "stocks.view", "inventory.view",
             "purchases.view", "vendors.view", "finance.view",
             "users.view", "business_partners.view", "referral_partners.view",
             "reports.view", "research.view", "revenue.rp_view", "revenue.employee_view",
-            # Fixed Income - view only
+            # Fixed Income Module
             "fixed_income.view", "fixed_income.order_view", "fixed_income.report_view"
         ]
     },
     5: {  # Partners Desk
         "name": "Partners Desk",
         "permissions": [
+            # Module activation - PE only for partners desk
+            "module.private_equity",
+            # PE Module
             "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "business_partners.*",
-            "referral_partners.view", "revenue.rp_view",
-            # Fixed Income - view and order creation
-            "fixed_income.view", "fixed_income.order_view", 
-            "fixed_income.order_create", "fixed_income.report_view"
+            "referral_partners.view", "revenue.rp_view"
         ]
     },
     6: {  # Business Partner
         "name": "Business Partner",
         "permissions": [
+            # Module activation - PE only for business partners
+            "module.private_equity",
+            # PE Module
             "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
-            "clients.view", "clients.create",
-            # Fixed Income - limited view
-            "fixed_income.view", "fixed_income.order_view", "fixed_income.report_view"
+            "clients.view", "clients.create"
         ]
     },
     7: {  # Employee
         "name": "Employee",
         "permissions": [
+            # Module activation
+            "module.private_equity", "module.fixed_income",
+            # PE Module
             "dashboard.view", "dashboard.my_view", "bookings.view", "bookings.create",
             "clients.view", "clients.create", "clients.edit",
             "stocks.view", "inventory.view", "revenue.rp_view",
             "revenue.employee_view", "revenue.team_view", "research.view",
-            # Fixed Income - view and order creation
+            # Fixed Income Module
             "fixed_income.view", "fixed_income.order_view", 
             "fixed_income.order_create", "fixed_income.order_send",
             "fixed_income.report_view"
