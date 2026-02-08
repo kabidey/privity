@@ -1257,3 +1257,164 @@ async def get_vendor_to_pay_list(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+# ==================== VENDOR TO PAY CALCULATIONS ====================
+
+# Constants for calculations
+TO_PAY_TCS_RATE = 0.001  # 0.1% TCS
+TO_PAY_TCS_THRESHOLD = 5000000  # 50 lakhs threshold for TCS
+TO_PAY_STAMP_DUTY_RATE = 0.00015  # 0.015% Stamp Duty
+
+
+def get_current_fy_range() -> tuple:
+    """Get Indian Financial Year (April to March) start and end dates"""
+    today = datetime.now()
+    year = today.year
+    month = today.month
+    
+    if month >= 4:
+        fy_start = f"{year}-04-01"
+        fy_end = f"{year + 1}-03-31"
+        fy_label = f"FY {year}-{str(year + 1)[2:]}"
+    else:
+        fy_start = f"{year - 1}-04-01"
+        fy_end = f"{year}-03-31"
+        fy_label = f"FY {year - 1}-{str(year)[2:]}"
+    
+    return fy_start, fy_end, fy_label
+
+
+async def get_vendor_fy_cumulative(vendor_id: str, exclude_purchase_id: str = None) -> float:
+    """Get total amount already paid to vendor in current FY (for TCS calculation)"""
+    fy_start, fy_end, _ = get_current_fy_range()
+    
+    purchases = await db.purchases.find({"vendor_id": vendor_id}, {"_id": 0, "id": 1}).to_list(1000)
+    purchase_ids = [p["id"] for p in purchases]
+    
+    if not purchase_ids:
+        return 0.0
+    
+    if exclude_purchase_id and exclude_purchase_id in purchase_ids:
+        purchase_ids = [pid for pid in purchase_ids if pid != exclude_purchase_id]
+    
+    if not purchase_ids:
+        return 0.0
+    
+    payments = await db.purchase_payments.find({
+        "purchase_id": {"$in": purchase_ids},
+        "payment_date": {"$gte": fy_start, "$lte": fy_end},
+        "status": {"$in": ["completed", "paid"]}
+    }, {"_id": 0, "net_payment": 1, "amount": 1}).to_list(10000)
+    
+    total = sum(p.get("net_payment", p.get("amount", 0)) for p in payments)
+    return total
+
+
+@router.get("/finance/to-pay")
+async def get_vendor_to_pay_list(
+    status: Optional[str] = Query(None, description="Filter by status"),
+    current_user: dict = Depends(get_current_user),
+    _: None = Depends(require_permission("finance.view", "view vendor payments"))
+):
+    """
+    Get list of purchases pending payment with full calculation breakdown.
+    
+    A = Gross Consideration = Purchase Price x Number of Shares
+    B = TCS = 0.1% if FY cumulative payments exceed 50 lakhs
+    C = Stamp Duty = 0.015% of Gross Consideration
+    D = Net Payable = A - B - C (Amount to pay to vendor)
+    """
+    query = {}
+    if status:
+        query["status"] = status
+    else:
+        query["status"] = {"$in": ["pending", "received", "partial"]}
+    
+    purchases = await db.purchases.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    result = []
+    fy_start, fy_end, fy_label = get_current_fy_range()
+    
+    for purchase in purchases:
+        vendor_id = purchase.get("vendor_id")
+        stock_id = purchase.get("stock_id")
+        
+        vendor = await db.clients.find_one({"id": vendor_id}, {"_id": 0, "name": 1, "pan_number": 1, "dp_id": 1})
+        if not vendor:
+            continue
+        
+        stock = await db.stocks.find_one({"id": stock_id}, {"_id": 0, "symbol": 1, "name": 1})
+        
+        price_per_unit = float(purchase.get("price_per_unit", 0))
+        quantity = int(purchase.get("quantity", 0))
+        gross_consideration = price_per_unit * quantity
+        
+        vendor_fy_paid = await get_vendor_fy_cumulative(vendor_id, purchase.get("id"))
+        cumulative_after_this = vendor_fy_paid + gross_consideration
+        tcs_applicable = cumulative_after_this > TO_PAY_TCS_THRESHOLD
+        
+        if tcs_applicable:
+            if vendor_fy_paid >= TO_PAY_TCS_THRESHOLD:
+                tcs_amount = gross_consideration * TO_PAY_TCS_RATE
+            else:
+                amount_exceeding = cumulative_after_this - TO_PAY_TCS_THRESHOLD
+                tcs_amount = amount_exceeding * TO_PAY_TCS_RATE
+        else:
+            tcs_amount = 0.0
+        
+        stamp_duty = gross_consideration * TO_PAY_STAMP_DUTY_RATE
+        net_payable = gross_consideration - tcs_amount - stamp_duty
+        
+        existing_payments = await db.purchase_payments.find(
+            {"purchase_id": purchase.get("id"), "status": {"$in": ["completed", "paid"]}},
+            {"_id": 0, "net_payment": 1, "amount": 1}
+        ).to_list(100)
+        already_paid = sum(p.get("net_payment", p.get("amount", 0)) for p in existing_payments)
+        remaining_to_pay = max(0, net_payable - already_paid)
+        
+        result.append({
+            "purchase_id": purchase.get("id"),
+            "purchase_number": purchase.get("purchase_number"),
+            "purchase_date": purchase.get("purchase_date") or purchase.get("created_at"),
+            "status": purchase.get("status"),
+            "vendor_id": vendor_id,
+            "vendor_name": vendor.get("name"),
+            "vendor_pan": vendor.get("pan_number"),
+            "vendor_dp_id": vendor.get("dp_id"),
+            "stock_id": stock_id,
+            "stock_symbol": stock.get("symbol") if stock else purchase.get("stock_symbol", "N/A"),
+            "stock_name": stock.get("name") if stock else "N/A",
+            "quantity": quantity,
+            "price_per_unit": round(price_per_unit, 2),
+            "gross_consideration": round(gross_consideration, 2),
+            "tcs_applicable": tcs_applicable,
+            "tcs_rate": TO_PAY_TCS_RATE * 100 if tcs_applicable else 0,
+            "tcs_amount": round(tcs_amount, 2),
+            "stamp_duty_rate": TO_PAY_STAMP_DUTY_RATE * 100,
+            "stamp_duty_amount": round(stamp_duty, 2),
+            "net_payable": round(net_payable, 2),
+            "already_paid": round(already_paid, 2),
+            "remaining_to_pay": round(remaining_to_pay, 2),
+            "financial_year": fy_label,
+            "vendor_fy_cumulative_before": round(vendor_fy_paid, 2),
+            "vendor_fy_cumulative_after": round(cumulative_after_this, 2),
+            "tcs_threshold": TO_PAY_TCS_THRESHOLD,
+            "tcs_threshold_exceeded": cumulative_after_this > TO_PAY_TCS_THRESHOLD
+        })
+    
+    return {
+        "financial_year": fy_label,
+        "tcs_threshold": TO_PAY_TCS_THRESHOLD,
+        "tcs_rate_percent": TO_PAY_TCS_RATE * 100,
+        "stamp_duty_rate_percent": TO_PAY_STAMP_DUTY_RATE * 100,
+        "to_pay_list": result,
+        "summary": {
+            "total_purchases": len(result),
+            "total_gross_consideration": round(sum(r["gross_consideration"] for r in result), 2),
+            "total_tcs": round(sum(r["tcs_amount"] for r in result), 2),
+            "total_stamp_duty": round(sum(r["stamp_duty_amount"] for r in result), 2),
+            "total_net_payable": round(sum(r["net_payable"] for r in result), 2),
+            "total_remaining": round(sum(r["remaining_to_pay"] for r in result), 2)
+        }
+    }
