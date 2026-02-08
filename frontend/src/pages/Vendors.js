@@ -605,16 +605,14 @@ const Vendors = () => {
           }}>
           <DialogContent className="sm:max-w-3xl" aria-describedby="vendor-dialog-description">
             <DialogHeader>
-              <DialogTitle>{editingVendor ? 'Edit Vendor' : 'Add New Vendor'}</DialogTitle>
+              <DialogTitle>Edit Vendor</DialogTitle>
             </DialogHeader>
-            <p id="vendor-dialog-description" className="sr-only">Form to add or edit vendor details</p>
+            <p id="vendor-dialog-description" className="sr-only">Form to edit vendor details</p>
             
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="details">Vendor Details</TabsTrigger>
-                <TabsTrigger value="documents">
-                  Documents {!editingVendor && <span className="text-red-500 ml-1">*</span>}
-                </TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
               </TabsList>
               
               <TabsContent value="details">
