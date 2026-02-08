@@ -15,6 +15,25 @@ export const getCurrentBuildInfo = () => {
 
 const CHANGELOG = [
   {
+    version: 'v7.2.2.1',
+    date: '2026-02-08',
+    title: 'Fixed Income Module & Multi-Company Support',
+    changes: [
+      { type: 'feature', description: 'Fixed Income Module - Complete NCD/Bond/G-Sec trading and management portal' },
+      { type: 'feature', description: 'Security Master - Instrument CRUD with YTM/Dirty Price calculator' },
+      { type: 'feature', description: 'Order Management System - Create, approve, settle orders with workflow' },
+      { type: 'feature', description: 'Primary Market IPO/NFO - Subscribe to new issues with bid submission and allotment' },
+      { type: 'feature', description: 'FI Reports Dashboard - Holdings, Cash Flow, Maturity, Analytics, Transactions' },
+      { type: 'feature', description: 'Multi-Company Support - Separate companies for Private Equity and Fixed Income modules' },
+      { type: 'feature', description: 'Module-Based Permissions - Granular RBAC with module.private_equity and module.fixed_income flags' },
+      { type: 'feature', description: 'Module Activation Toggles - Role Management UI with switches to enable/disable modules per role' },
+      { type: 'feature', description: 'Bulk Instrument Upload - CSV upload for security master data' },
+      { type: 'feature', description: 'Market Data Integration - Structure ready for NSE/BSE feeds (mock provider for dev)' },
+      { type: 'improvement', description: 'Cache Busting - Browser automatically reloads when version changes' },
+      { type: 'improvement', description: 'Visual Permission View - Module badges (Private Equity, Fixed Income) in Role Management' },
+    ]
+  },
+  {
     version: 'v6.2.4.7',
     date: '2026-02-04',
     title: 'Business Intelligence & WhatsApp Integration',
