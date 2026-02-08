@@ -37,6 +37,42 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ Web Import of INE04HY07351 - Vedika Credit Capital NCD (Feb 08, 2026)
+
+**Imported comprehensive bond details from web search:**
+
+**Instrument Details:**
+- **ISIN**: INE04HY07351
+- **Issuer**: Vedika Credit Capital Limited
+- **Type**: Secured Rated Listed Redeemable Non-Convertible Debenture (Series B)
+- **Face Value**: ₹1,00,000
+- **Issue Price**: ₹1,00,246
+- **Issue Size**: ₹35 Crores
+- **Coupon**: 11.25% Monthly (Fixed)
+- **Issue Date**: Nov 27, 2025
+- **Maturity**: Nov 27, 2027
+- **Credit Rating**: A- (Infomerics, Stable outlook)
+- **Sector**: NBFC-MFI
+
+**Additional Details Captured:**
+- Debenture Trustee: Catalyst Trusteeship Limited
+- Registrar: Niche Technologies Private Limited
+- Security Type: Secured, Senior
+- NRI Eligible: Yes
+- Active on NSDL & CDSL
+- Monthly coupon: ₹955.48 per ₹1 lakh face value
+
+**Issuer Profile:**
+- Operating States: Jharkhand, Bihar, West Bengal, UP, Assam, Odisha, Tripura
+- Debt/EBITDA: 5.87x (FY25)
+- Interest Coverage: 1.33x
+- Collection Efficiency: 99%
+- Co-lending Partner: State Bank of India
+
+**NSDL Search Database Updated:**
+- Added Vedika Credit Capital NCDs (INE04HY07351, INE04HY07310)
+- Now searchable via NSDL Search feature
+
 #### ✅ FI Dashboard Interactive Charts & Mobile Responsiveness (Feb 08, 2026)
 
 **Enhanced FI Dashboard with Recharts v3.7.0:**
