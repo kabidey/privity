@@ -81,8 +81,21 @@ const Finance = () => {
   useEffect(() => {
     if (hasFinanceAccess) {
       fetchData();
+      fetchToPayData();
     }
   }, [filters, hasFinanceAccess]);
+
+  const fetchToPayData = async () => {
+    setLoadingToPay(true);
+    try {
+      const response = await api.get('/finance/to-pay');
+      setToPayData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch to-pay data:', error);
+    } finally {
+      setLoadingToPay(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
