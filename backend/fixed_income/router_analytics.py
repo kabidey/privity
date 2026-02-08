@@ -14,7 +14,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, Field
 
 from utils.auth import get_current_user
-from middleware.license_enforcement import require_permission
+from services.permission_service import require_permission
 
 from .yield_curve_analytics import (
     get_yield_curves,
