@@ -119,7 +119,7 @@ class TestRatingFilter:
         """Search for AAA rated instruments only"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "A", "rating_filter": "AAA", "limit": 50},
+            params={"query": "AAA", "rating_filter": "AAA", "limit": 50},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
@@ -139,7 +139,7 @@ class TestRatingFilter:
         """Search for AA+ rated instruments"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "A", "rating_filter": "AA+", "limit": 50},
+            params={"query": "AA", "rating_filter": "AA+", "limit": 50},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
@@ -183,7 +183,7 @@ class TestSectorFilter:
         """Search for Infrastructure sector instruments"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "A", "sector_filter": "Infrastructure", "limit": 50},
+            params={"query": "Infra", "sector_filter": "Infrastructure", "limit": 50},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
@@ -203,7 +203,7 @@ class TestSectorFilter:
         """Search for NBFC sector instruments"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "A", "sector_filter": "NBFC", "limit": 50},
+            params={"query": "NCD", "sector_filter": "NBFC", "limit": 50},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
@@ -257,7 +257,7 @@ class TestInstrumentTypeFilter:
         """Search for NCD type instruments only"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "A", "instrument_type": "NCD", "limit": 50},
+            params={"query": "NCD", "instrument_type": "NCD", "limit": 50},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
@@ -277,7 +277,7 @@ class TestInstrumentTypeFilter:
         """Search for BOND type instruments only"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "A", "instrument_type": "BOND", "limit": 50},
+            params={"query": "Bond", "instrument_type": "BOND", "limit": 50},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
@@ -492,7 +492,7 @@ class TestCombinedFilters:
         """Search with both rating and type filter"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "A", "rating_filter": "AAA", "instrument_type": "NCD"},
+            params={"query": "NCD", "rating_filter": "AAA", "instrument_type": "NCD"},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
@@ -514,7 +514,7 @@ class TestCombinedFilters:
         """Search with both sector and rating filter"""
         response = requests.get(
             f"{BASE_URL}/api/fixed-income/instruments/nsdl-search",
-            params={"query": "A", "sector_filter": "Infrastructure", "rating_filter": "AAA"},
+            params={"query": "Bond", "sector_filter": "Infrastructure", "rating_filter": "AAA"},
             headers=auth_headers
         )
         assert response.status_code == 200, f"Search failed: {response.text}"
