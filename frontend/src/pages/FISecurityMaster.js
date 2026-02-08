@@ -396,13 +396,22 @@ const FISecurityMaster = () => {
             <>
               <Button
                 variant="outline"
+                onClick={() => setNsdlSearchOpen(true)}
+                data-testid="nsdl-search-btn"
+                className="border-blue-300 text-blue-700 hover:bg-blue-50"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                NSDL Search
+              </Button>
+              <Button
+                variant="outline"
                 onClick={handleImportPublicData}
                 disabled={importingPublicData}
                 data-testid="import-public-btn"
                 className="border-teal-300 text-teal-700 hover:bg-teal-50"
               >
                 <Download className={`h-4 w-4 mr-2 ${importingPublicData ? 'animate-spin' : ''}`} />
-                {importingPublicData ? 'Importing...' : 'Import NCDs/Bonds'}
+                {importingPublicData ? 'Importing...' : 'Import All'}
               </Button>
               <Button
                 variant="outline"
@@ -424,6 +433,156 @@ const FISecurityMaster = () => {
           )}
         </div>
       </div>
+
+      {/* NSDL Search Dialog */}
+      <Dialog open={nsdlSearchOpen} onOpenChange={setNsdlSearchOpen}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-blue-600" />
+              Search NSDL Database
+            </DialogTitle>
+            <DialogDescription>
+              Search for NCDs, Bonds, and G-Secs by ISIN or Company name and import them into Security Master
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Search Form */}
+          <div className="flex gap-2 mb-4">
+            <Input 
+              placeholder="Enter ISIN (e.g., INE002A) or Company name (e.g., Reliance, HDFC)..."
+              value={nsdlSearchQuery}
+              onChange={(e) => setNsdlSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleNsdlSearch()}
+              className="flex-1"
+              data-testid="nsdl-search-input"
+            />
+            <Select value={nsdlSearchType} onValueChange={setNsdlSearchType}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Fields</SelectItem>
+                <SelectItem value="isin">ISIN Only</SelectItem>
+                <SelectItem value="company">Company Only</SelectItem>
+                <SelectItem value="rating">By Rating</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleNsdlSearch} disabled={nsdlSearching} className="bg-blue-600 hover:bg-blue-700">
+              {nsdlSearching ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <Search className="h-4 w-4 mr-2" />
+                  Search
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Search Results */}
+          <div className="flex-1 overflow-y-auto">
+            {nsdlSearchResults.length > 0 ? (
+              <>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-muted-foreground">
+                    Found {nsdlSearchResults.length} instruments
+                    {nsdlSearchResults.filter(r => r.can_import).length > 0 && (
+                      <span className="ml-2 text-green-600">
+                        ({nsdlSearchResults.filter(r => r.can_import).length} available to import)
+                      </span>
+                    )}
+                  </span>
+                  {nsdlSearchResults.filter(r => r.can_import).length > 0 && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={handleNsdlImportAll}
+                      className="border-green-300 text-green-700 hover:bg-green-50"
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Import All Available
+                    </Button>
+                  )}
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>ISIN</TableHead>
+                      <TableHead>Issuer</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Coupon</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>Maturity</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {nsdlSearchResults.map((result) => (
+                      <TableRow key={result.isin} className={result.already_imported ? 'bg-gray-50' : ''}>
+                        <TableCell className="font-mono text-xs">{result.isin}</TableCell>
+                        <TableCell className="max-w-[200px] truncate" title={result.issuer_name}>
+                          {result.issuer_name}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">
+                            {result.instrument_type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{result.coupon_rate}%</TableCell>
+                        <TableCell>
+                          <Badge className={
+                            result.credit_rating === 'AAA' ? 'bg-green-100 text-green-800' :
+                            result.credit_rating === 'SOVEREIGN' ? 'bg-orange-100 text-orange-800' :
+                            result.credit_rating?.startsWith('AA') ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {result.credit_rating}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">{result.maturity_date}</TableCell>
+                        <TableCell className="text-right">
+                          {result.already_imported ? (
+                            <Badge variant="outline" className="text-gray-500">
+                              <Check className="h-3 w-3 mr-1" />
+                              Imported
+                            </Badge>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => handleNsdlImport(result.isin)}
+                              disabled={nsdlImporting[result.isin]}
+                              className="bg-green-600 hover:bg-green-700 h-7 text-xs"
+                            >
+                              {nsdlImporting[result.isin] ? (
+                                <RefreshCw className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <>
+                                  <Download className="h-3 w-3 mr-1" />
+                                  Import
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="text-lg font-medium">Search NSDL Database</p>
+                <p className="text-sm mt-1">Enter ISIN or company name to find NCDs, Bonds, and G-Secs</p>
+                <div className="mt-4 text-xs text-gray-400">
+                  <p>Examples: "INE002A", "Reliance", "HDFC", "Bajaj", "AAA"</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Filters */}
       <Card>
