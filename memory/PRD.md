@@ -37,6 +37,44 @@ Build a Share Booking System for managing client share bookings, inventory track
 
 ### Latest Updates (Feb 08, 2026)
 
+#### ✅ FI Dashboard Interactive Charts & Mobile Responsiveness (Feb 08, 2026)
+
+**Enhanced FI Dashboard with Recharts v3.7.0:**
+
+*New Metrics Added:*
+- **Average Duration**: Portfolio duration analysis (years)
+- **Duration Distribution**: < 1 year, 1-3 years, 3-5 years, 5-7 years, 7+ years
+- **Sector Breakdown**: NBFC, Banking, Infrastructure, Government, Others
+- **12-Month Cash Flow Calendar**: Expected coupons and maturities by month
+
+*Interactive Charts (Recharts):*
+- **Donut Chart**: Holdings by Type (NCD/BOND/GSEC)
+- **Horizontal Bar Chart**: Credit Rating Distribution (AAA, AA+, AA, etc.)
+- **Pie Chart**: Sector Allocation
+- **Bar Chart**: Duration Distribution
+- **Area Chart**: YTM Distribution with gradient fill
+- **Composed Chart**: Cash Flow Calendar (Stacked bars + line)
+
+*4-Tab Navigation:*
+1. **Overview**: Holdings analysis + Upcoming events
+2. **Analytics**: Sector, Duration, YTM charts
+3. **Cash Flow**: 12-month calendar + summary cards
+4. **Activity**: Recent orders + Quick actions
+
+*Mobile Responsive Design:*
+- 2-column grid for summary cards on mobile
+- Tabs fit 4-column layout on small screens
+- Chart cards stack vertically
+- Touch-friendly Quick Actions buttons
+- Tested at 390x844 viewport
+
+**Testing Results:**
+- Backend: 100% (10/10 passed)
+- Frontend: 100% (All tabs, charts, mobile verified)
+- Test report: `/app/test_reports/iteration_84.json`
+
+**Note:** Dashboard uses mock data fallback when no real holdings exist in database.
+
 #### ✅ License Enforcement, Client Segregation & FI Dashboard (Feb 08, 2026)
 
 **1. License Enforcement (Frontend + Backend)**
