@@ -769,14 +769,18 @@ class TestLicenseAdminNoSecurityAlerts:
     
     def test_license_admin_hidden_flag_in_user_doc(self):
         """Verify license admin has is_hidden=True flag (which skips security logging)"""
-        token = get_license_admin_token()
-        assert token, "Failed to get license admin token"
-        
+        # Force fresh login
         session = requests.Session()
-        session.headers.update({
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {token}"
+        session.headers.update({"Content-Type": "application/json"})
+        login_response = session.post(f"{BASE_URL}/api/auth/login", json={
+            "email": LICENSE_ADMIN_EMAIL,
+            "password": LICENSE_ADMIN_PASSWORD
         })
+        assert login_response.status_code == 200, f"License admin login failed: {login_response.text}"
+        token = login_response.json().get("token")
+        assert token, "No token in login response"
+        
+        session.headers.update({"Authorization": f"Bearer {token}"})
         
         # Get current user info
         response = session.get(f"{BASE_URL}/api/auth/me")
