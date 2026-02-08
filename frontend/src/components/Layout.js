@@ -524,21 +524,35 @@ const Layout = ({ children }) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || 
                 (item.path !== '/' && location.pathname.startsWith(item.path));
+              const isLicensed = item.licensed !== false;
+              
               return (
                 <button
                   key={item.path}
                   data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  onClick={() => navigate(item.path)}
-                  className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 active:scale-95 aspect-square ${
-                    isActive
-                      ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
-                      : 'bg-gray-50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400'
+                  onClick={() => {
+                    if (isLicensed) {
+                      navigate(item.path);
+                    } else {
+                      toast.error(item.licenseMessage || 'Feature not licensed. Contact admin to unlock.');
+                    }
+                  }}
+                  title={!isLicensed ? item.licenseMessage : item.label}
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-200 active:scale-95 aspect-square relative ${
+                    !isLicensed
+                      ? 'bg-gray-100 dark:bg-gray-800/30 text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-60'
+                      : isActive
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
+                        : 'bg-gray-50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400'
                   }`}
                 >
                   <Icon className={`h-6 w-6 ${isActive ? 'text-white' : ''}`} strokeWidth={1.5} />
                   <span className={`text-[10px] font-medium text-center leading-tight mt-1.5 line-clamp-2 ${isActive ? 'text-white' : ''}`}>
                     {item.label}
                   </span>
+                  {!isLicensed && (
+                    <Lock className="absolute top-1 right-1 h-3 w-3 text-amber-500" />
+                  )}
                 </button>
               );
             })}
